@@ -23,7 +23,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 
-import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -37,6 +36,7 @@ import com.replate.app.models.CartItem;
 
 import java.io.FileOutputStream;
 import java.io.Serializable;
+import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -52,7 +52,6 @@ import lk.payhere.androidsdk.PHConstants;
 import lk.payhere.androidsdk.PHMainActivity;
 import lk.payhere.androidsdk.model.InitRequest;
 import lk.payhere.androidsdk.model.Item;
-import lk.payhere.androidsdk.model.StatusResponse;
 
 public class CheckoutActivity extends AppCompatActivity {
 
@@ -60,7 +59,7 @@ public class CheckoutActivity extends AppCompatActivity {
     private static final int PAYHERE_REQUEST = 11001;
 
     private static final String MERCHANT_ID = "1231640";
-    private static final String PAYHERE_NOTIFY_URL = "https://replate.app/payhere/notify";
+    private static final String MERCHANT_SECRET = "REMOVED_SECRET";
 
     private LinearLayout orderItemsContainer;
     private TextView tvSubtotal, tvSavings, tvTotal;
@@ -260,6 +259,7 @@ public class CheckoutActivity extends AppCompatActivity {
     private void startSandboxPayment() {
         InitRequest req = new InitRequest();
         req.setMerchantId(MERCHANT_ID);
+        applyMerchantSecretIfSupported(req);
         req.setCurrency("LKR");
         req.setAmount(totalAmount);
         req.setOrderId("RPL-" + System.currentTimeMillis());
@@ -293,6 +293,16 @@ public class CheckoutActivity extends AppCompatActivity {
         startActivityForResult(intent, PAYHERE_REQUEST);
     }
 
+    private void applyMerchantSecretIfSupported(InitRequest req) {
+        try {
+            Method m = req.getClass().getMethod("setMerchantSecret", String.class);
+            m.invoke(req, MERCHANT_SECRET);
+            Log.d(TAG, "Applied merchant secret to InitRequest via SDK method");
+        } catch (Exception ignore) {
+            // SDK version may not expose merchant secret setter; sandbox can still proceed.
+        }
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -300,8 +310,30 @@ public class CheckoutActivity extends AppCompatActivity {
         if (requestCode == PAYHERE_REQUEST && data != null && data.hasExtra(PHConstants.INTENT_EXTRA_RESULT)) {
             Serializable response = data.getSerializableExtra(PHConstants.INTENT_EXTRA_RESULT);
             String responseText = response != null ? response.toString() : "No response payload";
+            String lower = responseText.toLowerCase(Locale.US);
 
-            if (resultCode == Activity.RESULT_OK) {
+            if (lower.contains("unauthorized domain") || lower.contains("unauthorized")) {
+                Toast.makeText(this,
+                        "PayHere blocked this request (unauthorized domain). Use sandbox merchant + approved URLs.",
+                        Toast.LENGTH_LONG).show();
+                Log.e(TAG, "PayHere unauthorized response: " + responseText);
+                return;
+            }
+
+            boolean success = (resultCode == Activity.RESULT_OK);
+            if (response != null) {
+                try {
+                    Method isSuccess = response.getClass().getMethod("isSuccess");
+                    Object v = isSuccess.invoke(response);
+                    if (v instanceof Boolean) {
+                        success = (Boolean) v;
+                    }
+                } catch (Exception ignore) {
+                    // Keep resultCode fallback.
+                }
+            }
+
+            if (success) {
                 Log.d(TAG, "Payment success: " + responseText);
                 submitOrder("PayHere Online", "paid");
             } else if (resultCode == Activity.RESULT_CANCELED) {

@@ -30,8 +30,8 @@ public class PayHereWebCheckoutActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_payhere_web_checkout);
 
-        webView = findViewById(R.id.webCheckout);
-        progressBar = findViewById(R.id.progressCheckout);
+        webView = findViewById(R.id.web_checkout);
+        progressBar = findViewById(R.id.progress_checkout);
 
         String html = getIntent().getStringExtra(EXTRA_CHECKOUT_HTML);
         String orderId = getIntent().getStringExtra(EXTRA_ORDER_ID);
@@ -108,4 +108,3 @@ public class PayHereWebCheckoutActivity extends AppCompatActivity {
         super.onBackPressed();
     }
 }
-
