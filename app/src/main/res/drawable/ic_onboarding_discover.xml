@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+
+    <!-- Background Circle -->
+    <path
+        android:fillColor="#E8F5E9"
+        android:pathData="M100,100m-90,0a90,90 0,1 1,180 0a90,90 0,1 1,-180 0"/>
+
+    <!-- Food Plate -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M100,140 A60,30 0,1 1,160,140 A60,30 0,1 1,100,140Z"
+        android:strokeColor="#4CAF50"
+        android:strokeWidth="3"/>
+
+    <!-- Food items on plate -->
+    <path
+        android:fillColor="#FF9800"
+        android:pathData="M80,120 C75,110 85,100 95,105 C105,95 120,100 115,115 C130,110 135,125 120,130 Z"/>
+
+    <path
+        android:fillColor="#8BC34A"
+        android:pathData="M125,115 C130,108 140,112 138,120 C145,118 148,128 140,132 C145,138 135,145 128,138 C122,142 115,135 120,128 Z"/>
+
+    <!-- Discount Tag -->
+    <path
+        android:fillColor="#F44336"
+        android:pathData="M45,50 L75,50 L85,65 L75,80 L45,80 Z"/>
+
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M55,65 A5,5 0,1 1,65,65 A5,5 0,1 1,55,65Z"/>
+
+    <!-- Percentage sign -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M50,58 L70,72 M52,70 A3,3 0,1 1,58,70 A3,3 0,1 1,52,70Z M62,58 A3,3 0,1 1,68,58 A3,3 0,1 1,62,58Z"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"/>
+
+    <!-- Arrow pointing to food -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M85,65 Q100,70 100,90"
+        android:strokeColor="#4CAF50"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"/>
+
+    <!-- Arrow head -->
+    <path
+        android:fillColor="#4CAF50"
+        android:pathData="M95,88 L100,98 L105,88 Z"/>
+
+</vector>
+

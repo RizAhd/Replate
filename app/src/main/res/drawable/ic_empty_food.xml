@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="100dp"
+    android:height="100dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+
+    <!-- Plate -->
+    <path
+        android:fillColor="#E0E0E0"
+        android:pathData="M50,70 A35,17 0,1 1,85,70 A35,17 0,1 1,50,70Z"/>
+
+    <!-- Fork -->
+    <path
+        android:fillColor="#BDBDBD"
+        android:pathData="M25,25 L25,50 L28,50 L28,35 L31,35 L31,50 L34,50 L34,35 L37,35 L37,50 L40,50 L40,25 L37,25 L37,30 L34,30 L34,25 L31,25 L31,30 L28,30 L28,25 Z"/>
+
+    <!-- Knife -->
+    <path
+        android:fillColor="#BDBDBD"
+        android:pathData="M65,25 L75,25 L75,35 C75,40 70,45 65,50 L65,25 Z"/>
+
+    <!-- Question mark -->
+    <path
+        android:fillColor="#9E9E9E"
+        android:pathData="M50,40 C45,40 42,44 42,48 L47,48 C47,46 48,45 50,45 C52,45 53,46 53,48 C53,52 47,51 47,58 L52,58 C52,53 58,54 58,48 C58,43 55,40 50,40 Z M47,62 L52,62 L52,67 L47,67 Z"/>
+
+</vector>
+

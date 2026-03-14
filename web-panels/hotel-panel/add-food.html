@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Food - REPLATE Hotel</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+            <div class="position-sticky">
+                <a class="navbar-brand d-block px-3 py-3 mb-3 text-center" href="#">
+                    <i class="fas fa-utensils me-2"></i>REPLATE
+                </a>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="dashboard.html">
+                            <i class="fas fa-home"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="add-food.html">
+                            <i class="fas fa-plus-circle"></i> Add Food
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="manage-listings.html">
+                            <i class="fas fa-list"></i> My Listings
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="orders.html">
+                            <i class="fas fa-receipt"></i> Orders
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Add New Food Item</h1>
+            </div>
+
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card p-4">
+                        <form id="addFoodForm">
+                            <!-- Image Upload -->
+                            <div class="mb-4 text-center">
+                                <div id="imagePreviewContainer" class="mb-3" style="height: 200px; background-color: #f8f9fa; border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 2px dashed #ccc; cursor: pointer;">
+                                    <img id="preview" src="#" alt="Food Preview" style="display: none; height: 100%; width: 100%; object-fit: cover;">
+                                    <div id="uploadPlaceholder" class="text-secondary">
+                                        <i class="fas fa-cloud-upload-alt fa-3x mb-2"></i>
+                                        <p>Click to upload food image</p>
+                                    </div>
+                                </div>
+                                <input type="file" id="foodImage" class="d-none" accept="image/*" required>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Food Name</label>
+                                    <input type="text" class="form-control" id="foodName" required placeholder="e.g. Chicken Rice">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Category</label>
+                                    <select class="form-select" id="category" required>
+                                        <option value="" selected disabled>Select Category</option>
+                                        <!-- Categories will be loaded from Firebase -->
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Description</label>
+                                <textarea class="form-control" id="description" rows="3" required placeholder="Describe ingredients, portion size, etc."></textarea>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Original Price (LKR)</label>
+                                    <input type="number" class="form-control" id="originalPrice" required min="0">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Discounted Price (LKR)</label>
+                                    <input type="number" class="form-control" id="discountedPrice" required min="0">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Quantity Available</label>
+                                    <input type="number" class="form-control" id="quantity" required min="1" value="1">
+                                </div>
+                            </div>
+
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label">Pickup Start Time</label>
+                                    <input type="time" class="form-control" id="pickupStart" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Pickup End Time</label>
+                                    <input type="time" class="form-control" id="pickupEnd" required>
+                                </div>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                                    <i class="fas fa-check-circle me-2"></i> Publish Listing
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card p-3">
+                        <h5><i class="fas fa-info-circle me-2"></i>Tips</h5>
+                        <ul class="list-unstyled mt-3 text-secondary">
+                            <li class="mb-2">📸 Use clear, bright photos.</li>
+                            <li class="mb-2">💰 Discounts > 50% sell faster.</li>
+                            <li class="mb-2">⏰ Set realistic pickup times.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+
+<script src="../js/firebase-config.js"></script>
+<script>
+    // Load categories
+    database.ref('categories').once('value', (snapshot) => {
+        const categorySelect = document.getElementById('category');
+        snapshot.forEach((child) => {
+            const cat = child.val();
+            const option = document.createElement('option');
+            option.value = cat.name;
+            option.text = cat.name;
+            categorySelect.appendChild(option);
+        });
+    });
+
+    // Image Preview
+    const imageInput = document.getElementById('foodImage');
+    const previewContainer = document.getElementById('imagePreviewContainer');
+    const previewImage = document.getElementById('preview');
+    const placeholder = document.getElementById('uploadPlaceholder');
+
+    previewContainer.addEventListener('click', () => imageInput.click());
+
+    imageInput.addEventListener('change', function(e) {
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                previewImage.style.display = 'block';
+                placeholder.style.display = 'none';
+            }
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+
+    // Form Submit
+    document.getElementById('addFoodForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const user = auth.currentUser;
+        if (!user) return alert("Please login first");
+
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+
+        try {
+            // 1. Get Hotel Details
+            const hotelSnapshot = await database.ref('hotels/' + user.uid).once('value');
+            const hotelData = hotelSnapshot.val();
+
+            if (!hotelData) throw new Error("Hotel profile not found");
+
+            // 2. Upload Image
+            const file = imageInput.files[0];
+            const storageRef = storage.ref('food-images/' + Date.now() + '_' + file.name);
+            await storageRef.put(file);
+            const imageUrl = await storageRef.getDownloadURL();
+
+            // 3. Calculate Discount
+            const original = parseFloat(document.getElementById('originalPrice').value);
+            const discounted = parseFloat(document.getElementById('discountedPrice').value);
+            const percent = Math.round(((original - discounted) / original) * 100);
+
+            // 4. Create Food Item Object (MATCHING ANDROID APP)
+            const newFoodRef = database.ref('foodItems').push();
+            const foodId = newFoodRef.key;
+
+            const foodItem = {
+                foodId: foodId,
+                hotelId: user.uid,
+                hotelName: hotelData.hotelName, // Important for app display
+                foodName: document.getElementById('foodName').value,
+                description: document.getElementById('description').value,
+                category: document.getElementById('category').value,
+                originalPrice: original,
+                discountedPrice: discounted,
+                discountPercent: percent,
+                imageUrl: imageUrl,
+                quantity: parseInt(document.getElementById('quantity').value),
+                pickupTimeStart: document.getElementById('pickupStart').value,
+                pickupTimeEnd: document.getElementById('pickupEnd').value,
+                createdAt: firebase.database.ServerValue.TIMESTAMP,
+                isAvailable: true,
+                available: true, // For compatibility
+
+                // Add Location Data from Hotel Profile (For Map Fragment)
+                latitude: hotelData.latitude || 0,
+                longitude: hotelData.longitude || 0,
+                hotelAddress: hotelData.address || "",
+                hotelPhone: hotelData.phone || ""
+            };
+
+            // 5. Save to Database
+            await newFoodRef.set(foodItem);
+
+            // 6. Send Push Notification (Simulated/Legacy)
+            // Note: In production, use Cloud Functions. This is a client-side workaround.
+            sendPushNotification(foodItem.hotelName, foodItem.foodName);
+
+            alert("Food item added successfully!");
+            window.location.href = "manage-listings.html";
+
+        } catch (error) {
+            console.error(error);
+            alert("Error: " + error.message);
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-check-circle me-2"></i> Publish Listing';
+        }
+    });
+
+    function sendPushNotification(hotelName, foodName) {
+        // REPLACE WITH YOUR FCM SERVER KEY (Legacy) from Project Settings > Cloud Messaging
+        // WARNING: Exposing Server Key in client code is for testing only!
+        const SERVER_KEY = "AIzaSyCpUxdo15c3j4JojViG3pwy2PioPkte7DM";
+
+        if (SERVER_KEY === "REPLACE_WITH_YOUR_SERVER_KEY") {
+            console.log("Push notification skipped: No Server Key");
+            return;
+        }
+
+        fetch('https://fcm.googleapis.com/fcm/send', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'key=' + SERVER_KEY,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                "to": "/topics/all_users",
+                "notification": {
+                    "title": "New Food Alert! 🍽️",
+                    "body": hotelName + " just added " + foodName + " at a discount!"
+                },
+                "data": {
+                    "type": "new_food",
+                    "hotelName": hotelName,
+                    "foodName": foodName
+                }
+            })
+        }).then(response => {
+            console.log("Notification sent:", response);
+        }).catch(err => {
+            console.error("Error sending notification:", err);
+        });
+    }
+</script>
+</body>
+</html>
+

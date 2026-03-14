@@ -1,0 +1,90 @@
+plugins {
+    id 'com.android.application'
+    id 'com.google.gms.google-services'
+}
+
+android {
+    namespace 'com.replate.app'
+    compileSdk 34  // Use 34 instead of 36 for better stability
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    defaultConfig {
+        applicationId "com.replate.app"
+        minSdk 24  // Changed from 28 to 24 for wider compatibility
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField "String", "OTP_FUNCTIONS_BASE_URL", '"https://YOUR_REGION-YOUR_PROJECT.cloudfunctions.net"'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.6.0'
+    implementation 'com.google.android.material:material:1.11.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.core:core-ktx:1.12.0' // Added for NotificationCompat compatibility
+
+    // ViewPager2 for onboarding
+    implementation 'androidx.viewpager2:viewpager2:1.0.0'
+
+    // Circle Indicator for dots
+    implementation 'me.relex:circleindicator:2.1.6'
+
+    // CardView
+    implementation 'androidx.cardview:cardview:1.0.0'
+
+    // Firebase - The heart of our app
+    implementation platform('com.google.firebase:firebase-bom:32.3.1')
+    implementation 'com.google.firebase:firebase-auth'           // Login
+    implementation 'com.google.firebase:firebase-database'       // Real-time data
+    implementation 'com.google.firebase:firebase-storage'        // Images
+    implementation 'com.google.firebase:firebase-messaging'      // Push notifications
+
+    // Google Maps
+    implementation 'com.google.android.gms:play-services-maps:18.2.0'
+    implementation 'com.google.android.gms:play-services-location:21.0.1'
+
+    // Image loading
+    implementation 'com.github.bumptech.glide:glide:4.16.0'
+
+    // Circle Image View for profile
+    implementation 'de.hdodenhof:circleimageview:3.1.0'
+
+    // PayHere SDK (official JitPack package)
+    implementation 'com.github.PayHereDevs:payhere-android-sdk:v3.0.18'
+    implementation 'com.google.code.gson:gson:2.8.0'
+
+    // QR Code
+    implementation 'com.google.zxing:core:3.5.2'
+    implementation 'com.journeyapps:zxing-android-embedded:4.3.0'
+
+    // Charts
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
+
+    // Splash Screen
+    implementation 'androidx.core:core-splashscreen:1.0.1'
+
+    // WorkManager
+    implementation 'androidx.work:work-runtime:2.9.0'
+
+    // Testing (keep these)
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+}

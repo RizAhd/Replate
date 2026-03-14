@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - REPLATE</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+            <div class="position-sticky">
+                <a class="navbar-brand d-block px-3 py-3 mb-3 text-center" href="#">
+                    <i class="fas fa-utensils me-2"></i>REPLATE
+                </a>
+                <ul class="nav flex-column">
+                    <li class="nav-item"><a class="nav-link active" href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="add-food.html"><i class="fas fa-plus-circle"></i> Add Food</a></li>
+                    <li class="nav-item"><a class="nav-link" href="manage-listings.html"><i class="fas fa-list"></i> My Listings</a></li>
+                    <li class="nav-item"><a class="nav-link" href="orders.html"><i class="fas fa-receipt"></i> Orders</a></li>
+                    <li class="nav-item"><a class="nav-link" href="analytics.html"><i class="fas fa-chart-line"></i> Analytics</a></li>
+                    <li class="nav-item"><a class="nav-link" href="settings.html"><i class="fas fa-cog"></i> Settings</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Dashboard</h1>
+                <div class="status-badge badge-approved" id="approvalStatus">Approved ✅</div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card p-3">
+                        <h6 class="text-muted">Total Revenue</h6>
+                        <h3 id="statRevenue">LKR 0</h3>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card p-3">
+                        <h6 class="text-muted">Active Items</h6>
+                        <h3 id="statActive">0</h3>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card p-3">
+                        <h6 class="text-muted">Pending Orders</h6>
+                        <h3 id="statPending" class="text-warning">0</h3>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card p-3">
+                        <h6 class="text-muted">Total Orders</h6>
+                        <h3 id="statTotal">0</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Orders -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Recent Orders</span>
+                    <a href="orders.html" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Items</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentOrdersTable">
+                                <!-- Loaded via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="../js/firebase-config.js"></script>
+
+<script>
+    auth.onAuthStateChanged((user) => {
+        if (user) loadDashboard(user.uid);
+    });
+
+    function loadDashboard(uid) {
+        // Load Orders Stats
+        database.ref('orders').orderByChild('hotelId').equalTo(uid).on('value', (snapshot) => {
+            let revenue = 0;
+            let pending = 0;
+            let total = 0;
+            const recentOrders = [];
+
+            if (snapshot.exists()) {
+                snapshot.forEach((child) => {
+                    const order = child.val();
+                    total++;
+                    if (order.orderStatus === 'completed') {
+                        revenue += parseFloat(order.totalAmount);
+                    } else if (order.orderStatus === 'pending') {
+                        pending++;
+                    }
+                    recentOrders.push(order);
+                });
+            }
+
+            document.getElementById('statRevenue').innerText = 'LKR ' + revenue.toLocaleString();
+            document.getElementById('statPending').innerText = pending;
+            document.getElementById('statTotal').innerText = total;
+
+            // Populate Table (Last 5)
+            const tableBody = document.getElementById('recentOrdersTable');
+            tableBody.innerHTML = '';
+            recentOrders.reverse().slice(0, 5).forEach(order => {
+                const items = order.items ? order.items.map(i => i.foodName).join(', ') : 'Unknown Items';
+                const row = `
+                    <tr>
+                        <td>#${order.qrCode}</td>
+                        <td>${order.customerName}</td>
+                        <td>${items}</td>
+                        <td>LKR ${order.totalAmount}</td>
+                        <td><span class="badge bg-${getStatusColor(order.orderStatus)}">${order.orderStatus}</span></td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+        });
+
+        // Load Active Items Stat
+        database.ref('foodItems').orderByChild('hotelId').equalTo(uid).on('value', (snapshot) => {
+            let active = 0;
+            if (snapshot.exists()) {
+                snapshot.forEach((child) => {
+                    if (child.val().isAvailable) active++;
+                });
+            }
+            document.getElementById('statActive').innerText = active;
+        });
+    }
+
+    function getStatusColor(status) {
+        if (status === 'completed') return 'success';
+        if (status === 'pending') return 'warning';
+        return 'secondary';
+    }
+</script>
+
+</body>
+</html>
+

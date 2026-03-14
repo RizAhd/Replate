@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+
+    <!-- Background Circle -->
+    <path
+        android:fillColor="#E3F2FD"
+        android:pathData="M100,100m-90,0a90,90 0,1 1,180 0a90,90 0,1 1,-180 0"/>
+
+    <!-- Earth/Globe -->
+    <path
+        android:fillColor="#4CAF50"
+        android:pathData="M100,55 A45,45 0,1 1,100,145 A45,45 0,1 1,100,55Z"/>
+
+    <!-- Globe grid lines -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M100,55 C85,70 85,130 100,145"
+        android:strokeColor="#81C784"
+        android:strokeWidth="2"/>
+
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M100,55 C115,70 115,130 100,145"
+        android:strokeColor="#81C784"
+        android:strokeWidth="2"/>
+
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M55,100 L145,100"
+        android:strokeColor="#81C784"
+        android:strokeWidth="2"/>
+
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M60,80 C80,75 120,75 140,80"
+        android:strokeColor="#81C784"
+        android:strokeWidth="1.5"/>
+
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M60,120 C80,125 120,125 140,120"
+        android:strokeColor="#81C784"
+        android:strokeWidth="1.5"/>
+
+    <!-- Heart -->
+    <path
+        android:fillColor="#F44336"
+        android:pathData="M100,95 C95,85 80,85 80,100 C80,115 100,125 100,125 C100,125 120,115 120,100 C120,85 105,85 100,95 Z"/>
+
+    <!-- Leaf/Eco symbol -->
+    <path
+        android:fillColor="#8BC34A"
+        android:pathData="M145,45 C160,35 175,50 165,65 C155,80 140,70 145,55 Q155,50 145,45Z"/>
+
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M150,50 Q155,60 152,68"
+        android:strokeColor="#558B2F"
+        android:strokeWidth="2"/>
+
+    <!-- Food rescue symbol - plate with arrow -->
+    <path
+        android:fillColor="#FF9800"
+        android:pathData="M35,130 A25,12 0,1 1,85,130 A25,12 0,1 1,35,130Z"/>
+
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M50,125 L60,120 L60,128 L70,128 L70,132 L60,132 L60,140 L50,135 Z"/>
+
+</vector>
+

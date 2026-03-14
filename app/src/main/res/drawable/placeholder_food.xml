@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="100dp"
+    android:height="100dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+
+    <!-- Background -->
+    <path
+        android:fillColor="#F5F5F5"
+        android:pathData="M0,0 L100,0 L100,100 L0,100 Z"/>
+
+    <!-- Plate -->
+    <path
+        android:fillColor="#E0E0E0"
+        android:pathData="M50,75 A40,20 0,1 1,90,75 A40,20 0,1 1,50,75Z"/>
+
+    <!-- Food dome -->
+    <path
+        android:fillColor="#BDBDBD"
+        android:pathData="M20,55 Q20,25 50,25 Q80,25 80,55 Z"/>
+
+    <!-- Steam lines -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M35,20 Q38,15 35,10"
+        android:strokeColor="#9E9E9E"
+        android:strokeWidth="2"/>
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M50,15 Q53,10 50,5"
+        android:strokeColor="#9E9E9E"
+        android:strokeWidth="2"/>
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M65,20 Q68,15 65,10"
+        android:strokeColor="#9E9E9E"
+        android:strokeWidth="2"/>
+
+</vector>
+
