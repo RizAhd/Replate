@@ -1,0 +1,143 @@
+:root {
+    /* REPLATE Master Spec Colors */
+    --primary-color: #1A6B3C;  /* Leaf */
+    --primary-hover: #25A55A;  /* Leaf 2 */
+    --primary-light: #E8F8EE;  /* Leaf Pale */
+    --on-primary: #FFFFFF;
+
+    --secondary-color: #E8521A; /* Ember (Tertiary/Accent in Spec) */
+    --secondary-hover: #F97316; /* Ember 2 */
+    --on-secondary: #FFFFFF;
+
+    --background-color: #FDFAF5; /* Cream */
+    --surface-color: #FFFFFF;
+
+    --text-primary: #1C1C1E; /* Charcoal */
+    --text-secondary: #43483E;
+
+    --error-color: #BA1A1A;
+    --success-color: #1A6B3C;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', 'Inter', 'Roboto', sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-primary);
+}
+
+.navbar {
+    background-color: var(--surface-color) !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+}
+
+.navbar-brand {
+    color: var(--primary-color) !important;
+    font-weight: 700;
+}
+
+.sidebar {
+    background-color: var(--surface-color);
+    height: 100vh;
+    border-right: 1px solid #E0E0E0;
+    padding-top: 20px;
+}
+
+.nav-link {
+    color: var(--text-secondary);
+    border-radius: 0 25px 25px 0;
+    margin-right: 10px;
+    padding: 12px 20px;
+}
+
+.nav-link:hover {
+    background-color: #f0f0f0;
+    color: var(--primary-color);
+}
+
+.nav-link.active {
+    background-color: var(--primary-light);
+    color: var(--primary-dark);
+    font-weight: 600;
+}
+
+.nav-link i {
+    width: 24px;
+}
+
+.card {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    background-color: var(--surface-color);
+    margin-bottom: 20px;
+}
+
+.card-header {
+    background-color: transparent;
+    border-bottom: 1px solid #f0f0f0;
+    font-weight: 600;
+    color: var(--primary-color);
+    padding: 1.5rem;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    border-radius: 50px;
+    padding: 10px 24px;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-dark);
+    border-color: var(--primary-dark);
+}
+
+.btn-outline-primary {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+    border-radius: 50px;
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.form-control {
+    background-color: #F0F2E8; /* Slightly darker surface for inputs */
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.form-control:focus {
+    background-color: white;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px rgba(56, 106, 32, 0.1);
+}
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 50px;
+    font-size: 0.85em;
+    font-weight: 500;
+}
+
+.badge-pending { background-color: #FFF8E1; color: #F57F17; }
+.badge-approved { background-color: #E8F5E9; color: #2E7D32; }
+.badge-rejected { background-color: #FFEBEE; color: #C62828; }
+
+/* Image Upload Preview */
+#imagePreview {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 12px;
+    background-color: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+    overflow: hidden;
+}
+

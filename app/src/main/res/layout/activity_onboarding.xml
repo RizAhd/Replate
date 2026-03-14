@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/cream">
+
+    <!-- Skip Button - Top Right -->
+    <TextView
+        android:id="@+id/textSkip"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="16dp"
+        android:padding="8dp"
+        android:text="Skip"
+        android:textColor="@color/text_secondary"
+        android:textSize="16sp" />
+
+    <!-- ViewPager2 for sliding pages -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPagerOnboarding"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/bottomLayout"
+        android:layout_below="@id/textSkip" />
+
+    <!-- Bottom Layout with Indicator and Buttons -->
+    <LinearLayout
+        android:id="@+id/bottomLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- Page Indicator Dots -->
+        <me.relex.circleindicator.CircleIndicator3
+            android:id="@+id/circleIndicator"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:layout_gravity="center"
+            app:ci_drawable="@drawable/indicator_selected"
+            app:ci_drawable_unselected="@drawable/indicator_unselected"
+            app:ci_width="10dp"
+            app:ci_height="10dp"
+            app:ci_margin="8dp" />
+
+        <!-- Next/Get Started Button -->
+        <Button
+            android:id="@+id/buttonNext"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/button_primary"
+            android:text="Next"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            android:textAllCaps="false" />
+
+    </LinearLayout>
+
+</RelativeLayout>

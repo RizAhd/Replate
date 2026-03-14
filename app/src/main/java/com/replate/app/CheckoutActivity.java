@@ -1,0 +1,429 @@
+package com.replate.app;
+
+import android.app.Activity;
+import android.app.TimePickerDialog;
+import android.content.Intent;
+import android.media.MediaPlayer;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.RadioGroup;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
+
+import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.replate.app.helpers.CartDatabaseHelper;
+import com.replate.app.models.CartItem;
+
+import java.io.FileOutputStream;
+import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Random;
+
+import lk.payhere.androidsdk.PHConfigs;
+import lk.payhere.androidsdk.PHConstants;
+import lk.payhere.androidsdk.PHMainActivity;
+import lk.payhere.androidsdk.model.InitRequest;
+import lk.payhere.androidsdk.model.Item;
+import lk.payhere.androidsdk.model.StatusResponse;
+
+public class CheckoutActivity extends AppCompatActivity {
+
+    private static final String TAG = "PAYHERE_CHECKOUT";
+    private static final int PAYHERE_REQUEST = 11001;
+
+    private static final String MERCHANT_ID = "1231640";
+    private static final String PAYHERE_NOTIFY_URL = "https://replate.app/payhere/notify";
+
+    private LinearLayout orderItemsContainer;
+    private TextView tvSubtotal, tvSavings, tvTotal;
+    private TextInputEditText etPickupTime, etCustomerName, etCustomerPhone, etAddress;
+    private RadioGroup rgPayment, rgOrderType;
+    private View cardDeliveryAddress;
+    private CardView cardPickupTime;
+    private Button btnPlaceOrder;
+    private ProgressBar progressBar;
+    private android.widget.RadioButton rbCash;
+    private com.google.android.material.button.MaterialButton btnPickAddressFromMap;
+
+    private ActivityResultLauncher<Intent> mapPickerLauncher;
+
+    private CartDatabaseHelper cartDb;
+    private DatabaseReference mDatabase;
+    private FirebaseAuth mAuth;
+
+    private List<CartItem> cartItems;
+    private double totalAmount = 0;
+    private double totalSavings = 0;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_checkout);
+
+        cartDb = CartDatabaseHelper.getInstance(this);
+        mDatabase = FirebaseDatabase.getInstance().getReference();
+        mAuth = FirebaseAuth.getInstance();
+
+        initViews();
+        initResultLaunchers();
+        loadOrderSummary();
+        loadUserData();
+    }
+
+    private void initResultLaunchers() {
+        mapPickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        String address = result.getData().getStringExtra("address");
+                        if (address != null && !address.trim().isEmpty()) {
+                            etAddress.setText(address);
+                        }
+                    }
+                }
+        );
+    }
+
+    private void initViews() {
+        ImageView ivBack = findViewById(R.id.ivBack);
+        orderItemsContainer = findViewById(R.id.orderItemsContainer);
+        tvSubtotal = findViewById(R.id.tvSubtotal);
+        tvSavings = findViewById(R.id.tvSavings);
+        tvTotal = findViewById(R.id.tvTotal);
+        etPickupTime = findViewById(R.id.etPickupTime);
+        etCustomerName = findViewById(R.id.etCustomerName);
+        etCustomerPhone = findViewById(R.id.etCustomerPhone);
+
+        etAddress = findViewById(R.id.etAddress);
+        rgOrderType = findViewById(R.id.rgOrderType);
+        cardDeliveryAddress = findViewById(R.id.cardDeliveryAddress);
+        cardPickupTime = findViewById(R.id.cardPickupTime);
+        rbCash = findViewById(R.id.rbCash);
+
+        rgPayment = findViewById(R.id.rgPayment);
+        btnPlaceOrder = findViewById(R.id.btnPlaceOrder);
+        progressBar = findViewById(R.id.progressBar);
+        btnPickAddressFromMap = findViewById(R.id.btnPickAddressFromMap);
+
+        ivBack.setOnClickListener(v -> finish());
+        etPickupTime.setOnClickListener(v -> showTimePicker());
+        btnPlaceOrder.setOnClickListener(v -> placeOrder());
+
+        if (btnPickAddressFromMap != null) {
+            btnPickAddressFromMap.setOnClickListener(v -> {
+                Intent i = new Intent(this, LocationPickerActivity.class);
+                mapPickerLauncher.launch(i);
+            });
+        }
+
+        rgOrderType.setOnCheckedChangeListener((group, checkedId) -> {
+            if (checkedId == R.id.rbDelivery) {
+                cardDeliveryAddress.setVisibility(View.VISIBLE);
+                if (cardPickupTime != null) cardPickupTime.setVisibility(View.GONE);
+                etPickupTime.setText("");
+                rbCash.setText("Cash on Delivery");
+            } else {
+                cardDeliveryAddress.setVisibility(View.GONE);
+                if (cardPickupTime != null) cardPickupTime.setVisibility(View.VISIBLE);
+                rbCash.setText("Cash on Pickup");
+            }
+        });
+    }
+
+    private void loadOrderSummary() {
+        cartItems = cartDb.getAllItems();
+
+        if (cartItems.isEmpty()) {
+            Toast.makeText(this, "Cart is empty", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        totalAmount = 0;
+        totalSavings = 0;
+        orderItemsContainer.removeAllViews();
+
+        for (CartItem item : cartItems) {
+            View itemView = LayoutInflater.from(this)
+                    .inflate(android.R.layout.simple_list_item_2, orderItemsContainer, false);
+            TextView text1 = itemView.findViewById(android.R.id.text1);
+            TextView text2 = itemView.findViewById(android.R.id.text2);
+            text1.setText(item.getQuantity() + "x " + item.getFoodName());
+            text2.setText(String.format(Locale.US, "LKR %.2f", item.getSubtotal()));
+            orderItemsContainer.addView(itemView);
+
+            totalAmount += item.getSubtotal();
+            totalSavings += (item.getOriginalPrice() - item.getPrice()) * item.getQuantity();
+        }
+
+        tvSubtotal.setText(String.format(Locale.US, "LKR %.2f", totalAmount));
+        tvSavings.setText(String.format(Locale.US, "-LKR %.2f", totalSavings));
+        tvTotal.setText(String.format(Locale.US, "LKR %.2f", totalAmount));
+    }
+
+    private void loadUserData() {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null) {
+            mDatabase.child("users").child(user.getUid())
+                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            String name = snapshot.child("name").getValue(String.class);
+                            String phone = snapshot.child("phone").getValue(String.class);
+                            if (name != null) etCustomerName.setText(name);
+                            if (phone != null) etCustomerPhone.setText(phone);
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+                        }
+                    });
+        }
+    }
+
+    private void showTimePicker() {
+        Calendar cal = Calendar.getInstance();
+        new TimePickerDialog(this, (view, hour, minute) -> {
+            String time = String.format(Locale.getDefault(), "%02d:%02d", hour, minute);
+            etPickupTime.setText(time);
+        }, cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), true).show();
+    }
+
+    private void placeOrder() {
+        String customerName = etCustomerName.getText().toString().trim();
+        String customerPhone = etCustomerPhone.getText().toString().trim();
+        String pickupTime = etPickupTime.getText().toString().trim();
+        String address = etAddress.getText().toString().trim();
+        boolean isDelivery = rgOrderType.getCheckedRadioButtonId() == R.id.rbDelivery;
+
+        if (customerName.isEmpty()) {
+            etCustomerName.setError("Enter your name");
+            return;
+        }
+        if (customerPhone.isEmpty()) {
+            etCustomerPhone.setError("Enter phone number");
+            return;
+        }
+
+        if (!isDelivery && pickupTime.isEmpty()) {
+            Toast.makeText(this, "Please select pickup time", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (isDelivery && address.isEmpty()) {
+            etAddress.setError("Enter delivery address");
+            return;
+        }
+
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Confirm Order")
+                .setMessage("Are you sure you want to place this order?\nTotal: LKR " + String.format(Locale.US, "%.2f", totalAmount))
+                .setPositiveButton("Yes, Place Order", (dialog, which) -> {
+                    if (rgPayment.getCheckedRadioButtonId() == R.id.rbCard) {
+                        startSandboxPayment();
+                    } else {
+                        submitOrder("Cash", "pending");
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void startSandboxPayment() {
+        InitRequest req = new InitRequest();
+        req.setMerchantId(MERCHANT_ID);
+        req.setCurrency("LKR");
+        req.setAmount(totalAmount);
+        req.setOrderId("RPL-" + System.currentTimeMillis());
+        req.setItemsDescription("REPLATE Order");
+
+        String fullName = etCustomerName.getText().toString().trim();
+        String[] parts = fullName.split(" ", 2);
+        String firstName = parts.length > 0 ? parts[0] : "Customer";
+        String lastName = parts.length > 1 ? parts[1] : "User";
+
+        FirebaseUser user = mAuth.getCurrentUser();
+        String email = (user != null && user.getEmail() != null) ? user.getEmail() : "test@example.com";
+
+        req.getCustomer().setFirstName(firstName);
+        req.getCustomer().setLastName(lastName);
+        req.getCustomer().setEmail(email);
+        req.getCustomer().setPhone(etCustomerPhone.getText().toString().trim());
+        req.getCustomer().getAddress().setAddress(etAddress.getText() != null && etAddress.getText().length() > 0 ? etAddress.getText().toString() : "Colombo");
+        req.getCustomer().getAddress().setCity("Colombo");
+        req.getCustomer().getAddress().setCountry("Sri Lanka");
+
+        // Do NOT send a fake/unregistered notify URL in sandbox.
+        // That can trigger PayHere "unauthorized domain" for merchants that haven't whitelisted it.
+
+        req.getItems().add(new Item(null, "REPLATE Food Order", 1, totalAmount));
+
+        Intent intent = new Intent(this, PHMainActivity.class);
+        intent.putExtra(PHConstants.INTENT_EXTRA_DATA, req);
+
+        PHConfigs.setBaseUrl(PHConfigs.SANDBOX_URL);
+        startActivityForResult(intent, PAYHERE_REQUEST);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == PAYHERE_REQUEST && data != null && data.hasExtra(PHConstants.INTENT_EXTRA_RESULT)) {
+            Serializable response = data.getSerializableExtra(PHConstants.INTENT_EXTRA_RESULT);
+            String responseText = response != null ? response.toString() : "No response payload";
+
+            if (resultCode == Activity.RESULT_OK) {
+                Log.d(TAG, "Payment success: " + responseText);
+                submitOrder("PayHere Online", "paid");
+            } else if (resultCode == Activity.RESULT_CANCELED) {
+                Toast.makeText(this, "Payment canceled: " + responseText, Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Payment failed: " + responseText, Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    private void submitOrder(String paymentMethod, String paymentStatus) {
+        showLoading(true);
+
+        String customerName = etCustomerName.getText().toString().trim();
+        String customerPhone = etCustomerPhone.getText().toString().trim();
+        boolean isDelivery = rgOrderType.getCheckedRadioButtonId() == R.id.rbDelivery;
+        String orderType = isDelivery ? "Delivery" : "Pickup";
+        String pickupTime = isDelivery ? "N/A" : etPickupTime.getText().toString().trim();
+        String address = etAddress.getText().toString().trim();
+
+        String otpCode = String.format(Locale.US, "%06d", new Random().nextInt(999999));
+        String orderId = mDatabase.child("orders").push().getKey();
+
+        if (orderId == null) {
+            showLoading(false);
+            return;
+        }
+
+        List<Map<String, Object>> itemsList = new ArrayList<>();
+        String hotelId = "";
+        String hotelName = "";
+
+        for (CartItem item : cartItems) {
+            Map<String, Object> itemMap = new HashMap<>();
+            itemMap.put("foodId", item.getFoodId());
+            itemMap.put("foodName", item.getFoodName());
+            itemMap.put("quantity", item.getQuantity());
+            itemMap.put("price", item.getPrice());
+            itemMap.put("imageUrl", item.getImageUrl() != null ? item.getImageUrl() : "");
+            itemsList.add(itemMap);
+
+            if (hotelId.isEmpty()) {
+                hotelId = item.getHotelId() != null ? item.getHotelId() : "";
+                hotelName = item.getHotelName();
+            }
+        }
+
+        Map<String, Object> orderData = new HashMap<>();
+        orderData.put("orderId", orderId);
+        orderData.put("userId", mAuth.getCurrentUser().getUid());
+        orderData.put("hotelId", hotelId);
+        orderData.put("hotelName", hotelName);
+        orderData.put("items", itemsList);
+        orderData.put("totalAmount", totalAmount);
+        orderData.put("originalTotal", totalAmount + totalSavings);
+        orderData.put("orderStatus", "pending_pickup");
+        orderData.put("paymentStatus", paymentStatus);
+        orderData.put("paymentMethod", paymentMethod);
+        orderData.put("orderType", orderType);
+        orderData.put("deliveryAddress", isDelivery ? address : "Pickup at Hotel");
+        orderData.put("pickupTime", pickupTime);
+        orderData.put("qrCode", orderId);
+        orderData.put("pickupCode", orderId);
+        orderData.put("otpCode", otpCode);
+        orderData.put("customerName", customerName);
+        orderData.put("customerPhone", customerPhone);
+        orderData.put("createdAt", System.currentTimeMillis());
+
+        mDatabase.child("orders").child(orderId).setValue(orderData)
+                .addOnSuccessListener(unused -> {
+                    showLoading(false);
+                    cartDb.clearCart();
+                    saveReceipt(orderId, otpCode, customerName, totalAmount);
+                    playPaymentSound();
+
+                    Intent intent = new Intent(this, OrderDetailActivity.class);
+                    intent.putExtra("orderId", orderId);
+                    intent.putExtra("newOrder", true);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    startActivity(intent);
+                    finish();
+
+                    Toast.makeText(this, "Order placed successfully", Toast.LENGTH_LONG).show();
+                })
+                .addOnFailureListener(e -> {
+                    showLoading(false);
+                    Toast.makeText(this, "Failed to place order: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
+    }
+
+    private void saveReceipt(String orderId, String otp, String name, double total) {
+        try {
+            String receipt = "======== REPLATE ORDER RECEIPT ========\n"
+                    + "Order ID: " + orderId + "\n"
+                    + "Customer: " + name + "\n"
+                    + "Date: " + new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(new Date()) + "\n"
+                    + "Total: LKR " + String.format(Locale.US, "%.2f", total) + "\n"
+                    + "OTP: " + otp + "\n"
+                    + "======================================\n";
+
+            FileOutputStream fos = openFileOutput("receipt_" + orderId + ".txt", MODE_PRIVATE);
+            fos.write(receipt.getBytes());
+            fos.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void playPaymentSound() {
+        try {
+            MediaPlayer mp = MediaPlayer.create(this, android.provider.Settings.System.DEFAULT_NOTIFICATION_URI);
+            if (mp != null) {
+                mp.setOnCompletionListener(MediaPlayer::release);
+                mp.start();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void showLoading(boolean show) {
+        progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
+        btnPlaceOrder.setEnabled(!show);
+    }
+}

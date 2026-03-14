@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ==========================================
+         REPLATE Design System · Master Spec
+         Leaf #1A6B3C · Ember #E8521A · Cream #FDFAF5
+         ========================================== -->
+
+    <!-- Primary — Leaf -->
+    <color name="md_theme_primary">#1A6B3C</color>
+    <color name="md_theme_onPrimary">#FFFFFF</color>
+    <color name="md_theme_primaryContainer">#E8F8EE</color>
+    <color name="md_theme_onPrimaryContainer">#0D3B1E</color>
+
+    <!-- Secondary — Leaf2 -->
+    <color name="md_theme_secondary">#25A55A</color>
+    <color name="md_theme_onSecondary">#FFFFFF</color>
+    <color name="md_theme_secondaryContainer">#E8F8EE</color>
+    <color name="md_theme_onSecondaryContainer">#0D3B1E</color>
+
+    <!-- Tertiary — Ember -->
+    <color name="md_theme_tertiary">#E8521A</color>
+    <color name="secondary">#E8521A</color>
+    <color name="md_theme_onTertiary">#FFFFFF</color>
+    <color name="md_theme_tertiaryContainer">#FFDBC9</color>
+    <color name="md_theme_onTertiaryContainer">#5C1A00</color>
+
+    <!-- Error -->
+    <color name="md_theme_error">#BA1A1A</color>
+    <color name="md_theme_onError">#FFFFFF</color>
+    <color name="md_theme_errorContainer">#FFDAD6</color>
+    <color name="md_theme_onErrorContainer">#410002</color>
+
+    <!-- Background & Surface — Cream -->
+    <color name="md_theme_background">#FDFAF5</color>
+    <color name="md_theme_onBackground">#1C1C1E</color>
+    <color name="md_theme_surface">#FDFAF5</color>
+    <color name="md_theme_onSurface">#1C1C1E</color>
+    <color name="md_theme_surfaceVariant">#E8F8EE</color>
+    <color name="md_theme_onSurfaceVariant">#3A4A3E</color>
+
+    <!-- Outline -->
+    <color name="md_theme_outline">#6B7E6F</color>
+    <color name="md_theme_outlineVariant">#C3D4C7</color>
+
+    <!-- Inverse -->
+    <color name="md_theme_inverseSurface">#1C1C1E</color>
+    <color name="md_theme_inverseOnSurface">#F5F5F0</color>
+    <color name="md_theme_inversePrimary">#4FCB7D</color>
+
+    <!-- Surface Tint -->
+    <color name="md_theme_surfaceTint">#1A6B3C</color>
+
+    <!-- Surface Containers (M3 Elevation Tones) -->
+    <color name="md_theme_surfaceContainerLowest">#FFFFFF</color>
+    <color name="md_theme_surfaceContainerLow">#F8F6F1</color>
+    <color name="md_theme_surfaceContainer">#F3F0EB</color>
+    <color name="md_theme_surfaceContainerHigh">#EDEBE6</color>
+    <color name="md_theme_surfaceContainerHighest">#E8E5E0</color>
+
+    <!-- ==========================================
+         Spec Named Colors (Direct from Master Spec)
+         ========================================== -->
+    <color name="leaf">#1A6B3C</color>
+    <color name="leaf2">#25A55A</color>
+    <color name="leaf3">#4FCB7D</color>
+    <color name="leaf_pale">#E8F8EE</color>
+    <color name="ember">#E8521A</color>
+    <color name="ember2">#F97316</color>
+    <color name="cream">#FDFAF5</color>
+    <color name="charcoal">#1C1C1E</color>
+
+    <!-- ==========================================
+         Legacy color names (backward compat)
+         ========================================== -->
+    <color name="primary">#1A6B3C</color>
+    <color name="primary_dark">#0D3B1E</color>
+    <color name="primary_light">#E8F8EE</color>
+    <color name="accent">#4FCB7D</color>
+    <color name="text_primary">#1C1C1E</color>
+    <color name="text_secondary">#6C6C6E</color>
+
+    <!-- Basic Colors -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="grey">#6B7E6F</color>
+    <color name="gray">#6B7E6F</color>
+    <color name="light_gray">#FDFAF5</color>
+    <color name="error">#BA1A1A</color>
+    <color name="success">#1A6B3C</color>
+    <color name="warning">#F97316</color>
+
+    <!-- Specific UI Colors -->
+    <color name="card_background">#FFFFFF</color>
+    <color name="divider">#C3D4C7</color>
+    <color name="ripple_primary">#1A1A6B3C</color>
+    <color name="status_bar">#0D3B1E</color>
+    <color name="bottom_nav_background">#FDFAF5</color>
+    <color name="search_bar_bg">#E8F8EE</color>
+    <color name="badge_discount">#E8521A</color>
+    <color name="badge_distance">#25A55A</color>
+    <color name="price_original">#6B7E6F</color>
+    <color name="price_discounted">#1A6B3C</color>
+
+    <!-- Distance marker colors -->
+    <color name="marker_near">#25A55A</color>
+    <color name="marker_medium">#F97316</color>
+    <color name="marker_far">#E8521A</color>
+
+    <!-- Prompt Specific Colors (Deduplicated) -->
+    <color name="green_primary">#1A6B3C</color>
+    <color name="green_light">#25A55A</color>
+    <color name="green_pale">#E8F8EE</color>
+    <color name="orange_accent">#F97316</color>
+    <color name="background_cream">#FDFAF5</color>
+    <color name="surface_white">#FFFFFF</color>
+</resources>

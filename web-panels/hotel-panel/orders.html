@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Orders - REPLATE</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <!-- QR Scanner Library -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+            <div class="position-sticky">
+                <a class="navbar-brand d-block px-3 py-3 mb-3 text-center" href="#">
+                    <i class="fas fa-utensils me-2"></i>REPLATE
+                </a>
+                <ul class="nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="add-food.html"><i class="fas fa-plus-circle"></i> Add Food</a></li>
+                    <li class="nav-item"><a class="nav-link" href="manage-listings.html"><i class="fas fa-list"></i> My Listings</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="orders.html"><i class="fas fa-receipt"></i> Orders</a></li>
+                    <li class="nav-item"><a class="nav-link" href="analytics.html"><i class="fas fa-chart-line"></i> Analytics</a></li>
+                    <li class="nav-item"><a class="nav-link" href="settings.html"><i class="fas fa-cog"></i> Settings</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Manage Orders</h1>
+            </div>
+
+            <!-- Action Tabs -->
+            <ul class="nav nav-pills mb-4" id="pills-tab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="pills-all-tab" data-bs-toggle="pill" data-bs-target="#pills-all" type="button" role="tab">📋 All Orders</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="pills-scan-tab" data-bs-toggle="pill" data-bs-target="#pills-scan" type="button" role="tab">📷 Scan QR</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="pills-otp-tab" data-bs-toggle="pill" data-bs-target="#pills-otp" type="button" role="tab">🔢 Enter OTP</button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="pills-tabContent">
+
+                <!-- ALL ORDERS TAB -->
+                <div class="tab-pane fade show active" id="pills-all" role="tabpanel">
+                    <div class="card p-3">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Customer</th>
+                                        <th>Items</th>
+                                        <th>Total</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ordersTable">
+                                    <!-- Loaded via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SCAN QR TAB -->
+                <div class="tab-pane fade" id="pills-scan" role="tabpanel">
+                    <div class="row justify-content-center">
+                        <div class="col-md-6">
+                            <div class="card p-4 text-center">
+                                <h5>Scan Customer QR Code</h5>
+                                <div id="reader" style="width: 100%; min-height: 300px;"></div>
+                                <p class="text-muted mt-3">Point camera at the QR code on customer's phone.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ENTER OTP TAB -->
+                <div class="tab-pane fade" id="pills-otp" role="tabpanel">
+                    <div class="row justify-content-center">
+                        <div class="col-md-5">
+                            <div class="card p-5 text-center">
+                                <h5 class="mb-4">Enter 6-Digit OTP</h5>
+                                <input type="number" id="otpInput" class="form-control form-control-lg text-center mb-4" placeholder="0 0 0 0 0 0" style="letter-spacing: 10px; font-size: 2em;">
+                                <button class="btn btn-primary w-100" onclick="verifyOTP()">Verify OTP</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Verification Modal -->
+<div class="modal fade" id="verificationModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Pickup</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Order ID:</strong> <span id="modalOrderId"></span></p>
+                <p><strong>Customer:</strong> <span id="modalCustomer"></span></p>
+                <p><strong>Items:</strong></p>
+                <ul id="modalItems"></ul>
+                <p class="text-end fw-bold">Total: <span id="modalTotal"></span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" onclick="confirmPickup()">✅ Confirm & Complete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="../js/firebase-config.js"></script>
+
+<script>
+    let currentHotelId = null;
+    let html5QrcodeScanner = null;
+    let currentOrderKey = null;
+
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            currentHotelId = user.uid;
+            loadOrders(user.uid);
+        }
+    });
+
+    // 1. Load All Orders
+    function loadOrders(uid) {
+        database.ref('orders').orderByChild('hotelId').equalTo(uid).on('value', (snapshot) => {
+            const tableBody = document.getElementById('ordersTable');
+            tableBody.innerHTML = '';
+
+            if (!snapshot.exists()) {
+                tableBody.innerHTML = '<tr><td colspan="6" class="text-center">No orders found</td></tr>';
+                return;
+            }
+
+            snapshot.forEach((child) => {
+                const order = child.val();
+                const key = child.key;
+                const items = order.items ? order.items.map(i => `${i.foodName} x${i.quantity}`).join(', ') : '';
+
+                const row = `
+                    <tr>
+                        <td>#${order.qrCode || key.substring(0,6)}</td>
+                        <td>${order.customerName}<br><small>${order.customerPhone || ''}</small></td>
+                        <td>${items}</td>
+                        <td>LKR ${order.totalAmount}</td>
+                        <td>
+                            <span class="badge bg-${order.orderStatus === 'completed' ? 'success' : order.orderStatus === 'pending' ? 'warning' : 'secondary'}">
+                                ${order.orderStatus}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewOrder('${key}')">View</button>
+                        </td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+        });
+    }
+
+    // 2. QR Scanner Logic
+    const qrTab = document.getElementById('pills-scan-tab');
+    qrTab.addEventListener('shown.bs.tab', () => {
+        if (!html5QrcodeScanner) {
+            html5QrcodeScanner = new Html5Qrcode("reader");
+            html5QrcodeScanner.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                onScanSuccess,
+                (errorMessage) => { /* ignore */ }
+            );
+        }
+    });
+
+    // Stop scanner when leaving tab
+    document.getElementById('pills-all-tab').addEventListener('shown.bs.tab', stopScanner);
+    document.getElementById('pills-otp-tab').addEventListener('shown.bs.tab', stopScanner);
+
+    function stopScanner() {
+        if (html5QrcodeScanner) {
+            html5QrcodeScanner.stop().then(() => {
+                html5QrcodeScanner.clear();
+                html5QrcodeScanner = null;
+            }).catch(err => console.log(err));
+        }
+    }
+
+    function onScanSuccess(decodedText, decodedResult) {
+        // decodedText should be the Order ID (e.g., ORD123456)
+        console.log(`Scan matched: ${decodedText}`);
+        checkOrder(decodedText);
+    }
+
+    // 3. Verify OTP
+    function verifyOTP() {
+        const otp = parseInt(document.getElementById('otpInput').value);
+        if (!otp) return alert("Please enter OTP");
+
+        // Find order with this OTP AND belonging to this hotel
+        database.ref('orders').orderByChild('otpCode').equalTo(otp).once('value')
+            .then(snapshot => {
+                let found = false;
+                snapshot.forEach(child => {
+                    const order = child.val();
+                    if (order.hotelId === currentHotelId) {
+                        found = true;
+                        showVerificationModal(child.key, order);
+                    }
+                });
+
+                if (!found) alert("Invalid OTP or order not for this hotel.");
+            });
+    }
+
+    // 4. Check Order (from QR or manual Code)
+    function checkOrder(orderId) {
+        database.ref('orders/' + orderId).once('value').then((snapshot) => {
+            if (snapshot.exists()) {
+                const order = snapshot.val();
+                if (order.hotelId === currentHotelId) {
+                    showVerificationModal(orderId, order);
+                } else {
+                    alert("This order belongs to another hotel!");
+                }
+            } else {
+                alert("Order not found!");
+            }
+        });
+    }
+
+    // 5. Show Modal
+    const modal = new bootstrap.Modal(document.getElementById('verificationModal'));
+    function showVerificationModal(key, order) {
+        currentOrderKey = key;
+        document.getElementById('modalOrderId').innerText = '#' + (order.qrCode || key);
+        document.getElementById('modalCustomer').innerText = order.customerName;
+        document.getElementById('modalTotal').innerText = 'LKR ' + order.totalAmount;
+
+        const list = document.getElementById('modalItems');
+        list.innerHTML = '';
+        if (order.items) {
+            order.items.forEach(item => {
+                list.innerHTML += `<li>${item.foodName} x${item.quantity}</li>`;
+            });
+        }
+
+        modal.show();
+    }
+
+    // 6. Confirm Pickup
+    function confirmPickup() {
+        if (!currentOrderKey) return;
+
+        database.ref('orders/' + currentOrderKey).update({
+            orderStatus: 'completed',
+            completedAt: new Date().toISOString()
+        }).then(() => {
+
+            // SEND NOTIFICATION TO CUSTOMER 🔔
+            // Note: In production, do this via Cloud Functions to avoid exposing key.
+            // Using logic similar to add-food.html
+            sendOrderNotification(currentOrderKey);
+
+            modal.hide();
+            alert("Order completed successfully!");
+            // Switch to All Orders tab
+            document.getElementById('pills-all-tab').click();
+        }).catch(err => alert(err.message));
+    }
+
+    function sendOrderNotification(orderKey) {
+        // Retrieve the order to get the userId/customer info
+        database.ref('orders/' + orderKey).once('value').then(snapshot => {
+            const order = snapshot.val();
+            if (!order || !order.userId) return;
+
+            // Fetch user's FCM token
+            database.ref('users/' + order.userId + '/fcmToken').once('value').then(tokenSnapshot => {
+                const token = tokenSnapshot.val();
+                if (!token) return;
+
+                // Send push via legacy API
+                const SERVER_KEY = "REMOVED_SECRET"; // Keep this consistent with add-food.html
+
+                if (SERVER_KEY === "REPLACE_WITH_YOUR_SERVER_KEY") return;
+
+                fetch('https://fcm.googleapis.com/fcm/send', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'key=' + SERVER_KEY,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        "to": token, // Target specific device
+                        "notification": {
+                            "title": "Order Completed! ✅",
+                            "body": "Your order #" + (order.qrCode || orderKey) + " has been picked up. Enjoy your meal!"
+                        },
+                        "data": {
+                            "type": "order_status",
+                            "newStatus": "completed",
+                            "orderId": orderKey
+                        }
+                    })
+                }).then(r => console.log("Notified customer:", r));
+            });
+        });
+    }
+
+    window.viewOrder = function(key) {
+        checkOrder(key);
+    }
+</script>
+
+</body>
+</html>
+
