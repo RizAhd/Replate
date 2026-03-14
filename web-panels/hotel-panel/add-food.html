@@ -148,6 +148,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
+<script src="../js/env-config.js"></script>
 <script src="../js/firebase-config.js"></script>
 <script>
     // Load categories
@@ -261,7 +262,7 @@
     function sendPushNotification(hotelName, foodName) {
         // REPLACE WITH YOUR FCM SERVER KEY (Legacy) from Project Settings > Cloud Messaging
         // WARNING: Exposing Server Key in client code is for testing only!
-        const SERVER_KEY = "AIzaSyCpUxdo15c3j4JojViG3pwy2PioPkte7DM";
+        const SERVER_KEY = ENV.FIREBASE_FCM_SERVER_KEY;
 
         if (SERVER_KEY === "REPLACE_WITH_YOUR_SERVER_KEY") {
             console.log("Push notification skipped: No Server Key");

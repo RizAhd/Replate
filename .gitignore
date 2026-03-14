@@ -13,3 +13,7 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# ── Secret / credential files — NEVER commit these ──────────
+.env
+web-panels/js/env-config.js
