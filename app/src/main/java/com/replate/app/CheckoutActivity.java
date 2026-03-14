@@ -58,8 +58,9 @@ public class CheckoutActivity extends AppCompatActivity {
     private static final String TAG = "PAYHERE_CHECKOUT";
     private static final int PAYHERE_REQUEST = 11001;
 
-    private static final String MERCHANT_ID = "1231640";
-    private static final String MERCHANT_SECRET = "REMOVED_SECRET";
+    // ── Secrets loaded from local.properties via BuildConfig ────────────────
+    private static final String MERCHANT_ID     = BuildConfig.PAYHERE_MERCHANT_ID;
+    private static final String MERCHANT_SECRET = BuildConfig.PAYHERE_MERCHANT_SECRET;
 
     private LinearLayout orderItemsContainer;
     private TextView tvSubtotal, tvSavings, tvTotal;

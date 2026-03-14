@@ -1,13 +1,19 @@
-// Firebase Configuration
-// COPY FROM YOUR FIREBASE CONSOLE
+/**
+ * Firebase Configuration
+ * ── All values come from env-config.js (not committed to Git) ───────────────
+ * Make sure env-config.js is loaded BEFORE this file in every HTML page:
+ *   <script src="../js/env-config.js"></script>
+ *   <script src="../js/firebase-config.js"></script>
+ */
+
 const firebaseConfig = {
-    apiKey: "AIzaSyBdepQADh5GTEK0ysRv75v-llnc3ziy8TQ",
-    authDomain: "replate-food-rescue.firebaseapp.com",
-    databaseURL: "https://replate-food-rescue-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "replate-food-rescue",
-    storageBucket: "replate-food-rescue.firebasestorage.app",
-    messagingSenderId: "50353677588",
-    appId: "1:50353677588:web:75306663" // Placeholder, ideally get from Firebase Console > Project Settings > General > Your Apps > Web App
+    apiKey:            ENV.FIREBASE_API_KEY,
+    authDomain:        ENV.FIREBASE_AUTH_DOMAIN,
+    databaseURL:       ENV.FIREBASE_DATABASE_URL,
+    projectId:         ENV.FIREBASE_PROJECT_ID,
+    storageBucket:     ENV.FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: ENV.FIREBASE_MESSAGING_SENDER,
+    appId:             ENV.FIREBASE_APP_ID,
 };
 
 // Initialize Firebase
@@ -45,4 +51,3 @@ function logout() {
         window.location.href = "login.html";
     });
 }
-

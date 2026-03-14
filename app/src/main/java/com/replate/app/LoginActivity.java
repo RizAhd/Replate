@@ -35,6 +35,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.HashMap;
@@ -67,9 +69,10 @@ public class LoginActivity extends AppCompatActivity {
     private TextInputEditText etRegisterName, etRegisterEmail, etRegisterPhone;
     private TextInputEditText etRegisterPassword, etRegisterConfirmPassword;
     private Button btnRegister;
-    private Button btnGoogleSignIn;
 
     private final ExecutorService networkExecutor = Executors.newSingleThreadExecutor();
+    private static final String OTP_FALLBACK_US = "https://us-central1-replate-food-rescue.cloudfunctions.net";
+    private static final String OTP_FALLBACK_ASIA = "https://asia-southeast1-replate-food-rescue.cloudfunctions.net";
 
 
     @Override
@@ -120,8 +123,6 @@ public class LoginActivity extends AppCompatActivity {
         etRegisterPassword = findViewById(R.id.etRegisterPassword);
         etRegisterConfirmPassword = findViewById(R.id.etRegisterConfirmPassword);
         btnRegister = findViewById(R.id.btnRegister);
-
-        btnGoogleSignIn = findViewById(R.id.btnGoogleSignIn);
     }
 
     /**
@@ -178,15 +179,6 @@ public class LoginActivity extends AppCompatActivity {
                 showForgotPasswordDialog();
             }
         });
-
-        // Google Sign In (placeholder for now)
-        btnGoogleSignIn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(LoginActivity.this,
-                    "Google Sign-In coming soon!", Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
     /**
@@ -212,8 +204,23 @@ public class LoginActivity extends AppCompatActivity {
                     showLoading(false);
 
                     if (task.isSuccessful()) {
-                        // Login success
                         FirebaseUser user = mAuth.getCurrentUser();
+                        if (user == null) {
+                            Toast.makeText(LoginActivity.this,
+                                "Login failed. Please try again.", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+
+                        // Enforce verified email before allowing app access.
+                        if (!user.isEmailVerified()) {
+                            Toast.makeText(LoginActivity.this,
+                                "Please verify your email first. Verification mail sent.",
+                                Toast.LENGTH_LONG).show();
+                            user.sendEmailVerification();
+                            mAuth.signOut();
+                            return;
+                        }
+
                         saveUserSession(user);
                         Toast.makeText(LoginActivity.this,
                             "Welcome back!", Toast.LENGTH_SHORT).show();
@@ -245,111 +252,8 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        requestEmailOtp(name, email, phone, password);
-    }
-
-    private void requestEmailOtp(String name, String email, String phone, String password) {
-        showLoading(true);
-        String endpoint = BuildConfig.OTP_FUNCTIONS_BASE_URL + "/sendOtpEmail";
-
-        networkExecutor.execute(() -> {
-            try {
-                JSONObject payload = new JSONObject();
-                payload.put("email", email);
-                payload.put("name", name);
-
-                JSONObject res = postJson(endpoint, payload);
-                boolean success = res.optBoolean("success", false);
-                String message = res.optString("message", "Failed to send OTP.");
-
-                runOnUiThread(() -> {
-                    if (success) {
-                        showLoading(false);
-                        showOtpDialog(name, email, phone, password);
-                    } else {
-                        showLoading(false);
-                        Toast.makeText(LoginActivity.this, message, Toast.LENGTH_LONG).show();
-                    }
-                });
-            } catch (Exception e) {
-                runOnUiThread(() -> {
-                    showLoading(false);
-                    Toast.makeText(LoginActivity.this, "OTP send error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                });
-            }
-        });
-    }
-
-    private void showOtpDialog(String name, String email, String phone, String password) {
-        final TextInputEditText otpInput = new TextInputEditText(this);
-        otpInput.setHint("Enter 6-digit Code");
-        otpInput.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
-        otpInput.setPadding(50, 30, 50, 30);
-
-        new AlertDialog.Builder(this)
-                .setTitle("Verify Email")
-                .setMessage("Enter the OTP sent to " + email)
-                .setView(otpInput)
-                .setCancelable(false)
-                .setPositiveButton("Verify", null)
-                .setNegativeButton("Cancel", (dialog, which) -> showLoading(false))
-                .setNeutralButton("Resend", null)
-                .create();
-
-        AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle("Verify Email")
-                .setMessage("Enter the OTP sent to " + email)
-                .setView(otpInput)
-                .setCancelable(false)
-                .setPositiveButton("Verify", null)
-                .setNegativeButton("Cancel", (d, which) -> showLoading(false))
-                .setNeutralButton("Resend", null)
-                .show();
-
-        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-            String enteredOtp = otpInput.getText() != null ? otpInput.getText().toString().trim() : "";
-            if (enteredOtp.length() != 6) {
-                otpInput.setError("Enter 6-digit OTP");
-                return;
-            }
-            verifyEmailOtp(dialog, enteredOtp, name, email, phone, password);
-        });
-
-        dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v ->
-                requestEmailOtp(name, email, phone, password)
-        );
-    }
-
-    private void verifyEmailOtp(AlertDialog dialog, String otp, String name, String email, String phone, String password) {
-        showLoading(true);
-        String endpoint = BuildConfig.OTP_FUNCTIONS_BASE_URL + "/verifyOtp";
-
-        networkExecutor.execute(() -> {
-            try {
-                JSONObject payload = new JSONObject();
-                payload.put("email", email);
-                payload.put("otp", otp);
-
-                JSONObject res = postJson(endpoint, payload);
-                boolean success = res.optBoolean("success", false);
-                String message = res.optString("message", success ? "Verified" : "Invalid OTP");
-
-                runOnUiThread(() -> {
-                    if (success) {
-                        dialog.dismiss();
-                        performFirebaseRegistration(name, email, phone, password);
-                    } else {
-                        showLoading(false);
-                        Toast.makeText(LoginActivity.this, message, Toast.LENGTH_LONG).show();
-                    }
-                });
-            } catch (Exception e) {
-                runOnUiThread(() -> {
-                    showLoading(false);
-                    Toast.makeText(LoginActivity.this, "OTP verify error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                });
-            }
-        });
+        // Use Firebase email verification instead of custom OTP endpoint.
+        performFirebaseRegistration(name, email, phone, password);
     }
 
     private void performFirebaseRegistration(String name, String email, String phone, String password) {
@@ -361,21 +265,26 @@ public class LoginActivity extends AppCompatActivity {
             .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                 @Override
                 public void onComplete(@NonNull Task<AuthResult> task) {
-                    if (task.isSuccessful()) {
-                        // Registration success - save user data to database
-                        FirebaseUser user = mAuth.getCurrentUser();
-                        if (user != null) {
-                            saveUserToDatabase(user.getUid(), name, email, phone);
-                        }
-                    } else {
-                        // Registration failed
+                    if (!task.isSuccessful()) {
                         showLoading(false);
                         String errorMessage = "Registration failed.";
                         if (task.getException() != null) {
                             errorMessage = task.getException().getMessage();
                         }
                         Toast.makeText(LoginActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+                        return;
                     }
+
+                    FirebaseUser user = mAuth.getCurrentUser();
+                    if (user == null) {
+                        showLoading(false);
+                        Toast.makeText(LoginActivity.this,
+                            "Registration failed. User not available.", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+
+                    // Save profile first, then send Firebase verification email.
+                    saveUserToDatabase(user.getUid(), name, email, phone, false, true);
                 }
             });
     }
@@ -383,7 +292,8 @@ public class LoginActivity extends AppCompatActivity {
     /**
      * Save user data to Firebase Realtime Database
      */
-    private void saveUserToDatabase(String userId, String name, String email, String phone) {
+    private void saveUserToDatabase(String userId, String name, String email, String phone,
+                                    boolean emailVerified, boolean sendVerificationEmail) {
         Map<String, Object> userData = new HashMap<>();
         userData.put("name", name);
         userData.put("email", email);
@@ -391,23 +301,50 @@ public class LoginActivity extends AppCompatActivity {
         userData.put("userType", "customer");
         userData.put("createdAt", System.currentTimeMillis());
         userData.put("profileImage", "");
+        userData.put("emailVerified", emailVerified);
 
         mDatabase.child("users").child(userId).setValue(userData)
             .addOnCompleteListener(new OnCompleteListener<Void>() {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
-                    showLoading(false);
+                    if (!task.isSuccessful()) {
+                        showLoading(false);
+                        Toast.makeText(LoginActivity.this,
+                            "Failed to save user data.", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
 
-                    if (task.isSuccessful()) {
-                        FirebaseUser user = mAuth.getCurrentUser();
-                        saveUserSession(user);
+                    FirebaseUser firebaseUser = mAuth.getCurrentUser();
+                    if (firebaseUser == null) {
+                        showLoading(false);
+                        Toast.makeText(LoginActivity.this,
+                            "Verification mail could not be sent.", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    if (!sendVerificationEmail) {
+                        showLoading(false);
+                        saveUserSession(firebaseUser);
                         Toast.makeText(LoginActivity.this,
                             "Account created successfully!", Toast.LENGTH_SHORT).show();
                         goToHome();
-                    } else {
-                        Toast.makeText(LoginActivity.this,
-                            "Failed to save user data.", Toast.LENGTH_SHORT).show();
+                        return;
                     }
+
+                    firebaseUser.sendEmailVerification().addOnCompleteListener(mailTask -> {
+                        showLoading(false);
+                        if (mailTask.isSuccessful()) {
+                            Toast.makeText(LoginActivity.this,
+                                "Verification email sent. Please check your inbox before login.",
+                                Toast.LENGTH_LONG).show();
+                        } else {
+                            Toast.makeText(LoginActivity.this,
+                                "Account created, but email send failed. You can retry from login.",
+                                Toast.LENGTH_LONG).show();
+                        }
+                        mAuth.signOut();
+                        tabLayout.selectTab(tabLayout.getTabAt(0));
+                    });
                 }
             });
     }
@@ -646,13 +583,28 @@ public class LoginActivity extends AppCompatActivity {
                 }
             }
 
-            if (sb.length() == 0) {
+            String body = sb.toString().trim();
+            if (body.isEmpty()) {
                 JSONObject fallback = new JSONObject();
                 fallback.put("success", code >= 200 && code < 300);
                 fallback.put("message", "Empty server response");
                 return fallback;
             }
-            return new JSONObject(sb.toString());
+
+            String bodyLower = body.toLowerCase();
+            if (bodyLower.startsWith("<!doctype") || bodyLower.startsWith("<html") || bodyLower.contains("<head") || bodyLower.contains("<body")) {
+                throw new IllegalStateException("Endpoint returned HTML instead of JSON. Deploy OTP functions or fix endpoint URL.");
+            }
+
+            if (!body.startsWith("{")) {
+                throw new IllegalStateException("Endpoint returned non-JSON response: " + body.substring(0, Math.min(120, body.length())));
+            }
+
+            try {
+                return new JSONObject(body);
+            } catch (Exception parseEx) {
+                throw new IllegalStateException("Invalid JSON from endpoint: " + parseEx.getMessage());
+            }
         } finally {
             if (connection != null) {
                 connection.disconnect();
