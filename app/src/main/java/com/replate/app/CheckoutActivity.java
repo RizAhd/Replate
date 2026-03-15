@@ -155,7 +155,11 @@ public class CheckoutActivity extends AppCompatActivity {
                 if (cardPickupTime != null) cardPickupTime.setVisibility(View.VISIBLE);
                 rbCash.setText("Cash on Pickup");
             }
+            updatePlaceOrderButton();
         });
+
+        rgPayment.setOnCheckedChangeListener((group, checkedId) -> updatePlaceOrderButton());
+        updatePlaceOrderButton();
     }
 
     private void loadOrderSummary() {
@@ -172,21 +176,44 @@ public class CheckoutActivity extends AppCompatActivity {
         orderItemsContainer.removeAllViews();
 
         for (CartItem item : cartItems) {
-            View itemView = LayoutInflater.from(this)
-                    .inflate(android.R.layout.simple_list_item_2, orderItemsContainer, false);
-            TextView text1 = itemView.findViewById(android.R.id.text1);
-            TextView text2 = itemView.findViewById(android.R.id.text2);
-            text1.setText(item.getQuantity() + "x " + item.getFoodName());
-            text2.setText(String.format(Locale.US, "LKR %.2f", item.getSubtotal()));
-            orderItemsContainer.addView(itemView);
+            LinearLayout itemRow = new LinearLayout(this);
+            itemRow.setOrientation(LinearLayout.VERTICAL);
+            itemRow.setPadding(0, 0, 0, 16);
+
+            TextView title = new TextView(this);
+            title.setText(item.getQuantity() + " × " + item.getFoodName());
+            title.setTextSize(15f);
+            title.setTextColor(getColor(R.color.text_primary));
+            title.setTypeface(title.getTypeface(), android.graphics.Typeface.BOLD);
+
+            TextView subtitle = new TextView(this);
+            subtitle.setText(item.getHotelName() + " • LKR " + String.format(Locale.getDefault(), "%.2f", item.getSubtotal()));
+            subtitle.setTextSize(13f);
+            subtitle.setTextColor(getColor(R.color.text_secondary));
+            subtitle.setPadding(0, 4, 0, 0);
+
+            itemRow.addView(title);
+            itemRow.addView(subtitle);
+            orderItemsContainer.addView(itemRow);
 
             totalAmount += item.getSubtotal();
             totalSavings += (item.getOriginalPrice() - item.getPrice()) * item.getQuantity();
         }
 
-        tvSubtotal.setText(String.format(Locale.US, "LKR %.2f", totalAmount));
-        tvSavings.setText(String.format(Locale.US, "-LKR %.2f", totalSavings));
-        tvTotal.setText(String.format(Locale.US, "LKR %.2f", totalAmount));
+        tvSubtotal.setText(String.format(Locale.getDefault(), "LKR %.2f", totalAmount));
+        tvSavings.setText(String.format(Locale.getDefault(), "-LKR %.2f", totalSavings));
+        tvTotal.setText(String.format(Locale.getDefault(), "LKR %.2f", totalAmount));
+    }
+
+    private void updatePlaceOrderButton() {
+        boolean isDelivery = rgOrderType != null && rgOrderType.getCheckedRadioButtonId() == R.id.rbDelivery;
+        boolean isCard = rgPayment != null && rgPayment.getCheckedRadioButtonId() == R.id.rbCard;
+
+        if (isCard) {
+            btnPlaceOrder.setText(isDelivery ? "Continue to PayHere" : "Pay & confirm order");
+        } else {
+            btnPlaceOrder.setText(isDelivery ? "Place delivery order" : "Place pickup order");
+        }
     }
 
     private void loadUserData() {
@@ -402,6 +429,7 @@ public class CheckoutActivity extends AppCompatActivity {
         orderData.put("customerName", customerName);
         orderData.put("customerPhone", customerPhone);
         orderData.put("createdAt", System.currentTimeMillis());
+        orderData.put("updatedAt", System.currentTimeMillis());
 
         mDatabase.child("orders").child(orderId).setValue(orderData)
                 .addOnSuccessListener(unused -> {
@@ -458,5 +486,6 @@ public class CheckoutActivity extends AppCompatActivity {
     private void showLoading(boolean show) {
         progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
         btnPlaceOrder.setEnabled(!show);
+        btnPlaceOrder.setAlpha(show ? 0.65f : 1f);
     }
 }

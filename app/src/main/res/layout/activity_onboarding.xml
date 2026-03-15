@@ -5,60 +5,117 @@
     android:layout_height="match_parent"
     android:background="@color/cream">
 
-    <!-- Skip Button - Top Right -->
-    <TextView
-        android:id="@+id/textSkip"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        android:layout_margin="16dp"
-        android:padding="8dp"
-        android:text="Skip"
-        android:textColor="@color/text_secondary"
-        android:textSize="16sp" />
-
-    <!-- ViewPager2 for sliding pages -->
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/viewPagerOnboarding"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@id/bottomLayout"
-        android:layout_below="@id/textSkip" />
+        android:orientation="vertical">
 
-    <!-- Bottom Layout with Indicator and Buttons -->
-    <LinearLayout
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            app:cardBackgroundColor="@color/green_primary"
+            app:cardCornerRadius="28dp"
+            app:cardElevation="0dp">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="REPLATE"
+                    android:textColor="@color/white"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/textSkip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:background="@drawable/badge_distance"
+                    android:paddingHorizontal="14dp"
+                    android:paddingVertical="8dp"
+                    android:text="Skip"
+                    android:textColor="@color/green_primary"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/textSkip"
+                    android:layout_marginTop="18dp"
+                    android:text="Fresh meals, smarter savings, and less food waste."
+                    android:textColor="@color/white"
+                    android:textSize="28sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/textSkip"
+                    android:layout_marginTop="86dp"
+                    android:text="Swipe through to see how REPLATE helps you find nearby rescue deals in seconds."
+                    android:textColor="#D8FFFFFF"
+                    android:textSize="14sp"
+                    android:lineSpacingExtra="3dp" />
+            </RelativeLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/viewPagerOnboarding"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginTop="8dp"
+            android:clipToPadding="false"
+            android:paddingHorizontal="8dp" />
+    </LinearLayout>
+
+    <com.google.android.material.card.MaterialCardView
         android:id="@+id/bottomLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:orientation="vertical"
-        android:padding="24dp">
+        android:layout_margin="16dp"
+        app:cardBackgroundColor="@color/surface_white"
+        app:cardCornerRadius="28dp"
+        app:cardElevation="8dp">
 
-        <!-- Page Indicator Dots -->
-        <me.relex.circleindicator.CircleIndicator3
-            android:id="@+id/circleIndicator"
-            android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:layout_gravity="center"
-            app:ci_drawable="@drawable/indicator_selected"
-            app:ci_drawable_unselected="@drawable/indicator_unselected"
-            app:ci_width="10dp"
-            app:ci_height="10dp"
-            app:ci_margin="8dp" />
-
-        <!-- Next/Get Started Button -->
-        <Button
-            android:id="@+id/buttonNext"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/button_primary"
-            android:text="Next"
-            android:textColor="@color/white"
-            android:textSize="18sp"
-            android:textAllCaps="false" />
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
 
-    </LinearLayout>
+            <me.relex.circleindicator.CircleIndicator3
+                android:id="@+id/circleIndicator"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_gravity="center"
+                app:ci_drawable="@drawable/indicator_selected"
+                app:ci_drawable_unselected="@drawable/indicator_unselected"
+                app:ci_height="10dp"
+                app:ci_margin="8dp"
+                app:ci_width="10dp" />
+
+            <Button
+                android:id="@+id/buttonNext"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/button_primary"
+                android:text="Next"
+                android:textAllCaps="false"
+                android:textColor="@color/white"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
 
 </RelativeLayout>

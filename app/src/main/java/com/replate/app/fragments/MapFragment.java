@@ -108,10 +108,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                if (query != null && !query.isEmpty()) {
-                    searchLocation(query);
+                if (query != null && !query.trim().isEmpty()) {
+                    searchView.clearFocus();
+                    searchLocation(query.trim());
                 }
-                return false;
+                return true;
             }
 
             @Override
@@ -212,8 +213,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             String hotelId = (String) marker.getTag();
             if (hotelId != null) {
                 showHotelBottomSheet(hotelId);
+                marker.showInfoWindow();
             }
-            return false;
+            return true;
         });
 
         // Map click to hide bottom sheet
@@ -270,7 +272,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
                 Map<String, Map<String, Object>> hotels = new HashMap<>();
                 for (DataSnapshot h : hotelSnapshot.getChildren()) {
-                    // Store hotel details: lat, lng, address, name
                     Map<String, Object> details = (Map<String, Object>) h.getValue();
                     if (details != null) {
                         hotels.put(h.getKey(), details);
@@ -282,51 +283,61 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         hotelFoodItems.clear();
                         mMap.clear();
+                        bottomSheet.setVisibility(View.GONE);
 
-                        // Group food items by hotel
                         for (DataSnapshot itemSnapshot : snapshot.getChildren()) {
                             FoodItem item = itemSnapshot.getValue(FoodItem.class);
-                            if (item != null && item.isAvailableValue() && item.getQuantityValue() > 0) {
-                                item.setFoodId(itemSnapshot.getKey());
+                            if (item == null) continue;
 
-                                String hotelId = item.getHotelId();
-                                // Fill missing location data from Hotels node if necessary
-                                if (hotels.containsKey(hotelId)) {
-                                    Map<String, Object> hDetails = hotels.get(hotelId);
-                                    if (item.getLatitudeValue() == 0) item.setLatitude(hDetails.get("latitude"));
-                                    if (item.getLongitudeValue() == 0) item.setLongitude(hDetails.get("longitude"));
-                                    if (item.getHotelAddress() == null || item.getHotelAddress().isEmpty())
-                                        item.setHotelAddress((String) hDetails.get("address"));
-                                }
+                            item.setFoodId(itemSnapshot.getKey());
 
-                                if (!hotelFoodItems.containsKey(hotelId)) {
-                                    hotelFoodItems.put(hotelId, new ArrayList<>());
-                                }
-                                hotelFoodItems.get(hotelId).add(item);
+                            if (item.getImageUrl() == null || item.getImageUrl().trim().isEmpty()) {
+                                Object image = getObjectAny(itemSnapshot, "imageUrl", "photoUrl", "foodImage", "image", "imageURL", "image_path");
+                                if (image != null) item.setImageUrl(String.valueOf(image));
                             }
+
+                            Object statusObj = getObjectAny(itemSnapshot, "status", "itemStatus");
+                            String status = statusObj == null ? "available" : String.valueOf(statusObj);
+                            if (!"available".equalsIgnoreCase(status) || item.getQuantityValue() <= 0) {
+                                continue;
+                            }
+
+                            String hotelId = item.getHotelId();
+                            if (hotels.containsKey(hotelId)) {
+                                Map<String, Object> hDetails = hotels.get(hotelId);
+                                if (item.getLatitudeValue() == 0) item.setLatitude(hDetails.get("latitude"));
+                                if (item.getLongitudeValue() == 0) item.setLongitude(hDetails.get("longitude"));
+                                if (item.getHotelAddress() == null || item.getHotelAddress().isEmpty()) {
+                                    Object address = hDetails.get("address");
+                                    item.setHotelAddress(address == null ? "" : String.valueOf(address));
+                                }
+                                if (item.getHotelName() == null || item.getHotelName().isEmpty()) {
+                                    Object hotelName = hDetails.get("hotelName");
+                                    if (hotelName != null) item.setHotelName(String.valueOf(hotelName));
+                                }
+                            }
+
+                            if (!hotelFoodItems.containsKey(hotelId)) {
+                                hotelFoodItems.put(hotelId, new ArrayList<>());
+                            }
+                            hotelFoodItems.get(hotelId).add(item);
                         }
 
-                        // Add markers
                         for (Map.Entry<String, List<FoodItem>> entry : hotelFoodItems.entrySet()) {
                             List<FoodItem> items = entry.getValue();
                             if (!items.isEmpty()) {
                                 FoodItem firstItem = items.get(0);
-
                                 if (firstItem.getLatitudeValue() != 0 && firstItem.getLongitudeValue() != 0) {
-                                    LatLng position = new LatLng(
-                                            firstItem.getLatitudeValue(),
-                                            firstItem.getLongitudeValue()
-                                    );
-
-                                    float markerColor = getMarkerColor(
-                                            firstItem.getLatitudeValue(),
-                                            firstItem.getLongitudeValue()
-                                    );
+                                    LatLng position = new LatLng(firstItem.getLatitudeValue(), firstItem.getLongitudeValue());
+                                    float markerColor = getMarkerColor(firstItem.getLatitudeValue(), firstItem.getLongitudeValue());
+                                    double distanceKm = com.replate.app.utils.LocationUtils.calculateDistance(
+                                            currentLatitude, currentLongitude,
+                                            firstItem.getLatitudeValue(), firstItem.getLongitudeValue());
 
                                     MarkerOptions markerOptions = new MarkerOptions()
                                             .position(position)
                                             .title(firstItem.getHotelName())
-                                            .snippet(items.size() + " deals available")
+                                            .snippet(firstItem.getFoodName() + " • " + String.format(Locale.getDefault(), "%.1f km", distanceKm))
                                             .icon(BitmapDescriptorFactory.defaultMarker(markerColor));
 
                                     Marker marker = mMap.addMarker(markerOptions);
@@ -336,9 +347,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                                 }
                             }
                         }
-
-                        // If we have mock data (e.g. Nuwara Eliya) and user is far away, maybe show toast or move camera?
-                        // For now we just keep user location logic.
                         loadingOverlay.setVisibility(View.GONE);
                     }
 
@@ -362,22 +370,39 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
         if (items != null && !items.isEmpty()) {
             FoodItem firstItem = items.get(0);
+            double distanceKm = com.replate.app.utils.LocationUtils.calculateDistance(
+                    currentLatitude, currentLongitude,
+                    firstItem.getLatitudeValue(), firstItem.getLongitudeValue()
+            );
 
             tvRestaurantName.setText(firstItem.getHotelName());
-            tvRestaurantAddress.setText(firstItem.getHotelAddress() != null ?
-                    firstItem.getHotelAddress() : "Address not available");
-            tvDealsCount.setText(items.size() + " deals available");
+            tvRestaurantAddress.setText(firstItem.getHotelAddress() != null && !firstItem.getHotelAddress().isEmpty()
+                    ? firstItem.getHotelAddress()
+                    : "Pickup address unavailable");
+            tvDealsCount.setText(items.size() + " deal" + (items.size() == 1 ? "" : "s")
+                    + " • " + String.format(Locale.getDefault(), "%.1f km", distanceKm));
 
-            // Load image
             if (firstItem.getImageUrl() != null && !firstItem.getImageUrl().isEmpty()) {
                 Glide.with(requireContext())
                         .load(firstItem.getImageUrl())
                         .placeholder(R.drawable.placeholder_food)
+                        .error(R.drawable.placeholder_food)
+                        .centerCrop()
                         .into(ivRestaurantImage);
+            } else {
+                ivRestaurantImage.setImageResource(R.drawable.placeholder_food);
             }
 
             bottomSheet.setVisibility(View.VISIBLE);
         }
+    }
+
+    private Object getObjectAny(DataSnapshot snapshot, String... keys) {
+        for (String key : keys) {
+            Object v = snapshot.child(key).getValue();
+            if (v != null) return v;
+        }
+        return null;
     }
 
     @Override

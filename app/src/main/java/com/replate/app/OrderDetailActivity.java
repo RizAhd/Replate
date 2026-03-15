@@ -33,6 +33,8 @@ import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.common.BitMatrix;
 import com.replate.app.models.Order;
 
+import java.util.Locale;
+
 /**
  * Order Detail Activity - Shows order info, QR code, OTP, light sensor
  * Requirements: QR Code (ZXing), Sensors (Light), Telephony
@@ -126,12 +128,14 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         String id = order.getOrderId();
         tvOrderId.setText("Order #" + (id != null ? id.substring(Math.max(0, id.length() - 8)) : "N/A"));
 
-        // Status
         String status = order.getOrderStatus();
         if (status != null) {
             switch (status) {
                 case "pending":
                     tvOrderStatus.setText("⏳ Pending Confirmation");
+                    break;
+                case "pending_pickup":
+                    tvOrderStatus.setText("🛍️ Pending Pickup");
                     break;
                 case "confirmed":
                     tvOrderStatus.setText("✅ Order Confirmed");
@@ -150,21 +154,19 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
             }
         }
 
-        // Hotel info
         tvHotelName.setText(order.getHotelName() != null ? order.getHotelName() : "Restaurant");
-        tvHotelAddress.setText(order.getHotelAddress() != null ? order.getHotelAddress() : "");
+        tvHotelAddress.setText(order.getHotelAddress() != null && !order.getHotelAddress().trim().isEmpty()
+                ? order.getHotelAddress()
+                : "Pickup address will be shared by the hotel");
         tvPickupTime.setText("Pickup: " + (order.getPickupTime() != null ? order.getPickupTime() : "N/A"));
 
-        // Payment info
-        tvTotalAmount.setText(String.format("LKR %.2f", order.getTotalAmountValue()));
+        tvTotalAmount.setText(String.format(Locale.getDefault(), "LKR %.2f", order.getTotalAmountValue()));
         tvPaymentMethod.setText(order.getPaymentMethod() != null ? order.getPaymentMethod() : "N/A");
         tvPaymentStatus.setText(order.getPaymentStatus() != null ? order.getPaymentStatus() : "N/A");
 
-        // OTP
         String otp = order.getOtpCode();
         tvOTP.setText(otp != null ? otp : "------");
 
-        // Generate QR Code (REQUIREMENT: ZXing QR Code)
         String qrData = order.getQrCode() != null ? order.getQrCode() : order.getOrderId();
         generateQRCode(qrData);
     }

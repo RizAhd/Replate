@@ -74,24 +74,36 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
             tvTitle.setText(notif.getTitle());
             tvBody.setText(notif.getBody());
 
-            // Format timestamp
             long ts = notif.getTimestampValue();
             if (ts > 0) {
-                SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, hh:mm a", Locale.getDefault());
-                tvTime.setText(sdf.format(new Date(ts)));
+                tvTime.setText(formatRelativeTime(ts));
+            } else {
+                tvTime.setText("Just now");
             }
 
-            // Show unread dot
             unreadDot.setVisibility(notif.isRead() ? View.GONE : View.VISIBLE);
-
-            // Set alpha for read notifications
-            itemView.setAlpha(notif.isRead() ? 0.7f : 1.0f);
+            itemView.setAlpha(notif.isRead() ? 0.78f : 1.0f);
 
             itemView.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onNotificationClick(notif);
                 }
             });
+        }
+
+        private String formatRelativeTime(long timestamp) {
+            long diff = System.currentTimeMillis() - timestamp;
+            long minutes = diff / (60 * 1000);
+            long hours = diff / (60 * 60 * 1000);
+            long days = diff / (24 * 60 * 60 * 1000);
+
+            if (minutes < 1) return "Just now";
+            if (minutes < 60) return minutes + (minutes == 1 ? " min ago" : " mins ago");
+            if (hours < 24) return hours + (hours == 1 ? " hour ago" : " hours ago");
+            if (days < 7) return days + (days == 1 ? " day ago" : " days ago");
+
+            SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, hh:mm a", Locale.getDefault());
+            return sdf.format(new Date(timestamp));
         }
     }
 }

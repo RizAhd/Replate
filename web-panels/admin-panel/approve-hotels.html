@@ -13,20 +13,7 @@
 <div class="container-fluid">
     <div class="row">
         <!-- Admin Sidebar -->
-        <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse bg-dark text-white">
-            <div class="position-sticky pt-3">
-                <a class="navbar-brand d-block px-3 py-3 mb-3 text-center text-white" href="#">
-                    👑 ADMIN
-                </a>
-                <ul class="nav flex-column">
-                    <li class="nav-item"><a class="nav-link text-white active" href="approve-hotels.html">🏨 Approve Hotels</a></li>
-                    <li class="nav-item"><a class="nav-link text-white" href="transactions.html">💰 Transactions</a></li>
-                    <li class="nav-item"><a class="nav-link text-white" href="categories.html">🏷️ Categories</a></li>
-                    <li class="nav-item"><a class="nav-link text-white" href="analytics.html">📊 Analytics</a></li>
-                    <li class="nav-item"><a class="nav-link text-white" href="#" onclick="logout()">🚪 Logout</a></li>
-                </ul>
-            </div>
-        </nav>
+        <nav id="appShellSidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse"></nav>
 
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
             <h2 class="mb-4">Manage Hotel Registrations</h2>
@@ -58,9 +45,24 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="../js/env-config.js"></script>
 <script src="../js/firebase-config.js"></script>
+<script src="../js/data-schema.js"></script>
+<script src="../js/ui-shell.js"></script>
 
 <script>
+    const adminShellLinks = [
+        { key: 'approve-hotels', href: 'approve-hotels.html', icon: 'fas fa-hotel', label: 'Approve Hotels' },
+        { key: 'transactions', href: 'transactions.html', icon: 'fas fa-money-bill-wave', label: 'Transactions' },
+        { key: 'categories', href: 'categories.html', icon: 'fas fa-tags', label: 'Categories' },
+        { key: 'analytics', href: 'analytics.html', icon: 'fas fa-chart-line', label: 'Analytics' },
+        { key: 'logout', href: '#', icon: 'fas fa-sign-out-alt', label: 'Logout', logout: true }
+    ];
+
     auth.onAuthStateChanged((user) => {
+        ReplateUI.renderSidebar('appShellSidebar', {
+            title: '👑 ADMIN',
+            activeKey: 'approve-hotels',
+            links: adminShellLinks,
+        });
         if (user) loadHotels();
     });
 
@@ -75,36 +77,39 @@
             rejectedDiv.innerHTML = '';
 
             snapshot.forEach((child) => {
-                const hotel = child.val();
+                const hotel = child.val() || {};
                 const key = child.key;
                 const card = createHotelCard(hotel, key);
+                const status = (hotel.status || '').toLowerCase();
 
-                if (hotel.status === 'pending') pendingDiv.innerHTML += card;
-                else if (hotel.status === 'approved') approvedDiv.innerHTML += card;
-                else if (hotel.status === 'rejected') rejectedDiv.innerHTML += card;
+                if (status === 'pending') pendingDiv.innerHTML += card;
+                else if (status === 'approved') approvedDiv.innerHTML += card;
+                else if (status === 'rejected') rejectedDiv.innerHTML += card;
             });
         });
     }
 
     function createHotelCard(hotel, key) {
         let buttons = '';
-        if (hotel.status === 'pending') {
+        if ((hotel.status || '').toLowerCase() === 'pending') {
             buttons = `
                 <button class="btn btn-success btn-sm w-100 mb-2" onclick="updateStatus('${key}', 'approved')">✅ Approve</button>
                 <button class="btn btn-danger btn-sm w-100" onclick="rejectHotel('${key}')">❌ Reject</button>
             `;
         }
 
+        const licenseUrl = hotel.licenseUrl || hotel.license || '#';
+
         return `
             <div class="col-md-4 mb-4">
                 <div class="card h-100">
                     <div class="card-body">
-                        <h5>${hotel.hotelName}</h5>
-                        <p class="small text-muted mb-2"> Owner: ${hotel.ownerName}</p>
-                        <p class="small mb-1"><i class="fas fa-envelope"></i> ${hotel.email}</p>
-                        <p class="small mb-1"><i class="fas fa-phone"></i> ${hotel.phone}</p>
-                        <p class="small mb-3"><i class="fas fa-map-marker-alt"></i> ${hotel.address}</p>
-                        <a href="${hotel.license}" target="_blank" class="btn btn-outline-dark btn-sm w-100 mb-3">📄 View License</a>
+                        <h5>${hotel.hotelName || 'Hotel'}</h5>
+                        <p class="small text-muted mb-2">Owner: ${hotel.ownerName || '-'}</p>
+                        <p class="small mb-1"><i class="fas fa-envelope"></i> ${hotel.email || '-'}</p>
+                        <p class="small mb-1"><i class="fas fa-phone"></i> ${hotel.phone || '-'}</p>
+                        <p class="small mb-3"><i class="fas fa-map-marker-alt"></i> ${hotel.address || '-'}</p>
+                        <a href="${licenseUrl}" target="_blank" class="btn btn-outline-dark btn-sm w-100 mb-3">📄 View License</a>
                         ${buttons}
                     </div>
                 </div>
@@ -113,13 +118,13 @@
     }
 
     window.updateStatus = function(key, status) {
-        if(confirm(`Mark this hotel as ${status}?`)) {
+        if (confirm(`Mark this hotel as ${status}?`)) {
             database.ref('hotels/' + key).update({ status: status });
         }
     }
 
     window.rejectHotel = function(key) {
-        const reason = prompt("Reason for rejection:");
+        const reason = prompt('Reason for rejection:');
         if (reason) {
             database.ref('hotels/' + key).update({
                 status: 'rejected',

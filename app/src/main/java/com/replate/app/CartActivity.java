@@ -20,6 +20,7 @@ import com.replate.app.models.CartItem;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Cart Activity - Shows items in SQLite-backed shopping cart
@@ -29,7 +30,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
 
     private RecyclerView rvCartItems;
     private LinearLayout emptyState, checkoutSection;
-    private TextView tvTotalAmount, tvClearCart;
+    private TextView tvTotalAmount, tvClearCart, tvItemCount, tvSavingsValue, tvCartSummary;
     private Button btnCheckout, btnBrowse;
 
     private CartDatabaseHelper cartDb;
@@ -60,6 +61,9 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
         checkoutSection = findViewById(R.id.checkoutSection);
         tvTotalAmount = findViewById(R.id.tvTotalAmount);
         tvClearCart = findViewById(R.id.tvClearCart);
+        tvItemCount = findViewById(R.id.tvItemCount);
+        tvSavingsValue = findViewById(R.id.tvSavingsValue);
+        tvCartSummary = findViewById(R.id.tvCartSummary);
         btnCheckout = findViewById(R.id.btnCheckout);
         btnBrowse = findViewById(R.id.btnBrowse);
 
@@ -104,11 +108,34 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
             rvCartItems.setVisibility(View.GONE);
             emptyState.setVisibility(View.VISIBLE);
             checkoutSection.setVisibility(View.GONE);
+            if (tvCartSummary != null) {
+                tvCartSummary.setText("Your cart will automatically keep items saved offline.");
+            }
         } else {
             rvCartItems.setVisibility(View.VISIBLE);
             emptyState.setVisibility(View.GONE);
             checkoutSection.setVisibility(View.VISIBLE);
-            tvTotalAmount.setText(String.format("LKR %.2f", cartDb.getCartTotal()));
+
+            double total = cartDb.getCartTotal();
+            double savings = 0;
+            int itemCount = 0;
+            for (CartItem item : cartItems) {
+                itemCount += item.getQuantity();
+                savings += (item.getOriginalPrice() - item.getPrice()) * item.getQuantity();
+            }
+
+            tvTotalAmount.setText(String.format(Locale.getDefault(), "LKR %.2f", total));
+            if (tvItemCount != null) {
+                tvItemCount.setText(itemCount == 1 ? "1 item" : itemCount + " items");
+            }
+            if (tvSavingsValue != null) {
+                tvSavingsValue.setText(String.format(Locale.getDefault(), "LKR %.2f", Math.max(savings, 0)));
+            }
+            if (tvCartSummary != null) {
+                tvCartSummary.setText(itemCount == 1
+                        ? "You have 1 rescue meal ready for checkout"
+                        : "You have " + itemCount + " rescue meals ready for checkout");
+            }
         }
     }
 

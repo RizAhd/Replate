@@ -15,6 +15,8 @@ import com.replate.app.helpers.CartDatabaseHelper;
 import com.replate.app.models.CartItem;
 import com.replate.app.models.FoodItem;
 
+import java.util.Locale;
+
 /**
  * Food Detail Activity - Shows full details of a food item
  */
@@ -24,7 +26,7 @@ public class FoodDetailActivity extends AppCompatActivity {
     private TextView tvFoodName, tvHotelName, tvDescription;
     private TextView tvOriginalPrice, tvDiscountedPrice, tvDiscount;
     private TextView tvPickupTime, tvDistance, tvQuantity;
-    private Button btnAddToCart, btnMinus, btnPlus;
+    private Button btnAddToCart, btnMinus, btnPlus, btnCallHotel;
 
     private FoodItem foodItem;
     private int quantity = 1;
@@ -61,23 +63,28 @@ public class FoodDetailActivity extends AppCompatActivity {
         btnAddToCart = findViewById(R.id.btnAddToCart);
         btnMinus = findViewById(R.id.btnMinus);
         btnPlus = findViewById(R.id.btnPlus);
+        btnCallHotel = findViewById(R.id.btnCallHotel);
     }
 
     private void displayFoodDetails() {
         tvFoodName.setText(foodItem.getFoodName());
         tvHotelName.setText(foodItem.getHotelName());
-        tvDescription.setText(foodItem.getDescription());
+        tvDescription.setText(foodItem.getDescription() != null && !foodItem.getDescription().trim().isEmpty()
+                ? foodItem.getDescription()
+                : "Fresh rescue meal from a nearby hotel.");
 
-        tvOriginalPrice.setText(String.format("LKR %.2f", foodItem.getOriginalPriceValue()));
+        tvOriginalPrice.setText(String.format(Locale.getDefault(), "LKR %.2f", foodItem.getOriginalPriceValue()));
         tvOriginalPrice.setPaintFlags(tvOriginalPrice.getPaintFlags() |
             android.graphics.Paint.STRIKE_THRU_TEXT_FLAG);
-        tvDiscountedPrice.setText(String.format("LKR %.2f", foodItem.getDiscountedPriceValue()));
-        tvDiscount.setText(String.format("-%d%%", foodItem.getDiscountPercentValue()));
+        tvDiscountedPrice.setText(String.format(Locale.getDefault(), "LKR %.2f", foodItem.getDiscountedPriceValue()));
+        tvDiscount.setText(String.format(Locale.getDefault(), "-%d%%", foodItem.getDiscountPercentValue()));
 
-        tvPickupTime.setText("Pickup: " + foodItem.getPickupTimeFormatted());
+        tvPickupTime.setText(foodItem.getPickupTimeFormatted());
 
         if (foodItem.getDistance() > 0) {
             tvDistance.setText(foodItem.getDistanceFormatted() + " away");
+        } else {
+            tvDistance.setText("Nearby pickup");
         }
 
         // Load image
@@ -93,6 +100,9 @@ public class FoodDetailActivity extends AppCompatActivity {
 
     private void setupClickListeners() {
         ivBack.setOnClickListener(v -> finish());
+        if (btnCallHotel != null) {
+            btnCallHotel.setOnClickListener(v -> callHotel());
+        }
 
         btnMinus.setOnClickListener(v -> {
             if (quantity > 1) {
@@ -111,15 +121,13 @@ public class FoodDetailActivity extends AppCompatActivity {
             }
         });
 
-        btnAddToCart.setOnClickListener(v -> {
-            addToCart();
-        });
+        btnAddToCart.setOnClickListener(v -> addToCart());
     }
 
     private void updateQuantityDisplay() {
         tvQuantity.setText(String.valueOf(quantity));
         double total = foodItem.getDiscountedPriceValue() * quantity;
-        btnAddToCart.setText(String.format("Add to Cart - LKR %.2f", total));
+        btnAddToCart.setText(String.format(Locale.getDefault(), "Add to Cart - LKR %.2f", total));
     }
 
     private void addToCart() {

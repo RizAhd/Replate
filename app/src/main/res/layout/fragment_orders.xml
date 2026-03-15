@@ -1,54 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/light_gray"
     android:orientation="vertical">
 
     <!-- Header -->
-    <LinearLayout
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/primary"
-        android:padding="16dp">
+        android:layout_margin="16dp"
+        app:cardBackgroundColor="@color/green_primary"
+        app:cardCornerRadius="28dp"
+        app:cardElevation="0dp">
 
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="My Orders"
-            android:textColor="@color/white"
-            android:textSize="24sp"
-            android:textStyle="bold" />
+            android:orientation="vertical"
+            android:padding="20dp">
 
-    </LinearLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="My Orders"
+                android:textColor="@color/white"
+                android:textSize="26sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Track active pickups, completed orders, and cancelled requests in one place."
+                android:textColor="#D9FFFFFF"
+                android:textSize="14sp" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
 
     <!-- Tab Layout for Order Status -->
-    <com.google.android.material.tabs.TabLayout
-        android:id="@+id/tabLayoutOrders"
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/white"
-        app:tabIndicatorColor="@color/primary"
-        app:tabSelectedTextColor="@color/primary"
-        app:tabTextColor="@color/text_secondary"
-        xmlns:app="http://schemas.android.com/apk/res-auto">
+        android:layout_marginHorizontal="16dp"
+        app:cardCornerRadius="22dp"
+        app:cardElevation="3dp">
 
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tabLayoutOrders"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Active" />
+            android:background="@color/white"
+            app:tabIndicatorColor="@color/primary"
+            app:tabIndicatorFullWidth="false"
+            app:tabMode="fixed"
+            app:tabSelectedTextColor="@color/primary"
+            app:tabTextColor="@color/text_secondary">
 
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Completed" />
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Active" />
 
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Cancelled" />
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Completed" />
 
-    </com.google.android.material.tabs.TabLayout>
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cancelled" />
+
+        </com.google.android.material.tabs.TabLayout>
+    </com.google.android.material.card.MaterialCardView>
 
     <!-- Orders RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
@@ -57,7 +83,8 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:clipToPadding="false"
-        android:padding="8dp" />
+        android:paddingTop="10dp"
+        android:paddingBottom="8dp" />
 
     <!-- Empty State -->
     <LinearLayout
@@ -67,6 +94,7 @@
         android:layout_weight="1"
         android:gravity="center"
         android:orientation="vertical"
+        android:paddingHorizontal="28dp"
         android:visibility="gone">
 
         <ImageView
@@ -80,21 +108,23 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="No orders yet"
-            android:textColor="@color/text_secondary"
-            android:textSize="18sp" />
+            android:textColor="@color/text_primary"
+            android:textSize="20sp"
+            android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Start browsing food deals!"
+            android:gravity="center"
+            android:text="When you reserve a rescue meal, it will appear here with pickup details and QR access."
             android:textColor="@color/text_secondary"
             android:textSize="14sp" />
 
         <Button
             android:id="@+id/btnBrowse"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:layout_marginTop="24dp"
             android:background="@drawable/button_primary"
             android:paddingHorizontal="32dp"
@@ -113,4 +143,3 @@
         android:visibility="gone" />
 
 </LinearLayout>
-
