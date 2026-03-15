@@ -67,9 +67,9 @@ public class HomeFragment extends Fragment implements
     private static final int LOCATION_PERMISSION_REQUEST = 1001;
 
     // Views
-    private ImageView ivMenu;
+    private View ivMenu;
     private TextView tvCurrentLocation;
-    private ImageView ivNotification;
+    private View ivNotification;
     private androidx.appcompat.widget.SearchView searchView;
     private ViewPager2 bannerViewPager;
     private RecyclerView rvCategories, rvHotDeals, rvFoodItems;

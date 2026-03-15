@@ -108,9 +108,19 @@ public class NotificationsActivity extends AppCompatActivity
         if (notifications.isEmpty()) {
             rvNotifications.setVisibility(View.GONE);
             emptyState.setVisibility(View.VISIBLE);
+            tvMarkAllRead.setVisibility(View.GONE);
         } else {
             rvNotifications.setVisibility(View.VISIBLE);
             emptyState.setVisibility(View.GONE);
+
+            boolean hasUnread = false;
+            for (AppNotification notif : notifications) {
+                if (!notif.isRead()) {
+                    hasUnread = true;
+                    break;
+                }
+            }
+            tvMarkAllRead.setVisibility(hasUnread ? View.VISIBLE : View.INVISIBLE);
         }
     }
 

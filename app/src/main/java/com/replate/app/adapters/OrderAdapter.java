@@ -98,6 +98,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
             } else if (order.getItems() instanceof java.util.Map) {
                 itemCount = ((java.util.Map<?, ?>) order.getItems()).size();
             }
+            if (itemCount <= 0) itemCount = 1;
             tvItemsCount.setText(itemCount + " item" + (itemCount != 1 ? "s" : ""));
 
             // Total amount
@@ -112,15 +113,15 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
             tvOrderDate.setText(sdf.format(new Date(order.getCreatedAtValue())));
 
             // Pickup time
-            if (order.getPickupTime() != null && !order.getPickupTime().isEmpty()) {
-                tvPickupTime.setText("Pickup: " + order.getPickupTime());
+            if (order.getPickupTime() != null && !order.getPickupTime().isEmpty() && !"N/A".equalsIgnoreCase(order.getPickupTime())) {
+                tvPickupTime.setText("Pickup " + order.getPickupTime());
                 tvPickupTime.setVisibility(View.VISIBLE);
             } else {
                 tvPickupTime.setVisibility(View.GONE);
             }
 
             // Show QR button only for active orders
-            if (order.isActive() && order.getQrCode() != null) {
+            if (order.isActive() && (order.getQrCode() != null || order.getOrderId() != null)) {
                 btnViewQR.setVisibility(View.VISIBLE);
                 btnViewQR.setOnClickListener(v -> {
                     if (listener != null) {
@@ -146,6 +147,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
             } else {
                 switch (status) {
                     case "pending":
+                    case "pending_pickup":
                         color = R.color.warning;
                         break;
                     case "confirmed":

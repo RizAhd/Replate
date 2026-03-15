@@ -111,6 +111,7 @@ public class Order implements Serializable {
     public boolean isActive() {
         return orderStatus != null &&
                (orderStatus.equals("pending") ||
+                orderStatus.equals("pending_pickup") ||
                 orderStatus.equals("confirmed") ||
                 orderStatus.equals("ready"));
     }
@@ -130,6 +131,7 @@ public class Order implements Serializable {
         if (orderStatus == null) return "Unknown";
         switch (orderStatus) {
             case "pending": return "Pending Confirmation";
+            case "pending_pickup": return "Pending Pickup";
             case "confirmed": return "Confirmed";
             case "ready": return "Ready for Pickup";
             case "completed": return "Completed";

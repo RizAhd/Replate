@@ -15,22 +15,7 @@
 <div class="container-fluid">
     <div class="row">
         <!-- Sidebar -->
-        <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
-            <div class="position-sticky">
-                <a class="navbar-brand d-block px-3 py-3 mb-3 text-center" href="#">
-                    <i class="fas fa-utensils me-2"></i>REPLATE
-                </a>
-                <ul class="nav flex-column">
-                    <li class="nav-item"><a class="nav-link" href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a></li>
-                    <li class="nav-item"><a class="nav-link" href="add-food.html"><i class="fas fa-plus-circle"></i> Add Food</a></li>
-                    <li class="nav-item"><a class="nav-link" href="manage-listings.html"><i class="fas fa-list"></i> My Listings</a></li>
-                    <li class="nav-item"><a class="nav-link active" href="orders.html"><i class="fas fa-receipt"></i> Orders</a></li>
-                    <li class="nav-item"><a class="nav-link" href="analytics.html"><i class="fas fa-chart-line"></i> Analytics</a></li>
-                    <li class="nav-item"><a class="nav-link" href="settings.html"><i class="fas fa-cog"></i> Settings</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-                </ul>
-            </div>
-        </nav>
+        <nav id="appShellSidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse"></nav>
 
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
@@ -94,6 +79,7 @@
                         <div class="col-md-5">
                             <div class="card p-5 text-center">
                                 <h5 class="mb-4">Enter 6-Digit OTP</h5>
+                                <label for="otpInput" class="visually-hidden">Order OTP</label>
                                 <input type="number" id="otpInput" class="form-control form-control-lg text-center mb-4" placeholder="0 0 0 0 0 0" style="letter-spacing: 10px; font-size: 2em;">
                                 <button class="btn btn-primary w-100" onclick="verifyOTP()">Verify OTP</button>
                             </div>
@@ -134,20 +120,36 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="../js/env-config.js"></script>
 <script src="../js/firebase-config.js"></script>
+<script src="../js/data-schema.js"></script>
+<script src="../js/ui-shell.js"></script>
 
 <script>
     let currentHotelId = null;
     let html5QrcodeScanner = null;
     let currentOrderKey = null;
 
+    const hotelShellLinks = [
+        { key: 'dashboard', href: 'dashboard.html', icon: 'fas fa-home', label: 'Dashboard' },
+        { key: 'add-food', href: 'add-food.html', icon: 'fas fa-plus-circle', label: 'Add Food' },
+        { key: 'listings', href: 'manage-listings.html', icon: 'fas fa-list', label: 'My Listings' },
+        { key: 'orders', href: 'orders.html', icon: 'fas fa-receipt', label: 'Orders' },
+        { key: 'analytics', href: 'analytics.html', icon: 'fas fa-chart-line', label: 'Analytics' },
+        { key: 'settings', href: 'settings.html', icon: 'fas fa-cog', label: 'Settings' },
+        { key: 'logout', href: '#', icon: 'fas fa-sign-out-alt', label: 'Logout', logout: true }
+    ];
+
     auth.onAuthStateChanged((user) => {
+        ReplateUI.renderSidebar('appShellSidebar', {
+            title: '<i class="fas fa-utensils me-2"></i>REPLATE',
+            activeKey: 'orders',
+            links: hotelShellLinks,
+        });
         if (user) {
             currentHotelId = user.uid;
             loadOrders(user.uid);
         }
     });
 
-    // 1. Load All Orders
     function loadOrders(uid) {
         database.ref('orders').orderByChild('hotelId').equalTo(uid).on('value', (snapshot) => {
             const tableBody = document.getElementById('ordersTable');
@@ -159,24 +161,21 @@
             }
 
             snapshot.forEach((child) => {
-                const order = child.val();
+                const order = child.val() || {};
                 const key = child.key;
-                const items = order.items ? order.items.map(i => `${i.foodName} x${i.quantity}`).join(', ') : '';
+                const items = Array.isArray(order.items)
+                    ? order.items.map(i => `${i.foodName} x${i.quantity}`).join(', ')
+                    : '';
+                const status = ReplateSchema.normalizeOrderStatus(order.orderStatus);
 
                 const row = `
                     <tr>
-                        <td>#${order.qrCode || key.substring(0,6)}</td>
-                        <td>${order.customerName}<br><small>${order.customerPhone || ''}</small></td>
-                        <td>${items}</td>
-                        <td>LKR ${order.totalAmount}</td>
-                        <td>
-                            <span class="badge bg-${order.orderStatus === 'completed' ? 'success' : order.orderStatus === 'pending' ? 'warning' : 'secondary'}">
-                                ${order.orderStatus}
-                            </span>
-                        </td>
-                        <td>
-                            <button class="btn btn-sm btn-outline-primary" onclick="viewOrder('${key}')">View</button>
-                        </td>
+                        <td>#${order.orderId || order.qrCode || key.substring(0, 6)}</td>
+                        <td>${order.customerName || 'Customer'}<br><small>${order.customerPhone || ''}</small></td>
+                        <td>${items || 'N/A'}</td>
+                        <td>LKR ${order.totalAmount || 0}</td>
+                        <td><span class="status-badge ${ReplateSchema.statusBadgeClass(status)}">${ReplateSchema.statusLabel(status)}</span></td>
+                        <td><button class="btn btn-sm btn-outline-primary" onclick="viewOrder('${key}')">View</button></td>
                     </tr>
                 `;
                 tableBody.innerHTML += row;
@@ -184,21 +183,19 @@
         });
     }
 
-    // 2. QR Scanner Logic
     const qrTab = document.getElementById('pills-scan-tab');
     qrTab.addEventListener('shown.bs.tab', () => {
         if (!html5QrcodeScanner) {
-            html5QrcodeScanner = new Html5Qrcode("reader");
+            html5QrcodeScanner = new Html5Qrcode('reader');
             html5QrcodeScanner.start(
-                { facingMode: "environment" },
+                { facingMode: 'environment' },
                 { fps: 10, qrbox: { width: 250, height: 250 } },
                 onScanSuccess,
-                (errorMessage) => { /* ignore */ }
+                () => {}
             );
         }
     });
 
-    // Stop scanner when leaving tab
     document.getElementById('pills-all-tab').addEventListener('shown.bs.tab', stopScanner);
     document.getElementById('pills-otp-tab').addEventListener('shown.bs.tab', stopScanner);
 
@@ -207,64 +204,76 @@
             html5QrcodeScanner.stop().then(() => {
                 html5QrcodeScanner.clear();
                 html5QrcodeScanner = null;
-            }).catch(err => console.log(err));
+            }).catch(() => {});
         }
     }
 
-    function onScanSuccess(decodedText, decodedResult) {
-        // decodedText should be the Order ID (e.g., ORD123456)
-        console.log(`Scan matched: ${decodedText}`);
-        checkOrder(decodedText);
+    function onScanSuccess(decodedText) {
+        checkOrderByCode((decodedText || '').trim());
     }
 
-    // 3. Verify OTP
     function verifyOTP() {
-        const otp = parseInt(document.getElementById('otpInput').value);
-        if (!otp) return alert("Please enter OTP");
+        const rawOtp = (document.getElementById('otpInput').value || '').trim();
+        if (!rawOtp) return alert('Please enter OTP');
+        const otp = rawOtp.padStart(6, '0');
 
-        // Find order with this OTP AND belonging to this hotel
-        database.ref('orders').orderByChild('otpCode').equalTo(otp).once('value')
-            .then(snapshot => {
-                let found = false;
-                snapshot.forEach(child => {
-                    const order = child.val();
-                    if (order.hotelId === currentHotelId) {
-                        found = true;
-                        showVerificationModal(child.key, order);
-                    }
-                });
-
-                if (!found) alert("Invalid OTP or order not for this hotel.");
-            });
-    }
-
-    // 4. Check Order (from QR or manual Code)
-    function checkOrder(orderId) {
-        database.ref('orders/' + orderId).once('value').then((snapshot) => {
-            if (snapshot.exists()) {
-                const order = snapshot.val();
-                if (order.hotelId === currentHotelId) {
-                    showVerificationModal(orderId, order);
-                } else {
-                    alert("This order belongs to another hotel!");
+        database.ref('orders').orderByChild('hotelId').equalTo(currentHotelId).once('value').then(snapshot => {
+            let foundKey = null;
+            let foundOrder = null;
+            snapshot.forEach(child => {
+                const order = child.val() || {};
+                const savedOtp = String(order.otpCode || '').trim().padStart(6, '0');
+                if (savedOtp && savedOtp === otp && !foundKey) {
+                    foundKey = child.key;
+                    foundOrder = order;
                 }
-            } else {
-                alert("Order not found!");
+            });
+
+            if (!foundKey) {
+                alert('Invalid OTP or order not for this hotel.');
+                return;
             }
+            showVerificationModal(foundKey, foundOrder);
         });
     }
 
-    // 5. Show Modal
+    function checkOrderByCode(code) {
+        if (!code) return;
+        database.ref('orders').orderByChild('hotelId').equalTo(currentHotelId).once('value').then((snapshot) => {
+            let foundKey = null;
+            let foundOrder = null;
+            snapshot.forEach((child) => {
+                const order = child.val() || {};
+                const candidates = [
+                    String(child.key || ''),
+                    String(order.orderId || ''),
+                    String(order.qrCode || ''),
+                    String(order.pickupCode || ''),
+                ].map(v => v.trim());
+                if (!foundKey && candidates.includes(code)) {
+                    foundKey = child.key;
+                    foundOrder = order;
+                }
+            });
+
+            if (!foundKey) {
+                alert('Order not found for this hotel.');
+                return;
+            }
+            showVerificationModal(foundKey, foundOrder);
+        });
+    }
+
     const modal = new bootstrap.Modal(document.getElementById('verificationModal'));
     function showVerificationModal(key, order) {
         currentOrderKey = key;
-        document.getElementById('modalOrderId').innerText = '#' + (order.qrCode || key);
-        document.getElementById('modalCustomer').innerText = order.customerName;
-        document.getElementById('modalTotal').innerText = 'LKR ' + order.totalAmount;
+        document.getElementById('modalOrderId').innerText = '#' + (order.orderId || order.qrCode || key);
+        document.getElementById('modalCustomer').innerText = order.customerName || 'Customer';
+        document.getElementById('modalTotal').innerText = 'LKR ' + (order.totalAmount || 0);
 
         const list = document.getElementById('modalItems');
         list.innerHTML = '';
-        if (order.items) {
+        if (Array.isArray(order.items)) {
             order.items.forEach(item => {
                 list.innerHTML += `<li>${item.foodName} x${item.quantity}</li>`;
             });
@@ -273,42 +282,31 @@
         modal.show();
     }
 
-    // 6. Confirm Pickup
     function confirmPickup() {
         if (!currentOrderKey) return;
 
         database.ref('orders/' + currentOrderKey).update({
             orderStatus: 'completed',
-            completedAt: new Date().toISOString()
+            completedAt: Date.now()
         }).then(() => {
-
-            // SEND NOTIFICATION TO CUSTOMER 🔔
-            // Note: In production, do this via Cloud Functions to avoid exposing key.
-            // Using logic similar to add-food.html
             sendOrderNotification(currentOrderKey);
-
             modal.hide();
-            alert("Order completed successfully!");
-            // Switch to All Orders tab
+            alert('Order completed successfully!');
             document.getElementById('pills-all-tab').click();
         }).catch(err => alert(err.message));
     }
 
     function sendOrderNotification(orderKey) {
-        // Retrieve the order to get the userId/customer info
         database.ref('orders/' + orderKey).once('value').then(snapshot => {
             const order = snapshot.val();
             if (!order || !order.userId) return;
 
-            // Fetch user's FCM token
             database.ref('users/' + order.userId + '/fcmToken').once('value').then(tokenSnapshot => {
                 const token = tokenSnapshot.val();
                 if (!token) return;
 
-                // Send push via legacy API
-                const SERVER_KEY = ENV.FIREBASE_FCM_SERVER_KEY; // Keep this consistent with add-food.html
-
-                if (SERVER_KEY === "REPLACE_WITH_YOUR_SERVER_KEY") return;
+                const SERVER_KEY = ENV.FIREBASE_FCM_SERVER_KEY;
+                if (!SERVER_KEY) return;
 
                 fetch('https://fcm.googleapis.com/fcm/send', {
                     method: 'POST',
@@ -317,25 +315,23 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        "to": token, // Target specific device
-                        "notification": {
-                            "title": "Order Completed! ✅",
-                            "body": "Your order #" + (order.qrCode || orderKey) + " has been picked up. Enjoy your meal!"
+                        to: token,
+                        notification: {
+                            title: 'Order Completed! ✅',
+                            body: 'Your order #' + (order.orderId || order.qrCode || orderKey) + ' has been picked up. Enjoy your meal!'
                         },
-                        "data": {
-                            "type": "order_status",
-                            "newStatus": "completed",
-                            "orderId": orderKey
+                        data: {
+                            type: 'order_status',
+                            newStatus: 'completed',
+                            orderId: orderKey
                         }
                     })
-                }).then(r => console.log("Notified customer:", r));
+                }).then(() => {});
             });
         });
     }
 
-    window.viewOrder = function(key) {
-        checkOrder(key);
-    }
+    window.viewOrder = function(key) { checkOrderByCode(key); };
 </script>
 
 </body>

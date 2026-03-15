@@ -5,7 +5,10 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -19,6 +22,10 @@ import androidx.work.WorkManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.replate.app.fragments.CartFragment;
 import com.replate.app.fragments.HomeFragment;
@@ -60,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
         drawerLayout = findViewById(R.id.drawerLayout);
         navigationView = findViewById(R.id.navigationView);
         bottomNavigation = findViewById(R.id.bottomNavigation);
-
+        bindDrawerHeader();
 
         homeFragment = new HomeFragment();
         mapFragment = new MapFragment();
@@ -117,6 +124,39 @@ public class MainActivity extends AppCompatActivity {
         FirebaseMessaging.getInstance().subscribeToTopic("all_users");
         scheduleBackgroundSync();
         checkNotificationPermissions();
+    }
+
+    private void bindDrawerHeader() {
+        if (navigationView == null || mAuth.getCurrentUser() == null) return;
+
+        View header = navigationView.getHeaderView(0);
+        if (header == null) return;
+
+        TextView tvDrawerName = header.findViewById(R.id.tvDrawerName);
+        TextView tvDrawerEmail = header.findViewById(R.id.tvDrawerEmail);
+
+        if (tvDrawerEmail != null) {
+            tvDrawerEmail.setText(mAuth.getCurrentUser().getEmail());
+        }
+
+        FirebaseDatabase.getInstance().getReference("users")
+                .child(mAuth.getCurrentUser().getUid())
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (tvDrawerName != null) {
+                            String name = snapshot.child("name").getValue(String.class);
+                            tvDrawerName.setText(name != null && !name.trim().isEmpty() ? name : getString(R.string.drawer_welcome_back));
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        if (tvDrawerName != null) {
+                            tvDrawerName.setText(getString(R.string.drawer_welcome_back));
+                        }
+                    }
+                });
     }
 
     private boolean switchFragment(Fragment fragment) {
