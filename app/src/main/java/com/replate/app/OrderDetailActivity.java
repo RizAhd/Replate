@@ -46,6 +46,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
     private TextView tvTotalAmount, tvPaymentMethod, tvPaymentStatus;
     private ImageView ivQRCode;
     private Button btnCallHotel;
+    private Button btnOpenPickupRoute;
     private CardView cardQR;
 
     private DatabaseReference mDatabase;
@@ -96,12 +97,28 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         tvPaymentStatus = findViewById(R.id.tvPaymentStatus);
         ivQRCode = findViewById(R.id.ivQRCode);
         btnCallHotel = findViewById(R.id.btnCallHotel);
+        btnOpenPickupRoute = findViewById(R.id.btnOpenPickupRoute);
         cardQR = findViewById(R.id.cardQR);
 
         ivBack.setOnClickListener(v -> finish());
 
         // TELEPHONY REQUIREMENT
         btnCallHotel.setOnClickListener(v -> callHotel());
+        if (btnOpenPickupRoute != null) {
+            btnOpenPickupRoute.setOnClickListener(v -> openPickupRoute());
+        }
+    }
+
+    private void openPickupRoute() {
+        if (order == null || order.getHotelId() == null || order.getHotelId().trim().isEmpty()) {
+            Toast.makeText(this, "Hotel route not available", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.putExtra("open_tab", "map");
+        intent.putExtra("focus_hotel_id", order.getHotelId());
+        startActivity(intent);
     }
 
     private void loadOrderFromFirebase(String orderId) {

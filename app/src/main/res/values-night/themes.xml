@@ -57,6 +57,18 @@
 
         <!-- Window -->
         <item name="android:windowBackground">@color/md_theme_background</item>
+
+        <!-- Typography system -->
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="textAppearanceTitleLarge">@style/TextAppearance.REPLATE.Headline</item>
+        <item name="textAppearanceTitleMedium">@style/TextAppearance.REPLATE.Subheading</item>
+        <item name="textAppearanceBodyMedium">@style/TextAppearance.REPLATE.Body</item>
+        <item name="textAppearanceLabelLarge">@style/TextAppearance.REPLATE.Label</item>
+
+        <!-- Component consistency -->
+        <item name="materialCardViewStyle">@style/Widget.REPLATE.Card</item>
+        <item name="materialButtonStyle">@style/Widget.REPLATE.Button.Primary</item>
+        <item name="textInputStyle">@style/Widget.REPLATE.TextInputLayout</item>
     </style>
 
     <!-- Splash Screen Theme -->

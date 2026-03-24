@@ -38,9 +38,8 @@
                     android:layout_height="wrap_content"
                     android:layout_centerInParent="true"
                     android:text="Your cart"
-                    android:textColor="@color/white"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
+                    android:textAppearance="@style/TextAppearance.REPLATE.Subheading"
+                    android:textColor="@color/white" />
 
                 <TextView
                     android:id="@+id/tvClearCart"
@@ -63,8 +62,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="Review your rescue meals before checkout"
-                android:textColor="#D9FFFFFF"
-                android:textSize="14sp" />
+                android:textAppearance="@style/TextAppearance.REPLATE.Body"
+                android:textColor="@color/text_on_primary_muted" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
@@ -106,9 +105,9 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:text="Your cart is feeling empty"
+            android:textAppearance="@style/TextAppearance.REPLATE.Headline"
             android:textColor="@color/text_primary"
-            android:textSize="22sp"
-            android:textStyle="bold" />
+            android:textSize="@dimen/text_xl" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -116,13 +115,12 @@
             android:layout_marginTop="10dp"
             android:gravity="center"
             android:text="Add a few discounted dishes and come back when you're ready to reserve them."
-            android:textColor="@color/text_secondary"
-            android:textSize="14sp" />
+            android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
         <Button
             android:id="@+id/btnBrowse"
             android:layout_width="match_parent"
-            android:layout_height="54dp"
+            android:layout_height="@dimen/button_height"
             android:layout_marginTop="20dp"
             android:background="@drawable/button_primary"
             android:text="Browse nearby deals"
@@ -158,9 +156,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="Ready for pickup"
-                    android:textColor="@color/text_primary"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+                    android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
                 <TextView
                     android:id="@+id/tvItemCount"
@@ -229,13 +225,13 @@
             <Button
                 android:id="@+id/btnCheckout"
                 android:layout_width="match_parent"
-                android:layout_height="54dp"
+                android:layout_height="@dimen/button_height"
                 android:layout_marginTop="16dp"
                 android:background="@drawable/button_primary"
                 android:text="Proceed to checkout"
                 android:textAllCaps="false"
                 android:textColor="@color/white"
-                android:textSize="16sp"
+                android:textSize="@dimen/text_md"
                 android:textStyle="bold" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>

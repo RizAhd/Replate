@@ -4,8 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_marginHorizontal="4dp"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="4dp">
+    app:cardCornerRadius="@dimen/radius_md"
+    app:cardElevation="@dimen/elevation_card">
 
     <ImageView
         android:id="@+id/ivBanner"
@@ -15,4 +15,3 @@
         android:src="@drawable/banner_1" />
 
 </androidx.cardview.widget.CardView>
-

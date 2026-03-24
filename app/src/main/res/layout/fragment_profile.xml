@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/light_gray">
+    android:background="@color/background_cream">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -43,9 +43,9 @@
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="14dp"
                     android:text="User Name"
+                    android:textAppearance="@style/TextAppearance.REPLATE.Headline"
                     android:textColor="@color/white"
-                    android:textSize="22sp"
-                    android:textStyle="bold" />
+                    android:textSize="@dimen/text_xl" />
 
                 <!-- User Email -->
                 <TextView
@@ -55,8 +55,8 @@
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="4dp"
                     android:text="user@email.com"
-                    android:textColor="#D9FFFFFF"
-                    android:textSize="14sp" />
+                    android:textAppearance="@style/TextAppearance.REPLATE.Body"
+                    android:textColor="@color/white_85" />
 
                 <!-- Edit Profile Button -->
                 <Button
@@ -175,9 +175,7 @@
                     android:layout_marginStart="18dp"
                     android:layout_marginTop="18dp"
                     android:text="Account"
-                    android:textColor="@color/text_primary"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -185,8 +183,7 @@
                     android:layout_marginStart="18dp"
                     android:layout_marginTop="4dp"
                     android:text="Everything you need in one place"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="13sp" />
+                    android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
                 <!-- Menu Items -->
                 <!-- My Orders -->
@@ -219,7 +216,7 @@
                         android:src="@drawable/ic_arrow_right" />
                 </LinearLayout>
 
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="58dp" android:background="@color/light_gray" />
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="58dp" android:background="@color/divider" />
 
                 <!-- Favorites -->
                 <LinearLayout
@@ -251,7 +248,7 @@
                         android:src="@drawable/ic_arrow_right" />
                 </LinearLayout>
 
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="58dp" android:background="@color/light_gray" />
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="58dp" android:background="@color/divider" />
 
                 <!-- Notifications -->
                 <LinearLayout
@@ -283,7 +280,7 @@
                         android:src="@drawable/ic_arrow_right" />
                 </LinearLayout>
 
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="58dp" android:background="@color/light_gray" />
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="58dp" android:background="@color/divider" />
 
                 <!-- Settings -->
                 <LinearLayout
@@ -315,7 +312,7 @@
                         android:src="@drawable/ic_arrow_right" />
                 </LinearLayout>
 
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="58dp" android:background="@color/light_gray" />
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="58dp" android:background="@color/divider" />
 
                 <!-- Help -->
                 <LinearLayout

@@ -150,20 +150,71 @@
 
 <script src="../js/env-config.js"></script>
 <script src="../js/firebase-config.js"></script>
+<script src="../js/data-schema.js"></script>
 <script>
-    // Load categories
-    database.ref('categories').once('value', (snapshot) => {
-        const categorySelect = document.getElementById('category');
-        snapshot.forEach((child) => {
-            const cat = child.val();
-            const option = document.createElement('option');
-            option.value = cat.name;
-            option.text = cat.name;
-            categorySelect.appendChild(option);
-        });
+    let resolvedHotel = null;
+
+    auth.onAuthStateChanged(async (user) => {
+        if (!user) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        try {
+            const hotelRecord = await ReplateSchema.findHotelByUserId(database, user.uid);
+            if (!hotelRecord || !hotelRecord.value) {
+                alert('Hotel profile not found. Please register first.');
+                window.location.href = 'register.html';
+                return;
+            }
+
+            const status = ReplateSchema.normalizeHotelStatus(hotelRecord.value.status);
+            if (status !== 'approved') {
+                alert('Your hotel is still pending admin approval.');
+                window.location.href = 'dashboard.html';
+                return;
+            }
+
+            resolvedHotel = {
+                userId: user.uid,
+                hotelId: hotelRecord.key,
+                data: hotelRecord.value,
+            };
+        } catch (e) {
+            console.error('Hotel resolution failed:', e);
+            alert('Could not load hotel profile. Please login again.');
+            window.location.href = 'login.html';
+            return;
+        }
+
+        loadCategories();
     });
 
-    // Image Preview
+    function loadCategories() {
+        const categorySelect = document.getElementById('category');
+        categorySelect.innerHTML = '<option value="" selected disabled>Select Category</option>';
+
+        database.ref('categories').once('value', (snapshot) => {
+            if (!snapshot.exists()) {
+                ['Rice & Curry', 'Noodles', 'Bakery', 'Kottu', 'Short Eats'].forEach(name => {
+                    const option = document.createElement('option');
+                    option.value = name;
+                    option.text = name;
+                    categorySelect.appendChild(option);
+                });
+                return;
+            }
+
+            snapshot.forEach((child) => {
+                const cat = child.val() || {};
+                const option = document.createElement('option');
+                option.value = cat.name || child.key;
+                option.text = cat.name || child.key;
+                categorySelect.appendChild(option);
+            });
+        });
+    }
+
     const imageInput = document.getElementById('foodImage');
     const previewContainer = document.getElementById('imagePreviewContainer');
     const previewImage = document.getElementById('preview');
@@ -171,101 +222,100 @@
 
     previewContainer.addEventListener('click', () => imageInput.click());
 
-    imageInput.addEventListener('change', function(e) {
+    imageInput.addEventListener('change', function() {
         if (this.files && this.files[0]) {
             const reader = new FileReader();
             reader.onload = function(e) {
                 previewImage.src = e.target.result;
                 previewImage.style.display = 'block';
                 placeholder.style.display = 'none';
-            }
+            };
             reader.readAsDataURL(this.files[0]);
         }
     });
 
-    // Form Submit
     document.getElementById('addFoodForm').addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const user = auth.currentUser;
-        if (!user) return alert("Please login first");
+        if (!resolvedHotel) {
+            alert('Hotel session not ready. Refresh and try again.');
+            return;
+        }
 
         const submitBtn = document.getElementById('submitBtn');
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
 
         try {
-            // 1. Get Hotel Details
-            const hotelSnapshot = await database.ref('hotels/' + user.uid).once('value');
-            const hotelData = hotelSnapshot.val();
-
-            if (!hotelData) throw new Error("Hotel profile not found");
-
-            // 2. Upload Image
             const file = imageInput.files[0];
+            if (!file) throw new Error('Please select an image');
+
             const storageRef = storage.ref('food-images/' + Date.now() + '_' + file.name);
             await storageRef.put(file);
             const imageUrl = await storageRef.getDownloadURL();
 
-            // 3. Calculate Discount
             const original = parseFloat(document.getElementById('originalPrice').value);
             const discounted = parseFloat(document.getElementById('discountedPrice').value);
-            const percent = Math.round(((original - discounted) / original) * 100);
+            const percent = Math.max(0, Math.round(((original - discounted) / Math.max(original, 1)) * 100));
 
-            // 4. Create Food Item Object (MATCHING ANDROID APP)
             const newFoodRef = database.ref('foodItems').push();
             const foodId = newFoodRef.key;
 
+            const hotelData = resolvedHotel.data;
             const foodItem = {
-                foodId: foodId,
-                hotelId: user.uid,
-                hotelName: hotelData.hotelName, // Important for app display
-                foodName: document.getElementById('foodName').value,
-                description: document.getElementById('description').value,
+                foodId,
+                hotelId: resolvedHotel.hotelId,
+                hotelUserId: resolvedHotel.userId,
+                hotelKey: resolvedHotel.hotelId,
+                hotelName: hotelData.hotelName || 'Unknown Hotel',
+                foodName: document.getElementById('foodName').value.trim(),
+                description: document.getElementById('description').value.trim(),
                 category: document.getElementById('category').value,
                 originalPrice: original,
                 discountedPrice: discounted,
+                discountPercentage: percent,
                 discountPercent: percent,
-                imageUrl: imageUrl,
-                quantity: parseInt(document.getElementById('quantity').value),
+                imageUrl,
+                quantity: parseInt(document.getElementById('quantity').value, 10),
+                pickupStart: document.getElementById('pickupStart').value,
+                pickupEnd: document.getElementById('pickupEnd').value,
                 pickupTimeStart: document.getElementById('pickupStart').value,
                 pickupTimeEnd: document.getElementById('pickupEnd').value,
                 createdAt: firebase.database.ServerValue.TIMESTAMP,
+                status: 'available',
                 isAvailable: true,
-                available: true, // For compatibility
-
-                // Add Location Data from Hotel Profile (For Map Fragment)
+                available: true,
                 latitude: hotelData.latitude || 0,
                 longitude: hotelData.longitude || 0,
-                hotelAddress: hotelData.address || "",
-                hotelPhone: hotelData.phone || ""
+                hotelLatitude: hotelData.latitude || 0,
+                hotelLongitude: hotelData.longitude || 0,
+                hotelAddress: hotelData.address || '',
+                hotelPhone: hotelData.phone || '',
+                searchRegion: hotelData.searchRegion || ReplateSchema.toSearchRegion(hotelData.address || '')
             };
 
-            // 5. Save to Database
             await newFoodRef.set(foodItem);
 
-            // 6. Send Push Notification (Simulated/Legacy)
-            // Note: In production, use Cloud Functions. This is a client-side workaround.
+            // Optional indexes for fast filtering (non-fatal if rules block)
+            await database.ref('indexes/foodByHotel/' + resolvedHotel.hotelId + '/' + foodId).set(true).catch(() => {});
+            await database.ref('indexes/foodByHotel/' + resolvedHotel.userId + '/' + foodId).set(true).catch(() => {});
+
             sendPushNotification(foodItem.hotelName, foodItem.foodName);
 
-            alert("Food item added successfully!");
-            window.location.href = "manage-listings.html";
-
+            alert('Food item added successfully!');
+            window.location.href = 'manage-listings.html';
         } catch (error) {
             console.error(error);
-            alert("Error: " + error.message);
+            alert('Error: ' + error.message);
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<i class="fas fa-check-circle me-2"></i> Publish Listing';
         }
     });
 
     function sendPushNotification(hotelName, foodName) {
-        // REPLACE WITH YOUR FCM SERVER KEY (Legacy) from Project Settings > Cloud Messaging
-        // WARNING: Exposing Server Key in client code is for testing only!
         const SERVER_KEY = ENV.FIREBASE_FCM_SERVER_KEY;
-
-        if (SERVER_KEY === "REPLACE_WITH_YOUR_SERVER_KEY") {
-            console.log("Push notification skipped: No Server Key");
+        if (!SERVER_KEY || SERVER_KEY === 'REPLACE_WITH_YOUR_SERVER_KEY') {
+            console.log('Push notification skipped: No Server Key');
             return;
         }
 
@@ -276,21 +326,19 @@
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                "to": "/topics/all_users",
-                "notification": {
-                    "title": "New Food Alert! 🍽️",
-                    "body": hotelName + " just added " + foodName + " at a discount!"
+                to: '/topics/all_users',
+                notification: {
+                    title: 'New Food Alert! 🍽️',
+                    body: hotelName + ' just added ' + foodName + ' at a discount!'
                 },
-                "data": {
-                    "type": "new_food",
-                    "hotelName": hotelName,
-                    "foodName": foodName
+                data: {
+                    type: 'new_food',
+                    hotelName,
+                    foodName
                 }
             })
-        }).then(response => {
-            console.log("Notification sent:", response);
         }).catch(err => {
-            console.error("Error sending notification:", err);
+            console.error('Error sending notification:', err);
         });
     }
 </script>

@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
+import android.location.Location;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,14 +16,16 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SearchView;
 import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
-import com.bumptech.glide.Glide;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -31,19 +34,26 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.replate.app.R;
-import com.replate.app.SearchActivity;
-import com.replate.app.models.FoodItem;
+import com.replate.app.map.data.FakePlacesDataSource;
+import com.replate.app.map.data.FirebasePlacesDataSource;
+import com.replate.app.map.data.PlacesDataSource;
+import com.replate.app.map.model.FoodPlace;
+import com.replate.app.map.routing.DirectionsApiClient;
+import com.replate.app.map.routing.RouteResult;
+import com.replate.app.utils.LocationUtils;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -58,21 +68,50 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     private GoogleMap mMap;
     private FusedLocationProviderClient fusedLocationClient;
-    private DatabaseReference mDatabase;
+    private DirectionsApiClient directionsApiClient;
+    private PlacesDataSource placesDataSource;
 
     // Views
     private FrameLayout loadingOverlay;
     private CardView bottomSheet;
-    private ImageView ivRestaurantImage, ivMyLocation;
-    private TextView tvRestaurantName, tvRestaurantAddress, tvDealsCount;
+    private ImageView ivRestaurantImage;
+    private View ivMyLocation;
+    private TextView tvRestaurantName;
+    private TextView tvRestaurantAddress;
+    private TextView tvDealsCount;
+    private TextView tvRouteInfo;
+    private TextView tvAvailableItems;
     private Button btnViewDeals;
     private SearchView searchView;
 
-    // Data
-    private double currentLatitude = 6.9271; // Default: Colombo, Sri Lanka
-    private double currentLongitude = 79.8612;
-    private Map<String, List<FoodItem>> hotelFoodItems = new HashMap<>();
-    private String selectedHotelId;
+    // State
+    private LatLng currentUserLatLng;
+    private LatLng selectedDestinationLatLng;
+    private FoodPlace selectedPlace;
+    private Polyline currentRoutePolyline;
+    private Marker currentSelectedMarker;
+    private LatLng searchPin;
+    private String searchQueryLabel;
+
+    private final Map<String, FoodPlace> markerPlaceMap = new HashMap<>();
+    private final Map<String, Marker> markerByHotelId = new HashMap<>();
+    private final Map<String, String> hotelFoodPreviewCache = new HashMap<>();
+    private DatabaseReference foodItemsRef;
+    private String pendingFocusHotelId;
+
+    private final ActivityResultLauncher<String[]> locationPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
+                boolean fineGranted = Boolean.TRUE.equals(result.get(Manifest.permission.ACCESS_FINE_LOCATION));
+                boolean coarseGranted = Boolean.TRUE.equals(result.get(Manifest.permission.ACCESS_COARSE_LOCATION));
+                if (fineGranted || coarseGranted) {
+                    enableMyLocationAndCenter();
+                } else {
+                    Toast.makeText(getContext(), "Location permission denied. Map uses default area.", Toast.LENGTH_LONG).show();
+                    if (mMap != null) {
+                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(6.9497, 80.7891), 12f));
+                    }
+                }
+            });
 
     @Nullable
     @Override
@@ -80,8 +119,15 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_map, container, false);
 
-        mDatabase = FirebaseDatabase.getInstance().getReference();
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
+        directionsApiClient = new DirectionsApiClient(getString(R.string.google_maps_key));
+        placesDataSource = new FirebasePlacesDataSource();
+        foodItemsRef = FirebaseDatabase.getInstance().getReference("foodItems");
+
+        Intent hostIntent = requireActivity().getIntent();
+        if (hostIntent != null) {
+            pendingFocusHotelId = hostIntent.getStringExtra("focus_hotel_id");
+        }
 
         initViews(view);
         initMap();
@@ -98,10 +144,32 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         tvRestaurantName = view.findViewById(R.id.tvRestaurantName);
         tvRestaurantAddress = view.findViewById(R.id.tvRestaurantAddress);
         tvDealsCount = view.findViewById(R.id.tvDealsCount);
+        tvRouteInfo = view.findViewById(R.id.tvRouteInfo);
+        tvAvailableItems = view.findViewById(R.id.tvAvailableItems);
         btnViewDeals = view.findViewById(R.id.btnViewDeals);
         searchView = view.findViewById(R.id.searchView);
 
+        bottomSheet.setVisibility(View.GONE);
         setupSearch();
+    }
+
+    private void initMap() {
+        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
+        if (mapFragment != null) {
+            mapFragment.getMapAsync(this);
+        }
+    }
+
+    private void setupClickListeners() {
+        ivMyLocation.setOnClickListener(v -> moveToCurrentLocation());
+
+        btnViewDeals.setOnClickListener(v -> {
+            if (selectedPlace == null) {
+                Toast.makeText(getContext(), "Select a place marker first", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            drawRouteToSelectedPlace();
+        });
     }
 
     private void setupSearch() {
@@ -122,376 +190,419 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         });
     }
 
-    private void searchLocation(String locationName) {
+    private void searchLocation(@NonNull String locationName) {
         if (!Geocoder.isPresent()) {
             Toast.makeText(getContext(), "Geocoder not available on this device", Toast.LENGTH_SHORT).show();
             return;
         }
 
         loadingOverlay.setVisibility(View.VISIBLE);
-
         new Thread(() -> {
             Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
             try {
-                List<Address> addressList = geocoder.getFromLocationName(locationName, 5);
-
+                List<Address> result = geocoder.getFromLocationName(locationName, 1);
                 requireActivity().runOnUiThread(() -> {
                     loadingOverlay.setVisibility(View.GONE);
-                    if (addressList != null && !addressList.isEmpty()) {
-                        Address address = addressList.get(0);
-                        LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());
+                    if (result != null && !result.isEmpty()) {
+                        Address address = result.get(0);
+                        searchPin = new LatLng(address.getLatitude(), address.getLongitude());
+                        searchQueryLabel = locationName;
 
                         if (mMap != null) {
-                            // Update reference location so marker distance colors are meaningful after search.
-                            currentLatitude = latLng.latitude;
-                            currentLongitude = latLng.longitude;
-                            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f));
-                            mMap.clear(); // Clear previous search markers
-
-                            // Re-add hotel markers (we need to make sure we don't lose them or just add the search marker)
-                            loadRestaurantMarkers(); // Reload hotels so they appear relative to new location
-
-                            mMap.addMarker(new MarkerOptions()
-                                    .position(latLng)
-                                    .title(locationName)
-                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+                            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(searchPin, 14f));
+                            renderSearchPin();
                         }
                     } else {
-                        Toast.makeText(getContext(), "Location '" + locationName + "' not found", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Location not found", Toast.LENGTH_SHORT).show();
                     }
                 });
-            } catch (IOException e) {
+            } catch (IOException ioException) {
                 requireActivity().runOnUiThread(() -> {
                     loadingOverlay.setVisibility(View.GONE);
-                    Toast.makeText(getContext(), "Search connection failed. check internet.", Toast.LENGTH_SHORT).show();
-                });
-            } catch (Exception e) {
-                 requireActivity().runOnUiThread(() -> {
-                    loadingOverlay.setVisibility(View.GONE);
-                    Toast.makeText(getContext(), "Search error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Search failed. Check internet.", Toast.LENGTH_SHORT).show();
                 });
             }
         }).start();
-    }
-
-    private void initMap() {
-        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
-                .findFragmentById(R.id.map);
-        if (mapFragment != null) {
-            mapFragment.getMapAsync(this);
-        }
-    }
-
-    private void setupClickListeners() {
-        ivMyLocation.setOnClickListener(v -> moveToCurrentLocation());
-
-        btnViewDeals.setOnClickListener(v -> {
-            if (selectedHotelId != null) {
-                Intent intent = new Intent(getContext(), SearchActivity.class);
-                intent.putExtra("hotelId", selectedHotelId);
-                startActivity(intent);
-            }
-        });
     }
 
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         mMap = googleMap;
 
-        // Map settings
         mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.getUiSettings().setCompassEnabled(true);
 
-        // Get user location
-        getUserLocation();
+        mMap.setOnMapClickListener(latLng -> clearSelectedState());
 
-        // Load restaurant markers
-        loadRestaurantMarkers();
-
-        // Marker click listener
         mMap.setOnMarkerClickListener(marker -> {
-            String hotelId = (String) marker.getTag();
-            if (hotelId != null) {
-                showHotelBottomSheet(hotelId);
-                marker.showInfoWindow();
+            FoodPlace place = markerPlaceMap.get(marker.getId());
+            if (place == null) {
+                return false;
             }
+            onPlaceSelected(marker, place);
             return true;
         });
 
-        // Map click to hide bottom sheet
-        mMap.setOnMapClickListener(latLng -> {
-            bottomSheet.setVisibility(View.GONE);
-            selectedHotelId = null;
+        requestOrLoadLocation();
+        loadAndRenderPlaceMarkers();
+    }
+
+    private void loadAndRenderPlaceMarkers() {
+        loadingOverlay.setVisibility(View.VISIBLE);
+        placesDataSource.fetchPlaces(new PlacesDataSource.Callback() {
+            @Override
+            public void onSuccess(@NonNull List<FoodPlace> places) {
+                loadingOverlay.setVisibility(View.GONE);
+                if (places.isEmpty()) {
+                    showNoRegisteredHotelsState();
+                    return;
+                }
+                renderPlaceMarkers(places);
+            }
+
+            @Override
+            public void onError(@NonNull String message) {
+                loadingOverlay.setVisibility(View.GONE);
+                showNoRegisteredHotelsState();
+                Toast.makeText(getContext(), "Could not load hotel locations: " + message, Toast.LENGTH_SHORT).show();
+            }
         });
     }
 
-    private void getUserLocation() {
-        if (ActivityCompat.checkSelfPermission(requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{
+    private void showNoRegisteredHotelsState() {
+        if (mMap != null) {
+            mMap.clear();
+            markerPlaceMap.clear();
+            markerByHotelId.clear();
+        }
+        clearSelectedState();
+    }
+
+    private void requestOrLoadLocation() {
+        boolean fineGranted = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
+        boolean coarseGranted = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
+
+        if (!fineGranted && !coarseGranted) {
+            locationPermissionLauncher.launch(new String[]{
                     Manifest.permission.ACCESS_FINE_LOCATION,
                     Manifest.permission.ACCESS_COARSE_LOCATION
-            }, LOCATION_PERMISSION_REQUEST);
+            });
             return;
         }
 
-        mMap.setMyLocationEnabled(true);
+        enableMyLocationAndCenter();
+    }
+
+    private void enableMyLocationAndCenter() {
+        if (mMap == null) {
+            return;
+        }
+
+        try {
+            mMap.setMyLocationEnabled(true);
+        } catch (SecurityException e) {
+            Toast.makeText(getContext(), "Location permission denied", Toast.LENGTH_SHORT).show();
+        }
 
         fusedLocationClient.getLastLocation()
-                .addOnSuccessListener(location -> {
-                    if (location != null) {
-                        currentLatitude = location.getLatitude();
-                        currentLongitude = location.getLongitude();
-                        moveToCurrentLocation();
-                    } else {
-                        // Default location
-                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                                new LatLng(currentLatitude, currentLongitude), 14f));
+                .addOnSuccessListener(this::handleLocation)
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Could not get location", Toast.LENGTH_SHORT).show();
+                    if (currentUserLatLng == null) {
+                        LatLng fallback = new LatLng(6.9497, 80.7891);
+                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(fallback, 12f));
                     }
                 });
+    }
+
+    private void handleLocation(@Nullable Location location) {
+        if (mMap == null) {
+            return;
+        }
+
+        if (location == null) {
+            Toast.makeText(getContext(), "Using default location (Nuwara Eliya)", Toast.LENGTH_SHORT).show();
+            if (currentUserLatLng == null) {
+                currentUserLatLng = new LatLng(6.9497, 80.7891);
+            }
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentUserLatLng, 13f));
+            return;
+        }
+
+        currentUserLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentUserLatLng, 14f));
     }
 
     private void moveToCurrentLocation() {
-        if (mMap != null) {
-            LatLng currentLocation = new LatLng(currentLatitude, currentLongitude);
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15f));
+        if (mMap == null || currentUserLatLng == null) {
+            Toast.makeText(getContext(), "Current location not available yet", Toast.LENGTH_SHORT).show();
+            requestOrLoadLocation();
+            return;
+        }
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentUserLatLng, 15f));
+    }
+
+    private void renderPlaceMarkers(@NonNull List<FoodPlace> places) {
+        if (mMap == null) {
+            return;
+        }
+
+        mMap.clear();
+        markerPlaceMap.clear();
+        markerByHotelId.clear();
+        clearRouteOnly();
+
+        for (FoodPlace place : places) {
+            LatLng latLng = new LatLng(place.getLatitude(), place.getLongitude());
+            float markerColor = markerColorForDistance(latLng);
+
+            Marker marker = mMap.addMarker(new MarkerOptions()
+                    .position(latLng)
+                    .title(place.getName())
+                    .snippet(place.getAddress())
+                    .icon(BitmapDescriptorFactory.defaultMarker(markerColor)));
+
+            if (marker != null) {
+                markerPlaceMap.put(marker.getId(), place);
+                markerByHotelId.put(place.getId(), marker);
+            }
+        }
+
+        renderSearchPin();
+        maybeFocusDeepLinkedHotel();
+    }
+
+    private void maybeFocusDeepLinkedHotel() {
+        if (pendingFocusHotelId == null || pendingFocusHotelId.trim().isEmpty()) {
+            return;
+        }
+        Marker marker = markerByHotelId.get(pendingFocusHotelId);
+        if (marker == null) {
+            return;
+        }
+
+        FoodPlace place = markerPlaceMap.get(marker.getId());
+        if (place == null) {
+            return;
+        }
+
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(marker.getPosition(), 15f));
+        onPlaceSelected(marker, place);
+        pendingFocusHotelId = null;
+    }
+
+    private void renderSearchPin() {
+        if (mMap == null || searchPin == null) {
+            return;
+        }
+
+        mMap.addMarker(new MarkerOptions()
+                .position(searchPin)
+                .title(searchQueryLabel != null ? searchQueryLabel : "Searched location")
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+    }
+
+    private void onPlaceSelected(@NonNull Marker marker, @NonNull FoodPlace place) {
+        selectedPlace = place;
+        selectedDestinationLatLng = new LatLng(place.getLatitude(), place.getLongitude());
+
+        if (currentSelectedMarker != null) {
+            currentSelectedMarker.setAlpha(1.0f);
+        }
+        currentSelectedMarker = marker;
+        currentSelectedMarker.setAlpha(0.8f);
+
+        tvRestaurantName.setText(place.getName());
+        tvRestaurantAddress.setText(place.getAddress());
+        tvDealsCount.setText(place.getCategory() + " • ★" + String.format(Locale.getDefault(), "%.1f", place.getRating()));
+        tvRouteInfo.setText("Preparing route...");
+        tvAvailableItems.setText("Loading available items...");
+        loadAvailableItemsPreview(place.getId(), place.getName());
+        ivRestaurantImage.setImageResource(R.drawable.placeholder_food);
+        bottomSheet.setVisibility(View.VISIBLE);
+
+        drawRouteToSelectedPlace();
+    }
+
+    private void drawRouteToSelectedPlace() {
+        if (selectedDestinationLatLng == null || selectedPlace == null) {
+            Toast.makeText(getContext(), "Select destination first", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (currentUserLatLng == null) {
+            requestOrLoadLocation();
+            Toast.makeText(getContext(), "Waiting for current location...", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        loadingOverlay.setVisibility(View.VISIBLE);
+        directionsApiClient.fetchRoute(currentUserLatLng, selectedDestinationLatLng, new DirectionsApiClient.Callback() {
+            @Override
+            public void onSuccess(RouteResult result) {
+                loadingOverlay.setVisibility(View.GONE);
+                drawPolyline(result);
+            }
+
+            @Override
+            public void onError(String message) {
+                loadingOverlay.setVisibility(View.GONE);
+                tvRouteInfo.setText("Route unavailable");
+                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void drawPolyline(@NonNull RouteResult routeResult) {
+        if (mMap == null || currentUserLatLng == null || selectedDestinationLatLng == null) {
+            return;
+        }
+
+        clearRouteOnly();
+
+        currentRoutePolyline = mMap.addPolyline(new PolylineOptions()
+                .addAll(routeResult.getPolylinePoints())
+                .width(12f)
+                .color(requireContext().getColor(R.color.green_primary))
+                .geodesic(true));
+
+        tvRouteInfo.setText("Distance: " + routeResult.getDistanceText() + " • ETA: " + routeResult.getDurationText());
+
+        LatLngBounds bounds = new LatLngBounds.Builder()
+                .include(currentUserLatLng)
+                .include(selectedDestinationLatLng)
+                .build();
+        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 140));
+    }
+
+    private void clearRouteOnly() {
+        if (currentRoutePolyline != null) {
+            currentRoutePolyline.remove();
+            currentRoutePolyline = null;
         }
     }
 
-    private void loadRestaurantMarkers() {
-        loadingOverlay.setVisibility(View.VISIBLE);
+    private void loadAvailableItemsPreview(@NonNull String hotelId, @NonNull String hotelName) {
+        if (hotelFoodPreviewCache.containsKey(hotelId)) {
+            tvAvailableItems.setText(hotelFoodPreviewCache.get(hotelId));
+            return;
+        }
 
-        mDatabase.child("hotels").addListenerForSingleValueEvent(new ValueEventListener() {
+        foodItemsRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot hotelSnapshot) {
-                if (!hotelSnapshot.hasChildren()) {
-                    seedMockMapData();
-                    loadingOverlay.setVisibility(View.GONE);
-                    return;
-                }
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                StringBuilder preview = new StringBuilder();
+                int added = 0;
 
-                Map<String, Map<String, Object>> hotels = new HashMap<>();
-                for (DataSnapshot h : hotelSnapshot.getChildren()) {
-                    Map<String, Object> details = (Map<String, Object>) h.getValue();
-                    if (details != null) {
-                        hotels.put(h.getKey(), details);
+                for (DataSnapshot child : snapshot.getChildren()) {
+                    String childHotelId = asString(child.child("hotelId").getValue());
+                    String childHotelName = asString(child.child("hotelName").getValue());
+
+                    boolean sameHotel = hotelId.equals(childHotelId)
+                            || (!childHotelName.isEmpty() && hotelName.equalsIgnoreCase(childHotelName));
+                    if (!sameHotel) {
+                        continue;
+                    }
+
+                    String status = asString(child.child("status").getValue());
+                    int quantity = asInt(child.child("quantity").getValue());
+                    if ((!status.isEmpty() && !"available".equalsIgnoreCase(status)) || quantity <= 0) {
+                        continue;
+                    }
+
+                    String foodName = asString(child.child("foodName").getValue());
+                    if (foodName.isEmpty()) {
+                        continue;
+                    }
+
+                    double price = asDouble(child.child("discountedPrice").getValue());
+                    preview.append("• ").append(foodName);
+                    if (price > 0) {
+                        preview.append("  -  LKR ").append(String.format(Locale.getDefault(), "%.0f", price));
+                    }
+                    preview.append("\n");
+
+                    added++;
+                    if (added >= 3) {
+                        break;
                     }
                 }
 
-                mDatabase.child("foodItems").addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        hotelFoodItems.clear();
-                        mMap.clear();
-                        bottomSheet.setVisibility(View.GONE);
+                String previewText;
+                if (added == 0) {
+                    previewText = "No active items from this hotel right now.";
+                } else {
+                    previewText = preview.toString().trim();
+                }
 
-                        for (DataSnapshot itemSnapshot : snapshot.getChildren()) {
-                            FoodItem item = itemSnapshot.getValue(FoodItem.class);
-                            if (item == null) continue;
-
-                            item.setFoodId(itemSnapshot.getKey());
-
-                            if (item.getImageUrl() == null || item.getImageUrl().trim().isEmpty()) {
-                                Object image = getObjectAny(itemSnapshot, "imageUrl", "photoUrl", "foodImage", "image", "imageURL", "image_path");
-                                if (image != null) item.setImageUrl(String.valueOf(image));
-                            }
-
-                            Object statusObj = getObjectAny(itemSnapshot, "status", "itemStatus");
-                            String status = statusObj == null ? "available" : String.valueOf(statusObj);
-                            if (!"available".equalsIgnoreCase(status) || item.getQuantityValue() <= 0) {
-                                continue;
-                            }
-
-                            String hotelId = item.getHotelId();
-                            if (hotels.containsKey(hotelId)) {
-                                Map<String, Object> hDetails = hotels.get(hotelId);
-                                if (item.getLatitudeValue() == 0) item.setLatitude(hDetails.get("latitude"));
-                                if (item.getLongitudeValue() == 0) item.setLongitude(hDetails.get("longitude"));
-                                if (item.getHotelAddress() == null || item.getHotelAddress().isEmpty()) {
-                                    Object address = hDetails.get("address");
-                                    item.setHotelAddress(address == null ? "" : String.valueOf(address));
-                                }
-                                if (item.getHotelName() == null || item.getHotelName().isEmpty()) {
-                                    Object hotelName = hDetails.get("hotelName");
-                                    if (hotelName != null) item.setHotelName(String.valueOf(hotelName));
-                                }
-                            }
-
-                            if (!hotelFoodItems.containsKey(hotelId)) {
-                                hotelFoodItems.put(hotelId, new ArrayList<>());
-                            }
-                            hotelFoodItems.get(hotelId).add(item);
-                        }
-
-                        for (Map.Entry<String, List<FoodItem>> entry : hotelFoodItems.entrySet()) {
-                            List<FoodItem> items = entry.getValue();
-                            if (!items.isEmpty()) {
-                                FoodItem firstItem = items.get(0);
-                                if (firstItem.getLatitudeValue() != 0 && firstItem.getLongitudeValue() != 0) {
-                                    LatLng position = new LatLng(firstItem.getLatitudeValue(), firstItem.getLongitudeValue());
-                                    float markerColor = getMarkerColor(firstItem.getLatitudeValue(), firstItem.getLongitudeValue());
-                                    double distanceKm = com.replate.app.utils.LocationUtils.calculateDistance(
-                                            currentLatitude, currentLongitude,
-                                            firstItem.getLatitudeValue(), firstItem.getLongitudeValue());
-
-                                    MarkerOptions markerOptions = new MarkerOptions()
-                                            .position(position)
-                                            .title(firstItem.getHotelName())
-                                            .snippet(firstItem.getFoodName() + " • " + String.format(Locale.getDefault(), "%.1f km", distanceKm))
-                                            .icon(BitmapDescriptorFactory.defaultMarker(markerColor));
-
-                                    Marker marker = mMap.addMarker(markerOptions);
-                                    if (marker != null) {
-                                        marker.setTag(entry.getKey());
-                                    }
-                                }
-                            }
-                        }
-                        loadingOverlay.setVisibility(View.GONE);
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                        loadingOverlay.setVisibility(View.GONE);
-                    }
-                });
+                hotelFoodPreviewCache.put(hotelId, previewText);
+                tvAvailableItems.setText(previewText);
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                loadingOverlay.setVisibility(View.GONE);
+                tvAvailableItems.setText("Unable to load items right now.");
             }
         });
     }
 
-    private void showHotelBottomSheet(String hotelId) {
-        selectedHotelId = hotelId;
-        List<FoodItem> items = hotelFoodItems.get(hotelId);
+    private String asString(Object value) {
+        return value == null ? "" : String.valueOf(value).trim();
+    }
 
-        if (items != null && !items.isEmpty()) {
-            FoodItem firstItem = items.get(0);
-            double distanceKm = com.replate.app.utils.LocationUtils.calculateDistance(
-                    currentLatitude, currentLongitude,
-                    firstItem.getLatitudeValue(), firstItem.getLongitudeValue()
-            );
-
-            tvRestaurantName.setText(firstItem.getHotelName());
-            tvRestaurantAddress.setText(firstItem.getHotelAddress() != null && !firstItem.getHotelAddress().isEmpty()
-                    ? firstItem.getHotelAddress()
-                    : "Pickup address unavailable");
-            tvDealsCount.setText(items.size() + " deal" + (items.size() == 1 ? "" : "s")
-                    + " • " + String.format(Locale.getDefault(), "%.1f km", distanceKm));
-
-            if (firstItem.getImageUrl() != null && !firstItem.getImageUrl().isEmpty()) {
-                Glide.with(requireContext())
-                        .load(firstItem.getImageUrl())
-                        .placeholder(R.drawable.placeholder_food)
-                        .error(R.drawable.placeholder_food)
-                        .centerCrop()
-                        .into(ivRestaurantImage);
-            } else {
-                ivRestaurantImage.setImageResource(R.drawable.placeholder_food);
-            }
-
-            bottomSheet.setVisibility(View.VISIBLE);
+    private int asInt(Object value) {
+        if (value == null) return 0;
+        if (value instanceof Number) return ((Number) value).intValue();
+        try {
+            return Integer.parseInt(String.valueOf(value));
+        } catch (Exception e) {
+            return 0;
         }
     }
 
-    private Object getObjectAny(DataSnapshot snapshot, String... keys) {
-        for (String key : keys) {
-            Object v = snapshot.child(key).getValue();
-            if (v != null) return v;
-        }
-        return null;
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == LOCATION_PERMISSION_REQUEST) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                getUserLocation();
-            }
+    private double asDouble(Object value) {
+        if (value == null) return 0;
+        if (value instanceof Number) return ((Number) value).doubleValue();
+        try {
+            return Double.parseDouble(String.valueOf(value));
+        } catch (Exception e) {
+            return 0;
         }
     }
 
-    private void seedMockMapData() {
-        long now = System.currentTimeMillis();
-
-        Map<String, Object> hotel1 = new HashMap<>();
-        hotel1.put("hotelName", "Haggala Green Hotel");
-        hotel1.put("address", "Haggala, Nuwara Eliya");
-        hotel1.put("latitude", 6.9279);
-        hotel1.put("longitude", 80.8010);
-        hotel1.put("status", "approved");
-
-        Map<String, Object> hotel2 = new HashMap<>();
-        hotel2.put("hotelName", "Nuwara Town Dine");
-        hotel2.put("address", "Nuwara Eliya Town");
-        hotel2.put("latitude", 6.9497);
-        hotel2.put("longitude", 80.7891);
-        hotel2.put("status", "approved");
-
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("hotels/mock_hotel_haggala", hotel1);
-        updates.put("hotels/mock_hotel_nuwara", hotel2);
-
-        Map<String, Object> food1 = new HashMap<>();
-        food1.put("hotelId", "mock_hotel_haggala");
-        food1.put("hotelName", "Haggala Green Hotel");
-        food1.put("foodName", "Veg Rice Bowl");
-        food1.put("category", "Meals");
-        food1.put("originalPrice", 950);
-        food1.put("discountedPrice", 450);
-        food1.put("discountPercent", 53);
-        food1.put("quantity", 8);
-        food1.put("status", "available");
-        food1.put("pickupTimeStart", "18:00");
-        food1.put("pickupTimeEnd", "21:00");
-        food1.put("imageUrl", "https://images.unsplash.com/photo-1546069901-ba9599a7e63c");
-        food1.put("latitude", 6.9279);
-        food1.put("longitude", 80.8010);
-        food1.put("createdAt", now);
-
-        Map<String, Object> food2 = new HashMap<>();
-        food2.put("hotelId", "mock_hotel_nuwara");
-        food2.put("hotelName", "Nuwara Town Dine");
-        food2.put("foodName", "Chicken Kottu");
-        food2.put("category", "Meals");
-        food2.put("originalPrice", 1200);
-        food2.put("discountedPrice", 700);
-        food2.put("discountPercent", 42);
-        food2.put("quantity", 6);
-        food2.put("status", "available");
-        food2.put("pickupTimeStart", "19:00");
-        food2.put("pickupTimeEnd", "22:00");
-        food2.put("imageUrl", "https://images.unsplash.com/photo-1512058564366-18510be2db19");
-        food2.put("latitude", 6.9497);
-        food2.put("longitude", 80.7891);
-        food2.put("createdAt", now);
-
-        updates.put("foodItems/mock_food_haggala", food1);
-        updates.put("foodItems/mock_food_nuwara", food2);
-
-        mDatabase.updateChildren(updates)
-                .addOnSuccessListener(unused -> Toast.makeText(getContext(), "Mock map data added", Toast.LENGTH_SHORT).show())
-                .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to add mock map data", Toast.LENGTH_SHORT).show());
+    private void clearSelectedState() {
+        selectedPlace = null;
+        selectedDestinationLatLng = null;
+        if (currentSelectedMarker != null) {
+            currentSelectedMarker.setAlpha(1.0f);
+            currentSelectedMarker = null;
+        }
+        clearRouteOnly();
+        bottomSheet.setVisibility(View.GONE);
+        if (tvAvailableItems != null) {
+            tvAvailableItems.setText("Tap marker to load hotel menu...");
+        }
     }
 
-    private float getMarkerColor(double hotelLat, double hotelLng) {
-        if (currentLatitude == 0 || currentLongitude == 0) return BitmapDescriptorFactory.HUE_RED; // Default red if user loc unknown
+    private float markerColorForDistance(@NonNull LatLng destination) {
+        if (currentUserLatLng == null) {
+            return BitmapDescriptorFactory.HUE_RED;
+        }
 
-        double distanceKm = com.replate.app.utils.LocationUtils.calculateDistance(
-                currentLatitude, currentLongitude, hotelLat, hotelLng
-        );
+        double distanceKm = LocationUtils.calculateDistance(
+                currentUserLatLng.latitude,
+                currentUserLatLng.longitude,
+                destination.latitude,
+                destination.longitude);
 
         if (distanceKm < 1.0) {
-            return BitmapDescriptorFactory.HUE_GREEN; // < 1km
-        } else if (distanceKm < 3.0) {
-            return BitmapDescriptorFactory.HUE_ORANGE; // 1-3km
-        } else {
-            return BitmapDescriptorFactory.HUE_RED; // > 3km
+            return BitmapDescriptorFactory.HUE_GREEN;
         }
+        if (distanceKm < 3.0) {
+            return BitmapDescriptorFactory.HUE_ORANGE;
+        }
+        return BitmapDescriptorFactory.HUE_RED;
     }
 }

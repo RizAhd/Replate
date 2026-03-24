@@ -98,71 +98,95 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="../js/env-config.js"></script>
 <script src="../js/firebase-config.js"></script>
+<script src="../js/data-schema.js"></script>
 
 <script>
-    auth.onAuthStateChanged((user) => {
-        if (user) loadDashboard(user.uid);
+    let hotelIds = new Set();
+
+    auth.onAuthStateChanged(async (user) => {
+        if (!user) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        try {
+            const hotelRecord = await ReplateSchema.findHotelByUserId(database, user.uid);
+            hotelIds = new Set([user.uid]);
+            if (hotelRecord && hotelRecord.key) hotelIds.add(hotelRecord.key);
+            loadDashboard();
+        } catch (e) {
+            console.error('Failed to resolve hotel identity:', e);
+            hotelIds = new Set([user.uid]);
+            loadDashboard();
+        }
     });
 
-    function loadDashboard(uid) {
-        // Load Orders Stats
-        database.ref('orders').orderByChild('hotelId').equalTo(uid).on('value', (snapshot) => {
+    function loadDashboard() {
+        database.ref('orders').on('value', (snapshot) => {
             let revenue = 0;
             let pending = 0;
             let total = 0;
             const recentOrders = [];
 
-            if (snapshot.exists()) {
-                snapshot.forEach((child) => {
-                    const order = child.val();
-                    total++;
-                    if (order.orderStatus === 'completed') {
-                        revenue += parseFloat(order.totalAmount);
-                    } else if (order.orderStatus === 'pending') {
-                        pending++;
-                    }
-                    recentOrders.push(order);
-                });
-            }
+            snapshot.forEach((child) => {
+                const order = child.val() || {};
+                const orderHotelId = String(order.hotelId || '').trim();
+                if (!hotelIds.has(orderHotelId)) return;
 
-            document.getElementById('statRevenue').innerText = 'LKR ' + revenue.toLocaleString();
+                total++;
+                const status = ReplateSchema.normalizeOrderStatus(order.orderStatus);
+                if (status === 'completed') {
+                    revenue += parseFloat(order.totalAmount || order.totalPrice) || 0;
+                } else if (status === 'pending_pickup') {
+                    pending++;
+                }
+                recentOrders.push({ key: child.key, ...order });
+            });
+
+            document.getElementById('statRevenue').innerText = 'LKR ' + revenue.toLocaleString('en-LK', { minimumFractionDigits: 2 });
             document.getElementById('statPending').innerText = pending;
             document.getElementById('statTotal').innerText = total;
 
-            // Populate Table (Last 5)
+            recentOrders.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
             const tableBody = document.getElementById('recentOrdersTable');
             tableBody.innerHTML = '';
-            recentOrders.reverse().slice(0, 5).forEach(order => {
-                const items = order.items ? order.items.map(i => i.foodName).join(', ') : 'Unknown Items';
-                const row = `
+
+            if (recentOrders.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">No orders yet</td></tr>';
+                return;
+            }
+
+            recentOrders.slice(0, 5).forEach(order => {
+                const items = ReplateSchema.extractItemNames(order);
+                const status = ReplateSchema.normalizeOrderStatus(order.orderStatus);
+                const bgClass = ReplateSchema.statusBgClass(status);
+                const label = ReplateSchema.statusLabel(status);
+                const amount = ReplateSchema.formatAmount(order.totalAmount || order.totalPrice);
+                const dispId = ReplateSchema.shortOrderId(order, order.key);
+                tableBody.innerHTML += `
                     <tr>
-                        <td>#${order.qrCode}</td>
-                        <td>${order.customerName}</td>
+                        <td><code>#${dispId}</code></td>
+                        <td>${order.customerName || '—'}</td>
                         <td>${items}</td>
-                        <td>LKR ${order.totalAmount}</td>
-                        <td><span class="badge bg-${getStatusColor(order.orderStatus)}">${order.orderStatus}</span></td>
-                    </tr>
-                `;
-                tableBody.innerHTML += row;
+                        <td>LKR ${amount}</td>
+                        <td><span class="badge ${bgClass}">${label}</span></td>
+                    </tr>`;
             });
         });
 
-        // Load Active Items Stat
-        database.ref('foodItems').orderByChild('hotelId').equalTo(uid).on('value', (snapshot) => {
+        database.ref('foodItems').on('value', (snapshot) => {
             let active = 0;
-            if (snapshot.exists()) {
-                snapshot.forEach((child) => {
-                    if (child.val().isAvailable) active++;
-                });
-            }
+            snapshot.forEach((child) => {
+                const item = child.val() || {};
+                const itemHotelId = String(item.hotelId || item.hotelKey || item.hotelUserId || '').trim();
+                if (!hotelIds.has(itemHotelId)) return;
+
+                const avail = item.isAvailable === true ||
+                              String(item.status || '').toLowerCase() === 'available';
+                if (avail) active++;
+            });
             document.getElementById('statActive').innerText = active;
         });
-    }
-
-    function getStatusColor(status) {
-        if (status === 'completed') return 'success';
-        if (status === 'pending') return 'warning';
-        return 'secondary';
     }
 </script>
 

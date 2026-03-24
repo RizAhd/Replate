@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -16,6 +17,8 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.replate.app.R;
 import com.replate.app.models.FoodItem;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -23,9 +26,9 @@ import java.util.List;
  */
 public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodViewHolder> {
 
-    private Context context;
+    private final Context context;
     private List<FoodItem> foodItems;
-    private OnFoodItemClickListener listener;
+    private final OnFoodItemClickListener listener;
 
     // Click listener interface
     public interface OnFoodItemClickListener {
@@ -37,6 +40,7 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
         this.context = context;
         this.foodItems = foodItems;
         this.listener = listener;
+        setHasStableIds(true);
     }
 
     @NonNull
@@ -57,9 +61,71 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
         return foodItems.size();
     }
 
+    @Override
+    public long getItemId(int position) {
+        FoodItem item = foodItems.get(position);
+        String key = item.getFoodId();
+        if (key == null || key.trim().isEmpty()) {
+            key = (item.getFoodName() + "|" + item.getHotelName());
+        }
+        return key.hashCode();
+    }
+
     public void updateData(List<FoodItem> newFoodItems) {
-        this.foodItems = newFoodItems;
-        notifyDataSetChanged();
+        List<FoodItem> oldList = this.foodItems == null ? Collections.emptyList() : this.foodItems;
+        List<FoodItem> newList = newFoodItems == null ? Collections.emptyList() : newFoodItems;
+
+        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new DiffUtil.Callback() {
+            @Override
+            public int getOldListSize() {
+                return oldList.size();
+            }
+
+            @Override
+            public int getNewListSize() {
+                return newList.size();
+            }
+
+            @Override
+            public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
+                FoodItem oldItem = oldList.get(oldItemPosition);
+                FoodItem newItem = newList.get(newItemPosition);
+
+                String oldId = oldItem.getFoodId();
+                String newId = newItem.getFoodId();
+                if (!isBlank(oldId) && !isBlank(newId)) {
+                    return oldId.equals(newId);
+                }
+                return safe(oldItem.getFoodName()).equals(safe(newItem.getFoodName()))
+                        && safe(oldItem.getHotelName()).equals(safe(newItem.getHotelName()));
+            }
+
+            @Override
+            public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
+                FoodItem oldItem = oldList.get(oldItemPosition);
+                FoodItem newItem = newList.get(newItemPosition);
+
+                return safe(oldItem.getFoodName()).equals(safe(newItem.getFoodName()))
+                        && safe(oldItem.getHotelName()).equals(safe(newItem.getHotelName()))
+                        && oldItem.getOriginalPriceValue() == newItem.getOriginalPriceValue()
+                        && oldItem.getDiscountedPriceValue() == newItem.getDiscountedPriceValue()
+                        && oldItem.getDiscountPercentValue() == newItem.getDiscountPercentValue()
+                        && oldItem.getDistance() == newItem.getDistance()
+                        && safe(oldItem.getPickupTimeFormatted()).equals(safe(newItem.getPickupTimeFormatted()))
+                        && safe(oldItem.getImageUrl()).equals(safe(newItem.getImageUrl()));
+            }
+        });
+
+        this.foodItems = new ArrayList<>(newList);
+        diffResult.dispatchUpdatesTo(this);
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
+    }
+
+    private String safe(String value) {
+        return value == null ? "" : value;
     }
 
     class FoodViewHolder extends RecyclerView.ViewHolder {
@@ -67,7 +133,7 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
         ImageView ivFoodImage;
         TextView tvFoodName, tvHotelName, tvOriginalPrice, tvDiscountedPrice;
         TextView tvDiscount, tvDistance, tvPickupTime;
-        ImageView ivAddToCart;
+        View ivAddToCart;
 
         FoodViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -80,7 +146,9 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
             tvDiscount = itemView.findViewById(R.id.tvDiscount);
             tvDistance = itemView.findViewById(R.id.tvDistance);
             tvPickupTime = itemView.findViewById(R.id.tvPickupTime);
-            ivAddToCart = itemView.findViewById(R.id.ivAddToCart);
+            View addButton = itemView.findViewById(R.id.ivAddToCart);
+            // Fallback to the card tap area if add button is missing in a variant layout.
+            ivAddToCart = addButton != null ? addButton : itemView.findViewById(R.id.cardView);
         }
 
         void bind(FoodItem item) {
@@ -116,11 +184,13 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
                 }
             });
 
-            ivAddToCart.setOnClickListener(v -> {
-                if (listener != null) {
-                    listener.onAddToCartClick(item);
-                }
-            });
+            if (ivAddToCart != null) {
+                ivAddToCart.setOnClickListener(v -> {
+                    if (listener != null) {
+                        listener.onAddToCartClick(item);
+                    }
+                });
+            }
         }
 
         private void loadFoodImage(String imageSource) {

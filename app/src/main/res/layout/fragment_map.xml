@@ -180,8 +180,36 @@
                         android:textColor="@color/green_primary"
                         android:textSize="12sp"
                         android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvRouteInfo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Tap marker to see route"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
                 </LinearLayout>
             </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="Available now"
+                android:textAppearance="@style/TextAppearance.REPLATE.Label" />
+
+            <TextView
+                android:id="@+id/tvAvailableItems"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:maxLines="3"
+                android:ellipsize="end"
+                android:text="Tap marker to load hotel menu..."
+                android:textAppearance="@style/TextAppearance.REPLATE.Body"
+                android:textColor="@color/text_primary" />
 
             <Button
                 android:id="@+id/btnViewDeals"
@@ -189,7 +217,7 @@
                 android:layout_height="54dp"
                 android:layout_marginTop="18dp"
                 android:background="@drawable/button_primary"
-                android:text="View deals"
+                android:text="Draw route"
                 android:textAllCaps="false"
                 android:textColor="@color/white"
                 android:textStyle="bold" />

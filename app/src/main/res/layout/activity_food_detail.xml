@@ -75,9 +75,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Food Name"
+                    android:textAppearance="@style/TextAppearance.REPLATE.Headline"
                     android:textColor="@color/text_primary"
-                    android:textSize="26sp"
-                    android:textStyle="bold" />
+                    android:textSize="@dimen/text_display" />
 
                 <!-- Hotel Name -->
                 <TextView
@@ -86,8 +86,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:text="Hotel Name"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="14sp" />
+                    android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
                 <!-- Distance and Pickup Time -->
                 <LinearLayout
@@ -133,7 +132,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:layout_marginVertical="16dp"
-                    android:background="@color/light_gray" />
+                    android:background="@color/divider" />
 
                 <!-- Price and Quantity Section -->
                 <LinearLayout
@@ -154,7 +153,7 @@
                             android:layout_height="wrap_content"
                             android:text="Original"
                             android:textColor="@color/text_secondary"
-                            android:textSize="12sp" />
+                            android:textSize="@dimen/text_xs" />
 
                         <TextView
                             android:id="@+id/tvOriginalPrice"
@@ -172,7 +171,7 @@
                             android:layout_marginTop="4dp"
                             android:text="LKR 500.00"
                             android:textColor="@color/green_primary"
-                            android:textSize="28sp"
+                            android:textSize="@dimen/text_display"
                             android:textStyle="bold" />
                     </LinearLayout>
 
@@ -185,8 +184,8 @@
 
                         <Button
                             android:id="@+id/btnMinus"
-                            android:layout_width="42dp"
-                            android:layout_height="42dp"
+                            android:layout_width="@dimen/touch_target_min"
+                            android:layout_height="@dimen/touch_target_min"
                             android:background="@drawable/circle_gray"
                             android:text="-"
                             android:textColor="@color/text_primary"
@@ -204,8 +203,8 @@
 
                         <Button
                             android:id="@+id/btnPlus"
-                            android:layout_width="42dp"
-                            android:layout_height="42dp"
+                            android:layout_width="@dimen/touch_target_min"
+                            android:layout_height="@dimen/touch_target_min"
                             android:background="@drawable/circle_primary"
                             android:text="+"
                             android:textColor="@color/white"
@@ -221,14 +220,14 @@
                     android:layout_marginTop="18dp"
                     android:lineSpacingExtra="4dp"
                     android:text="Food description goes here..."
-                    android:textColor="@color/text_primary"
-                    android:textSize="14sp" />
+                    android:textAppearance="@style/TextAppearance.REPLATE.Body"
+                    android:textColor="@color/text_primary" />
 
                 <!-- Call Hotel Button -->
                 <Button
                     android:id="@+id/btnCallHotel"
                     android:layout_width="match_parent"
-                    android:layout_height="48dp"
+                    android:layout_height="@dimen/button_height"
                     android:layout_marginTop="18dp"
                     android:background="@drawable/button_outline_primary"
                     android:text="Call hotel"
@@ -242,13 +241,13 @@
         <Button
             android:id="@+id/btnAddToCart"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
+            android:layout_height="@dimen/button_height"
             android:layout_margin="16dp"
             android:background="@drawable/button_primary"
             android:text="Add to Cart - LKR 500.00"
             android:textAllCaps="false"
             android:textColor="@color/white"
-            android:textSize="16sp"
+            android:textSize="@dimen/text_md"
             android:textStyle="bold" />
 
     </LinearLayout>

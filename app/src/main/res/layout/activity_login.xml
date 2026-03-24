@@ -41,9 +41,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="REPLATE"
-            android:textColor="@color/white"
-            android:textSize="28sp"
-            android:textStyle="bold" />
+            android:textAppearance="@style/TextAppearance.REPLATE.Headline"
+            android:textColor="@color/white" />
 
         <TextView
             android:id="@+id/tvBrandSubtitle"
@@ -51,8 +50,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
             android:text="Because Every Meal Matters"
-            android:textColor="#D9FFFFFF"
-            android:textSize="14sp" />
+            android:textAppearance="@style/TextAppearance.REPLATE.Body"
+            android:textColor="@color/white_85" />
     </LinearLayout>
 
     <!-- App Logo -->
@@ -130,26 +129,24 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Welcome back"
+                            android:textAppearance="@style/TextAppearance.REPLATE.Headline"
                             android:textColor="@color/text_primary"
-                            android:textSize="24sp"
-                            android:textStyle="bold" />
+                            android:textSize="@dimen/text_xl" />
 
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
                             android:text="Sign in to discover nearby rescue meals and manage your orders."
-                            android:textColor="@color/text_secondary"
-                            android:textSize="14sp" />
+                            android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
                         <com.google.android.material.textfield.TextInputLayout
                             android:id="@+id/tilLoginEmail"
-                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                            style="@style/Widget.REPLATE.TextInputLayout"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="18dp"
-                            android:hint="Email"
-                            app:boxStrokeColor="@color/green_primary">
+                            android:hint="Email">
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/etLoginEmail"
@@ -160,12 +157,11 @@
 
                         <com.google.android.material.textfield.TextInputLayout
                             android:id="@+id/tilLoginPassword"
-                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                            style="@style/Widget.REPLATE.TextInputLayout"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="14dp"
                             android:hint="Password"
-                            app:boxStrokeColor="@color/green_primary"
                             app:endIconMode="password_toggle">
 
                             <com.google.android.material.textfield.TextInputEditText
@@ -187,14 +183,11 @@
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnLogin"
+                            style="@style/Widget.REPLATE.Button.Primary"
                             android:layout_width="match_parent"
-                            android:layout_height="56dp"
+                            android:layout_height="@dimen/button_height"
                             android:layout_marginTop="22dp"
-                            android:backgroundTint="@color/green_primary"
-                            android:text="LOGIN"
-                            android:textSize="16sp"
-                            android:textStyle="bold"
-                            app:cornerRadius="14dp" />
+                            android:text="LOGIN" />
                     </LinearLayout>
 
                     <!-- Register Form -->
@@ -209,26 +202,24 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Create your account"
+                            android:textAppearance="@style/TextAppearance.REPLATE.Headline"
                             android:textColor="@color/text_primary"
-                            android:textSize="24sp"
-                            android:textStyle="bold" />
+                            android:textSize="@dimen/text_xl" />
 
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
                             android:text="Join REPLATE to save money, rescue meals, and track pickup orders."
-                            android:textColor="@color/text_secondary"
-                            android:textSize="14sp" />
+                            android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
                         <com.google.android.material.textfield.TextInputLayout
                             android:id="@+id/tilRegisterName"
-                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                            style="@style/Widget.REPLATE.TextInputLayout"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="18dp"
-                            android:hint="Full Name"
-                            app:boxStrokeColor="@color/green_primary">
+                            android:hint="Full Name">
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/etRegisterName"
@@ -239,12 +230,11 @@
 
                         <com.google.android.material.textfield.TextInputLayout
                             android:id="@+id/tilRegisterEmail"
-                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                            style="@style/Widget.REPLATE.TextInputLayout"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
-                            android:hint="Email"
-                            app:boxStrokeColor="@color/green_primary">
+                            android:hint="Email">
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/etRegisterEmail"
@@ -255,12 +245,11 @@
 
                         <com.google.android.material.textfield.TextInputLayout
                             android:id="@+id/tilRegisterPhone"
-                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                            style="@style/Widget.REPLATE.TextInputLayout"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
-                            android:hint="Phone"
-                            app:boxStrokeColor="@color/green_primary">
+                            android:hint="Phone">
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/etRegisterPhone"
@@ -271,12 +260,11 @@
 
                         <com.google.android.material.textfield.TextInputLayout
                             android:id="@+id/tilRegisterPassword"
-                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                            style="@style/Widget.REPLATE.TextInputLayout"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
                             android:hint="Password"
-                            app:boxStrokeColor="@color/green_primary"
                             app:endIconMode="password_toggle">
 
                             <com.google.android.material.textfield.TextInputEditText
@@ -288,12 +276,11 @@
 
                         <com.google.android.material.textfield.TextInputLayout
                             android:id="@+id/tilRegisterConfirmPassword"
-                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                            style="@style/Widget.REPLATE.TextInputLayout"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
                             android:hint="Confirm Password"
-                            app:boxStrokeColor="@color/green_primary"
                             app:endIconMode="password_toggle">
 
                             <com.google.android.material.textfield.TextInputEditText
@@ -305,14 +292,11 @@
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnRegister"
+                            style="@style/Widget.REPLATE.Button.Primary"
                             android:layout_width="match_parent"
-                            android:layout_height="56dp"
+                            android:layout_height="@dimen/button_height"
                             android:layout_marginTop="22dp"
-                            android:backgroundTint="@color/green_primary"
-                            android:text="CREATE ACCOUNT"
-                            android:textSize="16sp"
-                            android:textStyle="bold"
-                            app:cornerRadius="14dp" />
+                            android:text="CREATE ACCOUNT" />
                     </LinearLayout>
 
                     <!-- Progress Bar -->

@@ -2,26 +2,23 @@ package com.replate.app.fragments;
 
 import android.Manifest;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
-import android.location.Location;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
@@ -29,13 +26,11 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.replate.app.CartActivity;
 import com.replate.app.FoodDetailActivity;
 import com.replate.app.MainActivity;
 import com.replate.app.NotificationsActivity;
@@ -44,22 +39,16 @@ import com.replate.app.SearchActivity;
 import com.replate.app.adapters.BannerAdapter;
 import com.replate.app.adapters.CategoryAdapter;
 import com.replate.app.adapters.FoodItemAdapter;
+import com.replate.app.helpers.CartDatabaseHelper;
 import com.replate.app.models.Category;
 import com.replate.app.models.FoodItem;
-import com.replate.app.helpers.CartDatabaseHelper;
 import com.replate.app.utils.ShakeDetector;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import static android.content.Context.MODE_PRIVATE;
-
-/**
- * Home Fragment - Main dashboard showing food deals
- */
 public class HomeFragment extends Fragment implements
         FoodItemAdapter.OnFoodItemClickListener,
         CategoryAdapter.OnCategoryClickListener {
@@ -103,6 +92,17 @@ public class HomeFragment extends Fragment implements
     private Sensor accelerometer;
     private ShakeDetector shakeDetector;
 
+    private final ActivityResultLauncher<String[]> locationPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
+                boolean fineGranted = Boolean.TRUE.equals(result.get(Manifest.permission.ACCESS_FINE_LOCATION));
+                boolean coarseGranted = Boolean.TRUE.equals(result.get(Manifest.permission.ACCESS_COARSE_LOCATION));
+                if (fineGranted || coarseGranted) {
+                    getUserLocation();
+                } else {
+                    loadFoodItems();
+                }
+            });
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -132,6 +132,10 @@ public class HomeFragment extends Fragment implements
                 LinearLayoutManager.HORIZONTAL, false));
         rvHotDeals.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         rvFoodItems.setLayoutManager(new LinearLayoutManager(getContext()));
+
+        rvCategories.setHasFixedSize(true);
+        rvHotDeals.setHasFixedSize(true);
+        rvFoodItems.setHasFixedSize(true);
 
         categoryAdapter = new CategoryAdapter(getContext(), categories, this);
         rvCategories.setAdapter(categoryAdapter);
@@ -226,13 +230,16 @@ public class HomeFragment extends Fragment implements
     }
 
     private void getUserLocation() {
-        if (ActivityCompat.checkSelfPermission(requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // Request permission
-            requestPermissions(new String[]{
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            }, LOCATION_PERMISSION_REQUEST);
+        boolean fineGranted = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
+        boolean coarseGranted = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
+
+        if (!fineGranted && !coarseGranted) {
+            locationPermissionLauncher.launch(new String[]{
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+            });
             return;
         }
 
@@ -242,27 +249,9 @@ public class HomeFragment extends Fragment implements
                     currentLatitude = location.getLatitude();
                     currentLongitude = location.getLongitude();
                 }
-                // Load food items after getting location (or without it)
                 loadFoodItems();
             })
-            .addOnFailureListener(e -> {
-                // Load food items even if location fails
-                loadFoodItems();
-            });
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == LOCATION_PERMISSION_REQUEST) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                getUserLocation();
-            } else {
-                // Load food items without location
-                loadFoodItems();
-            }
-        }
+            .addOnFailureListener(e -> loadFoodItems());
     }
 
     private void loadFoodItems() {
@@ -353,7 +342,7 @@ public class HomeFragment extends Fragment implements
         for (int i = 0; i < max; i++) {
             hotDeals.add(sortedByPrice.get(i));
         }
-        hotDealsAdapter.notifyDataSetChanged();
+        hotDealsAdapter.updateData(new ArrayList<>(hotDeals));
     }
 
     private String getStringAny(DataSnapshot snapshot, String... keys) {
@@ -396,27 +385,65 @@ public class HomeFragment extends Fragment implements
     private void filterByCategory(String category) {
         foodItems.clear();
 
-        if (category.equals("All")) {
+        if ("All".equalsIgnoreCase(category)) {
             foodItems.addAll(allFoodItems);
         } else {
             for (FoodItem item : allFoodItems) {
-                if (item.getCategory() != null &&
-                    item.getCategory().toLowerCase().equals(category.toLowerCase())) {
+                if (matchesCategory(item.getCategory(), category)) {
                     foodItems.add(item);
                 }
             }
         }
 
-        foodItemAdapter.notifyDataSetChanged();
+        foodItemAdapter.updateData(new ArrayList<>(foodItems));
 
-        // Show/hide empty state
         if (foodItems.isEmpty()) {
-            // emptyState.setVisibility(View.VISIBLE);
             rvFoodItems.setVisibility(View.GONE);
         } else {
-            // emptyState.setVisibility(View.GONE);
             rvFoodItems.setVisibility(View.VISIBLE);
         }
+    }
+
+    private boolean matchesCategory(String itemCategoryRaw, String selectedCategoryRaw) {
+        if (itemCategoryRaw == null || selectedCategoryRaw == null) return false;
+
+        String itemCategory = normalizeCategory(itemCategoryRaw);
+        String selectedCategory = normalizeCategory(selectedCategoryRaw);
+
+        if (itemCategory.equals(selectedCategory)) return true;
+
+        // Flexible mapping for broad tabs.
+        if ("meals".equals(selectedCategory)) {
+            return itemCategory.contains("rice")
+                    || itemCategory.contains("curry")
+                    || itemCategory.contains("kottu")
+                    || itemCategory.contains("noodle")
+                    || itemCategory.contains("meal")
+                    || itemCategory.contains("biryani");
+        }
+
+        if ("desserts".equals(selectedCategory)) {
+            return itemCategory.contains("dessert")
+                    || itemCategory.contains("cake")
+                    || itemCategory.contains("sweet");
+        }
+
+        if ("drinks".equals(selectedCategory)) {
+            return itemCategory.contains("drink")
+                    || itemCategory.contains("juice")
+                    || itemCategory.contains("beverage");
+        }
+
+        return itemCategory.contains(selectedCategory);
+    }
+
+    private String normalizeCategory(String value) {
+        return value.toLowerCase()
+                .replace("&", "and")
+                .replace("_", " ")
+                .replace("-", " ")
+                .replaceAll("\\s+", " ")
+                .trim();
     }
 
     private void showLoading(boolean show) {

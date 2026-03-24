@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/light_gray"
+    android:background="@color/background_cream"
     android:orientation="vertical">
 
     <!-- Header -->
@@ -25,17 +25,17 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="My Orders"
+                android:textAppearance="@style/TextAppearance.REPLATE.Headline"
                 android:textColor="@color/white"
-                android:textSize="26sp"
-                android:textStyle="bold" />
+                android:textSize="@dimen/text_display" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:text="Track active pickups, completed orders, and cancelled requests in one place."
-                android:textColor="#D9FFFFFF"
-                android:textSize="14sp" />
+                android:textAppearance="@style/TextAppearance.REPLATE.Body"
+                android:textColor="@color/text_on_primary_muted" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
@@ -108,9 +108,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="No orders yet"
-            android:textColor="@color/text_primary"
-            android:textSize="20sp"
-            android:textStyle="bold" />
+            android:textAppearance="@style/TextAppearance.REPLATE.Subheading"
+            android:textColor="@color/text_primary" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -118,19 +117,20 @@
             android:layout_marginTop="8dp"
             android:gravity="center"
             android:text="When you reserve a rescue meal, it will appear here with pickup details and QR access."
-            android:textColor="@color/text_secondary"
-            android:textSize="14sp" />
+            android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
         <Button
             android:id="@+id/btnBrowse"
             android:layout_width="wrap_content"
-            android:layout_height="48dp"
+            android:layout_height="@dimen/button_height"
             android:layout_marginTop="24dp"
             android:background="@drawable/button_primary"
+            android:minWidth="160dp"
             android:paddingHorizontal="32dp"
             android:text="Browse Deals"
             android:textAllCaps="false"
-            android:textColor="@color/white" />
+            android:textColor="@color/white"
+            android:textStyle="bold" />
 
     </LinearLayout>
 

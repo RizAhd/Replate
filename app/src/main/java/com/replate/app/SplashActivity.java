@@ -39,7 +39,10 @@ public class SplashActivity extends AppCompatActivity {
         new Handler().postDelayed(() -> {
             SharedPreferences prefs = getSharedPreferences("REPLATE_PREFS", MODE_PRIVATE);
             String savedUserId = prefs.getString("userId", null);
-            String savedRole = prefs.getString("role", "customer");
+            String savedRole = prefs.getString("role", null);
+            if (savedRole == null || savedRole.trim().isEmpty()) {
+                savedRole = prefs.getString("userType", "customer");
+            }
 
             if (savedUserId != null) {
                 // Auto-login based on role
