@@ -6,8 +6,8 @@ import com.google.firebase.database.IgnoreExtraProperties;
 import java.io.Serializable;
 
 /**
- * Model class for Food Items
- * All fields use Object/String types to handle Firebase storing numbers as strings
+ * Model class for Food Items.
+ * Supports legacy and canonical Firebase field names.
  */
 @IgnoreExtraProperties
 public class FoodItem implements Serializable {
@@ -17,55 +17,69 @@ public class FoodItem implements Serializable {
     private String foodName;
     private String description;
     private String category;
+
     private Object originalPrice;
     private Object discountedPrice;
     private Object discountPercent;
+    private Object discountPercentage;
+
     private String imageUrl;
     private Object quantity;
+
     private String pickupTimeStart;
     private String pickupTimeEnd;
+    private String pickupStart;
+    private String pickupEnd;
+
     private Object createdAt;
+
     private Object isAvailable;
-    private Object available; // Firebase might use "available" instead of "isAvailable"
+    private Object available;
+    private String status;
+
     private Object latitude;
     private Object longitude;
+    private Object hotelLatitude;
+    private Object hotelLongitude;
+
     private String hotelAddress;
     private String hotelPhone;
-    private double distance; // Calculated field - not stored in Firebase
+    private Object rating;
+    private Object hotelRating;
 
-    // Empty constructor for Firebase
+    @Exclude
+    private double distance;
+
     public FoodItem() {}
 
-    // --- Safe parsing helpers ---
     @Exclude
     private static double toDouble(Object val) {
         if (val == null) return 0.0;
         if (val instanceof Number) return ((Number) val).doubleValue();
-        try { return Double.parseDouble(val.toString()); } catch (Exception e) { return 0.0; }
+        try { return Double.parseDouble(String.valueOf(val)); } catch (Exception e) { return 0.0; }
     }
 
     @Exclude
     private static int toInt(Object val) {
         if (val == null) return 0;
         if (val instanceof Number) return ((Number) val).intValue();
-        try { return Integer.parseInt(val.toString()); } catch (Exception e) { return 0; }
+        try { return Integer.parseInt(String.valueOf(val)); } catch (Exception e) { return 0; }
     }
 
     @Exclude
     private static long toLong(Object val) {
         if (val == null) return 0L;
         if (val instanceof Number) return ((Number) val).longValue();
-        try { return Long.parseLong(val.toString()); } catch (Exception e) { return 0L; }
+        try { return Long.parseLong(String.valueOf(val)); } catch (Exception e) { return 0L; }
     }
 
     @Exclude
     private static boolean toBool(Object val) {
         if (val == null) return false;
         if (val instanceof Boolean) return (Boolean) val;
-        return "true".equalsIgnoreCase(val.toString());
+        return "true".equalsIgnoreCase(String.valueOf(val));
     }
 
-    // --- Getters (return proper types) ---
     public String getFoodId() { return foodId; }
     public String getHotelId() { return hotelId; }
     public String getHotelName() { return hotelName; }
@@ -82,8 +96,14 @@ public class FoodItem implements Serializable {
     public Object getDiscountedPrice() { return discountedPrice; }
 
     @Exclude
-    public int getDiscountPercentValue() { return toInt(discountPercent); }
+    public int getDiscountPercentValue() {
+        if (discountPercent != null) return toInt(discountPercent);
+        if (discountPercentage != null) return toInt(discountPercentage);
+        return 0;
+    }
+
     public Object getDiscountPercent() { return discountPercent; }
+    public Object getDiscountPercentage() { return discountPercentage; }
 
     public String getImageUrl() { return imageUrl; }
 
@@ -91,8 +111,15 @@ public class FoodItem implements Serializable {
     public int getQuantityValue() { return toInt(quantity); }
     public Object getQuantity() { return quantity; }
 
-    public String getPickupTimeStart() { return pickupTimeStart; }
-    public String getPickupTimeEnd() { return pickupTimeEnd; }
+    public String getPickupTimeStart() {
+        if (pickupTimeStart != null && !pickupTimeStart.isEmpty()) return pickupTimeStart;
+        return pickupStart;
+    }
+
+    public String getPickupTimeEnd() {
+        if (pickupTimeEnd != null && !pickupTimeEnd.isEmpty()) return pickupTimeEnd;
+        return pickupEnd;
+    }
 
     @Exclude
     public long getCreatedAtValue() { return toLong(createdAt); }
@@ -100,29 +127,52 @@ public class FoodItem implements Serializable {
 
     @Exclude
     public boolean isAvailableValue() {
-        // Check both field names
+        if (status != null) return "available".equalsIgnoreCase(status);
         if (isAvailable != null) return toBool(isAvailable);
         if (available != null) return toBool(available);
         return false;
     }
+
     public Object getIsAvailable() { return isAvailable; }
     public Object getAvailable() { return available; }
+    public String getStatus() { return status; }
 
     @Exclude
-    public double getLatitudeValue() { return toDouble(latitude); }
+    public double getLatitudeValue() {
+        if (latitude != null) return toDouble(latitude);
+        if (hotelLatitude != null) return toDouble(hotelLatitude);
+        return 0.0;
+    }
+
     public Object getLatitude() { return latitude; }
 
     @Exclude
-    public double getLongitudeValue() { return toDouble(longitude); }
+    public double getLongitudeValue() {
+        if (longitude != null) return toDouble(longitude);
+        if (hotelLongitude != null) return toDouble(hotelLongitude);
+        return 0.0;
+    }
+
     public Object getLongitude() { return longitude; }
+    public Object getHotelLatitude() { return hotelLatitude; }
+    public Object getHotelLongitude() { return hotelLongitude; }
 
     public String getHotelAddress() { return hotelAddress; }
     public String getHotelPhone() { return hotelPhone; }
 
     @Exclude
+    public double getRatingValue() {
+        if (rating != null) return toDouble(rating);
+        if (hotelRating != null) return toDouble(hotelRating);
+        return 0.0;
+    }
+
+    public Object getRating() { return rating; }
+    public Object getHotelRating() { return hotelRating; }
+
+    @Exclude
     public double getDistance() { return distance; }
 
-    // --- Setters ---
     public void setFoodId(String foodId) { this.foodId = foodId; }
     public void setHotelId(String hotelId) { this.hotelId = hotelId; }
     public void setHotelName(String hotelName) { this.hotelName = hotelName; }
@@ -132,34 +182,37 @@ public class FoodItem implements Serializable {
     public void setOriginalPrice(Object originalPrice) { this.originalPrice = originalPrice; }
     public void setDiscountedPrice(Object discountedPrice) { this.discountedPrice = discountedPrice; }
     public void setDiscountPercent(Object discountPercent) { this.discountPercent = discountPercent; }
+    public void setDiscountPercentage(Object discountPercentage) { this.discountPercentage = discountPercentage; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public void setQuantity(Object quantity) { this.quantity = quantity; }
     public void setPickupTimeStart(String pickupTimeStart) { this.pickupTimeStart = pickupTimeStart; }
     public void setPickupTimeEnd(String pickupTimeEnd) { this.pickupTimeEnd = pickupTimeEnd; }
+    public void setPickupStart(String pickupStart) { this.pickupStart = pickupStart; }
+    public void setPickupEnd(String pickupEnd) { this.pickupEnd = pickupEnd; }
     public void setCreatedAt(Object createdAt) { this.createdAt = createdAt; }
     public void setIsAvailable(Object isAvailable) { this.isAvailable = isAvailable; }
     public void setAvailable(Object available) { this.available = available; }
+    public void setStatus(String status) { this.status = status; }
     public void setLatitude(Object latitude) { this.latitude = latitude; }
     public void setLongitude(Object longitude) { this.longitude = longitude; }
+    public void setHotelLatitude(Object hotelLatitude) { this.hotelLatitude = hotelLatitude; }
+    public void setHotelLongitude(Object hotelLongitude) { this.hotelLongitude = hotelLongitude; }
     public void setHotelAddress(String hotelAddress) { this.hotelAddress = hotelAddress; }
     public void setHotelPhone(String hotelPhone) { this.hotelPhone = hotelPhone; }
+    public void setRating(Object rating) { this.rating = rating; }
+    public void setHotelRating(Object hotelRating) { this.hotelRating = hotelRating; }
     public void setDistance(double distance) { this.distance = distance; }
 
-    // Helper method to get formatted pickup time
     @Exclude
     public String getPickupTimeFormatted() {
-        String start = pickupTimeStart != null ? pickupTimeStart : "";
-        String end = pickupTimeEnd != null ? pickupTimeEnd : "";
+        String start = getPickupTimeStart() != null ? getPickupTimeStart() : "";
+        String end = getPickupTimeEnd() != null ? getPickupTimeEnd() : "";
         return start + " - " + end;
     }
 
-    // Helper method to get formatted distance
     @Exclude
     public String getDistanceFormatted() {
-        if (distance < 1) {
-            return String.format("%.0f m", distance * 1000);
-        } else {
-            return String.format("%.1f km", distance);
-        }
+        if (distance < 1) return String.format("%.0f m", distance * 1000);
+        return String.format("%.1f km", distance);
     }
 }

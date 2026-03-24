@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.replate.app.R;
@@ -70,17 +71,23 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
             tvName.setText(category.getName());
             ivIcon.setImageResource(category.getIcon());
 
-            // Highlight selected category
-            if (position == selectedPosition) {
-                cardView.setCardBackgroundColor(context.getResources().getColor(R.color.primary_light));
+            boolean selected = position == selectedPosition;
+            if (selected) {
+                cardView.setCardBackgroundColor(ContextCompat.getColor(context, R.color.green_primary));
+                tvName.setTextColor(ContextCompat.getColor(context, R.color.white));
+                ivIcon.setColorFilter(ContextCompat.getColor(context, R.color.white));
             } else {
-                cardView.setCardBackgroundColor(context.getResources().getColor(R.color.white));
+                cardView.setCardBackgroundColor(ContextCompat.getColor(context, R.color.surface_white));
+                tvName.setTextColor(ContextCompat.getColor(context, R.color.text_primary));
+                ivIcon.setColorFilter(ContextCompat.getColor(context, R.color.green_primary));
             }
 
             cardView.setOnClickListener(v -> {
                 int previousSelected = selectedPosition;
                 selectedPosition = position;
-                notifyItemChanged(previousSelected);
+                if (previousSelected >= 0) {
+                    notifyItemChanged(previousSelected);
+                }
                 notifyItemChanged(selectedPosition);
 
                 if (listener != null) {
@@ -90,4 +97,3 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
         }
     }
 }
-

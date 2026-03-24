@@ -16,38 +16,59 @@ const firebaseConfig = {
     appId:             ENV.FIREBASE_APP_ID,
 };
 
-// Initialize Firebase
 const app = firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const database = firebase.database();
 const storage = firebase.storage();
 
-// Auth State Listener
-auth.onAuthStateChanged((user) => {
+function isAuthPage(pathname) {
+    return pathname.includes('login.html') || pathname.includes('register.html');
+}
+
+async function resolveUserRole(uid) {
+    const userSnap = await database.ref('users/' + uid).once('value');
+    if (!userSnap.exists()) return null;
+    const val = userSnap.val() || {};
+    return (val.role || val.userType || '').toLowerCase();
+}
+
+async function checkUserRole(uid) {
+    try {
+        const role = await resolveUserRole(uid);
+        if (role === 'hotel') {
+            const hotelByUser = await database.ref('hotels').orderByChild('userId').equalTo(uid).once('value');
+            if (hotelByUser.exists()) {
+                const [hotelId] = Object.keys(hotelByUser.val());
+                sessionStorage.setItem('hotelId', hotelId);
+                return 'hotel';
+            }
+            const legacy = await database.ref('hotels/' + uid).once('value');
+            if (legacy.exists()) {
+                sessionStorage.setItem('hotelId', uid);
+                return 'hotel';
+            }
+        }
+        return role;
+    } catch (e) {
+        console.error('Role check failed:', e);
+        return null;
+    }
+}
+
+auth.onAuthStateChanged(async (user) => {
     if (user) {
-        // User is signed in
-        console.log("Logged in as:", user.email);
-        // Check if user is hotel
-        checkUserRole(user.uid);
+        console.log('Logged in as:', user.email);
+        await checkUserRole(user.uid);
     } else {
-        // No user is signed in
-        if (!window.location.href.includes("login.html") && !window.location.href.includes("register.html")) {
-            window.location.href = "login.html";
+        if (!isAuthPage(window.location.pathname)) {
+            window.location.href = 'login.html';
         }
     }
 });
 
-function checkUserRole(uid) {
-    database.ref('hotels/' + uid).once('value').then((snapshot) => {
-        if (!snapshot.exists()) {
-            // Not a hotel? Maybe admin or customer
-            // Handle accordingly
-        }
-    });
-}
-
 function logout() {
     auth.signOut().then(() => {
-        window.location.href = "login.html";
+        sessionStorage.removeItem('hotelId');
+        window.location.href = 'login.html';
     });
 }

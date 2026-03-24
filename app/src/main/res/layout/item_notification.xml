@@ -5,8 +5,9 @@
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="16dp"
     android:layout_marginVertical="6dp"
-    app:cardCornerRadius="20dp"
-    app:cardElevation="3dp">
+    app:cardBackgroundColor="@color/surface_white"
+    app:cardCornerRadius="@dimen/radius_lg"
+    app:cardElevation="@dimen/elevation_card">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -44,9 +45,7 @@
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:text="Notification Title"
-                android:textColor="@color/text_primary"
-                android:textSize="15sp"
-                android:textStyle="bold" />
+                android:textAppearance="@style/TextAppearance.REPLATE.Label" />
 
             <TextView
                 android:id="@+id/tvBody"
@@ -56,8 +55,7 @@
                 android:ellipsize="end"
                 android:maxLines="2"
                 android:text="Notification body text"
-                android:textColor="@color/text_secondary"
-                android:textSize="13sp" />
+                android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
             <TextView
                 android:id="@+id/tvTime"

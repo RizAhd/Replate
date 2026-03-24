@@ -57,51 +57,83 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="../js/env-config.js"></script>
 <script src="../js/firebase-config.js"></script>
+<script src="../js/data-schema.js"></script>
 
 <script>
-    auth.onAuthStateChanged((user) => {
-        if (user) loadListings(user.uid);
+    let hotelIds = new Set();
+
+    auth.onAuthStateChanged(async (user) => {
+        if (!user) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        try {
+            const hotelRecord = await ReplateSchema.findHotelByUserId(database, user.uid);
+            hotelIds = new Set([user.uid]);
+            if (hotelRecord && hotelRecord.key) hotelIds.add(hotelRecord.key);
+            loadListings();
+        } catch (e) {
+            console.error('Failed to resolve hotel identity:', e);
+            hotelIds = new Set([user.uid]);
+            loadListings();
+        }
     });
 
-    function loadListings(uid) {
+    function loadListings() {
         const tableBody = document.getElementById('listingsTable');
+        tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4">Loading...</td></tr>';
 
-        database.ref('foodItems').orderByChild('hotelId').equalTo(uid).on('value', (snapshot) => {
+        database.ref('foodItems').on('value', (snapshot) => {
             tableBody.innerHTML = '';
+            const rows = [];
 
-            if (!snapshot.exists()) {
+            snapshot.forEach((child) => {
+                const item = child.val() || {};
+                const itemHotelId = String(item.hotelId || item.hotelKey || item.hotelUserId || '').trim();
+                if (hotelIds.has(itemHotelId)) {
+                    rows.push({ key: child.key, item });
+                }
+            });
+
+            if (rows.length === 0) {
                 tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4">No items found</td></tr>';
                 return;
             }
 
-            snapshot.forEach((child) => {
-                const item = child.val();
-                const key = child.key;
+            rows.sort((a, b) => (b.item.createdAt || 0) - (a.item.createdAt || 0));
+
+            rows.forEach(({ key, item }) => {
+                const isAvailable = item.isAvailable === true || String(item.status || '').toLowerCase() === 'available';
+                const pickupStart = item.pickupTimeStart || item.pickupStart || '--:--';
+                const pickupEnd = item.pickupTimeEnd || item.pickupEnd || '--:--';
+                const imageUrl = item.imageUrl || '';
 
                 const row = `
                     <tr>
-                        <td><img src="${item.imageUrl}" width="50" height="50" class="rounded" style="object-fit:cover"></td>
+                        <td>${imageUrl ? `<img src="${imageUrl}" width="50" height="50" class="rounded" style="object-fit:cover">` : '<span class="text-muted">No image</span>'}</td>
                         <td>
-                            <div class="fw-bold">${item.foodName}</div>
-                            <small class="text-muted">${item.pickupTimeStart} - ${item.pickupTimeEnd}</small>
+                            <div class="fw-bold">${item.foodName || 'Untitled'}</div>
+                            <small class="text-muted">${pickupStart} - ${pickupEnd}</small>
                         </td>
                         <td>
-                            <span class="text-decoration-line-through text-muted small">LKR ${item.originalPrice}</span><br>
-                            <span class="text-success fw-bold">LKR ${item.discountedPrice}</span>
+                            <span class="text-decoration-line-through text-muted small">LKR ${item.originalPrice || 0}</span><br>
+                            <span class="text-success fw-bold">LKR ${item.discountedPrice || 0}</span>
                         </td>
-                        <td>${item.quantity}</td>
+                        <td>${item.quantity || 0}</td>
                         <td>
-                            <span class="badge ${item.isAvailable ? 'bg-success' : 'bg-secondary'}">
-                                ${item.isAvailable ? 'Active' : 'Sold Out'}
+                            <span class="badge ${isAvailable ? 'bg-success' : 'bg-secondary'}">
+                                ${isAvailable ? 'Active' : 'Sold Out'}
                             </span>
                         </td>
                         <td>
                             <button class="btn btn-sm btn-outline-danger" onclick="deleteItem('${key}')">
                                 <i class="fas fa-trash"></i>
                             </button>
-                            <button class="btn btn-sm btn-outline-primary" onclick="toggleStatus('${key}', ${item.isAvailable})">
-                                ${item.isAvailable ? 'Mark Sold' : 'Activate'}
+                            <button class="btn btn-sm btn-outline-primary" onclick="toggleStatus('${key}', ${isAvailable})">
+                                ${isAvailable ? 'Mark Sold' : 'Activate'}
                             </button>
                         </td>
                     </tr>
@@ -112,17 +144,18 @@
     }
 
     window.deleteItem = function(key) {
-        if(confirm("Delete this item?")) {
+        if (confirm('Delete this item?')) {
             database.ref('foodItems/' + key).remove();
         }
-    }
+    };
 
     window.toggleStatus = function(key, currentStatus) {
         database.ref('foodItems/' + key).update({
             isAvailable: !currentStatus,
-            available: !currentStatus
+            available: !currentStatus,
+            status: !currentStatus ? 'available' : 'sold_out'
         });
-    }
+    };
 </script>
 </body>
 </html>

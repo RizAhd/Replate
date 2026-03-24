@@ -6,8 +6,8 @@
     android:layout_height="wrap_content"
     android:layout_margin="6dp"
     app:cardBackgroundColor="@color/surface_white"
-    app:cardCornerRadius="20dp"
-    app:cardElevation="2dp"
+    app:cardCornerRadius="@dimen/radius_lg"
+    app:cardElevation="@dimen/elevation_card"
     app:strokeColor="@color/md_theme_outlineVariant"
     app:strokeWidth="1dp">
 
@@ -42,9 +42,7 @@
             android:gravity="center"
             android:maxLines="2"
             android:text="All"
-            android:textColor="@color/text_primary"
-            android:textSize="12sp"
-            android:textStyle="bold" />
+            android:textAppearance="@style/TextAppearance.REPLATE.Label" />
 
     </LinearLayout>
 

@@ -7,8 +7,8 @@
     android:layout_marginHorizontal="14dp"
     android:layout_marginVertical="8dp"
     app:cardBackgroundColor="@color/surface_white"
-    app:cardCornerRadius="22dp"
-    app:cardElevation="4dp"
+    app:cardCornerRadius="@dimen/radius_lg"
+    app:cardElevation="@dimen/elevation_card"
     app:strokeColor="@color/md_theme_outlineVariant"
     app:strokeWidth="1dp">
 
@@ -63,7 +63,7 @@
                     android:paddingHorizontal="10dp"
                     android:paddingVertical="6dp"
                     android:text="1.2 km"
-                    android:textColor="@color/text_primary"
+                    android:textColor="@color/white"
                     android:textSize="11sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -82,9 +82,7 @@
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:text="Chicken Biryani"
-                android:textColor="@color/text_primary"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
             <TextView
                 android:id="@+id/tvHotelName"
@@ -94,8 +92,7 @@
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:text="Hotel Paradise"
-                android:textColor="@color/text_secondary"
-                android:textSize="13sp" />
+                android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
             <TextView
                 android:id="@+id/tvPickupTime"
@@ -129,7 +126,7 @@
                         android:layout_height="wrap_content"
                         android:text="LKR 800.00"
                         android:textColor="@color/text_secondary"
-                        android:textSize="12sp" />
+                        android:textSize="@dimen/text_xs" />
 
                     <TextView
                         android:id="@+id/tvDiscountedPrice"
@@ -138,14 +135,14 @@
                         android:layout_marginTop="3dp"
                         android:text="LKR 500.00"
                         android:textColor="@color/green_primary"
-                        android:textSize="20sp"
+                        android:textSize="@dimen/text_xl"
                         android:textStyle="bold" />
                 </LinearLayout>
 
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/ivAddToCart"
-                    android:layout_width="52dp"
-                    android:layout_height="52dp"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
                     app:cardBackgroundColor="@color/green_primary"
                     app:cardCornerRadius="18dp"
                     app:cardElevation="0dp">

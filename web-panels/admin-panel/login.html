@@ -5,33 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login - REPLATE</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #1B5000; /* Dark Green */
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .login-card {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            width: 100%;
-            max-width: 400px;
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
 </head>
-<body>
+<body class="auth-page">
 
-<div class="login-card text-center">
-    <h3>👑 Admin Panel</h3>
-    <p class="text-secondary mb-4">Super Admin Access Only</p>
+<div class="auth-card text-center">
+    <div class="mb-4">
+        <i class="fas fa-crown fa-3x auth-logo"></i>
+        <h3 class="auth-title">Admin Panel</h3>
+        <p class="text-secondary mb-0">Super Admin Access Only</p>
+    </div>
 
     <form id="loginForm">
+        <label for="email" class="visually-hidden">Admin Email</label>
         <input type="email" class="form-control mb-3" id="email" placeholder="admin@replate.com" required>
+        <label for="password" class="visually-hidden">Password</label>
         <input type="password" class="form-control mb-4" id="password" placeholder="Password" required>
-        <button type="submit" class="btn btn-dark w-100">LOGIN</button>
+        <button type="submit" class="btn btn-primary w-100">LOGIN</button>
     </form>
 </div>
 
@@ -50,13 +41,13 @@
         const password = document.getElementById('password').value;
 
         if (!ADMIN_EMAILS.includes(email)) {
-            alert("Access Denied: Not an admin email");
+            alert('Access Denied: Not an admin email');
             return;
         }
 
         try {
             await auth.signInWithEmailAndPassword(email, password);
-            window.location.href = "approve-hotels.html";
+            window.location.href = 'approve-hotels.html';
         } catch (error) {
             alert(error.message);
         }
@@ -65,4 +56,3 @@
 
 </body>
 </html>
-

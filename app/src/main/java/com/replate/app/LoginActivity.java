@@ -24,8 +24,11 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import org.json.JSONObject;
 
@@ -36,11 +39,11 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Login/Register Activity with Firebase Authentication
@@ -201,39 +204,79 @@ public class LoginActivity extends AppCompatActivity {
             .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                 @Override
                 public void onComplete(@NonNull Task<AuthResult> task) {
-                    showLoading(false);
-
-                    if (task.isSuccessful()) {
-                        FirebaseUser user = mAuth.getCurrentUser();
-                        if (user == null) {
-                            Toast.makeText(LoginActivity.this,
-                                "Login failed. Please try again.", Toast.LENGTH_LONG).show();
-                            return;
-                        }
-
-                        // Enforce verified email before allowing app access.
-                        if (!user.isEmailVerified()) {
-                            Toast.makeText(LoginActivity.this,
-                                "Please verify your email first. Verification mail sent.",
-                                Toast.LENGTH_LONG).show();
-                            user.sendEmailVerification();
-                            mAuth.signOut();
-                            return;
-                        }
-
-                        saveUserSession(user);
-                        Toast.makeText(LoginActivity.this,
-                            "Welcome back!", Toast.LENGTH_SHORT).show();
-                        goToHome();
-                    } else {
-                        // Login failed
+                    if (!task.isSuccessful()) {
+                        showLoading(false);
                         String errorMessage = "Login failed. Please check your credentials.";
                         if (task.getException() != null) {
                             errorMessage = task.getException().getMessage();
                         }
-                        Toast.makeText(LoginActivity.this,
-                            errorMessage, Toast.LENGTH_LONG).show();
+                        Toast.makeText(LoginActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+                        return;
                     }
+
+                    FirebaseUser user = mAuth.getCurrentUser();
+                    if (user == null) {
+                        showLoading(false);
+                        Toast.makeText(LoginActivity.this,
+                            "Login failed. Please try again.", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+
+                    // Enforce verified email before allowing app access.
+                    if (!user.isEmailVerified()) {
+                        showLoading(false);
+                        Toast.makeText(LoginActivity.this,
+                            "Please verify your email first. Verification mail sent.",
+                            Toast.LENGTH_LONG).show();
+                        user.sendEmailVerification();
+                        mAuth.signOut();
+                        return;
+                    }
+
+                    resolveUserRoleAndProceed(user);
+                }
+            });
+    }
+
+    private void resolveUserRoleAndProceed(FirebaseUser user) {
+        mDatabase.child("users").child(user.getUid())
+            .addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    String role = "customer";
+                    if (snapshot.exists()) {
+                        String roleVal = snapshot.child("role").getValue(String.class);
+                        String typeVal = snapshot.child("userType").getValue(String.class);
+                        if (roleVal != null && !roleVal.trim().isEmpty()) {
+                            role = roleVal.trim().toLowerCase();
+                        } else if (typeVal != null && !typeVal.trim().isEmpty()) {
+                            role = typeVal.trim().toLowerCase();
+                        }
+                    } else {
+                        // Backfill missing profile for old auth-only users.
+                        Map<String, Object> fallback = new HashMap<>();
+                        fallback.put("name", user.getDisplayName() == null ? "Customer" : user.getDisplayName());
+                        fallback.put("email", user.getEmail());
+                        fallback.put("phone", "");
+                        fallback.put("userType", "customer");
+                        fallback.put("role", "customer");
+                        fallback.put("createdAt", System.currentTimeMillis());
+                        fallback.put("profileImage", "");
+                        fallback.put("emailVerified", true);
+                        mDatabase.child("users").child(user.getUid()).setValue(fallback);
+                    }
+
+                    showLoading(false);
+                    saveUserSession(user, role);
+                    Toast.makeText(LoginActivity.this, "Welcome back!", Toast.LENGTH_SHORT).show();
+                    goToHomeByRole(role, user.getUid());
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    showLoading(false);
+                    saveUserSession(user, "customer");
+                    goToHomeByRole("customer", user.getUid());
                 }
             });
     }
@@ -299,6 +342,7 @@ public class LoginActivity extends AppCompatActivity {
         userData.put("email", email);
         userData.put("phone", phone);
         userData.put("userType", "customer");
+        userData.put("role", "customer");
         userData.put("createdAt", System.currentTimeMillis());
         userData.put("profileImage", "");
         userData.put("emailVerified", emailVerified);
@@ -324,10 +368,10 @@ public class LoginActivity extends AppCompatActivity {
 
                     if (!sendVerificationEmail) {
                         showLoading(false);
-                        saveUserSession(firebaseUser);
+                        saveUserSession(firebaseUser, "customer");
                         Toast.makeText(LoginActivity.this,
                             "Account created successfully!", Toast.LENGTH_SHORT).show();
-                        goToHome();
+                        goToHomeByRole("customer", firebaseUser.getUid());
                         return;
                     }
 
@@ -495,12 +539,14 @@ public class LoginActivity extends AppCompatActivity {
     /**
      * Save user session to SharedPreferences
      */
-    private void saveUserSession(FirebaseUser user) {
+    private void saveUserSession(FirebaseUser user, String role) {
         if (user != null) {
             SharedPreferences prefs = getSharedPreferences("REPLATE_PREFS", MODE_PRIVATE);
             prefs.edit()
                 .putString("userId", user.getUid())
                 .putString("userEmail", user.getEmail())
+                .putString("role", role)
+                .putString("userType", role)
                 .putBoolean("isLoggedIn", true)
                 .apply();
         }
@@ -531,7 +577,25 @@ public class LoginActivity extends AppCompatActivity {
     /**
      * Navigate to Home screen
      */
-    private void goToHome() {
+    private void goToHomeByRole(String role, String userId) {
+        if ("hotel".equals(role)) {
+            checkHotelApprovalStatus(userId);
+            return;
+        }
+
+        if ("admin".equals(role)) {
+            try {
+                Class<?> adminClass = Class.forName("com.replate.app.admin.AdminDashboardActivity");
+                Intent adminIntent = new Intent(LoginActivity.this, adminClass);
+                adminIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(adminIntent);
+                finish();
+                return;
+            } catch (ClassNotFoundException ignored) {
+                // Fall through to customer shell when admin module is not bundled.
+            }
+        }
+
         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);

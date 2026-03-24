@@ -29,7 +29,8 @@ import java.util.Locale;
 public class CartActivity extends AppCompatActivity implements CartAdapter.OnCartItemListener {
 
     private RecyclerView rvCartItems;
-    private LinearLayout emptyState, checkoutSection;
+    private LinearLayout emptyState;
+    private View checkoutSection;
     private TextView tvTotalAmount, tvClearCart, tvItemCount, tvSavingsValue, tvCartSummary;
     private Button btnCheckout, btnBrowse;
 

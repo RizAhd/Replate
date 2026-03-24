@@ -113,4 +113,10 @@
     <color name="orange_accent">#F97316</color>
     <color name="background_cream">#FDFAF5</color>
     <color name="surface_white">#FFFFFF</color>
+
+    <!-- Semantic High-Contrast Helper Colors -->
+    <color name="white_85">#D9FFFFFF</color>
+    <color name="white_70">#B3FFFFFF</color>
+    <color name="surface_subtle">#F8F9F6</color>
+    <color name="text_on_primary_muted">#D9FFFFFF</color>
 </resources>

@@ -1,16 +1,37 @@
 package com.replate.app;
 
 import android.os.Bundle;
+import android.view.View;
+import android.widget.FrameLayout;
+
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.ViewCompat;
+
+import com.replate.app.fragments.SearchFragment;
 
 /**
- * Search Activity - Redirects to search tab in MainActivity
+ * Search Activity - Dedicated searchable listing screen.
  */
 public class SearchActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Redirect to MainActivity search tab
-        finish();
+
+        FrameLayout container = new FrameLayout(this);
+        int containerId = ViewCompat.generateViewId();
+        container.setId(containerId);
+        container.setLayoutParams(new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+        ));
+        container.setBackgroundColor(getColor(R.color.background_cream));
+        setContentView(container);
+
+        if (savedInstanceState == null) {
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(containerId, new SearchFragment())
+                    .commit();
+        }
     }
 }

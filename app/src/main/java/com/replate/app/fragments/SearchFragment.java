@@ -35,8 +35,9 @@ import com.replate.app.models.FoodItem;
 import com.replate.app.utils.LocationUtils;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import android.os.Handler;
+import android.os.Looper;
 
 /**
  * Search Fragment - Search and filter food items
@@ -49,14 +50,17 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
     private ProgressBar progressBar;
     private TextView tvResultsCount;
 
-    private Chip chipAll, chipNearby, chipPriceLow, chipDiscount;
+    private Chip chipAll, chipNearby, chipPriceLow, chipDiscount, chipRating, chipCategory;
 
     private DatabaseReference mDatabase;
     private FoodItemAdapter adapter;
     private FusedLocationProviderClient fusedLocationClient;
 
-    private List<FoodItem> allFoodItems = new ArrayList<>();
-    private List<FoodItem> filteredItems = new ArrayList<>();
+    private final List<FoodItem> allFoodItems = new ArrayList<>();
+    private final List<FoodItem> filteredItems = new ArrayList<>();
+
+    private final Handler searchDebounceHandler = new Handler(Looper.getMainLooper());
+    private Runnable searchRunnable;
 
     private String currentFilter = "all";
     private double currentLat = 0;
@@ -108,7 +112,17 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         chipPriceLow = view.findViewById(R.id.chipPriceLow);
         chipDiscount = view.findViewById(R.id.chipDiscount);
 
+        int chipRatingId = getResources().getIdentifier("chipRating", "id", requireContext().getPackageName());
+        if (chipRatingId != 0) {
+            chipRating = view.findViewById(chipRatingId);
+        }
+        int chipCategoryId = getResources().getIdentifier("chipCategory", "id", requireContext().getPackageName());
+        if (chipCategoryId != 0) {
+            chipCategory = view.findViewById(chipCategoryId);
+        }
+
         rvSearchResults.setLayoutManager(new GridLayoutManager(getContext(), 2));
+        rvSearchResults.setHasFixedSize(true);
         adapter = new FoodItemAdapter(getContext(), filteredItems, this);
         rvSearchResults.setAdapter(adapter);
     }
@@ -120,7 +134,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                filterItems(s.toString());
+                scheduleFilter(s == null ? "" : s.toString());
             }
 
             @Override
@@ -152,6 +166,22 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
             uncheckAllExcept(chipDiscount);
             filterItems(etSearch.getText().toString());
         });
+
+        if (chipRating != null) {
+            chipRating.setOnClickListener(v -> {
+                currentFilter = "rating";
+                uncheckAllExcept(chipRating);
+                filterItems(etSearch.getText().toString());
+            });
+        }
+
+        if (chipCategory != null) {
+            chipCategory.setOnClickListener(v -> {
+                currentFilter = "category";
+                uncheckAllExcept(chipCategory);
+                filterItems(etSearch.getText().toString());
+            });
+        }
     }
 
     private void uncheckAllExcept(Chip selected) {
@@ -159,6 +189,8 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         chipNearby.setChecked(chipNearby == selected);
         chipPriceLow.setChecked(chipPriceLow == selected);
         chipDiscount.setChecked(chipDiscount == selected);
+        if (chipRating != null) chipRating.setChecked(chipRating == selected);
+        if (chipCategory != null) chipCategory.setChecked(chipCategory == selected);
     }
 
     private void loadAllFoodItems() {
@@ -199,41 +231,81 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         });
     }
 
+    private void scheduleFilter(String query) {
+        if (searchRunnable != null) {
+            searchDebounceHandler.removeCallbacks(searchRunnable);
+        }
+        searchRunnable = () -> filterItems(query);
+        searchDebounceHandler.postDelayed(searchRunnable, 220);
+    }
+
     private void filterItems(String query) {
         filteredItems.clear();
 
-        String searchQuery = query.toLowerCase().trim();
+        String searchQuery = query == null ? "" : query.toLowerCase().trim();
 
         for (FoodItem item : allFoodItems) {
-            boolean matchesSearch = searchQuery.isEmpty() ||
-                item.getFoodName().toLowerCase().contains(searchQuery) ||
-                item.getHotelName().toLowerCase().contains(searchQuery) ||
-                (item.getCategory() != null && item.getCategory().toLowerCase().contains(searchQuery));
+            String foodName = safeLower(item.getFoodName());
+            String hotelName = safeLower(item.getHotelName());
+            String category = safeLower(item.getCategory());
+            String description = safeLower(item.getDescription());
+
+            boolean matchesSearch = searchQuery.isEmpty()
+                    || foodName.contains(searchQuery)
+                    || hotelName.contains(searchQuery)
+                    || category.contains(searchQuery)
+                    || description.contains(searchQuery);
 
             if (matchesSearch) {
                 filteredItems.add(item);
             }
         }
 
-        // Apply sorting based on filter
         switch (currentFilter) {
             case "price_low":
-                Collections.sort(filteredItems, (a, b) ->
-                    Double.compare(a.getDiscountedPriceValue(), b.getDiscountedPriceValue()));
+                filteredItems.sort((a, b) ->
+                        Double.compare(a.getDiscountedPriceValue(), b.getDiscountedPriceValue()));
                 break;
             case "discount":
-                Collections.sort(filteredItems, (a, b) ->
-                    Integer.compare(b.getDiscountPercentValue(), a.getDiscountPercentValue()));
+                filteredItems.sort((a, b) ->
+                        Integer.compare(b.getDiscountPercentValue(), a.getDiscountPercentValue()));
                 break;
             case "nearby":
-                // Sort by distance (FoodItem must have distance set)
-                Collections.sort(filteredItems, (a, b) ->
-                    Double.compare(a.getDistance(), b.getDistance()));
+                if (currentLat != 0 && currentLng != 0) {
+                    filteredItems.sort((a, b) ->
+                            Double.compare(a.getDistance(), b.getDistance()));
+                }
+                break;
+            case "rating":
+                filteredItems.sort((a, b) ->
+                        Double.compare(getRatingForSort(b), getRatingForSort(a)));
+                break;
+            case "category":
+                filteredItems.sort((a, b) ->
+                        safeLower(a.getCategory()).compareTo(safeLower(b.getCategory())));
+                break;
+            default:
                 break;
         }
 
-        adapter.notifyDataSetChanged();
+        adapter.updateData(new ArrayList<>(filteredItems));
         updateUI();
+    }
+
+    private String safeLower(String value) {
+        return value == null ? "" : value.toLowerCase();
+    }
+
+    private double getRatingForSort(FoodItem item) {
+        // Fallback proxy keeps sorting stable even when explicit rating is absent in old data.
+        if (item == null) return 0.0;
+        double explicit = 0.0;
+        try {
+            explicit = item.getRatingValue();
+        } catch (Exception ignored) {
+        }
+        if (explicit > 0) return explicit;
+        return Math.min(5.0, 3.0 + (item.getDiscountPercentValue() / 100.0) * 2.0);
     }
 
     private void updateUI() {
@@ -260,5 +332,12 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         Toast.makeText(getContext(), foodItem.getFoodName() + " added to cart!",
             Toast.LENGTH_SHORT).show();
     }
-}
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (searchRunnable != null) {
+            searchDebounceHandler.removeCallbacks(searchRunnable);
+        }
+    }
+}

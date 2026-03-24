@@ -60,6 +60,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="../js/env-config.js"></script>
 <script src="../js/firebase-config.js"></script>
+<script src="../js/data-schema.js"></script>
 
 <script>
     auth.onAuthStateChanged((user) => {
@@ -72,25 +73,24 @@
             tbody.innerHTML = '';
 
             snapshot.forEach((child) => {
-                const order = child.val();
-                // Format date safely
-                const date = order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A';
+                const order = child.val() || {};
+                const date  = order.createdAt
+                    ? new Date(order.createdAt).toLocaleString() : 'N/A';
+                const status    = ReplateSchema.normalizeOrderStatus(order.orderStatus);
+                const bgClass   = ReplateSchema.statusBgClass(status);
+                const label     = ReplateSchema.statusLabel(status);
+                const amount    = ReplateSchema.formatAmount(order.totalAmount);
+                const displayId = ReplateSchema.shortOrderId(order, child.key);
 
-                const row = `
+                tbody.innerHTML += `
                     <tr>
-                        <td>${order.qrCode || child.key}</td>
+                        <td><code>#${displayId}</code></td>
                         <td>${date}</td>
-                        <td>${order.customerName}</td>
-                        <td>${order.hotelName}</td>
-                        <td>LKR ${order.totalAmount}</td>
-                        <td>
-                            <span class="badge bg-${order.orderStatus === 'completed' ? 'success' : 'warning'}">
-                                ${order.orderStatus}
-                            </span>
-                        </td>
-                    </tr>
-                `;
-                tbody.innerHTML += row;
+                        <td>${order.customerName || '—'}</td>
+                        <td>${order.hotelName || '—'}</td>
+                        <td>LKR ${amount}</td>
+                        <td><span class="badge ${bgClass}">${label}</span></td>
+                    </tr>`;
             });
 
             // Initialize DataTable

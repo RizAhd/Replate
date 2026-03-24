@@ -87,6 +87,11 @@ public class MainActivity extends AppCompatActivity {
             return false;
         });
 
+        String openTab = getIntent().getStringExtra("open_tab");
+        if ("map".equalsIgnoreCase(openTab) && bottomNavigation != null) {
+            bottomNavigation.setSelectedItemId(R.id.nav_map);
+        }
+
         navigationView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.drawer_home) {

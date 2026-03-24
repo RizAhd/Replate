@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
+    android:background="@color/background_cream"
     android:orientation="vertical">
 
     <!-- Search Header -->
@@ -12,27 +12,26 @@
         android:layout_height="wrap_content"
         android:background="@color/primary"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="@dimen/space_2">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Search"
-            android:textColor="@color/white"
-            android:textSize="24sp"
-            android:textStyle="bold" />
+            android:textAppearance="@style/TextAppearance.REPLATE.Headline"
+            android:textColor="@color/white" />
 
         <!-- Search Input -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            app:cardCornerRadius="12dp"
+            android:layout_marginTop="@dimen/space_2"
+            app:cardCornerRadius="@dimen/radius_md"
             app:cardElevation="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
+                android:layout_height="52dp"
                 android:background="@color/white"
                 android:gravity="center_vertical"
                 android:paddingHorizontal="16dp">
@@ -40,7 +39,8 @@
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:src="@drawable/ic_search" />
+                    android:src="@drawable/ic_search"
+                    app:tint="@color/text_secondary" />
 
                 <EditText
                     android:id="@+id/etSearch"
@@ -51,13 +51,17 @@
                     android:background="@android:color/transparent"
                     android:hint="Search for food, restaurants..."
                     android:inputType="text"
-                    android:maxLines="1" />
+                    android:maxLines="1"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_secondary"
+                    android:textSize="@dimen/text_sm" />
 
                 <ImageView
                     android:id="@+id/ivFilter"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:src="@drawable/ic_filter" />
+                    android:src="@drawable/ic_filter"
+                    app:tint="@color/green_primary" />
 
             </LinearLayout>
 
@@ -102,6 +106,20 @@
                 style="@style/Widget.Material3.Chip.Filter" />
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/chipRating"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Top Rated"
+                style="@style/Widget.Material3.Chip.Filter" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipCategory"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Category"
+                style="@style/Widget.Material3.Chip.Filter" />
+
+            <com.google.android.material.chip.Chip
                 android:id="@+id/chipDiscount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -120,8 +138,7 @@
         android:layout_marginHorizontal="16dp"
         android:layout_marginBottom="8dp"
         android:text="0 results found"
-        android:textColor="@color/text_secondary"
-        android:textSize="14sp" />
+        android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
     <!-- Search Results -->
     <androidx.recyclerview.widget.RecyclerView
@@ -152,8 +169,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="Start searching for food deals"
-            android:textColor="@color/text_secondary"
-            android:textSize="16sp" />
+            android:textAppearance="@style/TextAppearance.REPLATE.Subheading"
+            android:textColor="@color/text_primary" />
 
     </LinearLayout>
 
@@ -166,4 +183,3 @@
         android:visibility="gone" />
 
 </LinearLayout>
-

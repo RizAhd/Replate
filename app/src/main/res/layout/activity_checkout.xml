@@ -42,9 +42,8 @@
                         android:layout_height="wrap_content"
                         android:layout_centerInParent="true"
                         android:text="Checkout"
-                        android:textColor="@color/white"
-                        android:textSize="20sp"
-                        android:textStyle="bold" />
+                        android:textAppearance="@style/TextAppearance.REPLATE.Subheading"
+                        android:textColor="@color/white" />
                 </RelativeLayout>
 
                 <TextView
@@ -52,8 +51,8 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="18dp"
                     android:text="Reserve your rescued meal and confirm the best pickup window."
-                    android:textColor="#D9FFFFFF"
-                    android:textSize="14sp" />
+                    android:textAppearance="@style/TextAppearance.REPLATE.Body"
+                    android:textColor="@color/text_on_primary_muted" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -61,8 +60,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
-            app:cardCornerRadius="22dp"
-            app:cardElevation="3dp">
+            app:cardBackgroundColor="@color/surface_white"
+            app:cardCornerRadius="@dimen/radius_lg"
+            app:cardElevation="@dimen/elevation_card">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -74,17 +74,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Fulfilment"
-                    android:textColor="@color/text_primary"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="Choose whether you’ll pick up the order or request delivery."
-                    android:textColor="@color/text_secondary"
-                    android:textSize="13sp" />
+                    android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
                 <RadioGroup
                     android:id="@+id/rgOrderType"
@@ -102,7 +99,7 @@
                         android:background="@drawable/button_outline_primary"
                         android:button="@null"
                         android:gravity="center"
-                        android:minHeight="48dp"
+                        android:minHeight="@dimen/touch_target_min"
                         android:paddingHorizontal="12dp"
                         android:text="Pickup"
                         android:textColor="@color/green_primary"
@@ -120,7 +117,7 @@
                         android:background="@drawable/button_outline_primary"
                         android:button="@null"
                         android:gravity="center"
-                        android:minHeight="48dp"
+                        android:minHeight="@dimen/touch_target_min"
                         android:paddingHorizontal="12dp"
                         android:text="Delivery"
                         android:textColor="@color/green_primary"
@@ -136,8 +133,9 @@
             android:layout_marginHorizontal="16dp"
             android:layout_marginTop="14dp"
             android:visibility="gone"
-            app:cardCornerRadius="22dp"
-            app:cardElevation="3dp">
+            app:cardBackgroundColor="@color/surface_white"
+            app:cardCornerRadius="@dimen/radius_lg"
+            app:cardElevation="@dimen/elevation_card">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -149,12 +147,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Delivery address"
-                    android:textColor="@color/text_primary"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
                 <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    style="@style/Widget.REPLATE.TextInputLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp">
@@ -170,14 +166,14 @@
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnPickAddressFromMap"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="@dimen/button_height"
                     android:layout_gravity="end"
                     android:layout_marginTop="10dp"
                     android:text="Pick from Map"
                     android:textAllCaps="false"
                     android:textColor="@color/green_primary"
                     app:backgroundTint="@color/green_pale"
-                    app:cornerRadius="14dp"
+                    app:cornerRadius="@dimen/radius_md"
                     app:icon="@drawable/ic_location_pin" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
@@ -186,8 +182,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="16dp"
-            app:cardCornerRadius="22dp"
-            app:cardElevation="3dp">
+            app:cardBackgroundColor="@color/surface_white"
+            app:cardCornerRadius="@dimen/radius_lg"
+            app:cardElevation="@dimen/elevation_card">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -199,17 +196,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Order summary"
-                    android:textColor="@color/text_primary"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="Review the meals currently saved in your cart."
-                    android:textColor="@color/text_secondary"
-                    android:textSize="13sp" />
+                    android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
                 <LinearLayout
                     android:id="@+id/orderItemsContainer"
@@ -281,9 +275,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="Total"
-                        android:textColor="@color/text_primary"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
+                        android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
                     <TextView
                         android:id="@+id/tvTotal"
@@ -291,7 +283,7 @@
                         android:layout_height="wrap_content"
                         android:text="LKR 0.00"
                         android:textColor="@color/green_primary"
-                        android:textSize="22sp"
+                        android:textSize="@dimen/text_xl"
                         android:textStyle="bold" />
                 </LinearLayout>
             </LinearLayout>
@@ -303,8 +295,9 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
             android:layout_marginBottom="14dp"
-            app:cardCornerRadius="22dp"
-            app:cardElevation="3dp">
+            app:cardBackgroundColor="@color/surface_white"
+            app:cardCornerRadius="@dimen/radius_lg"
+            app:cardElevation="@dimen/elevation_card">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -316,20 +309,17 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Pickup time"
-                    android:textColor="@color/text_primary"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="Select the time you expect to arrive at the hotel."
-                    android:textColor="@color/text_secondary"
-                    android:textSize="13sp" />
+                    android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
                 <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    style="@style/Widget.REPLATE.TextInputLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp">
@@ -350,8 +340,9 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
             android:layout_marginBottom="14dp"
-            app:cardCornerRadius="22dp"
-            app:cardElevation="3dp">
+            app:cardBackgroundColor="@color/surface_white"
+            app:cardCornerRadius="@dimen/radius_lg"
+            app:cardElevation="@dimen/elevation_card">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -363,9 +354,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Payment method"
-                    android:textColor="@color/text_primary"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
                 <RadioGroup
                     android:id="@+id/rgPayment"
@@ -396,8 +385,9 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
             android:layout_marginBottom="16dp"
-            app:cardCornerRadius="22dp"
-            app:cardElevation="3dp">
+            app:cardBackgroundColor="@color/surface_white"
+            app:cardCornerRadius="@dimen/radius_lg"
+            app:cardElevation="@dimen/elevation_card">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -409,12 +399,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Your details"
-                    android:textColor="@color/text_primary"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
                 <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    style="@style/Widget.REPLATE.TextInputLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp">
@@ -427,7 +415,7 @@
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    style="@style/Widget.REPLATE.TextInputLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp">
@@ -445,13 +433,13 @@
         <Button
             android:id="@+id/btnPlaceOrder"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
+            android:layout_height="@dimen/button_height"
             android:layout_marginHorizontal="16dp"
             android:background="@drawable/button_primary"
             android:text="Place Order"
             android:textAllCaps="false"
             android:textColor="@color/white"
-            android:textSize="17sp"
+            android:textSize="@dimen/text_md"
             android:textStyle="bold" />
 
         <ProgressBar

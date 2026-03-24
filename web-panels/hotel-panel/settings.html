@@ -64,31 +64,40 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="../js/env-config.js"></script>
 <script src="../js/firebase-config.js"></script>
+<script src="../js/data-schema.js"></script>
 
 <script>
-    auth.onAuthStateChanged((user) => {
-        if (user) {
-            database.ref('hotels/' + user.uid).once('value', (snapshot) => {
-                const data = snapshot.val();
-                document.getElementById('hotelName').value = data.hotelName;
-                document.getElementById('ownerName').value = data.ownerName;
-                document.getElementById('phone').value = data.phone;
-            });
+    let currentHotelId = null;
+
+    auth.onAuthStateChanged(async (user) => {
+        if (!user) return;
+
+        const hotelRecord = await ReplateSchema.findHotelByUserId(database, user.uid);
+        if (!hotelRecord) {
+            alert('Hotel profile not found for this account.');
+            return;
         }
+
+        currentHotelId = hotelRecord.key;
+        const data = hotelRecord.value;
+
+        document.getElementById('hotelName').value = data.hotelName || '';
+        document.getElementById('ownerName').value = data.ownerName || '';
+        document.getElementById('phone').value = data.phone || '';
     });
 
-    document.getElementById('profileForm').addEventListener('submit', (e) => {
+    document.getElementById('profileForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const user = auth.currentUser;
-        if(user) {
-            database.ref('hotels/' + user.uid).update({
-                hotelName: document.getElementById('hotelName').value,
-                ownerName: document.getElementById('ownerName').value,
-                phone: document.getElementById('phone').value
-            }).then(() => alert("Profile Updated!"));
-        }
+        if (!currentHotelId) return;
+
+        await database.ref('hotels/' + currentHotelId).update({
+            hotelName: document.getElementById('hotelName').value,
+            ownerName: document.getElementById('ownerName').value,
+            phone: document.getElementById('phone').value
+        });
+
+        alert('Profile Updated!');
     });
 </script>
 </body>
 </html>
-
