@@ -32,47 +32,50 @@
 
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2">Dashboard</h1>
+                <div>
+                    <h1 class="panel-title">Dashboard</h1>
+                    <p class="panel-subtitle mb-0">Track orders, active listings, and revenue in real time.</p>
+                </div>
                 <div class="status-badge badge-approved" id="approvalStatus">Approved ✅</div>
             </div>
 
             <!-- Stats Cards -->
-            <div class="row mb-4">
+            <div class="row mb-4 g-3">
                 <div class="col-md-3">
-                    <div class="card p-3">
-                        <h6 class="text-muted">Total Revenue</h6>
+                    <div class="card stat-card">
+                        <h6>Total Revenue</h6>
                         <h3 id="statRevenue">LKR 0</h3>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card p-3">
-                        <h6 class="text-muted">Active Items</h6>
+                    <div class="card stat-card">
+                        <h6>Active Items</h6>
                         <h3 id="statActive">0</h3>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card p-3">
-                        <h6 class="text-muted">Pending Orders</h6>
+                    <div class="card stat-card">
+                        <h6>Pending Orders</h6>
                         <h3 id="statPending" class="text-warning">0</h3>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card p-3">
-                        <h6 class="text-muted">Total Orders</h6>
+                    <div class="card stat-card">
+                        <h6>Total Orders</h6>
                         <h3 id="statTotal">0</h3>
                     </div>
                 </div>
             </div>
 
             <!-- Recent Orders -->
-            <div class="card">
+            <div class="card data-panel">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span>Recent Orders</span>
                     <a href="orders.html" class="btn btn-sm btn-outline-primary">View All</a>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-hover">
+                        <table class="table table-hover align-middle">
                             <thead>
                                 <tr>
                                     <th>Order ID</th>
@@ -156,14 +159,14 @@
                 return;
             }
 
-            recentOrders.slice(0, 5).forEach(order => {
+            const rows = recentOrders.slice(0, 5).map(order => {
                 const items = ReplateSchema.extractItemNames(order);
                 const status = ReplateSchema.normalizeOrderStatus(order.orderStatus);
                 const bgClass = ReplateSchema.statusBgClass(status);
                 const label = ReplateSchema.statusLabel(status);
                 const amount = ReplateSchema.formatAmount(order.totalAmount || order.totalPrice);
                 const dispId = ReplateSchema.shortOrderId(order, order.key);
-                tableBody.innerHTML += `
+                return `
                     <tr>
                         <td><code>#${dispId}</code></td>
                         <td>${order.customerName || '—'}</td>
@@ -172,6 +175,7 @@
                         <td><span class="badge ${bgClass}">${label}</span></td>
                     </tr>`;
             });
+            tableBody.innerHTML = rows.join('');
         });
 
         database.ref('foodItems').on('value', (snapshot) => {

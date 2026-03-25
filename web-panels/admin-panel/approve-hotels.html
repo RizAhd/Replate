@@ -16,7 +16,10 @@
         <nav id="appShellSidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse"></nav>
 
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
-            <h2 class="mb-4">Manage Hotel Registrations</h2>
+            <div class="mb-4">
+                <h2 class="panel-title mb-1">Manage Hotel Registrations</h2>
+                <p class="panel-subtitle mb-0">Approve trusted partners and keep listing quality high.</p>
+            </div>
 
             <ul class="nav nav-tabs mb-4">
                 <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#pending">Pending</a></li>
@@ -76,16 +79,24 @@
             approvedDiv.innerHTML = '';
             rejectedDiv.innerHTML = '';
 
+            const pendingCards = [];
+            const approvedCards = [];
+            const rejectedCards = [];
+
             snapshot.forEach((child) => {
                 const hotel = child.val() || {};
                 const key = child.key;
                 const card = createHotelCard(hotel, key);
                 const status = (hotel.status || '').toLowerCase();
 
-                if (status === 'pending') pendingDiv.innerHTML += card;
-                else if (status === 'approved') approvedDiv.innerHTML += card;
-                else if (status === 'rejected') rejectedDiv.innerHTML += card;
+                if (status === 'pending') pendingCards.push(card);
+                else if (status === 'approved') approvedCards.push(card);
+                else if (status === 'rejected') rejectedCards.push(card);
             });
+
+            pendingDiv.innerHTML = pendingCards.join('') || '<p class="text-muted">No pending hotels.</p>';
+            approvedDiv.innerHTML = approvedCards.join('') || '<p class="text-muted">No approved hotels yet.</p>';
+            rejectedDiv.innerHTML = rejectedCards.join('') || '<p class="text-muted">No rejected hotels.</p>';
         });
     }
 
@@ -99,16 +110,20 @@
         }
 
         const licenseUrl = hotel.licenseUrl || hotel.license || '#';
+        const gps = (hotel.latitude && hotel.longitude)
+            ? `<p class="small mb-2"><i class="fas fa-location-arrow"></i> ${hotel.latitude}, ${hotel.longitude}</p>`
+            : '';
 
         return `
-            <div class="col-md-4 mb-4">
-                <div class="card h-100">
+            <div class="col-md-6 col-xl-4 mb-4">
+                <div class="card h-100 data-panel">
                     <div class="card-body">
-                        <h5>${hotel.hotelName || 'Hotel'}</h5>
+                        <h5 class="mb-1">${hotel.hotelName || 'Hotel'}</h5>
                         <p class="small text-muted mb-2">Owner: ${hotel.ownerName || '-'}</p>
                         <p class="small mb-1"><i class="fas fa-envelope"></i> ${hotel.email || '-'}</p>
                         <p class="small mb-1"><i class="fas fa-phone"></i> ${hotel.phone || '-'}</p>
-                        <p class="small mb-3"><i class="fas fa-map-marker-alt"></i> ${hotel.address || '-'}</p>
+                        <p class="small mb-2"><i class="fas fa-map-marker-alt"></i> ${hotel.address || '-'}</p>
+                        ${gps}
                         <a href="${licenseUrl}" target="_blank" class="btn btn-outline-dark btn-sm w-100 mb-3">📄 View License</a>
                         ${buttons}
                     </div>

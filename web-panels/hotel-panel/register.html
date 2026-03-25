@@ -39,11 +39,21 @@
         <div class="row">
             <div class="col-md-6 mb-3">
                 <label class="form-label">Password</label>
-                <input type="password" class="form-control" id="password" required>
+                <div class="input-with-icon">
+                    <input type="password" class="form-control" id="password" required>
+                    <button type="button" class="password-toggle" id="toggleRegPassword" aria-label="Show password">
+                        <i class="fas fa-eye" id="toggleRegPasswordIcon"></i>
+                    </button>
+                </div>
             </div>
             <div class="col-md-6 mb-3">
                 <label class="form-label">Confirm Password</label>
-                <input type="password" class="form-control" id="confirmPassword" required>
+                <div class="input-with-icon">
+                    <input type="password" class="form-control" id="confirmPassword" required>
+                    <button type="button" class="password-toggle" id="toggleRegConfirmPassword" aria-label="Show password">
+                        <i class="fas fa-eye" id="toggleRegConfirmPasswordIcon"></i>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -84,8 +94,12 @@
 <script src="../js/env-config.js"></script>
 <script src="../js/firebase-config.js"></script>
 <script src="../js/data-schema.js"></script>
+<script src="../js/ui-shell.js"></script>
 
 <script>
+    ReplateUI.attachPasswordToggle('password', 'toggleRegPassword', 'toggleRegPasswordIcon');
+    ReplateUI.attachPasswordToggle('confirmPassword', 'toggleRegConfirmPassword', 'toggleRegConfirmPasswordIcon');
+
     document.getElementById('registerForm').addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -95,9 +109,7 @@
 
         if (password !== confirm) return alert('Passwords do not match');
 
-        const submitBtn = document.getElementById('submitBtn');
-        submitBtn.disabled = true;
-        submitBtn.innerText = 'Registering...';
+        ReplateUI.setButtonLoading('submitBtn', true, 'Creating account...');
 
         try {
             const userCredential = await auth.createUserWithEmailAndPassword(email, password);
@@ -145,8 +157,8 @@
         } catch (error) {
             console.error(error);
             alert(error.message);
-            submitBtn.disabled = false;
-            submitBtn.innerText = 'REGISTER HOTEL';
+        } finally {
+            ReplateUI.setButtonLoading('submitBtn', false);
         }
     });
 </script>

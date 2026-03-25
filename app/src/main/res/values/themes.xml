@@ -58,7 +58,8 @@
         <item name="android:windowBackground">@color/md_theme_background</item>
 
         <!-- Typography system -->
-        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:fontFamily">@font/poppins_regular</item>
+        <item name="fontFamily">@font/poppins_regular</item>
         <item name="textAppearanceTitleLarge">@style/TextAppearance.REPLATE.Headline</item>
         <item name="textAppearanceTitleMedium">@style/TextAppearance.REPLATE.Subheading</item>
         <item name="textAppearanceBodyMedium">@style/TextAppearance.REPLATE.Body</item>
@@ -68,6 +69,7 @@
         <item name="materialCardViewStyle">@style/Widget.REPLATE.Card</item>
         <item name="materialButtonStyle">@style/Widget.REPLATE.Button.Primary</item>
         <item name="textInputStyle">@style/Widget.REPLATE.TextInputLayout</item>
+        <item name="editTextStyle">@style/Widget.REPLATE.TextInputEditText</item>
     </style>
 
     <!-- Splash Screen Theme — Bold Leaf Green -->
@@ -87,6 +89,6 @@
         <item name="colorSecondary">@color/orange_accent</item>
         <item name="android:colorBackground">@color/background_cream</item>
         <item name="colorSurface">@color/surface_white</item>
-        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:fontFamily">@font/poppins_regular</item>
     </style>
 </resources>
