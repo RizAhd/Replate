@@ -54,6 +54,40 @@ const ReplateUI = (() => {
         setTimeout(() => div.remove(), 5000);
     }
 
-    return { renderSidebar, showAlert };
-})();
+    function attachPasswordToggle(inputId, toggleBtnId, iconId) {
+        const input = document.getElementById(inputId);
+        const toggleBtn = document.getElementById(toggleBtnId);
+        const icon = document.getElementById(iconId);
+        if (!input || !toggleBtn) return;
 
+        toggleBtn.addEventListener('click', () => {
+            const show = input.type === 'password';
+            input.type = show ? 'text' : 'password';
+            toggleBtn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+            if (icon) {
+                icon.classList.toggle('fa-eye', !show);
+                icon.classList.toggle('fa-eye-slash', show);
+            }
+        });
+    }
+
+    function setButtonLoading(buttonId, isLoading, loadingText = 'Please wait...') {
+        const btn = document.getElementById(buttonId);
+        if (!btn) return;
+        if (isLoading) {
+            if (!btn.dataset.originalText) btn.dataset.originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>${loadingText}`;
+        } else {
+            btn.disabled = false;
+            if (btn.dataset.originalText) btn.innerHTML = btn.dataset.originalText;
+        }
+    }
+
+    return {
+        renderSidebar,
+        showAlert,
+        attachPasswordToggle,
+        setButtonLoading
+    };
+})();

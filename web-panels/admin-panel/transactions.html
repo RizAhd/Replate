@@ -14,39 +14,33 @@
 
 <div class="container-fluid">
     <div class="row">
-        <!-- Admin Sidebar (Same as approve-hotels) -->
-        <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse bg-dark text-white">
-            <div class="position-sticky pt-3">
-                <a class="navbar-brand d-block px-3 py-3 mb-3 text-center text-white" href="#">👑 ADMIN</a>
-                <ul class="nav flex-column">
-                    <li class="nav-item"><a class="nav-link text-white" href="approve-hotels.html">🏨 Approve Hotels</a></li>
-                    <li class="nav-item"><a class="nav-link text-white active" href="transactions.html">💰 Transactions</a></li>
-                    <li class="nav-item"><a class="nav-link text-white" href="categories.html">🏷️ Categories</a></li>
-                    <li class="nav-item"><a class="nav-link text-white" href="analytics.html">📊 Analytics</a></li>
-                    <li class="nav-item"><a class="nav-link text-white" href="#" onclick="logout()">🚪 Logout</a></li>
-                </ul>
-            </div>
-        </nav>
+        <!-- Admin Sidebar -->
+        <nav id="appShellSidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse"></nav>
 
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
-            <h2 class="mb-4">All Transactions</h2>
+            <div class="mb-4">
+                <h2 class="panel-title mb-1">All Transactions</h2>
+                <p class="panel-subtitle mb-0">Review payments, order status, and activity across all hotels.</p>
+            </div>
 
-            <div class="card p-3">
-                <table id="transactionsTable" class="table table-striped" style="width:100%">
-                    <thead>
-                        <tr>
-                            <th>Order ID</th>
-                            <th>Date</th>
-                            <th>Customer</th>
-                            <th>Hotel</th>
-                            <th>Amount</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody">
-                        <!-- Loaded via JS -->
-                    </tbody>
-                </table>
+            <div class="card data-panel p-3">
+                <div class="table-responsive">
+                    <table id="transactionsTable" class="table table-striped align-middle" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Date</th>
+                                <th>Customer</th>
+                                <th>Hotel</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Loaded via JS -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </main>
     </div>
@@ -61,17 +55,31 @@
 <script src="../js/env-config.js"></script>
 <script src="../js/firebase-config.js"></script>
 <script src="../js/data-schema.js"></script>
+<script src="../js/ui-shell.js"></script>
 
 <script>
+    const adminShellLinks = [
+        { key: 'approve-hotels', href: 'approve-hotels.html', icon: 'fas fa-hotel', label: 'Approve Hotels' },
+        { key: 'transactions', href: 'transactions.html', icon: 'fas fa-money-bill-wave', label: 'Transactions' },
+        { key: 'categories', href: 'categories.html', icon: 'fas fa-tags', label: 'Categories' },
+        { key: 'analytics', href: 'analytics.html', icon: 'fas fa-chart-line', label: 'Analytics' },
+        { key: 'logout', href: '#', icon: 'fas fa-sign-out-alt', label: 'Logout', logout: true }
+    ];
+
     auth.onAuthStateChanged((user) => {
+        ReplateUI.renderSidebar('appShellSidebar', {
+            title: '👑 ADMIN',
+            activeKey: 'transactions',
+            links: adminShellLinks,
+        });
         if (user) loadTransactions();
     });
 
     function loadTransactions() {
         database.ref('orders').on('value', (snapshot) => {
             const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = '';
 
+            const rows = [];
             snapshot.forEach((child) => {
                 const order = child.val() || {};
                 const date  = order.createdAt
@@ -82,7 +90,7 @@
                 const amount    = ReplateSchema.formatAmount(order.totalAmount);
                 const displayId = ReplateSchema.shortOrderId(order, child.key);
 
-                tbody.innerHTML += `
+                rows.push(`
                     <tr>
                         <td><code>#${displayId}</code></td>
                         <td>${date}</td>
@@ -90,17 +98,21 @@
                         <td>${order.hotelName || '—'}</td>
                         <td>LKR ${amount}</td>
                         <td><span class="badge ${bgClass}">${label}</span></td>
-                    </tr>`;
+                    </tr>`);
             });
 
-            // Initialize DataTable
+            tbody.innerHTML = rows.join('') || '<tr><td colspan="6" class="text-center text-muted py-4">No transactions yet</td></tr>';
+
             if ($.fn.DataTable.isDataTable('#transactionsTable')) {
                 $('#transactionsTable').DataTable().destroy();
             }
-            $('#transactionsTable').DataTable();
+            $('#transactionsTable').DataTable({
+                pageLength: 25,
+                order: [[1, 'desc']],
+                autoWidth: false
+            });
         });
     }
 </script>
 </body>
 </html>
-
