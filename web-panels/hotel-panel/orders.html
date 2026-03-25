@@ -56,6 +56,7 @@
                                         <th>Customer</th>
                                         <th>Items</th>
                                         <th>Total</th>
+                                        <th>Review</th>
                                         <th>Status</th>
                                         <th>Action</th>
                                     </tr>
@@ -115,6 +116,7 @@
                 <p><strong>Items:</strong></p>
                 <ul id="modalItems"></ul>
                 <p class="text-end fw-bold">Total: <span id="modalTotal"></span></p>
+                <p><strong>Review:</strong> <span id="modalReview"></span></p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -180,7 +182,7 @@
 
     function loadOrders() {
         const tableBody = document.getElementById('ordersTable');
-        tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Loading orders...</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Loading orders...</td></tr>';
 
         database.ref('orders').on('value', (snapshot) => {
             tableBody.innerHTML = '';
@@ -194,13 +196,13 @@
             });
 
             if (rows.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No orders yet 🍽️</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">No orders yet 🍽️</td></tr>';
                 return;
             }
 
             rows.sort((a, b) => (b.order.createdAt || 0) - (a.order.createdAt || 0));
 
-            rows.forEach(({ key, order }) => {
+            const htmlRows = rows.map(({ key, order }) => {
                 const itemNames  = ReplateSchema.extractItemNames(order);
                 const status     = ReplateSchema.normalizeOrderStatus(order.orderStatus);
                 const badgeClass = ReplateSchema.statusBadgeClass(status);
@@ -208,14 +210,17 @@
                 const amount     = ReplateSchema.formatAmount(order.totalAmount || order.totalPrice);
                 const displayId  = ReplateSchema.shortOrderId(order, key);
                 const isNew      = status === 'pending_pickup';
+                const review = Number(order.reviewRating || 0);
+                const reviewText = review > 0 ? `⭐ ${review.toFixed(1)}` : '<span class="text-muted">No review</span>';
 
-                tableBody.innerHTML += `
+                return `
                     <tr class="${isNew ? 'order-new' : ''}">
                         <td><code>#${displayId}</code></td>
                         <td>${order.customerName || 'Customer'}<br>
                             <small class="text-muted">${order.customerPhone || ''}</small></td>
                         <td>${itemNames}</td>
                         <td>LKR ${amount}</td>
+                        <td>${reviewText}</td>
                         <td><span class="${badgeClass}">${label}</span></td>
                         <td>
                             <button class="btn btn-sm btn-outline-primary" onclick="viewOrderByKey('${key}')">
@@ -226,7 +231,9 @@
                             </button>` : ''}
                         </td>
                     </tr>`;
-            });
+            }).join('');
+
+            tableBody.innerHTML = htmlRows;
         });
     }
 
@@ -357,11 +364,15 @@
             'LKR ' + ReplateSchema.formatAmount(order.totalAmount || order.totalPrice);
 
         const list = document.getElementById('modalItems');
-        list.innerHTML = '';
-        ReplateSchema.extractItemsArray(order).forEach(item => {
-            list.innerHTML += `<li>${item.foodName || 'Item'} x ${item.quantity || 1}
-                &nbsp;<small class="text-muted">LKR ${ReplateSchema.formatAmount(item.price)}</small></li>`;
-        });
+        const itemsHtml = ReplateSchema.extractItemsArray(order).map(item =>
+            `<li>${item.foodName || 'Item'} x ${item.quantity || 1}
+                &nbsp;<small class="text-muted">LKR ${ReplateSchema.formatAmount(item.price)}</small></li>`
+        ).join('');
+        list.innerHTML = itemsHtml;
+
+        document.getElementById('modalReview').innerText = order.reviewRating
+            ? `⭐ ${Number(order.reviewRating).toFixed(1)}${order.reviewComment ? ' - ' + order.reviewComment : ''}`
+            : 'No review yet';
 
         verificationModalInstance.show();
     }

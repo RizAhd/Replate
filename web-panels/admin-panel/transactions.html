@@ -33,6 +33,7 @@
                                 <th>Customer</th>
                                 <th>Hotel</th>
                                 <th>Amount</th>
+                                <th>Review</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
@@ -97,11 +98,12 @@
                         <td>${order.customerName || '—'}</td>
                         <td>${order.hotelName || '—'}</td>
                         <td>LKR ${amount}</td>
+                        <td>${order.reviewRating ? `⭐ ${Number(order.reviewRating).toFixed(1)}` : '<span class="text-muted">—</span>'}</td>
                         <td><span class="badge ${bgClass}">${label}</span></td>
                     </tr>`);
             });
 
-            tbody.innerHTML = rows.join('') || '<tr><td colspan="6" class="text-center text-muted py-4">No transactions yet</td></tr>';
+            tbody.innerHTML = rows.join('') || '<tr><td colspan="7" class="text-center text-muted py-4">No transactions yet</td></tr>';
 
             if ($.fn.DataTable.isDataTable('#transactionsTable')) {
                 $('#transactionsTable').DataTable().destroy();

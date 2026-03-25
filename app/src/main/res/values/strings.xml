@@ -1,6 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- App -->
     <string name="app_name">REPLATE</string>
     <string name="drawer_welcome_back">Welcome back</string>
     <string name="drawer_tagline">Because Every Meal Matters</string>
     <string name="drawer_profile_cd">Drawer profile</string>
+
+    <!-- Common accessibility -->
+    <string name="cd_back">Go back</string>
+    <string name="cd_open_menu">Open menu</string>
+    <string name="cd_open_notifications">Open notifications</string>
+    <string name="cd_location_icon">Location icon</string>
+    <string name="cd_food_image">Food image</string>
+    <string name="cd_add_to_cart">Add to cart</string>
+    <string name="cd_remove_item">Remove item</string>
+    <string name="cd_cart">Cart icon</string>
+    <string name="cd_orders">Orders icon</string>
+    <string name="cd_favorites">Favorites icon</string>
+    <string name="cd_settings">Settings icon</string>
+    <string name="cd_help">Help icon</string>
+    <string name="cd_arrow_right">Open</string>
+
+    <!-- Home -->
+    <string name="home_explore_nearby">Explore nearby</string>
+    <string name="default_location">Colombo 3</string>
+    <string name="home_hero_title">Rescue fresh meals before they go to waste</string>
+    <string name="home_hero_subtitle">Discover nearby hot deals, lower prices, and quick pickup windows in one place.</string>
+    <string name="home_search_hint">Search food near you…</string>
+    <string name="home_categories_title">Categories</string>
+    <string name="home_categories_subtitle">Browse rescue meals by what you feel like eating</string>
+    <string name="home_hot_deals_title">Hot deals</string>
+    <string name="home_lowest_prices">Lowest prices</string>
+    <string name="home_hot_deals_subtitle">Hand-picked discounts sorted by the best value</string>
+    <string name="home_nearby_title">Deals near you</string>
+    <string name="home_nearby_subtitle">Fresh pickups sorted by distance and availability</string>
+
+    <!-- Cart -->
+    <string name="cart_title">Your cart</string>
+    <string name="cart_summary">Review your rescue meals before checkout</string>
+    <string name="cart_clear_all">Clear all</string>
+    <string name="cart_overview_title">Cart overview</string>
+    <string name="cart_overview_subtitle">Everything you’re about to rescue, ready for pickup</string>
+    <string name="cart_items_label">Items</string>
+    <string name="cart_total_label">Total</string>
+    <string name="cart_zero">0</string>
+    <string name="cart_empty_title">Your cart is feeling empty</string>
+    <string name="cart_empty_subtitle">Add a few discounted dishes and come back when you\'re ready to reserve them.</string>
+    <string name="cart_browse_deals">Browse nearby deals</string>
+    <string name="cart_ready_for_pickup">Ready for pickup</string>
+    <string name="cart_items_count_placeholder">0 items</string>
+    <string name="cart_you_save">You save</string>
+    <string name="cart_proceed_checkout">Proceed to checkout</string>
+    <string name="cart_pickup_friendly">Pickup friendly</string>
+    <string name="cart_pickup_friendly_desc">Your saved meals stay in the local cart, even if your internet is unstable.</string>
+    <string name="cart_pickup_friendly_hint">Open your detailed cart to review quantities, remove items, and continue to checkout.</string>
+    <string name="cart_open_detailed">Open detailed cart</string>
+    <string name="cart_minus">−</string>
+    <string name="cart_plus">+</string>
+    <string name="cart_qty_default">1</string>
+    <string name="cart_subtotal_label">Subtotal</string>
+
+    <!-- Price placeholders -->
+    <string name="price_zero_lkr">LKR 0.00</string>
+    <string name="price_original_placeholder">LKR 800.00</string>
+    <string name="price_discounted_placeholder">LKR 500.00</string>
+
+    <!-- Food list placeholders -->
+    <string name="food_discount_placeholder">-30%</string>
+    <string name="food_distance_placeholder">1.2 km</string>
+    <string name="food_name_placeholder">Chicken Biryani</string>
+    <string name="food_hotel_placeholder">Hotel Paradise</string>
+    <string name="food_pickup_placeholder">Pickup: 6:00 PM - 8:00 PM</string>
+
+    <!-- Profile -->
+    <string name="profile_user_name_placeholder">User Name</string>
+    <string name="profile_user_email_placeholder">user@email.com</string>
+    <string name="profile_edit_profile">Edit profile</string>
+    <string name="profile_orders">Orders</string>
+    <string name="profile_savings_zero">LKR 0</string>
+    <string name="profile_saved">Saved</string>
+    <string name="profile_account">Account</string>
+    <string name="profile_account_subtitle">Everything you need in one place</string>
+    <string name="profile_my_orders">My Orders</string>
+    <string name="profile_favorites">Favorites</string>
+    <string name="profile_notifications">Notifications</string>
+    <string name="profile_settings">Settings</string>
+    <string name="profile_help_support">Help &amp; Support</string>
+    <string name="profile_logout">Logout</string>
+    <string name="profile_version">REPLATE v1.0.0</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_change_photo">Change photo</string>
+    <string name="settings_profile_info">Profile information</string>
+    <string name="settings_hint_full_name">Full Name</string>
+    <string name="settings_hint_phone">Phone Number</string>
+    <string name="settings_hint_email">Email</string>
+    <string name="settings_hint_pickup_address">Pickup Address</string>
+    <string name="settings_pick_from_map">Pick from map</string>
+    <string name="settings_save_changes">Save changes</string>
+    <string name="settings_preferences">Preferences</string>
+    <string name="settings_push_notifications">Push Notifications</string>
+    <string name="settings_location_services">Location Services</string>
+    <string name="settings_version">Version 1.0.0</string>
 </resources>

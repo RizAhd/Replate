@@ -196,12 +196,25 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             return;
         }
 
+        if (!isAdded()) {
+            return;
+        }
+
         loadingOverlay.setVisibility(View.VISIBLE);
         new Thread(() -> {
+            if (!isAdded()) {
+                return;
+            }
             Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
             try {
                 List<Address> result = geocoder.getFromLocationName(locationName, 1);
+                if (!isAdded()) {
+                    return;
+                }
                 requireActivity().runOnUiThread(() -> {
+                    if (!isAdded()) {
+                        return;
+                    }
                     loadingOverlay.setVisibility(View.GONE);
                     if (result != null && !result.isEmpty()) {
                         Address address = result.get(0);
@@ -217,7 +230,13 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                     }
                 });
             } catch (IOException ioException) {
+                if (!isAdded()) {
+                    return;
+                }
                 requireActivity().runOnUiThread(() -> {
+                    if (!isAdded()) {
+                        return;
+                    }
                     loadingOverlay.setVisibility(View.GONE);
                     Toast.makeText(getContext(), "Search failed. Check internet.", Toast.LENGTH_SHORT).show();
                 });

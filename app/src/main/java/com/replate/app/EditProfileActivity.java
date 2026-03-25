@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
@@ -28,7 +30,7 @@ public class EditProfileActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
 
-    private static final int LOCATION_PICKER_REQUEST = 1001;
+    private ActivityResultLauncher<Intent> locationPickerLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +39,15 @@ public class EditProfileActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference();
+
+        locationPickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        handlePickedLocation(result.getData());
+                    }
+                }
+        );
 
         initViews();
         loadUserData();
@@ -85,7 +96,7 @@ public class EditProfileActivity extends AppCompatActivity {
         if (btnPickLocation != null) {
             btnPickLocation.setOnClickListener(v -> {
                 Intent intent = new Intent(EditProfileActivity.this, LocationPickerActivity.class);
-                startActivityForResult(intent, LOCATION_PICKER_REQUEST);
+                locationPickerLauncher.launch(intent);
             });
         }
 
@@ -120,27 +131,22 @@ public class EditProfileActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == LOCATION_PICKER_REQUEST && resultCode == RESULT_OK && data != null) {
-            double lat = data.getDoubleExtra("latitude", 0.0);
-            double lng = data.getDoubleExtra("longitude", 0.0);
-            String address = data.getStringExtra("address");
+    private void handlePickedLocation(Intent data) {
+        double lat = data.getDoubleExtra("latitude", 0.0);
+        double lng = data.getDoubleExtra("longitude", 0.0);
+        String address = data.getStringExtra("address");
 
-            // Update database with location
-            Map<String, Object> locUpdates = new HashMap<>();
-            locUpdates.put("latitude", lat);
-            locUpdates.put("longitude", lng);
-            if (address != null && !address.isEmpty()) {
-                locUpdates.put("address", address);
-                etAddress.setText(address);
-            }
+        Map<String, Object> locUpdates = new HashMap<>();
+        locUpdates.put("latitude", lat);
+        locUpdates.put("longitude", lng);
+        if (address != null && !address.isEmpty()) {
+            locUpdates.put("address", address);
+            etAddress.setText(address);
+        }
 
-            FirebaseUser user = mAuth.getCurrentUser();
-            if (user != null) {
-                mDatabase.child("users").child(user.getUid()).updateChildren(locUpdates);
-            }
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null) {
+            mDatabase.child("users").child(user.getUid()).updateChildren(locUpdates);
         }
     }
 }

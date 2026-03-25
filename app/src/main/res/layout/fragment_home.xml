@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
-        android:paddingBottom="88dp">
+        android:paddingBottom="@dimen/space_4">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -20,16 +20,16 @@
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="16dp"
+                android:layout_margin="@dimen/space_2"
                 app:cardBackgroundColor="@color/green_primary"
-                app:cardCornerRadius="28dp"
+                app:cardCornerRadius="@dimen/radius_hero"
                 app:cardElevation="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="20dp">
+                    android:padding="@dimen/space_2_5">
 
                     <RelativeLayout
                         android:layout_width="match_parent"
@@ -48,6 +48,7 @@
                                 android:layout_width="24dp"
                                 android:layout_height="24dp"
                                 android:layout_gravity="center"
+                                android:contentDescription="@string/cd_open_menu"
                                 android:src="@android:drawable/ic_menu_sort_by_size"
                                 app:tint="@color/white" />
                         </com.google.android.material.card.MaterialCardView>
@@ -62,7 +63,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Explore nearby"
+                                android:text="@string/home_explore_nearby"
                                 android:textColor="@color/white_70"
                                 android:textSize="@dimen/text_xs" />
 
@@ -77,6 +78,7 @@
                                     android:id="@+id/ivLocation"
                                     android:layout_width="18dp"
                                     android:layout_height="18dp"
+                                    android:contentDescription="@string/cd_location_icon"
                                     android:src="@drawable/ic_location_pin"
                                     app:tint="@color/leaf_pale"/>
 
@@ -85,7 +87,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginStart="6dp"
-                                    android:text="Colombo 3"
+                                    android:text="@string/default_location"
                                     android:textAppearance="@style/TextAppearance.REPLATE.Label"
                                     android:textColor="@color/white"/>
                             </LinearLayout>
@@ -105,6 +107,7 @@
                                 android:layout_width="24dp"
                                 android:layout_height="24dp"
                                 android:layout_gravity="center"
+                                android:contentDescription="@string/cd_open_notifications"
                                 android:src="@drawable/ic_notification"
                                 app:tint="@color/white" />
                         </com.google.android.material.card.MaterialCardView>
@@ -113,8 +116,8 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="22dp"
-                        android:text="Rescue fresh meals before they go to waste"
+                        android:layout_marginTop="@dimen/space_3"
+                        android:text="@string/home_hero_title"
                         android:textAppearance="@style/TextAppearance.REPLATE.Headline"
                         android:textColor="@color/white"
                         android:textSize="@dimen/text_display" />
@@ -122,8 +125,8 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="Discover nearby hot deals, lower prices, and quick pickup windows in one place."
+                        android:layout_marginTop="@dimen/space_1"
+                        android:text="@string/home_hero_subtitle"
                         android:textColor="@color/text_on_primary_muted"
                         android:textAppearance="@style/TextAppearance.REPLATE.Body"
                         android:lineSpacingExtra="3dp" />
@@ -131,9 +134,9 @@
                     <com.google.android.material.card.MaterialCardView
                         android:layout_width="match_parent"
                         android:layout_height="56dp"
-                        android:layout_marginTop="20dp"
+                        android:layout_marginTop="@dimen/space_2_5"
                         app:cardBackgroundColor="@color/surface_white"
-                        app:cardCornerRadius="18dp"
+                        app:cardCornerRadius="@dimen/radius_lg"
                         app:cardElevation="0dp">
 
                         <androidx.appcompat.widget.SearchView
@@ -142,7 +145,7 @@
                             android:layout_height="match_parent"
                             android:paddingHorizontal="4dp"
                             app:iconifiedByDefault="false"
-                            app:queryHint="Search food near you..."
+                            app:queryHint="@string/home_search_hint"
                             app:queryBackground="@android:color/transparent"/>
                     </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>
@@ -170,16 +173,16 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="16dp"
-                    android:text="Categories"
+                    android:layout_marginHorizontal="@dimen/space_2"
+                    android:text="@string/home_categories_title"
                     android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginTop="4dp"
-                    android:text="Browse rescue meals by what you feel like eating"
+                    android:layout_marginStart="@dimen/space_2"
+                    android:layout_marginTop="@dimen/space_0_5"
+                    android:text="@string/home_categories_subtitle"
                     android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
                 <androidx.recyclerview.widget.RecyclerView
@@ -202,14 +205,14 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
-                    android:layout_marginHorizontal="16dp"
+                    android:layout_marginHorizontal="@dimen/space_2"
                     android:orientation="horizontal">
 
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Hot deals"
+                        android:text="@string/home_hot_deals_title"
                         android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
                     <TextView
@@ -218,7 +221,7 @@
                         android:background="@drawable/badge_discount"
                         android:paddingHorizontal="10dp"
                         android:paddingVertical="6dp"
-                        android:text="Lowest prices"
+                        android:text="@string/home_lowest_prices"
                         android:textColor="@color/white"
                         android:textSize="12sp"
                         android:textStyle="bold" />
@@ -227,9 +230,9 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginTop="4dp"
-                    android:text="Hand-picked discounts sorted by the best value"
+                    android:layout_marginStart="@dimen/space_2"
+                    android:layout_marginTop="@dimen/space_0_5"
+                    android:text="@string/home_hot_deals_subtitle"
                     android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
                 <androidx.recyclerview.widget.RecyclerView
@@ -252,16 +255,16 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="16dp"
-                    android:text="Deals near you"
+                    android:layout_marginHorizontal="@dimen/space_2"
+                    android:text="@string/home_nearby_title"
                     android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginTop="4dp"
-                    android:text="Fresh pickups sorted by distance and availability"
+                    android:layout_marginStart="@dimen/space_2"
+                    android:layout_marginTop="@dimen/space_0_5"
+                    android:text="@string/home_nearby_subtitle"
                     android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
                 <androidx.recyclerview.widget.RecyclerView

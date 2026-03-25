@@ -9,13 +9,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="@dimen/space_2">
 
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:cardBackgroundColor="@color/green_primary"
-            app:cardCornerRadius="28dp"
+            app:cardCornerRadius="@dimen/radius_hero"
             app:cardElevation="0dp">
 
             <LinearLayout
@@ -27,23 +27,24 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Cart overview"
+                    android:text="@string/cart_overview_title"
                     android:textColor="#CCFFFFFF"
-                    android:textSize="13sp" />
+                    android:textSize="@dimen/text_xs" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:text="Everything you’re about to rescue, ready for pickup"
+                    android:layout_marginTop="@dimen/space_1"
+                    android:text="@string/cart_overview_subtitle"
                     android:textColor="@color/white"
-                    android:textSize="26sp"
-                    android:textStyle="bold" />
+                    android:textAppearance="@style/TextAppearance.REPLATE.Headline"
+                    android:textSize="@dimen/text_display" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="18dp"
+                    android:baselineAligned="false"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
@@ -56,7 +57,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Items"
+                            android:text="@string/cart_items_label"
                             android:textColor="#CCFFFFFF"
                             android:textSize="12sp" />
 
@@ -65,9 +66,9 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="0"
+                            android:text="@string/cart_zero"
                             android:textColor="@color/white"
-                            android:textSize="24sp"
+                            android:textSize="@dimen/text_display"
                             android:textStyle="bold" />
                     </LinearLayout>
 
@@ -80,7 +81,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Total"
+                            android:text="@string/cart_total_label"
                             android:textColor="#CCFFFFFF"
                             android:textSize="12sp" />
 
@@ -89,9 +90,9 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="LKR 0.00"
+                            android:text="@string/price_zero_lkr"
                             android:textColor="@color/white"
-                            android:textSize="24sp"
+                            android:textSize="@dimen/text_display"
                             android:textStyle="bold" />
                     </LinearLayout>
                 </LinearLayout>
@@ -101,10 +102,10 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="18dp"
+            android:layout_marginTop="@dimen/space_2"
             app:cardBackgroundColor="@color/surface_white"
-            app:cardCornerRadius="24dp"
-            app:cardElevation="3dp">
+            app:cardCornerRadius="@dimen/radius_xl"
+            app:cardElevation="@dimen/elevation_card">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -115,36 +116,33 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Pickup friendly"
+                    android:text="@string/cart_pickup_friendly"
                     android:textColor="@color/ember2"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
+                    android:textAppearance="@style/TextAppearance.REPLATE.Label" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="Your saved meals stay in the local cart, even if your internet is unstable."
+                    android:layout_marginTop="@dimen/space_1"
+                    android:text="@string/cart_pickup_friendly_desc"
                     android:textColor="@color/text_primary"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
                 <TextView
                     android:id="@+id/tvCartSubtitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:text="Open your detailed cart to review quantities, remove items, and continue to checkout."
-                    android:textColor="@color/text_secondary"
-                    android:textSize="14sp" />
+                    android:layout_marginTop="@dimen/space_1"
+                    android:text="@string/cart_pickup_friendly_hint"
+                    android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
                 <Button
                     android:id="@+id/btnOpenCart"
                     android:layout_width="match_parent"
-                    android:layout_height="54dp"
-                    android:layout_marginTop="18dp"
+                    android:layout_height="@dimen/button_height"
+                    android:layout_marginTop="@dimen/space_2"
                     android:background="@drawable/button_primary"
-                    android:text="Open detailed cart"
+                    android:text="@string/cart_open_detailed"
                     android:textAllCaps="false"
                     android:textColor="@color/white"
                     android:textStyle="bold" />

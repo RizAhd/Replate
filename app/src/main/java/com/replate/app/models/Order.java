@@ -32,6 +32,10 @@ public class Order implements Serializable {
     private String hotelAddress;
     private String customerName;
     private String customerPhone;
+    private Object reviewRating;
+    private String reviewComment;
+    private Object reviewAt;
+    private Object hasReview;
 
     public Order() {}
 
@@ -85,6 +89,24 @@ public class Order implements Serializable {
     public String getCustomerName() { return customerName; }
     public String getCustomerPhone() { return customerPhone; }
 
+    @Exclude
+    public float getReviewRatingValue() { return (float) toDouble(reviewRating); }
+    public Object getReviewRating() { return reviewRating; }
+
+    public String getReviewComment() { return reviewComment; }
+
+    @Exclude
+    public long getReviewAtValue() { return toLong(reviewAt); }
+    public Object getReviewAt() { return reviewAt; }
+
+    @Exclude
+    public boolean hasReview() {
+        if (hasReview instanceof Boolean) return (Boolean) hasReview;
+        if (hasReview instanceof String) return Boolean.parseBoolean((String) hasReview);
+        return getReviewRatingValue() > 0f;
+    }
+    public Object getHasReview() { return hasReview; }
+
     // --- Setters ---
     public void setOrderId(String orderId) { this.orderId = orderId; }
     public void setOderId(String oderId) { this.oderId = oderId; }
@@ -105,6 +127,10 @@ public class Order implements Serializable {
     public void setHotelAddress(String hotelAddress) { this.hotelAddress = hotelAddress; }
     public void setCustomerName(String customerName) { this.customerName = customerName; }
     public void setCustomerPhone(String customerPhone) { this.customerPhone = customerPhone; }
+    public void setReviewRating(Object reviewRating) { this.reviewRating = reviewRating; }
+    public void setReviewComment(String reviewComment) { this.reviewComment = reviewComment; }
+    public void setReviewAt(Object reviewAt) { this.reviewAt = reviewAt; }
+    public void setHasReview(Object hasReview) { this.hasReview = hasReview; }
 
     // --- Helper methods ---
     @Exclude
