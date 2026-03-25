@@ -74,6 +74,7 @@ public class CheckoutActivity extends AppCompatActivity {
     private com.google.android.material.button.MaterialButton btnPickAddressFromMap;
 
     private ActivityResultLauncher<Intent> mapPickerLauncher;
+    private ActivityResultLauncher<Intent> payHereLauncher;
 
     private CartDatabaseHelper cartDb;
     private DatabaseReference mDatabase;
@@ -109,6 +110,11 @@ public class CheckoutActivity extends AppCompatActivity {
                         }
                     }
                 }
+        );
+
+        payHereLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> handlePayHereResult(result.getResultCode(), result.getData())
         );
     }
 
@@ -318,7 +324,7 @@ public class CheckoutActivity extends AppCompatActivity {
         intent.putExtra(PHConstants.INTENT_EXTRA_DATA, req);
 
         PHConfigs.setBaseUrl(PHConfigs.SANDBOX_URL);
-        startActivityForResult(intent, PAYHERE_REQUEST);
+        payHereLauncher.launch(intent);
     }
 
     private void applyMerchantSecretIfSupported(InitRequest req) {
@@ -331,44 +337,46 @@ public class CheckoutActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == PAYHERE_REQUEST && data != null && data.hasExtra(PHConstants.INTENT_EXTRA_RESULT)) {
-            Serializable response = data.getSerializableExtra(PHConstants.INTENT_EXTRA_RESULT);
-            String responseText = response != null ? response.toString() : "No response payload";
-            String lower = responseText.toLowerCase(Locale.US);
-
-            if (lower.contains("unauthorized domain") || lower.contains("unauthorized")) {
-                Toast.makeText(this,
-                        "PayHere blocked this request (unauthorized domain). Use sandbox merchant + approved URLs.",
-                        Toast.LENGTH_LONG).show();
-                Log.e(TAG, "PayHere unauthorized response: " + responseText);
-                return;
+    private void handlePayHereResult(int resultCode, @Nullable Intent data) {
+        if (data == null || !data.hasExtra(PHConstants.INTENT_EXTRA_RESULT)) {
+            if (resultCode == Activity.RESULT_CANCELED) {
+                Toast.makeText(this, "Payment canceled", Toast.LENGTH_SHORT).show();
             }
+            return;
+        }
 
-            boolean success = (resultCode == Activity.RESULT_OK);
-            if (response != null) {
-                try {
-                    Method isSuccess = response.getClass().getMethod("isSuccess");
-                    Object v = isSuccess.invoke(response);
-                    if (v instanceof Boolean) {
-                        success = (Boolean) v;
-                    }
-                } catch (Exception ignore) {
-                    // Keep resultCode fallback.
+        Serializable response = data.getSerializableExtra(PHConstants.INTENT_EXTRA_RESULT);
+        String responseText = response != null ? response.toString() : "No response payload";
+        String lower = responseText.toLowerCase(Locale.US);
+
+        if (lower.contains("unauthorized domain") || lower.contains("unauthorized")) {
+            Toast.makeText(this,
+                    "PayHere blocked this request (unauthorized domain). Use sandbox merchant + approved URLs.",
+                    Toast.LENGTH_LONG).show();
+            Log.e(TAG, "PayHere unauthorized response: " + responseText);
+            return;
+        }
+
+        boolean success = (resultCode == Activity.RESULT_OK);
+        if (response != null) {
+            try {
+                Method isSuccess = response.getClass().getMethod("isSuccess");
+                Object v = isSuccess.invoke(response);
+                if (v instanceof Boolean) {
+                    success = (Boolean) v;
                 }
+            } catch (Exception ignore) {
+                // Keep resultCode fallback.
             }
+        }
 
-            if (success) {
-                Log.d(TAG, "Payment success: " + responseText);
-                submitOrder("PayHere Online", "paid");
-            } else if (resultCode == Activity.RESULT_CANCELED) {
-                Toast.makeText(this, "Payment canceled: " + responseText, Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, "Payment failed: " + responseText, Toast.LENGTH_LONG).show();
-            }
+        if (success) {
+            Log.d(TAG, "Payment success: " + responseText);
+            submitOrder("PayHere Online", "paid");
+        } else if (resultCode == Activity.RESULT_CANCELED) {
+            Toast.makeText(this, "Payment canceled: " + responseText, Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "Payment failed: " + responseText, Toast.LENGTH_LONG).show();
         }
     }
 
@@ -431,12 +439,16 @@ public class CheckoutActivity extends AppCompatActivity {
         orderData.put("createdAt", System.currentTimeMillis());
         orderData.put("updatedAt", System.currentTimeMillis());
 
+        final String finalHotelId = hotelId;
+        final String finalHotelName = hotelName;
+
         mDatabase.child("orders").child(orderId).setValue(orderData)
                 .addOnSuccessListener(unused -> {
                     showLoading(false);
                     cartDb.clearCart();
                     saveReceipt(orderId, otpCode, customerName, totalAmount);
                     playPaymentSound();
+                    createOrderNotifications(orderId, finalHotelId, finalHotelName, customerName, totalAmount);
 
                     Intent intent = new Intent(this, OrderDetailActivity.class);
                     intent.putExtra("orderId", orderId);
@@ -487,5 +499,55 @@ public class CheckoutActivity extends AppCompatActivity {
         progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
         btnPlaceOrder.setEnabled(!show);
         btnPlaceOrder.setAlpha(show ? 0.65f : 1f);
+    }
+
+    private void createOrderNotifications(String orderId,
+                                          String hotelId,
+                                          String hotelName,
+                                          String customerName,
+                                          double amount) {
+        String currentUserId = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
+        if (currentUserId == null) return;
+
+        long now = System.currentTimeMillis();
+        String amountText = String.format(Locale.US, "LKR %.2f", amount);
+
+        Map<String, Object> customerNotif = new HashMap<>();
+        customerNotif.put("title", "Order confirmed");
+        customerNotif.put("body", "Your order at " + (hotelName != null ? hotelName : "hotel") + " is placed. Total " + amountText);
+        customerNotif.put("type", "order_confirmed");
+        customerNotif.put("orderId", orderId);
+        customerNotif.put("hotelId", hotelId != null ? hotelId : "");
+        customerNotif.put("read", false);
+        customerNotif.put("timestamp", now);
+
+        mDatabase.child("notifications").child(currentUserId).push().setValue(customerNotif);
+
+        if (hotelId != null && !hotelId.trim().isEmpty()) {
+            mDatabase.child("hotels").child(hotelId).child("userId")
+                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            String hotelUserId = snapshot.getValue(String.class);
+                            if (hotelUserId == null || hotelUserId.trim().isEmpty()) return;
+
+                            Map<String, Object> hotelNotif = new HashMap<>();
+                            hotelNotif.put("title", "New pickup order");
+                            hotelNotif.put("body", (customerName != null ? customerName : "A customer") + " placed an order. " + amountText);
+                            hotelNotif.put("type", "order_received");
+                            hotelNotif.put("orderId", orderId);
+                            hotelNotif.put("hotelId", hotelId);
+                            hotelNotif.put("read", false);
+                            hotelNotif.put("timestamp", now);
+
+                            mDatabase.child("notifications").child(hotelUserId).push().setValue(hotelNotif);
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+                            Log.w(TAG, "Failed to resolve hotel user for notification", error.toException());
+                        }
+                    });
+        }
     }
 }

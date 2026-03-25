@@ -11,6 +11,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -23,6 +24,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 
+import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -34,6 +36,7 @@ import com.google.zxing.common.BitMatrix;
 import com.replate.app.models.Order;
 
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Order Detail Activity - Shows order info, QR code, OTP, light sensor
@@ -44,10 +47,15 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
     private TextView tvOrderStatus, tvOrderId, tvOTP;
     private TextView tvHotelName, tvHotelAddress, tvPickupTime;
     private TextView tvTotalAmount, tvPaymentMethod, tvPaymentStatus;
+    private TextView tvReviewHint, tvReviewSummary;
     private ImageView ivQRCode;
     private Button btnCallHotel;
     private Button btnOpenPickupRoute;
+    private Button btnSubmitReview;
     private CardView cardQR;
+    private android.widget.RatingBar ratingReview;
+    private TextInputEditText etReviewComment;
+    private View reviewSection;
 
     private DatabaseReference mDatabase;
     private Order order;
@@ -99,6 +107,12 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         btnCallHotel = findViewById(R.id.btnCallHotel);
         btnOpenPickupRoute = findViewById(R.id.btnOpenPickupRoute);
         cardQR = findViewById(R.id.cardQR);
+        reviewSection = findViewById(R.id.reviewSection);
+        ratingReview = findViewById(R.id.ratingReview);
+        etReviewComment = findViewById(R.id.etReviewComment);
+        btnSubmitReview = findViewById(R.id.btnSubmitReview);
+        tvReviewHint = findViewById(R.id.tvReviewHint);
+        tvReviewSummary = findViewById(R.id.tvReviewSummary);
 
         ivBack.setOnClickListener(v -> finish());
 
@@ -106,6 +120,9 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         btnCallHotel.setOnClickListener(v -> callHotel());
         if (btnOpenPickupRoute != null) {
             btnOpenPickupRoute.setOnClickListener(v -> openPickupRoute());
+        }
+        if (btnSubmitReview != null) {
+            btnSubmitReview.setOnClickListener(v -> submitReview());
         }
     }
 
@@ -186,6 +203,44 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
 
         String qrData = order.getQrCode() != null ? order.getQrCode() : order.getOrderId();
         generateQRCode(qrData);
+        updateReviewSection();
+    }
+
+    private void updateReviewSection() {
+        if (reviewSection == null || order == null) return;
+
+        boolean completed = order.isCompleted();
+        boolean hasReview = order.hasReview();
+
+        if (!completed) {
+            reviewSection.setVisibility(View.GONE);
+            return;
+        }
+
+        reviewSection.setVisibility(View.VISIBLE);
+
+        if (hasReview) {
+            float rating = order.getReviewRatingValue();
+            ratingReview.setRating(rating);
+            ratingReview.setIsIndicator(true);
+            if (order.getReviewComment() != null && !order.getReviewComment().trim().isEmpty()) {
+                etReviewComment.setText(order.getReviewComment());
+            }
+            etReviewComment.setEnabled(false);
+            btnSubmitReview.setEnabled(false);
+            btnSubmitReview.setAlpha(0.6f);
+            tvReviewHint.setText("Thanks for your feedback! You already reviewed this order.");
+            tvReviewSummary.setText(String.format(Locale.getDefault(), "Your rating: %.1f / 5", rating));
+        } else {
+            ratingReview.setIsIndicator(false);
+            ratingReview.setRating(0f);
+            etReviewComment.setEnabled(true);
+            etReviewComment.setText("");
+            btnSubmitReview.setEnabled(true);
+            btnSubmitReview.setAlpha(1f);
+            tvReviewHint.setText("Rate your pickup experience to help other customers.");
+            tvReviewSummary.setText("");
+        }
     }
 
     /**
@@ -286,5 +341,90 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         WindowManager.LayoutParams params = getWindow().getAttributes();
         params.screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE;
         getWindow().setAttributes(params);
+    }
+
+    private void submitReview() {
+        if (order == null || order.getOrderId() == null) return;
+        if (!order.isCompleted()) {
+            Toast.makeText(this, "You can review only completed orders", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        float rating = ratingReview.getRating();
+        if (rating <= 0f) {
+            Toast.makeText(this, "Please add a rating", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String comment = etReviewComment.getText() != null
+                ? etReviewComment.getText().toString().trim()
+                : "";
+
+        btnSubmitReview.setEnabled(false);
+
+        Map<String, Object> updates = new java.util.HashMap<>();
+        updates.put("reviewRating", rating);
+        updates.put("reviewComment", comment);
+        updates.put("reviewAt", System.currentTimeMillis());
+        updates.put("hasReview", true);
+
+        mDatabase.child("orders").child(order.getOrderId()).updateChildren(updates)
+                .addOnSuccessListener(unused -> {
+                    String userId = com.google.firebase.auth.FirebaseAuth.getInstance().getUid();
+                    if (userId != null) {
+                        Map<String, Object> reviewData = new java.util.HashMap<>();
+                        reviewData.put("orderId", order.getOrderId());
+                        reviewData.put("userId", userId);
+                        reviewData.put("hotelId", order.getHotelId() != null ? order.getHotelId() : "");
+                        reviewData.put("hotelName", order.getHotelName() != null ? order.getHotelName() : "");
+                        reviewData.put("rating", rating);
+                        reviewData.put("comment", comment);
+                        reviewData.put("createdAt", System.currentTimeMillis());
+                        mDatabase.child("reviews").child(order.getOrderId()).setValue(reviewData);
+                    }
+
+                    pushReviewNotificationToHotel(rating, comment);
+
+                    order.setReviewRating(rating);
+                    order.setReviewComment(comment);
+                    order.setReviewAt(System.currentTimeMillis());
+                    order.setHasReview(true);
+                    updateReviewSection();
+
+                    Toast.makeText(this, "Review submitted successfully", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    btnSubmitReview.setEnabled(true);
+                    Toast.makeText(this, "Failed to save review: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void pushReviewNotificationToHotel(float rating, String comment) {
+        if (order == null || order.getHotelId() == null || order.getHotelId().trim().isEmpty()) return;
+
+        mDatabase.child("hotels").child(order.getHotelId()).child("userId")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        String hotelUserId = snapshot.getValue(String.class);
+                        if (hotelUserId == null || hotelUserId.trim().isEmpty()) return;
+
+                        Map<String, Object> notif = new java.util.HashMap<>();
+                        notif.put("title", "New customer review");
+                        notif.put("body", String.format(Locale.getDefault(), "You received %.1f-star feedback", rating));
+                        notif.put("type", "review_received");
+                        notif.put("orderId", order.getOrderId() != null ? order.getOrderId() : "");
+                        notif.put("hotelId", order.getHotelId());
+                        notif.put("reviewComment", comment != null ? comment : "");
+                        notif.put("timestamp", System.currentTimeMillis());
+                        notif.put("read", false);
+
+                        mDatabase.child("notifications").child(hotelUserId).push().setValue(notif);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                    }
+                });
     }
 }

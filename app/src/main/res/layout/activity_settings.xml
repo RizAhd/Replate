@@ -9,20 +9,20 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="@dimen/space_2">
 
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:cardBackgroundColor="@color/green_primary"
-            app:cardCornerRadius="28dp"
+            app:cardCornerRadius="@dimen/radius_hero"
             app:cardElevation="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="18dp">
+                android:padding="@dimen/space_2_5">
 
                 <RelativeLayout
                     android:layout_width="match_parent"
@@ -33,6 +33,7 @@
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:layout_centerVertical="true"
+                        android:contentDescription="@string/cd_back"
                         android:src="@drawable/ic_back"
                         app:tint="@color/white" />
 
@@ -40,7 +41,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_centerInParent="true"
-                        android:text="Settings"
+                        android:text="@string/settings_title"
                         android:textAppearance="@style/TextAppearance.REPLATE.Subheading"
                         android:textColor="@color/white" />
                 </RelativeLayout>
@@ -66,7 +67,7 @@
                         android:layout_height="@dimen/button_height"
                         android:layout_marginTop="12dp"
                         android:background="@drawable/button_outline_white"
-                        android:text="Change photo"
+                        android:text="@string/settings_change_photo"
                         android:textAllCaps="false"
                         android:textColor="@color/white"
                         android:textStyle="bold" />
@@ -79,19 +80,19 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             app:cardBackgroundColor="@color/white"
-            app:cardCornerRadius="24dp"
-            app:cardElevation="2dp">
+            app:cardCornerRadius="@dimen/radius_xl"
+            app:cardElevation="@dimen/elevation_card">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="18dp">
+                android:padding="@dimen/space_2">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Profile information"
+                    android:text="@string/settings_profile_info"
                     android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -104,7 +105,7 @@
                         android:id="@+id/etName"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Full Name" />
+                        android:hint="@string/settings_hint_full_name" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -117,7 +118,7 @@
                         android:id="@+id/etPhone"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Phone Number"
+                        android:hint="@string/settings_hint_phone"
                         android:inputType="phone" />
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -132,7 +133,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:enabled="false"
-                        android:hint="Email" />
+                        android:hint="@string/settings_hint_email" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -145,7 +146,7 @@
                         android:id="@+id/etAddress"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Pickup Address"
+                        android:hint="@string/settings_hint_pickup_address"
                         android:inputType="textPostalAddress" />
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -156,7 +157,7 @@
                     android:layout_height="40dp"
                     android:layout_gravity="end"
                     android:layout_marginTop="8dp"
-                    android:text="Pick from map"
+                    android:text="@string/settings_pick_from_map"
                     android:textAllCaps="false"
                     android:textColor="@color/ember" />
 
@@ -166,7 +167,7 @@
                     android:layout_height="@dimen/button_height"
                     android:layout_marginTop="14dp"
                     android:background="@drawable/button_primary"
-                    android:text="Save changes"
+                    android:text="@string/settings_save_changes"
                     android:textAllCaps="false"
                     android:textColor="@color/white"
                     android:textStyle="bold" />
@@ -178,19 +179,19 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             app:cardBackgroundColor="@color/white"
-            app:cardCornerRadius="24dp"
-            app:cardElevation="2dp">
+            app:cardCornerRadius="@dimen/radius_xl"
+            app:cardElevation="@dimen/elevation_card">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="18dp">
+                android:padding="@dimen/space_2">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Preferences"
+                    android:text="@string/settings_preferences"
                     android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
                 <LinearLayout
@@ -203,9 +204,8 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Push Notifications"
-                        android:textColor="@color/text_primary"
-                        android:textSize="15sp" />
+                        android:text="@string/settings_push_notifications"
+                        android:textAppearance="@style/TextAppearance.REPLATE.Label" />
 
                     <com.google.android.material.switchmaterial.SwitchMaterial
                         android:id="@+id/switchNotifications"
@@ -224,9 +224,8 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Location Services"
-                        android:textColor="@color/text_primary"
-                        android:textSize="15sp" />
+                        android:text="@string/settings_location_services"
+                        android:textAppearance="@style/TextAppearance.REPLATE.Label" />
 
                     <com.google.android.material.switchmaterial.SwitchMaterial
                         android:id="@+id/switchLocation"
@@ -243,8 +242,8 @@
             android:layout_marginTop="16dp"
             android:layout_marginBottom="10dp"
             app:cardBackgroundColor="@color/white"
-            app:cardCornerRadius="24dp"
-            app:cardElevation="2dp">
+            app:cardCornerRadius="@dimen/radius_xl"
+            app:cardElevation="@dimen/elevation_card">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -256,7 +255,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="REPLATE"
+                    android:text="@string/app_name"
                     android:textColor="@color/primary"
                     android:textSize="18sp"
                     android:textStyle="bold" />
@@ -265,7 +264,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="Because Every Meal Matters 🍽️"
+                    android:text="@string/drawer_tagline"
                     android:textColor="@color/text_secondary"
                     android:textSize="13sp" />
 
@@ -273,7 +272,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
-                    android:text="Version 1.0.0"
+                    android:text="@string/settings_version"
                     android:textColor="@color/gray"
                     android:textSize="12sp" />
             </LinearLayout>

@@ -29,6 +29,7 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:layout_centerVertical="true"
+                    android:contentDescription="@string/cd_back"
                     android:src="@drawable/ic_back"
                     app:tint="@color/white" />
 
@@ -37,7 +38,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_centerInParent="true"
-                    android:text="Your cart"
+                    android:text="@string/cart_title"
                     android:textAppearance="@style/TextAppearance.REPLATE.Subheading"
                     android:textColor="@color/white" />
 
@@ -50,7 +51,7 @@
                     android:background="#1FFFFFFF"
                     android:paddingHorizontal="12dp"
                     android:paddingVertical="8dp"
-                    android:text="Clear all"
+                    android:text="@string/cart_clear_all"
                     android:textColor="@color/white"
                     android:textSize="12sp"
                     android:textStyle="bold" />
@@ -61,7 +62,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="Review your rescue meals before checkout"
+                android:text="@string/cart_summary"
                 android:textAppearance="@style/TextAppearance.REPLATE.Body"
                 android:textColor="@color/text_on_primary_muted" />
         </LinearLayout>
@@ -96,6 +97,7 @@
                 android:layout_width="52dp"
                 android:layout_height="52dp"
                 android:layout_gravity="center"
+                android:contentDescription="@string/cd_cart"
                 android:src="@drawable/ic_cart"
                 app:tint="@color/green_primary" />
         </com.google.android.material.card.MaterialCardView>
@@ -104,7 +106,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:text="Your cart is feeling empty"
+            android:text="@string/cart_empty_title"
             android:textAppearance="@style/TextAppearance.REPLATE.Headline"
             android:textColor="@color/text_primary"
             android:textSize="@dimen/text_xl" />
@@ -114,7 +116,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:gravity="center"
-            android:text="Add a few discounted dishes and come back when you're ready to reserve them."
+            android:text="@string/cart_empty_subtitle"
             android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
         <Button
@@ -123,7 +125,7 @@
             android:layout_height="@dimen/button_height"
             android:layout_marginTop="20dp"
             android:background="@drawable/button_primary"
-            android:text="Browse nearby deals"
+            android:text="@string/cart_browse_deals"
             android:textAllCaps="false"
             android:textColor="@color/white"
             android:textStyle="bold" />
@@ -155,7 +157,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Ready for pickup"
+                    android:text="@string/cart_ready_for_pickup"
                     android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
                 <TextView
@@ -165,7 +167,7 @@
                     android:background="@drawable/badge_distance"
                     android:paddingHorizontal="10dp"
                     android:paddingVertical="6dp"
-                    android:text="0 items"
+                    android:text="@string/cart_items_count_placeholder"
                     android:textColor="@color/green_primary"
                     android:textSize="12sp"
                     android:textStyle="bold" />
@@ -182,7 +184,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="You save"
+                    android:text="@string/cart_you_save"
                     android:textColor="@color/text_secondary"
                     android:textSize="14sp" />
 
@@ -190,7 +192,7 @@
                     android:id="@+id/tvSavingsValue"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="LKR 0.00"
+                    android:text="@string/price_zero_lkr"
                     android:textColor="@color/ember2"
                     android:textSize="15sp"
                     android:textStyle="bold" />
@@ -207,7 +209,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Total"
+                    android:text="@string/cart_total_label"
                     android:textColor="@color/text_primary"
                     android:textSize="17sp"
                     android:textStyle="bold" />
@@ -216,7 +218,7 @@
                     android:id="@+id/tvTotalAmount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="LKR 0.00"
+                    android:text="@string/price_zero_lkr"
                     android:textColor="@color/green_primary"
                     android:textSize="22sp"
                     android:textStyle="bold" />
@@ -228,7 +230,7 @@
                 android:layout_height="@dimen/button_height"
                 android:layout_marginTop="16dp"
                 android:background="@drawable/button_primary"
-                android:text="Proceed to checkout"
+                android:text="@string/cart_proceed_checkout"
                 android:textAllCaps="false"
                 android:textColor="@color/white"
                 android:textSize="@dimen/text_md"

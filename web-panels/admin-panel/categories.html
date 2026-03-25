@@ -35,11 +35,11 @@
                         <h5>Add New Category</h5>
                         <form id="addCategoryForm">
                             <div class="mb-3">
-                                <label>Category Name</label>
+                                <label for="catName">Category Name</label>
                                 <input type="text" class="form-control" id="catName" required>
                             </div>
                             <div class="mb-3">
-                                <label>Display Order</label>
+                                <label for="catOrder">Display Order</label>
                                 <input type="number" class="form-control" id="catOrder" value="1" required>
                             </div>
                             <button type="submit" class="btn btn-dark w-100">Add Category</button>
@@ -84,21 +84,22 @@
             const tbody = document.getElementById('categoryTable');
             tbody.innerHTML = '';
 
+            const rows = [];
             snapshot.forEach((child) => {
-                const cat = child.val();
+                const cat = child.val() || {};
                 const key = child.key;
-
-                const row = `
+                rows.push(`
                     <tr>
-                        <td>${cat.order}</td>
-                        <td>${cat.name}</td>
+                        <td>${cat.order ?? ''}</td>
+                        <td>${cat.name || ''}</td>
                         <td>
                             <button class="btn btn-sm btn-danger" onclick="deleteCategory('${key}')">🗑️</button>
                         </td>
                     </tr>
-                `;
-                tbody.innerHTML += row;
+                `);
             });
+
+            tbody.innerHTML = rows.join('');
         });
     }
 

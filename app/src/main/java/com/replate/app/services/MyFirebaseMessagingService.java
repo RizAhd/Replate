@@ -12,13 +12,14 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
-import com.replate.app.MainActivity;
+import com.replate.app.NotificationsActivity;
 import com.replate.app.R;
 
 import java.util.HashMap;
@@ -48,6 +49,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
         String title = "REPLATE";
         String body = "You have a new notification";
+        Map<String, String> data = remoteMessage.getData();
 
         // Check for notification payload
         if (remoteMessage.getNotification() != null) {
@@ -58,17 +60,14 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         }
 
         // Check for data payload
-        if (remoteMessage.getData().size() > 0) {
-            Map<String, String> data = remoteMessage.getData();
+        if (data.size() > 0) {
             if (data.containsKey("title")) title = data.get("title");
             if (data.containsKey("body")) body = data.get("body");
         }
 
-        // Save notification to Firebase
-        saveNotification(title, body);
-
-        // Show notification
-        showNotification(title, body);
+        // Save notification to Firebase and show local system notification
+        saveNotification(title, body, data);
+        showNotification(title, body, data);
     }
 
     private void saveTokenToDatabase(String token) {
@@ -82,7 +81,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         }
     }
 
-    private void saveNotification(String title, String body) {
+    private void saveNotification(String title, String body, Map<String, String> data) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
             Map<String, Object> notifData = new HashMap<>();
@@ -90,6 +89,9 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             notifData.put("body", body);
             notifData.put("timestamp", System.currentTimeMillis());
             notifData.put("read", false);
+            notifData.put("type", data != null ? data.getOrDefault("type", "general") : "general");
+            notifData.put("orderId", data != null ? data.getOrDefault("orderId", "") : "");
+            notifData.put("hotelId", data != null ? data.getOrDefault("hotelId", "") : "");
 
             FirebaseDatabase.getInstance().getReference()
                     .child("notifications")
@@ -99,11 +101,19 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         }
     }
 
-    private void showNotification(String title, String body) {
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,
-                PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
+    private void showNotification(String title, String body, Map<String, String> data) {
+        Intent intent = new Intent(this, NotificationsActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        if (data != null && data.containsKey("orderId")) {
+            intent.putExtra("orderId", data.get("orderId"));
+        }
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                this,
+                (int) System.currentTimeMillis(),
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
 
         Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
@@ -112,11 +122,12 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                         .setSmallIcon(R.drawable.ic_notification)
                         .setContentTitle(title)
                         .setContentText(body)
+                        .setStyle(new NotificationCompat.BigTextStyle().bigText(body))
                         .setAutoCancel(true)
                         .setSound(defaultSoundUri)
                         .setContentIntent(pendingIntent)
                         .setPriority(NotificationCompat.PRIORITY_HIGH)
-                        .setColor(getResources().getColor(R.color.primary, null));
+                        .setColor(ContextCompat.getColor(this, R.color.primary));
 
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -132,4 +143,3 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         notificationManager.notify((int) System.currentTimeMillis(), notificationBuilder.build());
     }
 }
-

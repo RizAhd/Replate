@@ -12,6 +12,8 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -45,7 +47,6 @@ import de.hdodenhof.circleimageview.CircleImageView;
  */
 public class SettingsActivity extends AppCompatActivity {
 
-    private static final int CAMERA_REQUEST = 1001;
     private static final int CAMERA_PERMISSION_REQUEST = 2001;
 
     private CircleImageView ivProfileImage;
@@ -59,6 +60,7 @@ public class SettingsActivity extends AppCompatActivity {
     private SharedPreferences prefs;
 
     private Bitmap capturedPhoto;
+    private ActivityResultLauncher<Intent> cameraLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +71,20 @@ public class SettingsActivity extends AppCompatActivity {
         mDatabase = FirebaseDatabase.getInstance().getReference();
         mStorage = FirebaseStorage.getInstance().getReference();
         prefs = getSharedPreferences("REPLATE_PREFS", MODE_PRIVATE);
+
+        cameraLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null && result.getData().getExtras() != null) {
+                        capturedPhoto = (Bitmap) result.getData().getExtras().get("data");
+                        if (capturedPhoto != null) {
+                            ivProfileImage.setImageBitmap(capturedPhoto);
+                            savePhotoToInternalStorage(capturedPhoto);
+                            uploadProfilePhoto(capturedPhoto);
+                        }
+                    }
+                }
+        );
 
         initViews();
         loadUserData();
@@ -169,7 +185,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (cameraIntent.resolveActivity(getPackageManager()) != null) {
-            startActivityForResult(cameraIntent, CAMERA_REQUEST);
+            cameraLauncher.launch(cameraIntent);
         }
     }
 
@@ -182,21 +198,6 @@ public class SettingsActivity extends AppCompatActivity {
                 openCamera();
             } else {
                 Toast.makeText(this, "Camera permission required", Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == CAMERA_REQUEST && resultCode == RESULT_OK && data != null) {
-            capturedPhoto = (Bitmap) data.getExtras().get("data");
-            if (capturedPhoto != null) {
-                ivProfileImage.setImageBitmap(capturedPhoto);
-                // Save to internal storage (REQUIREMENT: Internal Storage)
-                savePhotoToInternalStorage(capturedPhoto);
-                // Upload to Firebase Storage
-                uploadProfilePhoto(capturedPhoto);
             }
         }
     }

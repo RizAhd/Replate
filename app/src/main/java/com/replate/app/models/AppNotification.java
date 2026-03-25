@@ -13,6 +13,9 @@ public class AppNotification implements Serializable {
     private String body;
     private Object timestamp;
     private boolean read;
+    private String type;
+    private String orderId;
+    private String hotelId;
 
     public AppNotification() {}
 
@@ -21,6 +24,9 @@ public class AppNotification implements Serializable {
     public String getBody() { return body; }
     public Object getTimestamp() { return timestamp; }
     public boolean isRead() { return read; }
+    public String getType() { return type; }
+    public String getOrderId() { return orderId; }
+    public String getHotelId() { return hotelId; }
 
     public long getTimestampValue() {
         if (timestamp == null) return 0L;
@@ -33,5 +39,7 @@ public class AppNotification implements Serializable {
     public void setBody(String body) { this.body = body; }
     public void setTimestamp(Object timestamp) { this.timestamp = timestamp; }
     public void setRead(boolean read) { this.read = read; }
+    public void setType(String type) { this.type = type; }
+    public void setOrderId(String orderId) { this.orderId = orderId; }
+    public void setHotelId(String hotelId) { this.hotelId = hotelId; }
 }
-

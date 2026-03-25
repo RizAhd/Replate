@@ -1,5 +1,6 @@
 package com.replate.app;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
@@ -41,6 +42,7 @@ public class NotificationsActivity extends AppCompatActivity
     private DatabaseReference mDatabase;
     private NotificationAdapter adapter;
     private List<AppNotification> notifications = new ArrayList<>();
+    private String launchOrderId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +50,7 @@ public class NotificationsActivity extends AppCompatActivity
         setContentView(R.layout.activity_notifications);
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
+        launchOrderId = getIntent().getStringExtra("orderId");
 
         initViews();
         loadNotifications();
@@ -95,6 +98,11 @@ public class NotificationsActivity extends AppCompatActivity
                         adapter.notifyDataSetChanged();
                         progressBar.setVisibility(View.GONE);
                         updateUI();
+
+                        if (launchOrderId != null && !launchOrderId.trim().isEmpty()) {
+                            openOrderFromPayload(launchOrderId.trim());
+                            launchOrderId = null;
+                        }
                     }
 
                     @Override
@@ -133,6 +141,16 @@ public class NotificationsActivity extends AppCompatActivity
                     .child(notification.getNotificationId())
                     .child("read").setValue(true);
         }
+
+        if (notification.getOrderId() != null && !notification.getOrderId().trim().isEmpty()) {
+            openOrderFromPayload(notification.getOrderId().trim());
+        }
+    }
+
+    private void openOrderFromPayload(String orderId) {
+        Intent intent = new Intent(this, OrderDetailActivity.class);
+        intent.putExtra("orderId", orderId);
+        startActivity(intent);
     }
 
     private void markAllAsRead() {

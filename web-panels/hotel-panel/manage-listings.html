@@ -105,13 +105,13 @@
 
             rows.sort((a, b) => (b.item.createdAt || 0) - (a.item.createdAt || 0));
 
-            rows.forEach(({ key, item }) => {
+            const htmlRows = rows.map(({ key, item }) => {
                 const isAvailable = item.isAvailable === true || String(item.status || '').toLowerCase() === 'available';
                 const pickupStart = item.pickupTimeStart || item.pickupStart || '--:--';
                 const pickupEnd = item.pickupTimeEnd || item.pickupEnd || '--:--';
                 const imageUrl = item.imageUrl || '';
 
-                const row = `
+                return `
                     <tr>
                         <td>${imageUrl ? `<img src="${imageUrl}" width="50" height="50" class="rounded" style="object-fit:cover">` : '<span class="text-muted">No image</span>'}</td>
                         <td>
@@ -138,8 +138,9 @@
                         </td>
                     </tr>
                 `;
-                tableBody.innerHTML += row;
-            });
+            }).join('');
+
+            tableBody.innerHTML = htmlRows;
         });
     }
 

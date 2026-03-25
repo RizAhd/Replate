@@ -3,8 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="16dp"
-    android:layout_marginVertical="6dp"
+    android:layout_marginHorizontal="@dimen/space_2"
+    android:layout_marginVertical="@dimen/space_1"
     app:cardBackgroundColor="@color/surface_white"
     app:cardCornerRadius="@dimen/radius_lg"
     app:cardElevation="@dimen/elevation_card"
@@ -23,6 +23,7 @@
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
             android:background="@drawable/card_background_shape"
+            android:contentDescription="@string/cd_food_image"
             android:scaleType="centerCrop"
             android:src="@drawable/placeholder_food" />
 
@@ -34,7 +35,7 @@
             android:layout_alignParentTop="true"
             android:src="@android:drawable/ic_menu_close_clear_cancel"
             app:tint="@color/error"
-            android:contentDescription="Remove" />
+            android:contentDescription="@string/cd_remove_item" />
 
         <LinearLayout
             android:id="@+id/infoLayout"
@@ -51,7 +52,7 @@
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:text="Food Name"
+                android:text="@string/food_name_placeholder"
                 android:textAppearance="@style/TextAppearance.REPLATE.Label" />
 
             <TextView
@@ -59,7 +60,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="Hotel Name"
+                android:text="@string/food_hotel_placeholder"
                 android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
             <TextView
@@ -67,9 +68,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="LKR 0.00"
+                android:text="@string/price_zero_lkr"
                 android:textColor="@color/price_discounted"
-                android:textSize="15sp"
+                android:textAppearance="@style/TextAppearance.REPLATE.Subheading"
                 android:textStyle="bold" />
 
             <LinearLayout
@@ -85,7 +86,7 @@
                     android:layout_height="40dp"
                     android:background="@drawable/button_outline_primary"
                     android:gravity="center"
-                    android:text="−"
+                    android:text="@string/cart_minus"
                     android:textColor="@color/primary"
                     android:textSize="18sp"
                     android:textStyle="bold" />
@@ -95,9 +96,8 @@
                     android:layout_width="44dp"
                     android:layout_height="40dp"
                     android:gravity="center"
-                    android:text="1"
-                    android:textColor="@color/text_primary"
-                    android:textSize="14sp"
+                    android:text="@string/cart_qty_default"
+                    android:textAppearance="@style/TextAppearance.REPLATE.Label"
                     android:textStyle="bold" />
 
                 <TextView
@@ -106,7 +106,7 @@
                     android:layout_height="40dp"
                     android:background="@drawable/button_primary"
                     android:gravity="center"
-                    android:text="+"
+                    android:text="@string/cart_plus"
                     android:textColor="@color/white"
                     android:textSize="18sp"
                     android:textStyle="bold" />
@@ -127,17 +127,16 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Subtotal"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="10sp" />
+                        android:text="@string/cart_subtotal_label"
+                        android:textAppearance="@style/TextAppearance.REPLATE.Caption" />
 
                     <TextView
                         android:id="@+id/tvSubtotal"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="LKR 0.00"
+                        android:text="@string/price_zero_lkr"
                         android:textColor="@color/primary"
-                        android:textSize="14sp"
+                        android:textAppearance="@style/TextAppearance.REPLATE.Label"
                         android:textStyle="bold" />
                 </LinearLayout>
             </LinearLayout>
