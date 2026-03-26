@@ -351,7 +351,7 @@ public class HomeFragment extends Fragment implements
                     });
                 }
             });
-        } catch (RejectedExecutionException e) {
+        } catch ( RejectedExecutionException e) {
             // Executor was shut down, recreate it
             synchronized (this) {
                 locationExecutor = Executors.newSingleThreadExecutor();

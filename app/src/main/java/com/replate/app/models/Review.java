@@ -88,6 +88,7 @@ public class Review implements Serializable {
         this.createdAt = createdAt;
     }
 
+    @Exclude
     public long getCreatedAtValue() {
         if (createdAt == null) return 0L;
         if (createdAt instanceof Number) return ((Number) createdAt).longValue();
@@ -107,7 +108,7 @@ public class Review implements Serializable {
     }
 
     @Exclude
-    public boolean isVerifiedPurchaseValue() {
+    public boolean fetchVerifiedPurchase() {
         if (verifiedPurchase == null) return false;
         if (verifiedPurchase instanceof Boolean) return (Boolean) verifiedPurchase;
         return "true".equalsIgnoreCase(String.valueOf(verifiedPurchase));
