@@ -312,39 +312,60 @@
                     android:textColor="@color/text_secondary"
                     android:textSize="13sp" />
 
-                <RatingBar
-                    android:id="@+id/ratingInput"
-                    style="?android:attr/ratingBarStyleSmall"
+                <Button
+                    android:id="@+id/btnToggleReviewComposer"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="40dp"
                     android:layout_marginTop="10dp"
-                    android:numStars="5"
-                    android:stepSize="0.5" />
+                    android:background="@drawable/button_outline_neutral"
+                    android:minHeight="0dp"
+                    android:text="Write a review"
+                    android:textAllCaps="false"
+                    android:textColor="@color/green_primary"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
 
-                <com.google.android.material.textfield.TextInputLayout
+                <LinearLayout
+                    android:id="@+id/layoutReviewComposer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp">
+                    android:layout_marginTop="8dp"
+                    android:orientation="vertical"
+                    android:visibility="gone">
 
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etReviewComment"
+                    <RatingBar
+                        android:id="@+id/ratingInput"
+                        style="?android:attr/ratingBarStyleSmall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:numStars="5"
+                        android:stepSize="0.5" />
+
+                    <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Share your experience"
-                        android:inputType="textMultiLine"
-                        android:maxLines="3" />
-                </com.google.android.material.textfield.TextInputLayout>
+                        android:layout_marginTop="8dp">
 
-                <Button
-                    android:id="@+id/btnSubmitReview"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/button_height"
-                    android:layout_marginTop="8dp"
-                    android:background="@drawable/button_primary"
-                    android:text="Submit Review"
-                    android:textAllCaps="false"
-                    android:textColor="@color/white"
-                    android:textStyle="bold" />
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etReviewComment"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Share your experience"
+                            android:inputType="textMultiLine"
+                            android:maxLines="3" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <Button
+                        android:id="@+id/btnSubmitReview"
+                        android:layout_width="match_parent"
+                        android:layout_height="44dp"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/button_primary"
+                        android:text="Submit Review"
+                        android:textAllCaps="false"
+                        android:textColor="@color/white"
+                        android:textStyle="bold" />
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/tvNoReviews"

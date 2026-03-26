@@ -402,9 +402,13 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     }
 
     private void startLiveLocationUpdates() {
-        boolean fineGranted = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
+        if (!isAdded() || getContext() == null || getActivity() == null) {
+            return;
+        }
+
+        boolean fineGranted = ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED;
-        boolean coarseGranted = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION)
+        boolean coarseGranted = ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED;
         if (!fineGranted && !coarseGranted) {
             return;
@@ -443,13 +447,13 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 .setMinUpdateIntervalMillis(1500)
                 .build();
 
-        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
 
         try {
-            fusedLocationClient.requestLocationUpdates(request, liveLocationCallback, requireActivity().getMainLooper());
+            fusedLocationClient.requestLocationUpdates(request, liveLocationCallback, getActivity().getMainLooper());
         } catch (SecurityException ignored) {
         }
     }
@@ -599,12 +603,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         directionsApiClient.fetchRoute(currentUserLatLng, selectedDestinationLatLng, new DirectionsApiClient.Callback() {
             @Override
             public void onSuccess(RouteResult result) {
+                if (!isAdded()) return;
                 loadingOverlay.setVisibility(View.GONE);
                 drawPolyline(result);
             }
 
             @Override
             public void onError(String message) {
+                if (!isAdded()) return;
                 loadingOverlay.setVisibility(View.GONE);
                 tvRouteInfo.setText(getString(R.string.map_route_unavailable));
                 Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
@@ -613,7 +619,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     }
 
     private void drawPolyline(@NonNull RouteResult routeResult) {
-        if (mMap == null || currentUserLatLng == null || selectedDestinationLatLng == null) {
+        if (mMap == null || currentUserLatLng == null || selectedDestinationLatLng == null || !isAdded() || getContext() == null) {
             return;
         }
 
@@ -622,7 +628,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         currentRoutePolyline = mMap.addPolyline(new PolylineOptions()
                 .addAll(routeResult.getPolylinePoints())
                 .width(11f)
-                .color(requireContext().getColor(R.color.green_primary))
+                .color(ContextCompat.getColor(requireContext(), R.color.green_primary))
                 .geodesic(true));
 
         tvRouteInfo.setText(getString(
@@ -654,6 +660,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         foodItemsRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (!isAdded()) return;
                 StringBuilder preview = new StringBuilder();
                 int added = 0;
 
@@ -699,12 +706,17 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 }
 
                 hotelFoodPreviewCache.put(hotelId, previewText);
-                tvAvailableItems.setText(previewText);
+                if (tvAvailableItems != null) {
+                    tvAvailableItems.setText(previewText);
+                }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                tvAvailableItems.setText(getString(R.string.map_items_load_failed));
+                if (!isAdded()) return;
+                if (tvAvailableItems != null) {
+                    tvAvailableItems.setText(getString(R.string.map_items_load_failed));
+                }
             }
         });
     }

@@ -102,7 +102,8 @@ public class Review implements Serializable {
         this.verifiedPurchase = verifiedPurchase;
     }
 
-    public boolean isVerifiedPurchase() {
+    // UI helper (renamed to avoid Firebase bean getter collision with getVerifiedPurchase)
+    public boolean isVerifiedPurchaseValue() {
         if (verifiedPurchase == null) return false;
         if (verifiedPurchase instanceof Boolean) return (Boolean) verifiedPurchase;
         return "true".equalsIgnoreCase(String.valueOf(verifiedPurchase));
