@@ -89,7 +89,7 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
             long ts = review.getCreatedAtValue();
             tvDate.setText(ts > 0 ? dateFormat.format(new Date(ts)) : "Recently");
 
-            tvVerifiedPurchase.setVisibility(review.isVerifiedPurchaseValue() ? View.VISIBLE : View.GONE);
+            tvVerifiedPurchase.setVisibility(review.hasVerifiedPurchaseBadge() ? View.VISIBLE : View.GONE);
 
             boolean isOwner = review.getUserId() != null
                     && !review.getUserId().trim().isEmpty()

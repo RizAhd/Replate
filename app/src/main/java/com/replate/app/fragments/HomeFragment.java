@@ -115,7 +115,7 @@ public class HomeFragment extends Fragment implements
             });
 
     private final Handler bannerHandler = new Handler(Looper.getMainLooper());
-    private final ExecutorService locationExecutor = Executors.newSingleThreadExecutor();
+    private ExecutorService locationExecutor;
     private final Runnable bannerAutoScrollRunnable = new Runnable() {
         @Override
         public void run() {
@@ -137,6 +137,9 @@ public class HomeFragment extends Fragment implements
         // Initialize Firebase
         mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference();
+
+        // Initialize location executor
+        locationExecutor = Executors.newSingleThreadExecutor();
 
         // Initialize location client
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
@@ -308,6 +311,11 @@ public class HomeFragment extends Fragment implements
 
     private void updateCurrentLocationLabel(double latitude, double longitude) {
         if (!Geocoder.isPresent() || !isAdded()) {
+            tvCurrentLocation.setText(String.format(Locale.getDefault(), "%.3f, %.3f", latitude, longitude));
+            return;
+        }
+
+        if (locationExecutor == null || locationExecutor.isShutdown()) {
             tvCurrentLocation.setText(String.format(Locale.getDefault(), "%.3f, %.3f", latitude, longitude));
             return;
         }
@@ -664,6 +672,8 @@ public class HomeFragment extends Fragment implements
     public void onDestroyView() {
         super.onDestroyView();
         bannerHandler.removeCallbacksAndMessages(null);
-        locationExecutor.shutdownNow();
+        if (locationExecutor != null && !locationExecutor.isShutdown()) {
+            locationExecutor.shutdownNow();
+        }
     }
 }
