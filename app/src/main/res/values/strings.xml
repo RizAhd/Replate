@@ -21,6 +21,7 @@
     <string name="cd_help">Help icon</string>
     <string name="cd_arrow_right">Open</string>
     <string name="cd_search">Search illustration</string>
+    <string name="cd_category">Category icon</string>
 
     <!-- Home -->
     <string name="home_explore_nearby">Delivering to</string>

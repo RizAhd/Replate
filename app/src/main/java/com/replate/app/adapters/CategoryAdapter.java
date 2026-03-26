@@ -8,10 +8,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.card.MaterialCardView;
 import com.replate.app.R;
 import com.replate.app.models.Category;
 
@@ -56,13 +56,15 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
     }
 
     class CategoryViewHolder extends RecyclerView.ViewHolder {
-        CardView cardView;
+        MaterialCardView cardView;
+        MaterialCardView iconContainer;
         ImageView ivIcon;
         TextView tvName;
 
         CategoryViewHolder(@NonNull View itemView) {
             super(itemView);
             cardView = itemView.findViewById(R.id.cardCategory);
+            iconContainer = itemView.findViewById(R.id.cardIconContainer);
             ivIcon = itemView.findViewById(R.id.ivCategoryIcon);
             tvName = itemView.findViewById(R.id.tvCategoryName);
         }
@@ -74,17 +76,50 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
             boolean selected = position == selectedPosition;
             if (selected) {
                 cardView.setCardBackgroundColor(ContextCompat.getColor(context, R.color.green_primary));
+                cardView.setStrokeColor(ContextCompat.getColor(context, R.color.green_light));
+                cardView.setStrokeWidth(2);
+
+                iconContainer.setCardBackgroundColor(ContextCompat.getColor(context, R.color.white));
+                iconContainer.setStrokeColor(ContextCompat.getColor(context, R.color.white));
+                iconContainer.setStrokeWidth(1);
+
                 tvName.setTextColor(ContextCompat.getColor(context, R.color.white));
-                ivIcon.setColorFilter(ContextCompat.getColor(context, R.color.white));
+                ivIcon.setColorFilter(ContextCompat.getColor(context, R.color.green_primary));
+
+                cardView.setScaleX(1.03f);
+                cardView.setScaleY(1.03f);
             } else {
                 cardView.setCardBackgroundColor(ContextCompat.getColor(context, R.color.surface_white));
+                cardView.setStrokeColor(ContextCompat.getColor(context, R.color.md_theme_outlineVariant));
+                cardView.setStrokeWidth(1);
+
+                iconContainer.setCardBackgroundColor(ContextCompat.getColor(context, R.color.green_pale));
+                iconContainer.setStrokeColor(ContextCompat.getColor(context, R.color.green_light));
+                iconContainer.setStrokeWidth(0);
+
                 tvName.setTextColor(ContextCompat.getColor(context, R.color.text_primary));
                 ivIcon.setColorFilter(ContextCompat.getColor(context, R.color.green_primary));
+
+                cardView.setScaleX(1.0f);
+                cardView.setScaleY(1.0f);
             }
 
             cardView.setOnClickListener(v -> {
                 int previousSelected = selectedPosition;
                 selectedPosition = position;
+
+                // Smooth press feedback
+                cardView.animate()
+                        .scaleX(0.96f)
+                        .scaleY(0.96f)
+                        .setDuration(70)
+                        .withEndAction(() -> cardView.animate()
+                                .scaleX(selectedPosition == position ? 1.03f : 1.0f)
+                                .scaleY(selectedPosition == position ? 1.03f : 1.0f)
+                                .setDuration(130)
+                                .start())
+                        .start();
+
                 if (previousSelected >= 0) {
                     notifyItemChanged(previousSelected);
                 }
