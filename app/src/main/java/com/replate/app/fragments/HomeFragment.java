@@ -315,40 +315,58 @@ public class HomeFragment extends Fragment implements
             return;
         }
 
-        if (locationExecutor == null || locationExecutor.isShutdown() || locationExecutor.isTerminated()) {
-            locationExecutor = Executors.newSingleThreadExecutor();
+        // Always ensure we have a working executor
+        synchronized (this) {
+            if (locationExecutor == null || locationExecutor.isShutdown() || locationExecutor.isTerminated()) {
+                locationExecutor = Executors.newSingleThreadExecutor();
+            }
         }
 
         try {
-            if (!locationExecutor.isShutdown() && !locationExecutor.isTerminated()) {
-                locationExecutor.execute(() -> {
-                    if (!isAdded()) return;
+            locationExecutor.execute(() -> {
+                if (!isAdded()) return;
 
-                    String label = String.format(Locale.getDefault(), "%.3f, %.3f", latitude, longitude);
-                    try {
-                        Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
-                        List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
-                        if (addresses != null && !addresses.isEmpty()) {
-                            Address address = addresses.get(0);
-                            String locality = address.getSubLocality();
-                            if (locality == null || locality.trim().isEmpty()) locality = address.getLocality();
-                            if (locality == null || locality.trim().isEmpty()) locality = address.getAdminArea();
-                            if (locality != null && !locality.trim().isEmpty()) {
-                                label = locality;
-                            }
+                String label = String.format(Locale.getDefault(), "%.3f, %.3f", latitude, longitude);
+                try {
+                    Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
+                    List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
+                    if (addresses != null && !addresses.isEmpty()) {
+                        Address address = addresses.get(0);
+                        String locality = address.getSubLocality();
+                        if (locality == null || locality.trim().isEmpty()) locality = address.getLocality();
+                        if (locality == null || locality.trim().isEmpty()) locality = address.getAdminArea();
+                        if (locality != null && !locality.trim().isEmpty()) {
+                            label = locality;
                         }
-                    } catch (Exception ignored) {
                     }
+                } catch (Exception ignored) {
+                }
 
-                    String finalLabel = label;
-                    if (isAdded() && getActivity() != null) {
-                        getActivity().runOnUiThread(() -> {
-                            if (isAdded() && tvCurrentLocation != null) {
-                                tvCurrentLocation.setText(finalLabel);
-                            }
-                        });
+                String finalLabel = label;
+                if (isAdded() && getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        if (isAdded() && tvCurrentLocation != null) {
+                            tvCurrentLocation.setText(finalLabel);
+                        }
+                    });
+                }
+            });
+        } catch (RejectedExecutionException e) {
+            // Executor was shut down, recreate it
+            synchronized (this) {
+                locationExecutor = Executors.newSingleThreadExecutor();
+                try {
+                    locationExecutor.execute(() -> {
+                        if (isAdded() && tvCurrentLocation != null) {
+                            String label = String.format(Locale.getDefault(), "%.3f, %.3f", latitude, longitude);
+                            tvCurrentLocation.setText(label);
+                        }
+                    });
+                } catch (Exception ignored) {
+                    if (isAdded() && tvCurrentLocation != null) {
+                        tvCurrentLocation.setText(String.format(Locale.getDefault(), "%.3f, %.3f", latitude, longitude));
                     }
-                });
+                }
             }
         } catch (Exception e) {
             if (isAdded() && tvCurrentLocation != null) {
