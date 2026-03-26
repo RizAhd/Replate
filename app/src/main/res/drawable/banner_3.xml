@@ -4,9 +4,23 @@
         <shape android:shape="rectangle">
             <gradient
                 android:angle="135"
-                android:startColor="#E91E63"
-                android:endColor="#F48FB1" />
+                android:startColor="#134E4A"
+                android:centerColor="#0F766E"
+                android:endColor="#2DD4BF" />
         </shape>
     </item>
-</layer-list>
 
+    <item android:gravity="end|bottom" android:right="-14dp" android:bottom="-20dp">
+        <shape android:shape="oval">
+            <size android:width="150dp" android:height="150dp" />
+            <solid android:color="#1FFFFFFF" />
+        </shape>
+    </item>
+
+    <item android:gravity="start|top" android:left="14dp" android:top="16dp">
+        <bitmap
+            android:src="@drawable/ic_onboarding_nearby"
+            android:tint="#F2FFFFFF"
+            android:gravity="center" />
+    </item>
+</layer-list>
