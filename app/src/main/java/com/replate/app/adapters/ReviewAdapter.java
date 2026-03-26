@@ -82,14 +82,14 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
         }
 
         void bind(Review review) {
-            tvReviewer.setText(review.getUserName());
+            tvReviewer.setText(review.getUserName() != null ? review.getUserName() : "Anonymous");
             ratingBar.setRating(review.getRatingValue());
-            tvComment.setText(review.getComment().trim().isEmpty() ? "No comment" : review.getComment());
+            tvComment.setText(review.getComment() == null || review.getComment().trim().isEmpty() ? "No comment" : review.getComment());
 
             long ts = review.getCreatedAtValue();
             tvDate.setText(ts > 0 ? dateFormat.format(new Date(ts)) : "Recently");
 
-            tvVerifiedPurchase.setVisibility(review.isVerifiedPurchase() ? View.VISIBLE : View.GONE);
+            tvVerifiedPurchase.setVisibility(review.isVerifiedPurchaseValue() ? View.VISIBLE : View.GONE);
 
             boolean isOwner = review.getUserId() != null
                     && !review.getUserId().trim().isEmpty()

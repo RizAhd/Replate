@@ -358,7 +358,12 @@ public class SettingsActivity extends AppCompatActivity {
         }
     }
 
+    private boolean canUseUi() {
+        return !isFinishing() && !(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR1 && isDestroyed());
+    }
+
     private void showBrandedToast(String message) {
+        if (!canUseUi()) return;
         try {
             View toastView = LayoutInflater.from(this).inflate(R.layout.view_branded_toast, null, false);
             TextView tvMessage = toastView.findViewById(R.id.tvToastMessage);
@@ -382,6 +387,7 @@ public class SettingsActivity extends AppCompatActivity {
     private void uploadProfilePhotoToRef(StorageReference photoRef, FirebaseUser user) {
         photoRef.getDownloadUrl()
                 .addOnSuccessListener(uri -> {
+                    if (isFinishing() || isDestroyed()) return;
                     if (uri == null) {
                         showBrandedToast("Failed to get photo URL");
                         return;
@@ -395,15 +401,29 @@ public class SettingsActivity extends AppCompatActivity {
                     mDatabase.child("users").child(user.getUid())
                             .updateChildren(photoUpdate)
                             .addOnSuccessListener(aVoid -> {
+                                if (isFinishing() || isDestroyed()) return;
                                 showBrandedToast("Photo updated");
-                                Glide.with(SettingsActivity.this)
-                                        .load(photoUrl)
-                                        .placeholder(R.drawable.ic_profile_placeholder)
-                                        .into(ivProfileImage);
+                                if (ivProfileImage == null) return;
+                                try {
+                                    Glide.with(SettingsActivity.this)
+                                            .load(photoUrl)
+                                            .placeholder(R.drawable.ic_profile_placeholder)
+                                            .into(ivProfileImage);
+                                } catch (IllegalArgumentException e) {
+                                    Log.e(TAG, "Activity was destroyed", e);
+                                }
                             })
-                            .addOnFailureListener(e -> showBrandedToast("Failed to save profile photo"));
+                            .addOnFailureListener(e -> {
+                                if (!isFinishing() && !isDestroyed()) {
+                                    showBrandedToast("Failed to save profile photo");
+                                }
+                            });
                 })
-                .addOnFailureListener(e -> showBrandedToast("Failed to get photo URL"));
+                .addOnFailureListener(e -> {
+                    if (!isFinishing() && !isDestroyed()) {
+                        showBrandedToast("Failed to get photo URL");
+                    }
+                });
     }
 
     /**
@@ -438,14 +458,19 @@ public class SettingsActivity extends AppCompatActivity {
             // Use a user-scoped path first (more likely to match strict Storage rules).
             String fileName = "profile_" + System.currentTimeMillis() + ".jpg";
             StorageReference primaryRef = mStorage
-                    .child("users")
+                    .child("profileImages")
                     .child(user.getUid())
-                    .child("profile")
                     .child(fileName);
 
             primaryRef.putBytes(data)
-                    .addOnSuccessListener(taskSnapshot -> uploadProfilePhotoToRef(primaryRef, user))
+                    .addOnSuccessListener(taskSnapshot -> {
+                        if (!isFinishing() && !isDestroyed()) {
+                            uploadProfilePhotoToRef(primaryRef, user);
+                        }
+                    })
                     .addOnFailureListener(primaryError -> {
+                        if (isFinishing() || isDestroyed()) return;
+
                         // Fallback to legacy path for older rulesets.
                         StorageReference legacyRef = mStorage
                                 .child("profile_photos")
@@ -453,16 +478,24 @@ public class SettingsActivity extends AppCompatActivity {
 
                         if (isPermissionDenied(primaryError)) {
                             legacyRef.putBytes(data)
-                                    .addOnSuccessListener(taskSnapshot -> uploadProfilePhotoToRef(legacyRef, user))
+                                    .addOnSuccessListener(taskSnapshot -> {
+                                        if (!isFinishing() && !isDestroyed()) {
+                                            uploadProfilePhotoToRef(legacyRef, user);
+                                        }
+                                    })
                                     .addOnFailureListener(legacyError -> {
-                                        if (isPermissionDenied(legacyError)) {
-                                            showBrandedToast("No permission to upload. Check Firebase Storage rules.");
-                                        } else {
-                                            showBrandedToast("Upload failed: " + legacyError.getMessage());
+                                        if (!isFinishing() && !isDestroyed()) {
+                                            if (isPermissionDenied(legacyError)) {
+                                                showBrandedToast("No permission to upload. Check Firebase Storage rules.");
+                                            } else {
+                                                showBrandedToast("Upload failed: " + legacyError.getMessage());
+                                            }
                                         }
                                     });
                         } else {
-                            showBrandedToast("Upload failed: " + primaryError.getMessage());
+                            if (!isFinishing() && !isDestroyed()) {
+                                showBrandedToast("Upload failed: " + primaryError.getMessage());
+                            }
                         }
                     });
 

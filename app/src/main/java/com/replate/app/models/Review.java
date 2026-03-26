@@ -106,7 +106,8 @@ public class Review implements Serializable {
         this.verifiedPurchase = verifiedPurchase;
     }
 
-    public boolean isVerifiedPurchase() {
+    @Exclude
+    public boolean isVerifiedPurchaseValue() {
         if (verifiedPurchase == null) return false;
         if (verifiedPurchase instanceof Boolean) return (Boolean) verifiedPurchase;
         return "true".equalsIgnoreCase(String.valueOf(verifiedPurchase));
