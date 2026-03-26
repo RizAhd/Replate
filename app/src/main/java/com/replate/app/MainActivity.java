@@ -141,14 +141,8 @@ public class MainActivity extends AppCompatActivity {
             } else if (id == R.id.drawer_help) {
                 startActivity(new Intent(this, SettingsActivity.class));
             } else if (id == R.id.drawer_logout) {
-                FcmTokenManager.clearTokenForCurrentUser();
-                mAuth.signOut();
-                SharedPreferences sessionPrefs = getSharedPreferences("REPLATE_PREFS", MODE_PRIVATE);
-                sessionPrefs.edit().clear().apply();
-                Intent i = new Intent(this, LoginActivity.class);
-                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(i);
-                finish();
+                logoutToLogin();
+                return true;
             }
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
@@ -396,5 +390,29 @@ public class MainActivity extends AppCompatActivity {
         } else {
             super.onBackPressed();
         }
+    }
+
+    public void logoutToLogin() {
+        if (isFinishing() || isDestroyed()) {
+            return;
+        }
+
+        try {
+            FcmTokenManager.clearTokenForCurrentUser();
+        } catch (Exception ignored) {
+        }
+
+        try {
+            mAuth.signOut();
+        } catch (Exception ignored) {
+        }
+
+        SharedPreferences sessionPrefs = getSharedPreferences("REPLATE_PREFS", MODE_PRIVATE);
+        sessionPrefs.edit().clear().apply();
+
+        Intent i = new Intent(this, LoginActivity.class);
+        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(i);
+        finish();
     }
 }

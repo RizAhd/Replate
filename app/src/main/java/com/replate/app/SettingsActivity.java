@@ -11,8 +11,11 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -36,6 +39,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageException;
 import com.google.firebase.storage.StorageReference;
 
 import org.json.JSONArray;
@@ -354,56 +358,118 @@ public class SettingsActivity extends AppCompatActivity {
         }
     }
 
+    private void showBrandedToast(String message) {
+        try {
+            View toastView = LayoutInflater.from(this).inflate(R.layout.view_branded_toast, null, false);
+            TextView tvMessage = toastView.findViewById(R.id.tvToastMessage);
+            tvMessage.setText(message);
+
+            Toast toast = new Toast(this);
+            toast.setDuration(Toast.LENGTH_SHORT);
+            toast.setView(toastView);
+            toast.show();
+        } catch (Exception ignored) {
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private boolean isPermissionDenied(Throwable error) {
+        if (!(error instanceof StorageException)) return false;
+        StorageException se = (StorageException) error;
+        return se.getErrorCode() == StorageException.ERROR_NOT_AUTHORIZED;
+    }
+
+    private void uploadProfilePhotoToRef(StorageReference photoRef, FirebaseUser user) {
+        photoRef.getDownloadUrl()
+                .addOnSuccessListener(uri -> {
+                    if (uri == null) {
+                        showBrandedToast("Failed to get photo URL");
+                        return;
+                    }
+
+                    String photoUrl = uri.toString();
+                    Map<String, Object> photoUpdate = new HashMap<>();
+                    photoUpdate.put("profileImage", photoUrl);
+                    photoUpdate.put("profileImageUrl", photoUrl);
+
+                    mDatabase.child("users").child(user.getUid())
+                            .updateChildren(photoUpdate)
+                            .addOnSuccessListener(aVoid -> {
+                                showBrandedToast("Photo updated");
+                                Glide.with(SettingsActivity.this)
+                                        .load(photoUrl)
+                                        .placeholder(R.drawable.ic_profile_placeholder)
+                                        .into(ivProfileImage);
+                            })
+                            .addOnFailureListener(e -> showBrandedToast("Failed to save profile photo"));
+                })
+                .addOnFailureListener(e -> showBrandedToast("Failed to get photo URL"));
+    }
+
     /**
      * Upload profile photo to Firebase Storage
      */
     private void uploadProfilePhoto(Bitmap bitmap) {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user == null) {
-            Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show();
+            showBrandedToast("User not authenticated");
             return;
         }
 
         if (bitmap == null) {
-            Toast.makeText(this, "No bitmap available", Toast.LENGTH_SHORT).show();
+            showBrandedToast("No photo selected");
             return;
         }
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, baos);
-        byte[] data = baos.toByteArray();
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 85, baos);
+            byte[] data = baos.toByteArray();
 
-        if (data.length == 0) {
-            Toast.makeText(this, "Compressed image is empty", Toast.LENGTH_SHORT).show();
-            return;
-        }
+            if (data.length == 0) {
+                showBrandedToast("Image conversion failed");
+                return;
+            }
 
-        StorageReference photoRef = mStorage.child("profile_photos").child(user.getUid() + "_" + System.currentTimeMillis() + ".jpg");
+            if (mStorage == null) {
+                mStorage = FirebaseStorage.getInstance().getReference();
+            }
 
-        photoRef.putBytes(data)
-                .addOnSuccessListener(taskSnapshot -> {
-                    photoRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                        if (uri != null) {
-                            String photoUrl = uri.toString();
-                            Map<String, Object> photoUpdate = new HashMap<>();
-                            photoUpdate.put("profileImage", photoUrl);
-                            photoUpdate.put("profileImageUrl", photoUrl);
+            // Use a user-scoped path first (more likely to match strict Storage rules).
+            String fileName = "profile_" + System.currentTimeMillis() + ".jpg";
+            StorageReference primaryRef = mStorage
+                    .child("users")
+                    .child(user.getUid())
+                    .child("profile")
+                    .child(fileName);
 
-                            mDatabase.child("users").child(user.getUid()).updateChildren(photoUpdate)
-                                    .addOnSuccessListener(aVoid -> {
-                                        Toast.makeText(SettingsActivity.this, "✅ Photo updated!", Toast.LENGTH_SHORT).show();
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        Toast.makeText(SettingsActivity.this, "❌ Failed to save photo URL: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            primaryRef.putBytes(data)
+                    .addOnSuccessListener(taskSnapshot -> uploadProfilePhotoToRef(primaryRef, user))
+                    .addOnFailureListener(primaryError -> {
+                        // Fallback to legacy path for older rulesets.
+                        StorageReference legacyRef = mStorage
+                                .child("profile_photos")
+                                .child(user.getUid() + "_" + System.currentTimeMillis() + ".jpg");
+
+                        if (isPermissionDenied(primaryError)) {
+                            legacyRef.putBytes(data)
+                                    .addOnSuccessListener(taskSnapshot -> uploadProfilePhotoToRef(legacyRef, user))
+                                    .addOnFailureListener(legacyError -> {
+                                        if (isPermissionDenied(legacyError)) {
+                                            showBrandedToast("No permission to upload. Check Firebase Storage rules.");
+                                        } else {
+                                            showBrandedToast("Upload failed: " + legacyError.getMessage());
+                                        }
                                     });
+                        } else {
+                            showBrandedToast("Upload failed: " + primaryError.getMessage());
                         }
-                    }).addOnFailureListener(e -> {
-                        Toast.makeText(SettingsActivity.this, "❌ Failed to get download URL: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     });
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(SettingsActivity.this, "❌ Upload failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
+
+        } catch (Exception e) {
+            Log.e(TAG, "Profile photo upload error", e);
+            showBrandedToast("Upload error");
+        }
     }
 
     private void saveProfile() {
