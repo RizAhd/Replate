@@ -32,6 +32,9 @@ public class EditProfileActivity extends AppCompatActivity {
 
     private ActivityResultLauncher<Intent> locationPickerLauncher;
 
+    private Double pickedLat = null;
+    private Double pickedLng = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -119,6 +122,10 @@ public class EditProfileActivity extends AppCompatActivity {
         updates.put("name", name);
         updates.put("phone", phone);
         updates.put("address", address);
+        if (pickedLat != null && pickedLng != null) {
+            updates.put("latitude", pickedLat);
+            updates.put("longitude", pickedLng);
+        }
 
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
@@ -155,9 +162,13 @@ public class EditProfileActivity extends AppCompatActivity {
     }
 
     private void handlePickedLocation(Intent data) {
-        double lat = data.getDoubleExtra("latitude", 0.0);
-        double lng = data.getDoubleExtra("longitude", 0.0);
+        // LocationPickerActivity returns lat/lng keys.
+        double lat = data.getDoubleExtra("lat", 0.0);
+        double lng = data.getDoubleExtra("lng", 0.0);
         String address = data.getStringExtra("address");
+
+        pickedLat = lat;
+        pickedLng = lng;
 
         Map<String, Object> locUpdates = new HashMap<>();
         locUpdates.put("latitude", lat);

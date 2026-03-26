@@ -88,6 +88,10 @@ public class SettingsActivity extends AppCompatActivity {
     private Bitmap capturedPhoto;
     private ActivityResultLauncher<Intent> cameraLauncher;
     private ActivityResultLauncher<String> galleryLauncher;
+    private ActivityResultLauncher<Intent> locationPickerLauncher;
+
+    private Double pickedLat = null;
+    private Double pickedLng = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,6 +134,36 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
+        locationPickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        Intent data = result.getData();
+                        double lat = data.getDoubleExtra("lat", 0.0);
+                        double lng = data.getDoubleExtra("lng", 0.0);
+                        String address = data.getStringExtra("address");
+
+                        pickedLat = lat;
+                        pickedLng = lng;
+
+                        if (address != null && !address.trim().isEmpty() && etAddress != null) {
+                            etAddress.setText(address);
+                        }
+
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        if (user != null) {
+                            Map<String, Object> map = new HashMap<>();
+                            map.put("latitude", lat);
+                            map.put("longitude", lng);
+                            if (address != null && !address.trim().isEmpty()) {
+                                map.put("address", address);
+                            }
+                            mDatabase.child("users").child(user.getUid()).updateChildren(map);
+                        }
+                    }
+                }
+        );
+
         initViews();
         loadUserData();
         loadPreferences();
@@ -156,12 +190,8 @@ public class SettingsActivity extends AppCompatActivity {
         btnChangePhoto.setOnClickListener(v -> showPhotoPicker());
 
         btnPickAddress.setOnClickListener(v -> {
-            // Open Map to pick address (For now, user can just type or we open map)
-            // Ideally, we start SearchActivity or a new PickerActivity
-            Toast.makeText(this, "Opening Map...", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(this, com.replate.app.SearchActivity.class); // Reusing Search for demo
-            intent.putExtra("picker_mode", true);
-            startActivity(intent);
+            Intent intent = new Intent(this, LocationPickerActivity.class);
+            locationPickerLauncher.launch(intent);
         });
 
         btnSaveProfile.setOnClickListener(v -> saveProfile());
@@ -526,7 +556,11 @@ public class SettingsActivity extends AppCompatActivity {
             Map<String, Object> updates = new HashMap<>();
             updates.put("name", name);
             updates.put("phone", phone);
-            updates.put("address", address); // Save address
+            updates.put("address", address);
+            if (pickedLat != null && pickedLng != null) {
+                updates.put("latitude", pickedLat);
+                updates.put("longitude", pickedLng);
+            }
 
             mDatabase.child("users").child(user.getUid()).updateChildren(updates)
                     .addOnSuccessListener(aVoid ->
