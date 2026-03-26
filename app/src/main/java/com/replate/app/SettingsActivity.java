@@ -10,6 +10,7 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -23,6 +24,8 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.Tasks;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
@@ -35,12 +38,23 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -51,16 +65,21 @@ import de.hdodenhof.circleimageview.CircleImageView;
 public class SettingsActivity extends AppCompatActivity {
 
     private static final int CAMERA_PERMISSION_REQUEST = 2001;
+    private static final String FUNCTIONS_BASE_URL = "https://asia-southeast1-replate-food-rescue.cloudfunctions.net";
+    private static final String TAG = "SettingsActivity";
 
     private CircleImageView ivProfileImage;
     private TextInputEditText etName, etPhone, etEmail, etAddress; // Added etAddress
-    private Button btnChangePhoto, btnSaveProfile, btnPickAddress; // Added btnPickAddress
+    private Button btnChangePhoto, btnSaveProfile, btnPickAddress;
+    private Button btnSendTestPush;
+    private MaterialCardView cardNotificationTools;
     private SwitchMaterial switchNotifications, switchLocation;
 
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
     private StorageReference mStorage;
     private SharedPreferences prefs;
+    private ExecutorService networkExecutor;
 
     private Bitmap capturedPhoto;
     private ActivityResultLauncher<Intent> cameraLauncher;
@@ -75,6 +94,7 @@ public class SettingsActivity extends AppCompatActivity {
         mDatabase = FirebaseDatabase.getInstance().getReference();
         mStorage = FirebaseStorage.getInstance().getReference();
         prefs = getSharedPreferences("REPLATE_PREFS", MODE_PRIVATE);
+        networkExecutor = Executors.newSingleThreadExecutor();
 
         cameraLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
@@ -120,7 +140,9 @@ public class SettingsActivity extends AppCompatActivity {
         etAddress = findViewById(R.id.etAddress); // Initialize
         btnChangePhoto = findViewById(R.id.btnChangePhoto);
         btnSaveProfile = findViewById(R.id.btnSaveProfile);
-        btnPickAddress = findViewById(R.id.btnPickAddress); // Initialize
+        btnPickAddress = findViewById(R.id.btnPickAddress);
+        btnSendTestPush = findViewById(R.id.btnSendTestPush);
+        cardNotificationTools = findViewById(R.id.cardNotificationTools);
         switchNotifications = findViewById(R.id.switchNotifications);
         switchLocation = findViewById(R.id.switchLocation);
 
@@ -146,6 +168,85 @@ public class SettingsActivity extends AppCompatActivity {
 
         switchLocation.setOnCheckedChangeListener((btn, checked) ->
                 prefs.edit().putBoolean("location_enabled", checked).apply());
+
+        setupNotificationTools();
+    }
+
+    private void setupNotificationTools() {
+        String role = prefs.getString("role", "customer");
+        boolean isAdmin = "admin".equalsIgnoreCase(role.trim());
+
+        if (cardNotificationTools != null) {
+            cardNotificationTools.setVisibility(isAdmin ? android.view.View.VISIBLE : android.view.View.GONE);
+        }
+
+        if (isAdmin && btnSendTestPush != null) {
+            btnSendTestPush.setOnClickListener(v -> sendSelfTestPush());
+        }
+    }
+
+    private void sendSelfTestPush() {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) {
+            Toast.makeText(this, getString(R.string.settings_test_push_failed), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Toast.makeText(this, getString(R.string.settings_test_push_sending), Toast.LENGTH_SHORT).show();
+
+        networkExecutor.execute(() -> {
+            HttpURLConnection connection = null;
+            try {
+                String idToken = Tasks.await(user.getIdToken(true), 20, TimeUnit.SECONDS).getToken();
+                if (idToken == null || idToken.trim().isEmpty()) {
+                    throw new IllegalStateException("Missing auth token");
+                }
+
+                URL url = new URL(FUNCTIONS_BASE_URL + "/sendTargetedNotification");
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("POST");
+                connection.setConnectTimeout(15000);
+                connection.setReadTimeout(15000);
+                connection.setDoOutput(true);
+                connection.setRequestProperty("Content-Type", "application/json");
+                connection.setRequestProperty("Authorization", "Bearer " + idToken);
+
+                JSONObject payload = new JSONObject();
+                payload.put("title", "REPLATE Test Push");
+                payload.put("body", "If you can see this popup, push notifications are working.");
+                payload.put("category", "admin_announcement");
+                payload.put("route", "notifications");
+                JSONArray users = new JSONArray();
+                users.put(user.getUid());
+                payload.put("userIds", users);
+
+                byte[] out = payload.toString().getBytes(StandardCharsets.UTF_8);
+                connection.getOutputStream().write(out);
+
+                int code = connection.getResponseCode();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(
+                        code >= 200 && code < 300 ? connection.getInputStream() : connection.getErrorStream(),
+                        StandardCharsets.UTF_8
+                ));
+                StringBuilder response = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) response.append(line);
+                reader.close();
+
+                if (code >= 200 && code < 300) {
+                    runOnUiThread(() -> Toast.makeText(SettingsActivity.this,
+                            getString(R.string.settings_test_push_sent), Toast.LENGTH_LONG).show());
+                } else {
+                    throw new IllegalStateException("HTTP " + code + ": " + response);
+                }
+            } catch (Exception e) {
+                runOnUiThread(() -> Toast.makeText(SettingsActivity.this,
+                        getString(R.string.settings_test_push_failed) + " " + e.getMessage(),
+                        Toast.LENGTH_LONG).show());
+            } finally {
+                if (connection != null) connection.disconnect();
+            }
+        });
     }
 
     private void loadUserData() {
@@ -249,7 +350,7 @@ public class SettingsActivity extends AppCompatActivity {
             bitmap.compress(Bitmap.CompressFormat.JPEG, 90, fos);
             fos.close();
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.w(TAG, "Failed to cache profile photo locally", e);
         }
     }
 
@@ -279,9 +380,9 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void saveProfile() {
-        String name = etName.getText().toString().trim();
-        String phone = etPhone.getText().toString().trim();
-        String address = etAddress.getText().toString().trim(); // Get address
+        String name = etName.getText() != null ? etName.getText().toString().trim() : "";
+        String phone = etPhone.getText() != null ? etPhone.getText().toString().trim() : "";
+        String address = etAddress.getText() != null ? etAddress.getText().toString().trim() : "";
 
         if (name.isEmpty() || phone.isEmpty()) {
             Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
@@ -303,5 +404,11 @@ public class SettingsActivity extends AppCompatActivity {
                             Toast.makeText(SettingsActivity.this,
                                     "Update Failed ❌", Toast.LENGTH_SHORT).show());
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        networkExecutor.shutdownNow();
     }
 }
