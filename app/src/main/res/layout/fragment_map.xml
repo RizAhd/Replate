@@ -18,6 +18,7 @@
     </FrameLayout>
 
     <LinearLayout
+        android:id="@+id/topPanel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
@@ -78,8 +79,8 @@
                             android:layout_width="22dp"
                             android:layout_height="22dp"
                             android:layout_gravity="center"
+                            android:contentDescription="@string/cd_location_icon"
                             android:src="@drawable/ic_my_location"
-                            android:contentDescription="My Location"
                             app:tint="@color/green_primary" />
                     </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>
@@ -97,7 +98,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         app:iconifiedByDefault="false"
-                        app:queryHint="Search places, towns, or landmarks..."
+                        app:queryHint="@string/map_search_hint"
                         app:searchIcon="@drawable/ic_search" />
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
@@ -138,6 +139,7 @@
                     android:layout_width="92dp"
                     android:layout_height="92dp"
                     android:background="@drawable/card_background_shape"
+                    android:contentDescription="@string/cd_food_image"
                     android:scaleType="centerCrop"
                     android:src="@drawable/placeholder_food" />
 
@@ -186,7 +188,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Tap marker to see route"
+                        android:text="@string/map_tap_marker_route"
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp"
                         android:textStyle="bold" />
@@ -205,9 +207,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:maxLines="3"
                 android:ellipsize="end"
-                android:text="Tap marker to load hotel menu..."
+                android:maxLines="3"
+                android:text="@string/map_loading_items"
                 android:textAppearance="@style/TextAppearance.REPLATE.Body"
                 android:textColor="@color/text_primary" />
 
@@ -217,7 +219,7 @@
                 android:layout_height="54dp"
                 android:layout_marginTop="18dp"
                 android:background="@drawable/button_primary"
-                android:text="Draw route"
+                android:text="@string/map_route_button"
                 android:textAllCaps="false"
                 android:textColor="@color/white"
                 android:textStyle="bold" />

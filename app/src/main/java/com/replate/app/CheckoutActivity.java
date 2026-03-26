@@ -21,6 +21,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AlertDialog;
 import androidx.cardview.widget.CardView;
 
 import com.google.android.material.textfield.TextInputEditText;
@@ -62,11 +63,14 @@ public class CheckoutActivity extends AppCompatActivity {
     private static final String MERCHANT_ID     = BuildConfig.PAYHERE_MERCHANT_ID;
     private static final String MERCHANT_SECRET = BuildConfig.PAYHERE_MERCHANT_SECRET;
 
+    private static final double DELIVERY_FEE_LKR = 250.0;
+
     private LinearLayout orderItemsContainer;
-    private TextView tvSubtotal, tvSavings, tvTotal;
+    private TextView tvSubtotal, tvSavings, tvTotal, tvDeliveryFee;
     private TextInputEditText etPickupTime, etCustomerName, etCustomerPhone, etAddress;
     private RadioGroup rgPayment, rgOrderType;
     private View cardDeliveryAddress;
+    private View rowDeliveryFee;
     private CardView cardPickupTime;
     private Button btnPlaceOrder;
     private ProgressBar progressBar;
@@ -81,8 +85,12 @@ public class CheckoutActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
 
     private List<CartItem> cartItems;
+    private double subtotalAmount = 0;
     private double totalAmount = 0;
     private double totalSavings = 0;
+    private double deliveryFee = 0;
+    private double selectedDeliveryLat = 0;
+    private double selectedDeliveryLng = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,6 +113,8 @@ public class CheckoutActivity extends AppCompatActivity {
                 result -> {
                     if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                         String address = result.getData().getStringExtra("address");
+                        selectedDeliveryLat = result.getData().getDoubleExtra("lat", 0);
+                        selectedDeliveryLng = result.getData().getDoubleExtra("lng", 0);
                         if (address != null && !address.trim().isEmpty()) {
                             etAddress.setText(address);
                         }
@@ -138,6 +148,8 @@ public class CheckoutActivity extends AppCompatActivity {
         btnPlaceOrder = findViewById(R.id.btnPlaceOrder);
         progressBar = findViewById(R.id.progressBar);
         btnPickAddressFromMap = findViewById(R.id.btnPickAddressFromMap);
+        tvDeliveryFee = findViewById(R.id.tvDeliveryFee);
+        rowDeliveryFee = findViewById(R.id.rowDeliveryFee);
 
         ivBack.setOnClickListener(v -> finish());
         etPickupTime.setOnClickListener(v -> showTimePicker());
@@ -151,20 +163,27 @@ public class CheckoutActivity extends AppCompatActivity {
         }
 
         rgOrderType.setOnCheckedChangeListener((group, checkedId) -> {
-            if (checkedId == R.id.rbDelivery) {
+            boolean isDelivery = checkedId == R.id.rbDelivery;
+            if (isDelivery) {
                 cardDeliveryAddress.setVisibility(View.VISIBLE);
                 if (cardPickupTime != null) cardPickupTime.setVisibility(View.GONE);
+                if (rowDeliveryFee != null) rowDeliveryFee.setVisibility(View.VISIBLE);
                 etPickupTime.setText("");
                 rbCash.setText("Cash on Delivery");
             } else {
                 cardDeliveryAddress.setVisibility(View.GONE);
                 if (cardPickupTime != null) cardPickupTime.setVisibility(View.VISIBLE);
+                if (rowDeliveryFee != null) rowDeliveryFee.setVisibility(View.GONE);
                 rbCash.setText("Cash on Pickup");
+                selectedDeliveryLat = 0;
+                selectedDeliveryLng = 0;
             }
+            recalculateTotals();
             updatePlaceOrderButton();
         });
 
         rgPayment.setOnCheckedChangeListener((group, checkedId) -> updatePlaceOrderButton());
+        recalculateTotals();
         updatePlaceOrderButton();
     }
 
@@ -177,7 +196,7 @@ public class CheckoutActivity extends AppCompatActivity {
             return;
         }
 
-        totalAmount = 0;
+        subtotalAmount = 0;
         totalSavings = 0;
         orderItemsContainer.removeAllViews();
 
@@ -202,12 +221,23 @@ public class CheckoutActivity extends AppCompatActivity {
             itemRow.addView(subtitle);
             orderItemsContainer.addView(itemRow);
 
-            totalAmount += item.getSubtotal();
+            subtotalAmount += item.getSubtotal();
             totalSavings += (item.getOriginalPrice() - item.getPrice()) * item.getQuantity();
         }
 
-        tvSubtotal.setText(String.format(Locale.getDefault(), "LKR %.2f", totalAmount));
+        recalculateTotals();
+    }
+
+    private void recalculateTotals() {
+        boolean isDelivery = rgOrderType != null && rgOrderType.getCheckedRadioButtonId() == R.id.rbDelivery;
+        deliveryFee = isDelivery ? DELIVERY_FEE_LKR : 0;
+        totalAmount = subtotalAmount + deliveryFee;
+
+        tvSubtotal.setText(String.format(Locale.getDefault(), "LKR %.2f", subtotalAmount));
         tvSavings.setText(String.format(Locale.getDefault(), "-LKR %.2f", totalSavings));
+        if (tvDeliveryFee != null) {
+            tvDeliveryFee.setText(String.format(Locale.getDefault(), "LKR %.2f", deliveryFee));
+        }
         tvTotal.setText(String.format(Locale.getDefault(), "LKR %.2f", totalAmount));
     }
 
@@ -276,9 +306,10 @@ public class CheckoutActivity extends AppCompatActivity {
             return;
         }
 
-        new androidx.appcompat.app.AlertDialog.Builder(this)
+        recalculateTotals();
+        new AlertDialog.Builder(this)
                 .setTitle("Confirm Order")
-                .setMessage("Are you sure you want to place this order?\nTotal: LKR " + String.format(Locale.US, "%.2f", totalAmount))
+                .setMessage(getString(R.string.checkout_confirm_message, totalAmount))
                 .setPositiveButton("Yes, Place Order", (dialog, which) -> {
                     if (rgPayment.getCheckedRadioButtonId() == R.id.rbCard) {
                         startSandboxPayment();
@@ -424,12 +455,19 @@ public class CheckoutActivity extends AppCompatActivity {
         orderData.put("hotelName", hotelName);
         orderData.put("items", itemsList);
         orderData.put("totalAmount", totalAmount);
-        orderData.put("originalTotal", totalAmount + totalSavings);
-        orderData.put("orderStatus", "pending_pickup");
+        orderData.put("subtotalAmount", subtotalAmount);
+        orderData.put("deliveryFee", deliveryFee);
+        orderData.put("savingsAmount", totalSavings);
+        orderData.put("originalTotal", subtotalAmount + totalSavings + deliveryFee);
+        orderData.put("orderStatus", isDelivery ? "pending_delivery" : "pending_pickup");
         orderData.put("paymentStatus", paymentStatus);
         orderData.put("paymentMethod", paymentMethod);
         orderData.put("orderType", orderType);
         orderData.put("deliveryAddress", isDelivery ? address : "Pickup at Hotel");
+        if (isDelivery) {
+            orderData.put("deliveryLatitude", selectedDeliveryLat);
+            orderData.put("deliveryLongitude", selectedDeliveryLng);
+        }
         orderData.put("pickupTime", pickupTime);
         orderData.put("qrCode", orderId);
         orderData.put("pickupCode", orderId);
@@ -449,6 +487,19 @@ public class CheckoutActivity extends AppCompatActivity {
                     saveReceipt(orderId, otpCode, customerName, totalAmount);
                     playPaymentSound();
                     createOrderNotifications(orderId, finalHotelId, finalHotelName, customerName, totalAmount);
+
+                    com.replate.app.notifications.InAppNotificationCenter.publish(
+                            new com.replate.app.notifications.InAppNotificationCenter.InAppNotificationMessage(
+                                    "Order placed successfully",
+                                    "Your order has been placed and is waiting for pickup.",
+                                    com.replate.app.notifications.NotificationCategories.ORDER_PLACED,
+                                    "order",
+                                    orderId,
+                                    finalHotelId,
+                                    "",
+                                    null
+                            )
+                    );
 
                     Intent intent = new Intent(this, OrderDetailActivity.class);
                     intent.putExtra("orderId", orderId);
@@ -516,6 +567,8 @@ public class CheckoutActivity extends AppCompatActivity {
         customerNotif.put("title", "Order confirmed");
         customerNotif.put("body", "Your order at " + (hotelName != null ? hotelName : "hotel") + " is placed. Total " + amountText);
         customerNotif.put("type", "order_confirmed");
+        customerNotif.put("category", com.replate.app.notifications.NotificationCategories.ORDER_PLACED);
+        customerNotif.put("route", "order");
         customerNotif.put("orderId", orderId);
         customerNotif.put("hotelId", hotelId != null ? hotelId : "");
         customerNotif.put("read", false);
@@ -535,6 +588,8 @@ public class CheckoutActivity extends AppCompatActivity {
                             hotelNotif.put("title", "New pickup order");
                             hotelNotif.put("body", (customerName != null ? customerName : "A customer") + " placed an order. " + amountText);
                             hotelNotif.put("type", "order_received");
+                            hotelNotif.put("category", com.replate.app.notifications.NotificationCategories.HOTEL_NEW_ORDER);
+                            hotelNotif.put("route", "order");
                             hotelNotif.put("orderId", orderId);
                             hotelNotif.put("hotelId", hotelId);
                             hotelNotif.put("read", false);

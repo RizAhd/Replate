@@ -15,7 +15,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:title="Edit Profile"
+            app:title="@string/edit_profile_title"
             app:navigationIcon="@drawable/ic_back" />
 
     </com.google.android.material.appbar.AppBarLayout>
@@ -58,7 +58,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:hint="Full Name"
+                android:hint="@string/edit_profile_hint_name"
                 style="@style/Widget.REPLATE.TextInputLayout">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -72,7 +72,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:hint="Phone Number"
+                android:hint="@string/edit_profile_hint_phone"
                 style="@style/Widget.REPLATE.TextInputLayout">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -86,7 +86,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:hint="Address"
+                android:hint="@string/edit_profile_hint_address"
                 style="@style/Widget.REPLATE.TextInputLayout">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -101,7 +101,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/button_height"
                 android:layout_marginBottom="24dp"
-                android:text="Pick Address on Map"
+                android:text="@string/edit_profile_pick_map"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:textColor="@color/leaf"
                 app:strokeColor="@color/leaf" />
@@ -110,7 +110,7 @@
                 android:id="@+id/btnSave"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/button_height"
-                android:text="Save Changes"
+                android:text="@string/edit_profile_save"
                 android:backgroundTint="@color/leaf"
                 android:textColor="@color/white" />
 

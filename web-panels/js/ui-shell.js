@@ -16,7 +16,8 @@ const ReplateUI = (() => {
         const container = document.getElementById(containerId);
         if (!container) return;
 
-        const { title = 'REPLATE', activeKey = '', links = [] } = opts;
+        const logoTitle = '<img src="../assets/replate-icon.svg" alt="REPLATE" class="brand-logo-sm">REPLATE';
+        const { title = logoTitle, activeKey = '', links = [] } = opts;
 
         const items = links.map(link => {
             const active = link.key === activeKey ? ' active' : '';

@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../css/style.css">
     <!-- QR Scanner Library -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" type="text/javascript"></script>
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
     <style>
         .badge-success  { background:#198754; color:#fff; padding:4px 10px; border-radius:6px; font-size:.8rem; }
         .badge-warning  { background:#ffc107; color:#000; padding:4px 10px; border-radius:6px; font-size:.8rem; }
@@ -134,6 +135,7 @@
 <script src="../js/firebase-config.js"></script>
 <script src="../js/data-schema.js"></script>
 <script src="../js/ui-shell.js"></script>
+<script src="../js/notifications-api.js"></script>
 
 <script>
     let currentHotelUserId = null;
@@ -159,7 +161,7 @@
 
     auth.onAuthStateChanged(async (user) => {
         ReplateUI.renderSidebar('appShellSidebar', {
-            title: '<i class="fas fa-utensils me-2"></i>REPLATE',
+            title: '<img src="../assets/replate-icon.svg" alt="REPLATE" class="brand-logo-sm">REPLATE',
             activeKey: 'orders',
             links: hotelShellLinks,
         });
@@ -409,34 +411,16 @@
             const order = snapshot.val();
             if (!order || !order.userId) return;
 
-            database.ref('users/' + order.userId + '/fcmToken').once('value').then(ts => {
-                const token = ts.val();
-                if (!token) return;
-
-                const serverKey = (typeof ENV !== 'undefined' && ENV.FIREBASE_FCM_SERVER_KEY)
-                    ? ENV.FIREBASE_FCM_SERVER_KEY : null;
-                if (!serverKey) return;
-
-                fetch('https://fcm.googleapis.com/fcm/send', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': 'key=' + serverKey,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        to: token,
-                        notification: {
-                            title: '🎉 Pickup Confirmed!',
-                            body: 'Your order at ' + (order.hotelName || 'the restaurant') +
-                                  ' has been picked up. Enjoy your meal! 🍽️'
-                        },
-                        data: {
-                            type: 'order_status',
-                            newStatus: 'completed',
-                            orderId: orderKey
-                        }
-                    })
-                }).catch(() => {});
+            NotificationApi.sendTargeted({
+                userIds: [order.userId],
+                title: 'Pickup Confirmed',
+                body: `Your order at ${order.hotelName || 'the restaurant'} has been picked up. Enjoy your meal!`,
+                type: 'order_completed',
+                route: 'order',
+                orderId: orderKey,
+                hotelId: order.hotelId || ''
+            }).catch((err) => {
+                console.error('Failed to send completion push:', err);
             });
         });
     }

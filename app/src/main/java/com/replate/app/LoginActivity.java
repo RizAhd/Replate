@@ -1,7 +1,9 @@
 package com.replate.app;
 
+import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Patterns;
@@ -15,6 +17,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -29,6 +33,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.replate.app.utils.FcmTokenManager;
 
 import org.json.JSONObject;
 
@@ -76,6 +81,7 @@ public class LoginActivity extends AppCompatActivity {
     private final ExecutorService networkExecutor = Executors.newSingleThreadExecutor();
     private static final String OTP_FALLBACK_US = "https://us-central1-replate-food-rescue.cloudfunctions.net";
     private static final String OTP_FALLBACK_ASIA = "https://asia-southeast1-replate-food-rescue.cloudfunctions.net";
+    private static final int REQ_POST_NOTIFICATIONS = 1201;
 
 
     @Override
@@ -95,6 +101,24 @@ public class LoginActivity extends AppCompatActivity {
 
         // Setup click listeners
         setupClickListeners();
+        requestNotificationPermissionIfNeeded();
+    }
+
+    private void requestNotificationPermissionIfNeeded() {
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.TIRAMISU) {
+            return;
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                == PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+
+        ActivityCompat.requestPermissions(
+                this,
+                new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                REQ_POST_NOTIFICATIONS
+        );
     }
 
     /**
@@ -268,6 +292,19 @@ public class LoginActivity extends AppCompatActivity {
 
                     showLoading(false);
                     saveUserSession(user, role);
+                    createLoginNotification(user.getUid(), role);
+                    com.replate.app.notifications.InAppNotificationCenter.publish(
+                            new com.replate.app.notifications.InAppNotificationCenter.InAppNotificationMessage(
+                                    "Welcome back",
+                                    "Login successful. You are now signed in.",
+                                    com.replate.app.notifications.NotificationCategories.LOGIN_SUCCESS,
+                                    "home",
+                                    "",
+                                    "",
+                                    "",
+                                    null
+                            )
+                    );
                     Toast.makeText(LoginActivity.this, "Welcome back!", Toast.LENGTH_SHORT).show();
                     goToHomeByRole(role, user.getUid());
                 }
@@ -279,6 +316,22 @@ public class LoginActivity extends AppCompatActivity {
                     goToHomeByRole("customer", user.getUid());
                 }
             });
+    }
+
+    private void createLoginNotification(String userId, String role) {
+        if (userId == null || userId.trim().isEmpty()) return;
+
+        Map<String, Object> notif = new HashMap<>();
+        notif.put("title", "Welcome back");
+        notif.put("body", "You logged in successfully.");
+        notif.put("type", "login");
+        notif.put("category", com.replate.app.notifications.NotificationCategories.LOGIN_SUCCESS);
+        notif.put("route", "home");
+        notif.put("role", role == null ? "customer" : role);
+        notif.put("read", false);
+        notif.put("timestamp", System.currentTimeMillis());
+
+        mDatabase.child("notifications").child(userId).push().setValue(notif);
     }
 
     /**
@@ -549,6 +602,8 @@ public class LoginActivity extends AppCompatActivity {
                 .putString("userType", role)
                 .putBoolean("isLoggedIn", true)
                 .apply();
+
+            FcmTokenManager.syncTokenForCurrentUser(this, role);
         }
     }
 

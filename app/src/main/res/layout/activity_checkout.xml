@@ -3,7 +3,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/md_theme_background">
+    android:background="@color/md_theme_background"
+    android:clipToPadding="false"
+    android:fillViewport="true"
+    android:overScrollMode="never">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -41,16 +44,17 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_centerInParent="true"
-                        android:text="Checkout"
+                        android:text="@string/checkout_title"
                         android:textAppearance="@style/TextAppearance.REPLATE.Subheading"
                         android:textColor="@color/white" />
+
                 </RelativeLayout>
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="18dp"
-                    android:text="Reserve your rescued meal and confirm the best pickup window."
+                    android:text="@string/checkout_subtitle"
                     android:textAppearance="@style/TextAppearance.REPLATE.Body"
                     android:textColor="@color/text_on_primary_muted" />
             </LinearLayout>
@@ -73,14 +77,14 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Fulfilment"
+                    android:text="@string/checkout_fulfilment_title"
                     android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="Choose whether you’ll pick up the order or request delivery."
+                    android:text="@string/checkout_fulfilment_subtitle"
                     android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
                 <RadioGroup
@@ -101,7 +105,7 @@
                         android:gravity="center"
                         android:minHeight="@dimen/touch_target_min"
                         android:paddingHorizontal="12dp"
-                        android:text="Pickup"
+                        android:text="@string/checkout_pickup"
                         android:textColor="@color/green_primary"
                         android:textStyle="bold" />
 
@@ -119,7 +123,7 @@
                         android:gravity="center"
                         android:minHeight="@dimen/touch_target_min"
                         android:paddingHorizontal="12dp"
-                        android:text="Delivery"
+                        android:text="@string/checkout_delivery"
                         android:textColor="@color/green_primary"
                         android:textStyle="bold" />
                 </RadioGroup>
@@ -146,7 +150,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Delivery address"
+                    android:text="@string/checkout_delivery_address"
                     android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -159,7 +163,7 @@
                         android:id="@+id/etAddress"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Full Address"
+                        android:hint="@string/checkout_address_hint"
                         android:inputType="textPostalAddress" />
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -169,7 +173,7 @@
                     android:layout_height="@dimen/button_height"
                     android:layout_gravity="end"
                     android:layout_marginTop="10dp"
-                    android:text="Pick from Map"
+                    android:text="@string/checkout_pick_from_map"
                     android:textAllCaps="false"
                     android:textColor="@color/green_primary"
                     app:backgroundTint="@color/green_pale"
@@ -195,14 +199,14 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Order summary"
+                    android:text="@string/checkout_summary_title"
                     android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="Review the meals currently saved in your cart."
+                    android:text="@string/checkout_summary_subtitle"
                     android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
                 <LinearLayout
@@ -226,14 +230,14 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Subtotal"
+                        android:text="@string/checkout_subtotal"
                         android:textColor="@color/text_secondary" />
 
                     <TextView
                         android:id="@+id/tvSubtotal"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="LKR 0.00"
+                        android:text="@string/price_zero_lkr"
                         android:textColor="@color/text_primary"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -247,15 +251,38 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="You save"
+                        android:text="@string/checkout_savings"
                         android:textColor="@color/success" />
 
                     <TextView
                         android:id="@+id/tvSavings"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="-LKR 0.00"
+                        android:text="@string/checkout_savings_default"
                         android:textColor="@color/success"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/rowDeliveryFee"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/checkout_delivery_fee"
+                        android:textColor="@color/text_secondary" />
+
+                    <TextView
+                        android:id="@+id/tvDeliveryFee"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/checkout_delivery_fee_amount"
+                        android:textColor="@color/text_primary"
                         android:textStyle="bold" />
                 </LinearLayout>
 
@@ -274,14 +301,14 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Total"
+                        android:text="@string/checkout_total"
                         android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
                     <TextView
                         android:id="@+id/tvTotal"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="LKR 0.00"
+                        android:text="@string/price_zero_lkr"
                         android:textColor="@color/green_primary"
                         android:textSize="@dimen/text_xl"
                         android:textStyle="bold" />
@@ -308,14 +335,14 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Pickup time"
+                    android:text="@string/checkout_pickup_time_title"
                     android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="Select the time you expect to arrive at the hotel."
+                    android:text="@string/checkout_pickup_time_subtitle"
                     android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -330,7 +357,7 @@
                         android:layout_height="wrap_content"
                         android:clickable="true"
                         android:focusable="false"
-                        android:hint="Select pickup time" />
+                        android:hint="@string/checkout_pickup_time_hint" />
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
@@ -353,7 +380,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Payment method"
+                    android:text="@string/checkout_payment_method"
                     android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
                 <RadioGroup
@@ -368,14 +395,14 @@
                         android:layout_height="wrap_content"
                         android:checked="true"
                         android:padding="10dp"
-                        android:text="Cash on Pickup" />
+                        android:text="@string/checkout_payment_cash" />
 
                     <RadioButton
                         android:id="@+id/rbCard"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:padding="10dp"
-                        android:text="Card Payment (PayHere)" />
+                        android:text="@string/checkout_payment_card" />
                 </RadioGroup>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
@@ -398,7 +425,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Your details"
+                    android:text="@string/checkout_details_title"
                     android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -411,7 +438,7 @@
                         android:id="@+id/etCustomerName"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Full Name" />
+                        android:hint="@string/checkout_full_name_hint" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -424,7 +451,7 @@
                         android:id="@+id/etCustomerPhone"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Phone Number"
+                        android:hint="@string/checkout_phone_hint"
                         android:inputType="phone" />
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
@@ -436,7 +463,7 @@
             android:layout_height="@dimen/button_height"
             android:layout_marginHorizontal="16dp"
             android:background="@drawable/button_primary"
-            android:text="Place Order"
+            android:text="@string/checkout_place_order"
             android:textAllCaps="false"
             android:textColor="@color/white"
             android:textSize="@dimen/text_md"

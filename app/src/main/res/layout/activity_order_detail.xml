@@ -182,16 +182,37 @@
                     android:textColor="@color/accent"
                     android:textSize="12sp" />
 
-                <Button
-                    android:id="@+id/btnCallHotel"
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="@dimen/button_height"
+                    android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
-                    android:background="@drawable/button_outline_primary"
-                    android:text="Call Hotel"
-                    android:textAllCaps="false"
-                    android:textColor="@color/primary"
-                    android:textStyle="bold" />
+                    android:orientation="horizontal"
+                    android:weightSum="2">
+
+                    <Button
+                        android:id="@+id/btnCallHotel"
+                        android:layout_width="0dp"
+                        android:layout_height="@dimen/button_height"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="6dp"
+                        android:background="@drawable/button_outline_neutral"
+                        android:text="Call Hotel"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_primary"
+                        android:textStyle="bold" />
+
+                    <Button
+                        android:id="@+id/btnSmsHotel"
+                        android:layout_width="0dp"
+                        android:layout_height="@dimen/button_height"
+                        android:layout_weight="1"
+                        android:layout_marginStart="6dp"
+                        android:background="@drawable/button_outline_neutral"
+                        android:text="SMS Hotel"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_primary"
+                        android:textStyle="bold" />
+                </LinearLayout>
 
                 <Button
                     android:id="@+id/btnOpenPickupRoute"
@@ -309,7 +330,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Rate your order"
+                    android:text="@string/order_review_title"
                     android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
                 <TextView
@@ -317,7 +338,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="Share your pickup experience"
+                    android:text="@string/order_review_hint"
                     android:textAppearance="@style/TextAppearance.REPLATE.Body"
                     android:textColor="@color/text_secondary" />
 
@@ -335,7 +356,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:hint="Write a short review (optional)">
+                    android:hint="@string/order_review_comment_hint">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etReviewComment"
@@ -360,7 +381,7 @@
                     android:layout_height="@dimen/button_height"
                     android:layout_marginTop="12dp"
                     android:background="@drawable/button_primary"
-                    android:text="Submit review"
+                    android:text="@string/order_review_submit"
                     android:textAllCaps="false"
                     android:textColor="@color/white"
                     android:textStyle="bold" />

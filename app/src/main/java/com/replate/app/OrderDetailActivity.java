@@ -19,7 +19,10 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
@@ -34,6 +37,7 @@ import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.common.BitMatrix;
 import com.replate.app.models.Order;
+import com.replate.app.utils.TelephonyUtils;
 
 import java.util.Locale;
 import java.util.Map;
@@ -50,6 +54,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
     private TextView tvReviewHint, tvReviewSummary;
     private ImageView ivQRCode;
     private Button btnCallHotel;
+    private Button btnSmsHotel;
     private Button btnOpenPickupRoute;
     private Button btnSubmitReview;
     private CardView cardQR;
@@ -64,6 +69,19 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
     private SensorManager sensorManager;
     private Sensor lightSensor;
     private float originalBrightness = -1;
+    private String pendingCallNumber;
+
+    private final ActivityResultLauncher<String> callPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
+                if (granted && pendingCallNumber != null && !pendingCallNumber.isEmpty()) {
+                    TelephonyUtils.callNow(this, pendingCallNumber);
+                } else if (!granted) {
+                    Toast.makeText(this, "Call permission denied. Opening dialer instead.", Toast.LENGTH_SHORT).show();
+                    if (pendingCallNumber != null && !pendingCallNumber.isEmpty()) {
+                        TelephonyUtils.openDialer(this, pendingCallNumber);
+                    }
+                }
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,6 +123,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         tvPaymentStatus = findViewById(R.id.tvPaymentStatus);
         ivQRCode = findViewById(R.id.ivQRCode);
         btnCallHotel = findViewById(R.id.btnCallHotel);
+        btnSmsHotel = findViewById(R.id.btnSmsHotel);
         btnOpenPickupRoute = findViewById(R.id.btnOpenPickupRoute);
         cardQR = findViewById(R.id.cardQR);
         reviewSection = findViewById(R.id.reviewSection);
@@ -118,6 +137,9 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
 
         // TELEPHONY REQUIREMENT
         btnCallHotel.setOnClickListener(v -> callHotel());
+        if (btnSmsHotel != null) {
+            btnSmsHotel.setOnClickListener(v -> smsHotel());
+        }
         if (btnOpenPickupRoute != null) {
             btnOpenPickupRoute.setOnClickListener(v -> openPickupRoute());
         }
@@ -272,34 +294,62 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
      * REQUIREMENT: Telephony
      */
     private void callHotel() {
-        // Get hotel phone from Firebase, fallback to default
-        if (order != null && order.getHotelId() != null) {
-            mDatabase.child("hotels").child(order.getHotelId()).child("phone")
-                    .addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            String phone = snapshot.getValue(String.class);
-                            if (phone == null || phone.isEmpty()) phone = "0112345678";
-                            dialPhone(phone);
+        resolveHotelPhone(phone -> {
+            pendingCallNumber = phone;
+            new AlertDialog.Builder(this)
+                    .setTitle("Contact hotel")
+                    .setItems(new CharSequence[]{"Open Dialer", "Call Now"}, (dialog, which) -> {
+                        if (which == 0) {
+                            TelephonyUtils.openDialer(this, phone);
+                        } else {
+                            if (TelephonyUtils.hasCallPermission(this)) {
+                                TelephonyUtils.callNow(this, phone);
+                            } else {
+                                callPermissionLauncher.launch(Manifest.permission.CALL_PHONE);
+                            }
                         }
-
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError error) {
-                            dialPhone("0112345678");
-                        }
-                    });
-        } else {
-            dialPhone("0112345678");
-        }
+                    })
+                    .show();
+        });
     }
 
-    private void dialPhone(String phone) {
-        try {
-            Intent intent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + phone));
-            startActivity(intent);
-        } catch (Exception e) {
-            Toast.makeText(this, "Cannot open dialer", Toast.LENGTH_SHORT).show();
+    private void smsHotel() {
+        resolveHotelPhone(phone -> {
+            String message = "Hi " + (order != null && order.getHotelName() != null ? order.getHotelName() : "Hotel")
+                    + ", I am contacting about my order "
+                    + (order != null && order.getOrderId() != null ? order.getOrderId() : "")
+                    + " in REPLATE.";
+            try {
+                TelephonyUtils.openSms(this, phone, message);
+            } catch (Exception e) {
+                Toast.makeText(this, "No SMS app available", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void resolveHotelPhone(PhoneCallback callback) {
+        if (order == null || order.getHotelId() == null || order.getHotelId().trim().isEmpty()) {
+            callback.onPhone("0112345678");
+            return;
         }
+
+        mDatabase.child("hotels").child(order.getHotelId()).child("phone")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        String phone = TelephonyUtils.normalizePhone(snapshot.getValue(String.class), "0112345678");
+                        callback.onPhone(phone);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        callback.onPhone("0112345678");
+                    }
+                });
+    }
+
+    private interface PhoneCallback {
+        void onPhone(String phone);
     }
 
     /**

@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -18,8 +19,24 @@ import java.util.List;
  */
 public class BannerAdapter extends RecyclerView.Adapter<BannerAdapter.BannerViewHolder> {
 
-    private Context context;
-    private List<Integer> bannerImages;
+    private final Context context;
+    private final List<Integer> bannerImages;
+
+    private static final String[] BANNER_BADGES = {
+            "HOT DEAL", "FOOD RESCUE", "SMART SAVINGS"
+    };
+
+    private static final String[] BANNER_TITLES = {
+            "Low Prices, Big Smiles",
+            "Don't Waste Good Food",
+            "Rescue Meals Near You"
+    };
+
+    private static final String[] BANNER_SUBTITLES = {
+            "Get hotel-quality food at rescue prices today.",
+            "Every order helps reduce food waste in Sri Lanka.",
+            "Fresh surplus meals are waiting around your location."
+    };
 
     public BannerAdapter(Context context, List<Integer> bannerImages) {
         this.context = context;
@@ -36,6 +53,11 @@ public class BannerAdapter extends RecyclerView.Adapter<BannerAdapter.BannerView
     @Override
     public void onBindViewHolder(@NonNull BannerViewHolder holder, int position) {
         holder.ivBanner.setImageResource(bannerImages.get(position));
+
+        int index = position % BANNER_TITLES.length;
+        holder.tvBannerBadge.setText(BANNER_BADGES[index]);
+        holder.tvBannerTitle.setText(BANNER_TITLES[index]);
+        holder.tvBannerSubtitle.setText(BANNER_SUBTITLES[index]);
     }
 
     @Override
@@ -45,11 +67,16 @@ public class BannerAdapter extends RecyclerView.Adapter<BannerAdapter.BannerView
 
     static class BannerViewHolder extends RecyclerView.ViewHolder {
         ImageView ivBanner;
+        TextView tvBannerBadge;
+        TextView tvBannerTitle;
+        TextView tvBannerSubtitle;
 
         BannerViewHolder(@NonNull View itemView) {
             super(itemView);
             ivBanner = itemView.findViewById(R.id.ivBanner);
+            tvBannerBadge = itemView.findViewById(R.id.tvBannerBadge);
+            tvBannerTitle = itemView.findViewById(R.id.tvBannerTitle);
+            tvBannerSubtitle = itemView.findViewById(R.id.tvBannerSubtitle);
         }
     }
 }
-

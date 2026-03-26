@@ -15,7 +15,7 @@
             android:id="@+id/tvPayHereTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="PayHere"
+            android:text="@string/mock_pay_title"
             android:textStyle="bold"
             android:textSize="28sp"
             android:textColor="@color/leaf"
@@ -29,7 +29,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="Total Amount"
+            android:text="@string/mock_pay_total_amount"
             android:textColor="@color/text_secondary"
             android:textSize="14sp"
             app:layout_constraintEnd_toEndOf="parent"
@@ -41,7 +41,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="LKR 1,250.00"
+            android:text="@string/mock_pay_total_default"
             android:textColor="@color/charcoal"
             android:textSize="32sp"
             android:textStyle="bold"
@@ -68,7 +68,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Payment Method"
+                    android:text="@string/mock_pay_method_title"
                     android:textColor="@color/text_secondary"
                     android:textSize="12sp"
                     android:textStyle="bold"
@@ -86,7 +86,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:checked="true"
-                        android:text="Credit/Debit Card"
+                        android:text="@string/mock_pay_card_option"
                         android:textColor="@color/charcoal" />
 
                     <RadioButton
@@ -94,7 +94,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Mobile Wallet"
+                        android:text="@string/mock_pay_wallet_option"
                         android:textColor="@color/charcoal" />
                 </RadioGroup>
 
@@ -108,7 +108,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Card Details"
+                    android:text="@string/mock_pay_card_details"
                     android:textColor="@color/charcoal"
                     android:textSize="16sp"
                     android:textStyle="bold" />
@@ -117,7 +117,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:hint="Card Number"
+                    android:hint="@string/mock_pay_card_number"
                     app:boxStrokeColor="@color/leaf">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -141,7 +141,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginEnd="8dp"
-                        android:hint="Expiry"
+                        android:hint="@string/mock_pay_expiry"
                         app:boxStrokeColor="@color/leaf">
 
                         <com.google.android.material.textfield.TextInputEditText
@@ -157,7 +157,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginStart="8dp"
-                        android:hint="CVV"
+                        android:hint="@string/mock_pay_cvv"
                         app:boxStrokeColor="@color/leaf">
 
                         <com.google.android.material.textfield.TextInputEditText
@@ -174,7 +174,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:hint="Cardholder Name"
+                    android:hint="@string/mock_pay_cardholder"
                     app:boxStrokeColor="@color/leaf">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -194,7 +194,7 @@
             android:layout_height="60dp"
             android:layout_marginTop="32dp"
             android:backgroundTint="@color/leaf"
-            android:text="Pay LKR 1,250.00"
+            android:text="@string/mock_pay_action"
             android:textColor="@color/white"
             android:textSize="16sp"
             android:textStyle="bold"
@@ -205,7 +205,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="🔒 Secured by PayHere"
+            android:text="@string/mock_pay_secured"
             android:textColor="@color/text_secondary"
             android:textSize="12sp"
             app:layout_constraintEnd_toEndOf="parent"

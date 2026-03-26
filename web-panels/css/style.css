@@ -83,6 +83,29 @@ h1, h2, h3, h4, h5 {
     color: var(--primary-color);
 }
 
+.brand-logo-auth {
+    width: 72px;
+    height: 72px;
+    object-fit: contain;
+    filter: drop-shadow(0 6px 14px rgba(26, 107, 60, 0.18));
+}
+
+.brand-logo-inline {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.brand-logo-sm {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    margin-right: 6px;
+    vertical-align: text-bottom;
+}
+
 .auth-title {
     margin-top: 0.5rem;
     margin-bottom: 0.35rem;
@@ -446,5 +469,120 @@ main {
 
     .btn {
         width: 100%;
+    }
+}
+
+/* ==========================================
+   Final polish: premium responsiveness pass
+   ========================================== */
+.page-shell,
+.panel-shell {
+    max-width: var(--panel-max-width);
+    margin: 0 auto;
+}
+
+.table-responsive {
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-soft);
+    overflow: hidden;
+    background: var(--surface-color);
+}
+
+.table thead th {
+    background: #f4f9f5;
+    color: var(--text-primary);
+    font-weight: 700;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.table tbody td {
+    vertical-align: middle;
+    color: var(--text-primary);
+}
+
+.form-control,
+.form-select,
+.btn,
+.nav-link,
+.card,
+.modal-content {
+    transition: box-shadow 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+    transform: translateY(-1px);
+}
+
+.sidebar {
+    padding-bottom: 16px;
+}
+
+@media (max-width: 1199.98px) {
+    main {
+        max-width: 100%;
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .card {
+        border-radius: var(--radius-lg);
+    }
+}
+
+@media (max-width: 991.98px) {
+    .sidebar {
+        min-height: auto;
+        position: relative;
+        border-right: 0;
+        border-bottom: 1px solid var(--border-soft);
+    }
+
+    .panel-nav-list .nav-link,
+    .nav-link {
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .auth-card {
+        border-radius: 20px;
+        padding: 26px 20px;
+    }
+}
+
+@media (max-width: 767.98px) {
+    body {
+        font-size: 0.95rem;
+    }
+
+    .card {
+        margin-bottom: 14px;
+        box-shadow: 0 8px 20px rgba(26, 107, 60, 0.08);
+    }
+
+    .card-header {
+        padding: 0.85rem 1rem;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .d-flex.gap-2,
+    .d-flex.gap-3 {
+        flex-wrap: wrap;
+    }
+
+    .auth-page {
+        padding: 14px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
     }
 }

@@ -23,9 +23,19 @@
                 android:layout_height="wrap_content"
                 android:padding="20dp">
 
+                <ImageView
+                    android:id="@+id/ivOnboardingLogo"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:src="@drawable/ic_replate_logo"
+                    android:contentDescription="@string/app_name" />
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_toEndOf="@id/ivOnboardingLogo"
+                    android:layout_marginStart="10dp"
+                    android:layout_centerVertical="true"
                     android:text="REPLATE"
                     android:textAppearance="@style/TextAppearance.REPLATE.Subheading"
                     android:textColor="@color/white" />
