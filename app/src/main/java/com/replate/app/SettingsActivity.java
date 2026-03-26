@@ -359,24 +359,51 @@ public class SettingsActivity extends AppCompatActivity {
      */
     private void uploadProfilePhoto(Bitmap bitmap) {
         FirebaseUser user = mAuth.getCurrentUser();
-        if (user == null) return;
+        if (user == null) {
+            Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (bitmap == null) {
+            Toast.makeText(this, "No bitmap available", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 80, baos);
         byte[] data = baos.toByteArray();
 
-        StorageReference photoRef = mStorage.child("profile_photos/" + user.getUid() + ".jpg");
+        if (data.length == 0) {
+            Toast.makeText(this, "Compressed image is empty", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        StorageReference photoRef = mStorage.child("profile_photos").child(user.getUid() + "_" + System.currentTimeMillis() + ".jpg");
+
         photoRef.putBytes(data)
-                .addOnSuccessListener(taskSnapshot ->
-                        photoRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                .addOnSuccessListener(taskSnapshot -> {
+                    photoRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                        if (uri != null) {
+                            String photoUrl = uri.toString();
                             Map<String, Object> photoUpdate = new HashMap<>();
-                            photoUpdate.put("profileImage", uri.toString());
-                            photoUpdate.put("profileImageUrl", uri.toString());
-                            mDatabase.child("users").child(user.getUid()).updateChildren(photoUpdate);
-                            Toast.makeText(this, "Photo updated!", Toast.LENGTH_SHORT).show();
-                        }))
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, "Upload failed", Toast.LENGTH_SHORT).show());
+                            photoUpdate.put("profileImage", photoUrl);
+                            photoUpdate.put("profileImageUrl", photoUrl);
+
+                            mDatabase.child("users").child(user.getUid()).updateChildren(photoUpdate)
+                                    .addOnSuccessListener(aVoid -> {
+                                        Toast.makeText(SettingsActivity.this, "✅ Photo updated!", Toast.LENGTH_SHORT).show();
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Toast.makeText(SettingsActivity.this, "❌ Failed to save photo URL: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                    });
+                        }
+                    }).addOnFailureListener(e -> {
+                        Toast.makeText(SettingsActivity.this, "❌ Failed to get download URL: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(SettingsActivity.this, "❌ Upload failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
     }
 
     private void saveProfile() {
