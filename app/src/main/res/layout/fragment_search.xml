@@ -15,19 +15,48 @@
             android:layout_height="wrap_content"
             android:background="@color/primary"
             android:orientation="vertical"
-            android:padding="@dimen/space_2">
+            android:paddingStart="@dimen/space_2"
+            android:paddingTop="@dimen/space_2"
+            android:paddingEnd="@dimen/space_2"
+            android:paddingBottom="@dimen/space_1_5">
 
-            <TextView
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/search_title"
-                android:textAppearance="@style/TextAppearance.REPLATE.Headline"
-                android:textColor="@color/white" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/search_title"
+                    android:textAppearance="@style/TextAppearance.REPLATE.Headline"
+                    android:textColor="@color/white" />
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardFilterAction"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    app:cardBackgroundColor="#1AFFFFFF"
+                    app:cardCornerRadius="14dp"
+                    app:cardElevation="0dp">
+
+                    <ImageView
+                        android:id="@+id/ivFilter"
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="@string/search_filter_action"
+                        android:src="@drawable/ic_filter"
+                        app:tint="@color/white" />
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_2"
+                android:layout_marginTop="@dimen/space_1_5"
                 app:cardCornerRadius="@dimen/radius_md"
                 app:cardElevation="0dp">
 
@@ -39,8 +68,8 @@
                     android:paddingHorizontal="16dp">
 
                     <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
                         android:contentDescription="@string/cd_arrow_right"
                         android:src="@drawable/ic_search"
                         app:tint="@color/text_secondary" />
@@ -50,7 +79,8 @@
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:layout_marginStart="12dp"
+                        android:layout_marginStart="10dp"
+                        android:autofillHints=""
                         android:background="@android:color/transparent"
                         android:hint="@string/search_hint_full"
                         android:imeOptions="actionSearch"
@@ -59,80 +89,44 @@
                         android:textColor="@color/text_primary"
                         android:textColorHint="@color/text_secondary"
                         android:textSize="@dimen/text_sm" />
-
-                    <ImageView
-                        android:id="@+id/ivFilter"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:contentDescription="@string/cd_settings"
-                        android:src="@drawable/ic_filter"
-                        app:tint="@color/green_primary" />
-
                 </LinearLayout>
 
             </androidx.cardview.widget.CardView>
 
-        </LinearLayout>
-
-        <HorizontalScrollView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:scrollbars="none"
-            android:paddingVertical="12dp">
-
             <LinearLayout
-                android:id="@+id/filterChipsLayout"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingHorizontal="12dp">
+                android:paddingStart="16dp"
+                android:paddingTop="8dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="6dp">
 
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipAll"
-                    style="@style/Widget.Material3.Chip.Filter"
+                <TextView
+                    android:id="@+id/tvActiveFilter"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/badge_distance"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="5dp"
+                    android:text="@string/search_active_filter_default"
+                    android:textColor="@color/green_primary"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvFilterHint"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:checked="true"
-                    android:text="@string/search_chip_all" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipNearby"
-                    style="@style/Widget.Material3.Chip.Filter"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/search_chip_nearby" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipPriceLow"
-                    style="@style/Widget.Material3.Chip.Filter"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/search_chip_price_low" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipRating"
-                    style="@style/Widget.Material3.Chip.Filter"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/search_chip_top_rated" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipCategory"
-                    style="@style/Widget.Material3.Chip.Filter"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/search_chip_category" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipDiscount"
-                    style="@style/Widget.Material3.Chip.Filter"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/search_chip_best_discount" />
-
+                    android:layout_marginStart="10dp"
+                    android:text="@string/search_filter_hint"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="11sp" />
             </LinearLayout>
 
-        </HorizontalScrollView>
+        </LinearLayout>
 
         <TextView
             android:id="@+id/tvResultsCount"

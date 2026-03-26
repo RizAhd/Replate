@@ -200,6 +200,25 @@ Total: LKR %1$.2f</string>
     <string name="search_chip_best_discount">Best Discount</string>
     <string name="search_results_default">0 results found</string>
     <string name="search_empty_title">Start searching for food deals</string>
+    <string name="search_filter_action">Open advanced filters</string>
+    <string name="search_active_filter_default">For you: Nearby + best value</string>
+    <string name="search_active_filter_template">Filter: %1$s</string>
+    <string name="search_filter_for_you">For you</string>
+    <string name="search_filter_nearby">Nearby first</string>
+    <string name="search_filter_low_price">Lowest price</string>
+    <string name="search_filter_discount">Highest discount</string>
+    <string name="search_filter_rating">Top rated</string>
+    <string name="search_filter_category">Category A-Z</string>
+    <string name="search_results_count_template">%1$d results found</string>
+    <string name="search_filter_hint">Tap filter to refine</string>
+    <string name="search_filter_high_price">Highest price</string>
+    <string name="search_filter_available_only">Available items only</string>
+    <string name="search_filters_title">Advanced Filters</string>
+    <string name="search_filters_subtitle">Refine by sort, category, and availability</string>
+    <string name="search_filters_sort">Sort by</string>
+    <string name="search_filters_category">Category</string>
+    <string name="search_filters_reset">Reset</string>
+    <string name="search_filters_apply">Apply</string>
 
     <!-- Edit profile -->
     <string name="edit_profile_title">Edit Profile</string>
