@@ -59,6 +59,8 @@ public class FoodDetailActivity extends AppCompatActivity {
     private DatabaseReference mDatabase;
     private String pendingCallNumber;
     private String currentUserName = "Anonymous";
+    private String currentUserId = "";
+    private String editingReviewId = null;
 
     private ReviewAdapter reviewAdapter;
     private RelatedFoodAdapter relatedFoodAdapter;
@@ -128,7 +130,18 @@ public class FoodDetailActivity extends AppCompatActivity {
     }
 
     private void setupReviewAndRecommendationLists() {
-        reviewAdapter = new ReviewAdapter();
+        currentUserId = FirebaseAuth.getInstance().getUid() == null ? "" : FirebaseAuth.getInstance().getUid();
+        reviewAdapter = new ReviewAdapter(currentUserId, new ReviewAdapter.ReviewActionListener() {
+            @Override
+            public void onEditReview(Review review) {
+                startReviewEdit(review);
+            }
+
+            @Override
+            public void onDeleteReview(Review review) {
+                confirmDeleteReview(review);
+            }
+        });
         rvReviews.setLayoutManager(new LinearLayoutManager(this));
         rvReviews.setNestedScrollingEnabled(false);
         rvReviews.setAdapter(reviewAdapter);
@@ -292,31 +305,101 @@ public class FoodDetailActivity extends AppCompatActivity {
         }
 
         String comment = etReviewComment.getText() != null ? etReviewComment.getText().toString().trim() : "";
-
         btnSubmitReview.setEnabled(false);
 
-        DatabaseReference ref = mDatabase.child("reviewsByFood").child(foodId).push();
-        Review review = new Review();
-        review.setReviewId(ref.getKey());
-        review.setFoodId(foodId);
-        review.setUserId(uid);
-        review.setUserName(currentUserName);
-        review.setRating(rating);
-        review.setComment(comment);
-        review.setCreatedAt(System.currentTimeMillis());
+        if (editingReviewId != null && !editingReviewId.trim().isEmpty()) {
+            updateExistingReview(foodId, editingReviewId, rating, comment);
+            return;
+        }
 
-        ref.setValue(review)
-                .addOnSuccessListener(unused -> {
+        createReviewWithPurchaseVerification(uid, foodId, rating, comment);
+    }
+
+    private void createReviewWithPurchaseVerification(String uid, String foodId, float rating, String comment) {
+        hasCompletedOrderForFood(uid, foodId, verified -> {
+            DatabaseReference ref = mDatabase.child("reviewsByFood").child(foodId).push();
+            Review review = new Review();
+            review.setReviewId(ref.getKey());
+            review.setFoodId(foodId);
+            review.setUserId(uid);
+            review.setUserName(currentUserName);
+            review.setRating(rating);
+            review.setComment(comment);
+            review.setCreatedAt(System.currentTimeMillis());
+            review.setVerifiedPurchase(verified);
+
+            ref.setValue(review)
+                    .addOnSuccessListener(unused -> {
+                        btnSubmitReview.setEnabled(true);
+                        clearReviewInput();
+                        updateFoodRatingAggregate(foodId);
+                        Toast.makeText(this, "Review added", Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnFailureListener(e -> {
+                        btnSubmitReview.setEnabled(true);
+                        Toast.makeText(this, "Failed to submit review", Toast.LENGTH_SHORT).show();
+                    });
+        });
+    }
+
+    private void updateExistingReview(String foodId, String reviewId, float rating, String comment) {
+        DatabaseReference ref = mDatabase.child("reviewsByFood").child(foodId).child(reviewId);
+        ref.child("rating").setValue(rating);
+        ref.child("comment").setValue(comment);
+        ref.child("updatedAt").setValue(System.currentTimeMillis());
+        ref.child("updatedAtServer").setValue(com.google.firebase.database.ServerValue.TIMESTAMP)
+                .addOnCompleteListener(task -> {
                     btnSubmitReview.setEnabled(true);
-                    ratingInput.setRating(0f);
-                    etReviewComment.setText("");
-                    updateFoodRatingAggregate(foodId);
-                    Toast.makeText(this, "Review added", Toast.LENGTH_SHORT).show();
-                })
-                .addOnFailureListener(e -> {
-                    btnSubmitReview.setEnabled(true);
-                    Toast.makeText(this, "Failed to submit review", Toast.LENGTH_SHORT).show();
+                    if (task.isSuccessful()) {
+                        clearReviewInput();
+                        updateFoodRatingAggregate(foodId);
+                        Toast.makeText(this, "Review updated", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(this, "Failed to update review", Toast.LENGTH_SHORT).show();
+                    }
                 });
+    }
+
+    private void startReviewEdit(Review review) {
+        if (review == null) return;
+        editingReviewId = review.getReviewId();
+        ratingInput.setRating(review.getRatingValue());
+        etReviewComment.setText(review.getComment());
+        btnSubmitReview.setText("Update Review");
+        etReviewComment.requestFocus();
+    }
+
+    private void clearReviewInput() {
+        editingReviewId = null;
+        ratingInput.setRating(0f);
+        etReviewComment.setText("");
+        btnSubmitReview.setText("Submit Review");
+    }
+
+    private void confirmDeleteReview(Review review) {
+        if (review == null || review.getReviewId() == null || review.getReviewId().trim().isEmpty()) return;
+
+        new AlertDialog.Builder(this)
+                .setTitle("Delete review")
+                .setMessage("Do you want to remove your review?")
+                .setPositiveButton("Delete", (d, w) -> deleteReview(review))
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void deleteReview(Review review) {
+        String foodId = foodItem.getFoodId();
+        if (foodId == null || foodId.trim().isEmpty()) return;
+
+        mDatabase.child("reviewsByFood").child(foodId).child(review.getReviewId()).removeValue()
+                .addOnSuccessListener(unused -> {
+                    if (review.getReviewId().equals(editingReviewId)) {
+                        clearReviewInput();
+                    }
+                    updateFoodRatingAggregate(foodId);
+                    Toast.makeText(this, "Review deleted", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> Toast.makeText(this, "Failed to delete review", Toast.LENGTH_SHORT).show());
     }
 
     private void updateFoodRatingAggregate(String foodId) {
@@ -332,8 +415,8 @@ public class FoodDetailActivity extends AppCompatActivity {
                             sum += review.getRatingValue();
                             count++;
                         }
-                        float avg = count > 0 ? sum / count : 0f;
 
+                        float avg = count > 0 ? sum / count : 0f;
                         mDatabase.child("foodItems").child(foodId).child("avgRating").setValue(avg);
                         mDatabase.child("foodItems").child(foodId).child("reviewCount").setValue(count);
                     }
@@ -342,6 +425,39 @@ public class FoodDetailActivity extends AppCompatActivity {
                     public void onCancelled(@androidx.annotation.NonNull DatabaseError error) {
                     }
                 });
+    }
+
+    private void hasCompletedOrderForFood(String uid, String foodId, PurchaseCheckCallback callback) {
+        mDatabase.child("orders")
+                .orderByChild("userId")
+                .equalTo(uid)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@androidx.annotation.NonNull DataSnapshot snapshot) {
+                        boolean hasPurchase = false;
+                        for (DataSnapshot child : snapshot.getChildren()) {
+                            String itemId = child.child("foodItemId").getValue(String.class);
+                            String status = child.child("orderStatus").getValue(String.class);
+                            if (itemId == null || !itemId.equals(foodId)) continue;
+                            if (status == null) continue;
+                            String normalized = status.trim().toLowerCase(Locale.US);
+                            if ("completed".equals(normalized) || "delivered".equals(normalized)) {
+                                hasPurchase = true;
+                                break;
+                            }
+                        }
+                        callback.onResult(hasPurchase);
+                    }
+
+                    @Override
+                    public void onCancelled(@androidx.annotation.NonNull DatabaseError error) {
+                        callback.onResult(false);
+                    }
+                });
+    }
+
+    private interface PurchaseCheckCallback {
+        void onResult(boolean verified);
     }
 
     private void loadRecommendations() {
@@ -379,6 +495,15 @@ public class FoodDetailActivity extends AppCompatActivity {
         if (sameIgnoreCase(foodItem.getCategory(), candidate.getCategory())) score += 4;
         if (sameIgnoreCase(foodItem.getHotelId(), candidate.getHotelId())) score += 3;
         if (sameIgnoreCase(foodItem.getHotelName(), candidate.getHotelName())) score += 2;
+
+        // Reward similar price bands so recommendations feel relevant.
+        double basePrice = foodItem.getDiscountedPriceValue();
+        double candidatePrice = candidate.getDiscountedPriceValue();
+        if (basePrice > 0 && candidatePrice > 0) {
+            double diffRatio = Math.abs(candidatePrice - basePrice) / basePrice;
+            if (diffRatio <= 0.15) score += 2;
+            else if (diffRatio <= 0.30) score += 1;
+        }
 
         String currentName = foodItem.getFoodName() == null ? "" : foodItem.getFoodName().toLowerCase(Locale.US);
         String candidateName = candidate.getFoodName() == null ? "" : candidate.getFoodName().toLowerCase(Locale.US);

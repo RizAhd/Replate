@@ -13,6 +13,7 @@ public class Review implements Serializable {
     private Object rating;
     private String comment;
     private Object createdAt;
+    private Object verifiedPurchase;
 
     public Review() {
     }
@@ -92,5 +93,18 @@ public class Review implements Serializable {
             return 0L;
         }
     }
-}
 
+    public Object getVerifiedPurchase() {
+        return verifiedPurchase;
+    }
+
+    public void setVerifiedPurchase(Object verifiedPurchase) {
+        this.verifiedPurchase = verifiedPurchase;
+    }
+
+    public boolean isVerifiedPurchase() {
+        if (verifiedPurchase == null) return false;
+        if (verifiedPurchase instanceof Boolean) return (Boolean) verifiedPurchase;
+        return "true".equalsIgnoreCase(String.valueOf(verifiedPurchase));
+    }
+}
