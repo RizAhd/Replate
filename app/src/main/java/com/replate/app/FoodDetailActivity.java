@@ -3,6 +3,7 @@ package com.replate.app;
 import android.Manifest;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RatingBar;
@@ -51,7 +52,8 @@ public class FoodDetailActivity extends AppCompatActivity {
     private TextView tvReviewSummary, tvNoReviews, tvNoRecommendations;
     private RatingBar ratingInput;
     private TextInputEditText etReviewComment;
-    private Button btnSubmitReview;
+    private Button btnSubmitReview, btnToggleReviewComposer;
+    private View layoutReviewComposer;
     private RecyclerView rvReviews, rvRecommended;
 
     private FoodItem foodItem;
@@ -125,6 +127,8 @@ public class FoodDetailActivity extends AppCompatActivity {
         ratingInput = findViewById(R.id.ratingInput);
         etReviewComment = findViewById(R.id.etReviewComment);
         btnSubmitReview = findViewById(R.id.btnSubmitReview);
+        btnToggleReviewComposer = findViewById(R.id.btnToggleReviewComposer);
+        layoutReviewComposer = findViewById(R.id.layoutReviewComposer);
         rvReviews = findViewById(R.id.rvReviews);
         rvRecommended = findViewById(R.id.rvRecommended);
     }
@@ -195,6 +199,14 @@ public class FoodDetailActivity extends AppCompatActivity {
                 Toast.makeText(this, "Maximum available quantity reached", Toast.LENGTH_SHORT).show();
             }
         });
+
+        if (btnToggleReviewComposer != null && layoutReviewComposer != null) {
+            btnToggleReviewComposer.setOnClickListener(v -> {
+                boolean currentlyVisible = layoutReviewComposer.getVisibility() == android.view.View.VISIBLE;
+                layoutReviewComposer.setVisibility(currentlyVisible ? android.view.View.GONE : android.view.View.VISIBLE);
+                btnToggleReviewComposer.setText(currentlyVisible ? "Write a review" : "Hide review form");
+            });
+        }
 
         btnAddToCart.setOnClickListener(v -> addToCart());
         btnSubmitReview.setOnClickListener(v -> submitReview());
@@ -374,6 +386,8 @@ public class FoodDetailActivity extends AppCompatActivity {
         editingReviewId = review.getReviewId();
         ratingInput.setRating(review.getRatingValue());
         etReviewComment.setText(review.getComment());
+        if (layoutReviewComposer != null) layoutReviewComposer.setVisibility(android.view.View.VISIBLE);
+        if (btnToggleReviewComposer != null) btnToggleReviewComposer.setText("Hide review form");
         btnSubmitReview.setText("Update Review");
         etReviewComment.requestFocus();
     }
@@ -383,6 +397,8 @@ public class FoodDetailActivity extends AppCompatActivity {
         ratingInput.setRating(0f);
         etReviewComment.setText("");
         btnSubmitReview.setText("Submit Review");
+        if (layoutReviewComposer != null) layoutReviewComposer.setVisibility(android.view.View.GONE);
+        if (btnToggleReviewComposer != null) btnToggleReviewComposer.setText("Write a review");
     }
 
     private void confirmDeleteReview(Review review) {
