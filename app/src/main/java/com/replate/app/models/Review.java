@@ -1,5 +1,6 @@
 package com.replate.app.models;
 
+import com.google.firebase.database.Exclude;
 import com.google.firebase.database.IgnoreExtraProperties;
 
 import java.io.Serializable;
@@ -14,6 +15,9 @@ public class Review implements Serializable {
     private String comment;
     private Object createdAt;
     private Object verifiedPurchase;
+    private String hotelId;
+    private String hotelName;
+    private String orderId;
 
     public Review() {
     }
@@ -102,10 +106,34 @@ public class Review implements Serializable {
         this.verifiedPurchase = verifiedPurchase;
     }
 
-    // UI helper (renamed to avoid Firebase bean getter collision with getVerifiedPurchase)
-    public boolean isVerifiedPurchaseValue() {
+    @Exclude
+    public boolean isVerifiedPurchase() {
         if (verifiedPurchase == null) return false;
         if (verifiedPurchase instanceof Boolean) return (Boolean) verifiedPurchase;
         return "true".equalsIgnoreCase(String.valueOf(verifiedPurchase));
+    }
+
+    public String getHotelId() {
+        return hotelId;
+    }
+
+    public void setHotelId(String hotelId) {
+        this.hotelId = hotelId;
+    }
+
+    public String getHotelName() {
+        return hotelName;
+    }
+
+    public void setHotelName(String hotelName) {
+        this.hotelName = hotelName;
+    }
+
+    public String getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(String orderId) {
+        this.orderId = orderId;
     }
 }
