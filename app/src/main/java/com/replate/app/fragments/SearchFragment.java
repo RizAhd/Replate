@@ -1,15 +1,18 @@
 package com.replate.app.fragments;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -45,11 +48,16 @@ import android.os.Looper;
  */
 public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodItemClickListener {
 
+    private static final String PREFS = "REPLATE_PREFS";
+    private static final String PREF_SEARCH_FILTER = "search_preferred_filter";
+
     private EditText etSearch;
     private RecyclerView rvSearchResults;
     private LinearLayout emptyState;
     private ProgressBar progressBar;
     private TextView tvResultsCount;
+    private TextView tvActiveFilter;
+    private View cardFilterAction;
 
     private Chip chipAll, chipNearby, chipPriceLow, chipDiscount, chipRating, chipCategory;
 
@@ -64,7 +72,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
     private final Handler searchDebounceHandler = new Handler(Looper.getMainLooper());
     private Runnable searchRunnable;
 
-    private String currentFilter = "all";
+    private String currentFilter = "for_you";
     private double currentLat = 0;
     private double currentLng = 0;
 
@@ -78,27 +86,31 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
 
         initViews(view);
-        getUserLocation(); // Get location first
+        loadSavedFilterPreference();
         setupSearch();
         setupFilterChips();
-        // loadAllFoodItems called inside getUserLocation or strictly if permissions fail
+        setupAdvancedFilterAction();
+
+        // Instant loading first; location can enhance sort afterward.
+        loadAllFoodItems();
+        getUserLocation();
 
         return view;
     }
 
     private void getUserLocation() {
         if (ActivityCompat.checkSelfPermission(requireContext(),
-                android.Manifest.permission.ACCESS_FINE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                android.Manifest.permission.ACCESS_FINE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED
+                || ActivityCompat.checkSelfPermission(requireContext(),
+                android.Manifest.permission.ACCESS_COARSE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
 
             fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
                 if (location != null) {
                     currentLat = location.getLatitude();
                     currentLng = location.getLongitude();
+                    filterItems(etSearch == null ? "" : etSearch.getText().toString());
                 }
-                loadAllFoodItems();
             });
-        } else {
-            loadAllFoodItems();
         }
     }
 
@@ -108,20 +120,15 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         emptyState = view.findViewById(R.id.emptyState);
         progressBar = view.findViewById(R.id.progressBar);
         tvResultsCount = view.findViewById(R.id.tvResultsCount);
+        tvActiveFilter = view.findViewById(R.id.tvActiveFilter);
+        cardFilterAction = view.findViewById(R.id.cardFilterAction);
 
         chipAll = view.findViewById(R.id.chipAll);
         chipNearby = view.findViewById(R.id.chipNearby);
         chipPriceLow = view.findViewById(R.id.chipPriceLow);
         chipDiscount = view.findViewById(R.id.chipDiscount);
-
-        int chipRatingId = getResources().getIdentifier("chipRating", "id", requireContext().getPackageName());
-        if (chipRatingId != 0) {
-            chipRating = view.findViewById(chipRatingId);
-        }
-        int chipCategoryId = getResources().getIdentifier("chipCategory", "id", requireContext().getPackageName());
-        if (chipCategoryId != 0) {
-            chipCategory = view.findViewById(chipCategoryId);
-        }
+        chipRating = view.findViewById(R.id.chipRating);
+        chipCategory = view.findViewById(R.id.chipCategory);
 
         int defaultSpan = getAdaptiveSpanCount();
         gridLayoutManager = new GridLayoutManager(getContext(), defaultSpan);
@@ -171,42 +178,151 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         chipAll.setOnClickListener(v -> {
             currentFilter = "all";
             uncheckAllExcept(chipAll);
-            filterItems(etSearch.getText().toString());
+            onFilterChangedByUser();
         });
 
         chipNearby.setOnClickListener(v -> {
             currentFilter = "nearby";
             uncheckAllExcept(chipNearby);
-            filterItems(etSearch.getText().toString());
+            onFilterChangedByUser();
         });
 
         chipPriceLow.setOnClickListener(v -> {
             currentFilter = "price_low";
             uncheckAllExcept(chipPriceLow);
-            filterItems(etSearch.getText().toString());
+            onFilterChangedByUser();
         });
 
         chipDiscount.setOnClickListener(v -> {
             currentFilter = "discount";
             uncheckAllExcept(chipDiscount);
-            filterItems(etSearch.getText().toString());
+            onFilterChangedByUser();
         });
 
-        if (chipRating != null) {
-            chipRating.setOnClickListener(v -> {
+        chipRating.setOnClickListener(v -> {
+            currentFilter = "rating";
+            uncheckAllExcept(chipRating);
+            onFilterChangedByUser();
+        });
+
+        chipCategory.setOnClickListener(v -> {
+            currentFilter = "category";
+            uncheckAllExcept(chipCategory);
+            onFilterChangedByUser();
+        });
+    }
+
+    private void setupAdvancedFilterAction() {
+        if (cardFilterAction == null) return;
+        cardFilterAction.setOnClickListener(this::showAdvancedFilterMenu);
+    }
+
+    private void showAdvancedFilterMenu(View anchor) {
+        PopupMenu menu = new PopupMenu(requireContext(), anchor);
+        menu.getMenu().add(0, 1, 0, getString(R.string.search_filter_for_you));
+        menu.getMenu().add(0, 2, 1, getString(R.string.search_filter_nearby));
+        menu.getMenu().add(0, 3, 2, getString(R.string.search_filter_low_price));
+        menu.getMenu().add(0, 4, 3, getString(R.string.search_filter_discount));
+        menu.getMenu().add(0, 5, 4, getString(R.string.search_filter_rating));
+        menu.getMenu().add(0, 6, 5, getString(R.string.search_filter_category));
+
+        menu.setOnMenuItemClickListener(this::onAdvancedFilterItemSelected);
+        menu.show();
+    }
+
+    private boolean onAdvancedFilterItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case 1:
+                currentFilter = "for_you";
+                break;
+            case 2:
+                currentFilter = "nearby";
+                break;
+            case 3:
+                currentFilter = "price_low";
+                break;
+            case 4:
+                currentFilter = "discount";
+                break;
+            case 5:
                 currentFilter = "rating";
-                uncheckAllExcept(chipRating);
-                filterItems(etSearch.getText().toString());
-            });
+                break;
+            case 6:
+                currentFilter = "category";
+                break;
+            default:
+                return false;
         }
 
-        if (chipCategory != null) {
-            chipCategory.setOnClickListener(v -> {
-                currentFilter = "category";
-                uncheckAllExcept(chipCategory);
-                filterItems(etSearch.getText().toString());
-            });
+        syncChipStateWithCurrentFilter();
+        onFilterChangedByUser();
+        return true;
+    }
+
+    private void onFilterChangedByUser() {
+        saveFilterPreference(currentFilter);
+        updateActiveFilterLabel();
+        filterItems(etSearch == null ? "" : etSearch.getText().toString());
+    }
+
+    private void syncChipStateWithCurrentFilter() {
+        if (chipAll == null || chipNearby == null || chipPriceLow == null || chipDiscount == null) return;
+
+        if ("all".equals(currentFilter) || "for_you".equals(currentFilter)) {
+            uncheckAllExcept(chipAll);
+        } else if ("nearby".equals(currentFilter)) {
+            uncheckAllExcept(chipNearby);
+        } else if ("price_low".equals(currentFilter)) {
+            uncheckAllExcept(chipPriceLow);
+        } else if ("discount".equals(currentFilter)) {
+            uncheckAllExcept(chipDiscount);
+        } else if ("rating".equals(currentFilter) && chipRating != null) {
+            uncheckAllExcept(chipRating);
+        } else if ("category".equals(currentFilter) && chipCategory != null) {
+            uncheckAllExcept(chipCategory);
         }
+    }
+
+    private void updateActiveFilterLabel() {
+        if (tvActiveFilter == null) return;
+
+        String label;
+        switch (currentFilter) {
+            case "nearby":
+                label = getString(R.string.search_filter_nearby);
+                break;
+            case "price_low":
+                label = getString(R.string.search_filter_low_price);
+                break;
+            case "discount":
+                label = getString(R.string.search_filter_discount);
+                break;
+            case "rating":
+                label = getString(R.string.search_filter_rating);
+                break;
+            case "category":
+                label = getString(R.string.search_filter_category);
+                break;
+            case "for_you":
+                label = getString(R.string.search_filter_for_you);
+                break;
+            default:
+                label = getString(R.string.search_chip_all);
+                break;
+        }
+        tvActiveFilter.setText(getString(R.string.search_active_filter_template, label));
+    }
+
+    private void loadSavedFilterPreference() {
+        SharedPreferences prefs = requireContext().getSharedPreferences(PREFS, android.content.Context.MODE_PRIVATE);
+        currentFilter = prefs.getString(PREF_SEARCH_FILTER, "for_you");
+        syncChipStateWithCurrentFilter();
+        updateActiveFilterLabel();
+    }
+
+    private void saveFilterPreference(String filter) {
+        SharedPreferences prefs = requireContext().getSharedPreferences(PREFS, android.content.Context.MODE_PRIVATE);
+        prefs.edit().putString(PREF_SEARCH_FILTER, filter).apply();
     }
 
     private void uncheckAllExcept(Chip selected) {
@@ -244,7 +360,6 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
 
                     if (!item.isListable()) continue;
 
-                    // Calculate Distance
                     if (currentLat != 0 && currentLng != 0) {
                         double dist = LocationUtils.calculateDistance(
                                 currentLat, currentLng,
@@ -257,7 +372,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
                 }
 
                 progressBar.setVisibility(View.GONE);
-                filterItems(etSearch.getText().toString());
+                filterItems(etSearch == null ? "" : etSearch.getText().toString());
             }
 
             @Override
@@ -273,7 +388,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
             searchDebounceHandler.removeCallbacks(searchRunnable);
         }
         searchRunnable = () -> filterItems(query);
-        searchDebounceHandler.postDelayed(searchRunnable, 160);
+        searchDebounceHandler.postDelayed(searchRunnable, 130);
     }
 
     private void filterItems(String query) {
@@ -321,6 +436,18 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
                 filteredItems.sort((a, b) ->
                         safeLower(a.getCategory()).compareTo(safeLower(b.getCategory())));
                 break;
+            case "for_you":
+                if (currentLat != 0 && currentLng != 0) {
+                    filteredItems.sort((a, b) -> {
+                        double scoreA = a.getDistance() + (a.getDiscountedPriceValue() / 1000.0) - (a.getDiscountPercentValue() * 0.02);
+                        double scoreB = b.getDistance() + (b.getDiscountedPriceValue() / 1000.0) - (b.getDiscountPercentValue() * 0.02);
+                        return Double.compare(scoreA, scoreB);
+                    });
+                } else {
+                    filteredItems.sort((a, b) ->
+                            Integer.compare(b.getDiscountPercentValue(), a.getDiscountPercentValue()));
+                }
+                break;
             default:
                 break;
         }
@@ -334,7 +461,6 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
     }
 
     private double getRatingForSort(FoodItem item) {
-        // Fallback proxy keeps sorting stable even when explicit rating is absent in old data.
         if (item == null) return 0.0;
         double explicit = 0.0;
         try {
@@ -346,7 +472,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
     }
 
     private void updateUI() {
-        tvResultsCount.setText(filteredItems.size() + " results found");
+        tvResultsCount.setText(getString(R.string.search_results_count_template, filteredItems.size()));
 
         if (filteredItems.isEmpty()) {
             emptyState.setVisibility(View.VISIBLE);
