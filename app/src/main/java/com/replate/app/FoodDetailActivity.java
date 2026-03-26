@@ -2,10 +2,10 @@ package com.replate.app;
 
 import android.Manifest;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -13,22 +13,32 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.replate.app.adapters.RelatedFoodAdapter;
+import com.replate.app.adapters.ReviewAdapter;
 import com.replate.app.helpers.CartDatabaseHelper;
 import com.replate.app.models.CartItem;
 import com.replate.app.models.FoodItem;
+import com.replate.app.models.Review;
 import com.replate.app.utils.TelephonyUtils;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 
 /**
- * Food Detail Activity - Shows full details of a food item
+ * Food Detail Activity - Shows full details of a food item.
  */
 public class FoodDetailActivity extends AppCompatActivity {
 
@@ -36,13 +46,22 @@ public class FoodDetailActivity extends AppCompatActivity {
     private TextView tvFoodName, tvHotelName, tvDescription;
     private TextView tvOriginalPrice, tvDiscountedPrice, tvDiscount;
     private TextView tvPickupTime, tvDistance, tvQuantity;
-    private Button btnAddToCart, btnMinus, btnPlus, btnCallHotel;
-    private Button btnSmsHotel;
+    private Button btnAddToCart, btnMinus, btnPlus, btnCallHotel, btnSmsHotel;
+
+    private TextView tvReviewSummary, tvNoReviews, tvNoRecommendations;
+    private RatingBar ratingInput;
+    private TextInputEditText etReviewComment;
+    private Button btnSubmitReview;
+    private RecyclerView rvReviews, rvRecommended;
 
     private FoodItem foodItem;
     private int quantity = 1;
     private DatabaseReference mDatabase;
     private String pendingCallNumber;
+    private String currentUserName = "Anonymous";
+
+    private ReviewAdapter reviewAdapter;
+    private RelatedFoodAdapter relatedFoodAdapter;
 
     private final ActivityResultLauncher<String> callPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
@@ -71,8 +90,13 @@ public class FoodDetailActivity extends AppCompatActivity {
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
         initViews();
+        setupReviewAndRecommendationLists();
         displayFoodDetails();
         setupClickListeners();
+
+        loadCurrentUserName();
+        loadReviews();
+        loadRecommendations();
     }
 
     private void initViews() {
@@ -92,6 +116,27 @@ public class FoodDetailActivity extends AppCompatActivity {
         btnPlus = findViewById(R.id.btnPlus);
         btnCallHotel = findViewById(R.id.btnCallHotel);
         btnSmsHotel = findViewById(R.id.btnSmsHotel);
+
+        tvReviewSummary = findViewById(R.id.tvReviewSummary);
+        tvNoReviews = findViewById(R.id.tvNoReviews);
+        tvNoRecommendations = findViewById(R.id.tvNoRecommendations);
+        ratingInput = findViewById(R.id.ratingInput);
+        etReviewComment = findViewById(R.id.etReviewComment);
+        btnSubmitReview = findViewById(R.id.btnSubmitReview);
+        rvReviews = findViewById(R.id.rvReviews);
+        rvRecommended = findViewById(R.id.rvRecommended);
+    }
+
+    private void setupReviewAndRecommendationLists() {
+        reviewAdapter = new ReviewAdapter();
+        rvReviews.setLayoutManager(new LinearLayoutManager(this));
+        rvReviews.setNestedScrollingEnabled(false);
+        rvReviews.setAdapter(reviewAdapter);
+
+        relatedFoodAdapter = new RelatedFoodAdapter(this, this::openRelatedFoodItem);
+        rvRecommended.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        rvRecommended.setNestedScrollingEnabled(false);
+        rvRecommended.setAdapter(relatedFoodAdapter);
     }
 
     private void displayFoodDetails() {
@@ -102,25 +147,15 @@ public class FoodDetailActivity extends AppCompatActivity {
                 : "Fresh rescue meal from a nearby hotel.");
 
         tvOriginalPrice.setText(String.format(Locale.getDefault(), "LKR %.2f", foodItem.getOriginalPriceValue()));
-        tvOriginalPrice.setPaintFlags(tvOriginalPrice.getPaintFlags() |
-            android.graphics.Paint.STRIKE_THRU_TEXT_FLAG);
+        tvOriginalPrice.setPaintFlags(tvOriginalPrice.getPaintFlags() | android.graphics.Paint.STRIKE_THRU_TEXT_FLAG);
         tvDiscountedPrice.setText(String.format(Locale.getDefault(), "LKR %.2f", foodItem.getDiscountedPriceValue()));
         tvDiscount.setText(String.format(Locale.getDefault(), "-%d%%", foodItem.getDiscountPercentValue()));
 
         tvPickupTime.setText(foodItem.getPickupTimeFormatted());
+        tvDistance.setText(foodItem.getDistance() > 0 ? foodItem.getDistanceFormatted() + " away" : "Nearby pickup");
 
-        if (foodItem.getDistance() > 0) {
-            tvDistance.setText(foodItem.getDistanceFormatted() + " away");
-        } else {
-            tvDistance.setText("Nearby pickup");
-        }
-
-        // Load image
         if (foodItem.getImageUrl() != null && !foodItem.getImageUrl().isEmpty()) {
-            Glide.with(this)
-                .load(foodItem.getImageUrl())
-                .placeholder(R.drawable.placeholder_food)
-                .into(ivFoodImage);
+            Glide.with(this).load(foodItem.getImageUrl()).placeholder(R.drawable.placeholder_food).into(ivFoodImage);
         }
 
         updateQuantityDisplay();
@@ -128,12 +163,9 @@ public class FoodDetailActivity extends AppCompatActivity {
 
     private void setupClickListeners() {
         ivBack.setOnClickListener(v -> finish());
-        if (btnCallHotel != null) {
-            btnCallHotel.setOnClickListener(v -> callHotel());
-        }
-        if (btnSmsHotel != null) {
-            btnSmsHotel.setOnClickListener(v -> smsHotel());
-        }
+
+        if (btnCallHotel != null) btnCallHotel.setOnClickListener(v -> callHotel());
+        if (btnSmsHotel != null) btnSmsHotel.setOnClickListener(v -> smsHotel());
 
         btnMinus.setOnClickListener(v -> {
             if (quantity > 1) {
@@ -147,12 +179,12 @@ public class FoodDetailActivity extends AppCompatActivity {
                 quantity++;
                 updateQuantityDisplay();
             } else {
-                Toast.makeText(this, "Maximum available quantity reached",
-                    Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Maximum available quantity reached", Toast.LENGTH_SHORT).show();
             }
         });
 
         btnAddToCart.setOnClickListener(v -> addToCart());
+        btnSubmitReview.setOnClickListener(v -> submitReview());
     }
 
     private void updateQuantityDisplay() {
@@ -162,7 +194,6 @@ public class FoodDetailActivity extends AppCompatActivity {
     }
 
     private void addToCart() {
-        // Add to SQLite cart (REQUIREMENT: SQLite Data Storage)
         CartDatabaseHelper cartDb = CartDatabaseHelper.getInstance(this);
         CartItem cartItem = new CartItem(
                 foodItem.getFoodId(),
@@ -177,11 +208,202 @@ public class FoodDetailActivity extends AppCompatActivity {
         );
         cartDb.addItem(cartItem);
 
-        Toast.makeText(this, quantity + " x " + foodItem.getFoodName() + " added to cart!",
-            Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, quantity + " x " + foodItem.getFoodName() + " added to cart!", Toast.LENGTH_SHORT).show();
+        startActivity(new Intent(this, CartActivity.class));
+    }
 
-        // Go to cart
-        Intent intent = new Intent(this, CartActivity.class);
+    private void loadCurrentUserName() {
+        String uid = FirebaseAuth.getInstance().getUid();
+        if (uid == null || uid.trim().isEmpty()) return;
+
+        mDatabase.child("users").child(uid).child("name")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@androidx.annotation.NonNull DataSnapshot snapshot) {
+                        String name = snapshot.getValue(String.class);
+                        if (name != null && !name.trim().isEmpty()) {
+                            currentUserName = name.trim();
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@androidx.annotation.NonNull DatabaseError error) {
+                    }
+                });
+    }
+
+    private void loadReviews() {
+        String foodId = foodItem.getFoodId();
+        if (foodId == null || foodId.trim().isEmpty()) {
+            tvNoReviews.setVisibility(android.view.View.VISIBLE);
+            tvReviewSummary.setText("0.0 (0 reviews)");
+            return;
+        }
+
+        mDatabase.child("reviewsByFood").child(foodId)
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@androidx.annotation.NonNull DataSnapshot snapshot) {
+                        List<Review> reviews = new ArrayList<>();
+                        float total = 0f;
+
+                        for (DataSnapshot child : snapshot.getChildren()) {
+                            Review review = child.getValue(Review.class);
+                            if (review == null) continue;
+                            review.setReviewId(child.getKey());
+                            reviews.add(review);
+                            total += review.getRatingValue();
+                        }
+
+                        Collections.sort(reviews, (a, b) -> Long.compare(b.getCreatedAtValue(), a.getCreatedAtValue()));
+                        reviewAdapter.submitList(reviews);
+
+                        boolean hasReviews = !reviews.isEmpty();
+                        tvNoReviews.setVisibility(hasReviews ? android.view.View.GONE : android.view.View.VISIBLE);
+
+                        float avg = hasReviews ? (total / reviews.size()) : 0f;
+                        tvReviewSummary.setText(String.format(Locale.getDefault(), "%.1f (%d reviews)", avg, reviews.size()));
+                    }
+
+                    @Override
+                    public void onCancelled(@androidx.annotation.NonNull DatabaseError error) {
+                        tvNoReviews.setVisibility(android.view.View.VISIBLE);
+                    }
+                });
+    }
+
+    private void submitReview() {
+        String uid = FirebaseAuth.getInstance().getUid();
+        String foodId = foodItem.getFoodId();
+
+        if (uid == null || uid.trim().isEmpty()) {
+            Toast.makeText(this, "Please login to submit review", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (foodId == null || foodId.trim().isEmpty()) {
+            Toast.makeText(this, "Unable to submit review for this item", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        float rating = ratingInput.getRating();
+        if (rating <= 0f) {
+            Toast.makeText(this, "Please select a rating", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String comment = etReviewComment.getText() != null ? etReviewComment.getText().toString().trim() : "";
+
+        btnSubmitReview.setEnabled(false);
+
+        DatabaseReference ref = mDatabase.child("reviewsByFood").child(foodId).push();
+        Review review = new Review();
+        review.setReviewId(ref.getKey());
+        review.setFoodId(foodId);
+        review.setUserId(uid);
+        review.setUserName(currentUserName);
+        review.setRating(rating);
+        review.setComment(comment);
+        review.setCreatedAt(System.currentTimeMillis());
+
+        ref.setValue(review)
+                .addOnSuccessListener(unused -> {
+                    btnSubmitReview.setEnabled(true);
+                    ratingInput.setRating(0f);
+                    etReviewComment.setText("");
+                    updateFoodRatingAggregate(foodId);
+                    Toast.makeText(this, "Review added", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    btnSubmitReview.setEnabled(true);
+                    Toast.makeText(this, "Failed to submit review", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void updateFoodRatingAggregate(String foodId) {
+        mDatabase.child("reviewsByFood").child(foodId)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@androidx.annotation.NonNull DataSnapshot snapshot) {
+                        int count = 0;
+                        float sum = 0f;
+                        for (DataSnapshot child : snapshot.getChildren()) {
+                            Review review = child.getValue(Review.class);
+                            if (review == null) continue;
+                            sum += review.getRatingValue();
+                            count++;
+                        }
+                        float avg = count > 0 ? sum / count : 0f;
+
+                        mDatabase.child("foodItems").child(foodId).child("avgRating").setValue(avg);
+                        mDatabase.child("foodItems").child(foodId).child("reviewCount").setValue(count);
+                    }
+
+                    @Override
+                    public void onCancelled(@androidx.annotation.NonNull DatabaseError error) {
+                    }
+                });
+    }
+
+    private void loadRecommendations() {
+        mDatabase.child("foodItems").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@androidx.annotation.NonNull DataSnapshot snapshot) {
+                List<FoodItem> all = new ArrayList<>();
+                for (DataSnapshot child : snapshot.getChildren()) {
+                    FoodItem item = child.getValue(FoodItem.class);
+                    if (item == null) continue;
+                    item.setFoodId(child.getKey());
+                    if (!item.isListable()) continue;
+                    if (foodItem.getFoodId() != null && foodItem.getFoodId().equals(item.getFoodId())) continue;
+                    all.add(item);
+                }
+
+                Collections.sort(all, (a, b) -> Integer.compare(scoreRecommendation(b), scoreRecommendation(a)));
+                if (all.size() > 10) {
+                    all = new ArrayList<>(all.subList(0, 10));
+                }
+
+                relatedFoodAdapter.submitList(all);
+                tvNoRecommendations.setVisibility(all.isEmpty() ? android.view.View.VISIBLE : android.view.View.GONE);
+            }
+
+            @Override
+            public void onCancelled(@androidx.annotation.NonNull DatabaseError error) {
+                tvNoRecommendations.setVisibility(android.view.View.VISIBLE);
+            }
+        });
+    }
+
+    private int scoreRecommendation(FoodItem candidate) {
+        int score = 0;
+        if (sameIgnoreCase(foodItem.getCategory(), candidate.getCategory())) score += 4;
+        if (sameIgnoreCase(foodItem.getHotelId(), candidate.getHotelId())) score += 3;
+        if (sameIgnoreCase(foodItem.getHotelName(), candidate.getHotelName())) score += 2;
+
+        String currentName = foodItem.getFoodName() == null ? "" : foodItem.getFoodName().toLowerCase(Locale.US);
+        String candidateName = candidate.getFoodName() == null ? "" : candidate.getFoodName().toLowerCase(Locale.US);
+        if (!currentName.isEmpty() && !candidateName.isEmpty()) {
+            String[] chunks = currentName.split("\\s+");
+            for (String chunk : chunks) {
+                if (chunk.length() > 3 && candidateName.contains(chunk)) {
+                    score += 1;
+                    break;
+                }
+            }
+        }
+
+        score += Math.round((float) candidate.getRatingValue());
+        return score;
+    }
+
+    private boolean sameIgnoreCase(String a, String b) {
+        if (a == null || b == null) return false;
+        return a.trim().equalsIgnoreCase(b.trim());
+    }
+
+    private void openRelatedFoodItem(FoodItem item) {
+        Intent intent = new Intent(this, FoodDetailActivity.class);
+        intent.putExtra("foodItem", item);
         startActivity(intent);
     }
 
