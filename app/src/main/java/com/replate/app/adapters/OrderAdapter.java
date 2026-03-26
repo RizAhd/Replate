@@ -33,6 +33,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
     public interface OnOrderClickListener {
         void onOrderClick(Order order);
         void onViewQRClick(Order order);
+        void onCancelOrderClick(Order order);
     }
 
     public OrderAdapter(Context context, List<Order> orders, OnOrderClickListener listener) {
@@ -64,6 +65,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
         TextView tvOrderId, tvHotelName, tvItemsCount, tvTotalAmount;
         TextView tvOrderStatus, tvOrderDate, tvPickupTime;
         Button btnViewQR;
+        Button btnCancelOrder;
         View statusIndicator;
 
         OrderViewHolder(@NonNull View itemView) {
@@ -77,6 +79,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
             tvOrderDate = itemView.findViewById(R.id.tvOrderDate);
             tvPickupTime = itemView.findViewById(R.id.tvPickupTime);
             btnViewQR = itemView.findViewById(R.id.btnViewQR);
+            btnCancelOrder = itemView.findViewById(R.id.btnCancelOrder);
             statusIndicator = itemView.findViewById(R.id.statusIndicator);
         }
 
@@ -120,8 +123,10 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
                 tvPickupTime.setVisibility(View.GONE);
             }
 
+            boolean isActive = order.isActive();
+
             // Show QR button only for active orders
-            if (order.isActive() && (order.getQrCode() != null || order.getOrderId() != null)) {
+            if (isActive && (order.getQrCode() != null || order.getOrderId() != null)) {
                 btnViewQR.setVisibility(View.VISIBLE);
                 btnViewQR.setOnClickListener(v -> {
                     if (listener != null) {
@@ -130,6 +135,18 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
                 });
             } else {
                 btnViewQR.setVisibility(View.GONE);
+            }
+
+            // Show cancel button for pending flows only
+            if (isActive) {
+                btnCancelOrder.setVisibility(View.VISIBLE);
+                btnCancelOrder.setOnClickListener(v -> {
+                    if (listener != null) {
+                        listener.onCancelOrderClick(order);
+                    }
+                });
+            } else {
+                btnCancelOrder.setVisibility(View.GONE);
             }
 
             // Card click

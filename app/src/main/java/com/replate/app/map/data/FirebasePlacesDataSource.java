@@ -36,6 +36,7 @@ public class FirebasePlacesDataSource implements PlacesDataSource {
                 }
 
                 Map<String, HotelSeed> approvedHotels = new HashMap<>();
+                Map<String, String> hotelIdByUserId = new HashMap<>();
                 for (DataSnapshot hotelNode : hotelSnapshot.getChildren()) {
                     String hotelId = hotelNode.getKey();
                     if (hotelId == null || hotelId.trim().isEmpty()) continue;
@@ -64,6 +65,11 @@ public class FirebasePlacesDataSource implements PlacesDataSource {
                     if (rating <= 0f) rating = 4.0f;
 
                     approvedHotels.put(hotelId, new HotelSeed(hotelId, hotelName, address, lat, lng, rating));
+
+                    String hotelUserId = readString(hotelNode, "userId");
+                    if (!hotelUserId.isEmpty()) {
+                        hotelIdByUserId.put(hotelUserId, hotelId);
+                    }
                 }
 
                 if (approvedHotels.isEmpty()) {
@@ -79,14 +85,29 @@ public class FirebasePlacesDataSource implements PlacesDataSource {
 
                         for (DataSnapshot itemSnapshot : foodSnapshot.getChildren()) {
                             String itemStatus = readString(itemSnapshot, "status");
-                            if (!itemStatus.isEmpty() && !"available".equalsIgnoreCase(itemStatus)) continue;
+                            if (!itemStatus.isEmpty()
+                                    && !"available".equalsIgnoreCase(itemStatus)
+                                    && !"active".equalsIgnoreCase(itemStatus)
+                                    && !"approved".equalsIgnoreCase(itemStatus)) {
+                                continue;
+                            }
 
-                            int quantity = readInt(itemSnapshot, "quantity");
-                            if (quantity <= 0) continue;
+                            Integer quantity = readNullableInt(itemSnapshot, "quantity", "qty", "stock");
+                            if (quantity != null && quantity <= 0) continue;
 
                             String hotelId = readString(itemSnapshot, "hotelId");
                             if (hotelId.isEmpty()) hotelId = readString(itemSnapshot, "hotelKey");
-                            if (hotelId.isEmpty()) hotelId = readString(itemSnapshot, "hotelUserId");
+
+                            if (hotelId.isEmpty()) {
+                                String hotelUserId = readString(itemSnapshot, "hotelUserId");
+                                if (hotelUserId.isEmpty()) {
+                                    hotelUserId = readString(itemSnapshot, "userId");
+                                }
+                                if (!hotelUserId.isEmpty() && hotelIdByUserId.containsKey(hotelUserId)) {
+                                    hotelId = hotelIdByUserId.get(hotelUserId);
+                                }
+                            }
+
                             if (hotelId.isEmpty() || !approvedHotels.containsKey(hotelId)) continue;
 
                             int count = hotelDealCount.containsKey(hotelId) ? hotelDealCount.get(hotelId) : 0;
@@ -165,6 +186,19 @@ public class FirebasePlacesDataSource implements PlacesDataSource {
         } catch (Exception e) {
             return 0;
         }
+    }
+
+    private Integer readNullableInt(DataSnapshot snapshot, String... keys) {
+        for (String key : keys) {
+            Object value = snapshot.child(key).getValue();
+            if (value == null) continue;
+            if (value instanceof Number) return ((Number) value).intValue();
+            try {
+                return Integer.parseInt(String.valueOf(value));
+            } catch (Exception ignored) {
+            }
+        }
+        return null;
     }
 
     private static class HotelSeed {

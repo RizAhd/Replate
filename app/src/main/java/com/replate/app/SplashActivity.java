@@ -5,8 +5,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.View;
 import android.view.animation.OvershootInterpolator;
-import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -17,7 +17,9 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
-        TextView ivEmoji = findViewById(R.id.ivEmoji);
+        final Intent launchIntent = getIntent();
+
+        View ivEmoji = findViewById(R.id.ivEmoji);
 
         // Scale Animation 0 -> 1 with Overshoot
         ivEmoji.setScaleX(0f);
@@ -44,32 +46,53 @@ public class SplashActivity extends AppCompatActivity {
                 savedRole = prefs.getString("userType", "customer");
             }
 
+            Intent nextIntent;
             if (savedUserId != null) {
                 // Auto-login based on role
                 if ("hotel".equals(savedRole)) {
                     // Check if we have hotel dashboard activity class
                     try {
                         Class<?> hotelClass = Class.forName("com.replate.app.hotel.HotelDashboardActivity");
-                        startActivity(new Intent(this, hotelClass));
+                        nextIntent = new Intent(this, hotelClass);
                     } catch (ClassNotFoundException e) {
-                        // Fallback if not yet implemented
-                        startActivity(new Intent(this, MainActivity.class));
+                        nextIntent = new Intent(this, MainActivity.class);
                     }
                 } else if ("admin".equals(savedRole)) {
                     try {
                         Class<?> adminClass = Class.forName("com.replate.app.admin.AdminDashboardActivity");
-                        startActivity(new Intent(this, adminClass));
+                        nextIntent = new Intent(this, adminClass);
                     } catch (ClassNotFoundException e) {
-                        startActivity(new Intent(this, MainActivity.class));
+                        nextIntent = new Intent(this, MainActivity.class);
                     }
                 } else {
                     // Customer
-                    startActivity(new Intent(this, MainActivity.class));
+                    nextIntent = new Intent(this, MainActivity.class);
                 }
             } else {
-                startActivity(new Intent(this, LoginActivity.class));
+                nextIntent = new Intent(this, LoginActivity.class);
             }
+
+            copyNotificationExtras(launchIntent, nextIntent);
+            startActivity(nextIntent);
             finish();
         }, 2500);
+    }
+
+    private void copyNotificationExtras(Intent source, Intent target) {
+        if (source == null || target == null) return;
+        if (source.getExtras() == null) return;
+
+        String[] keys = new String[]{
+                "title", "body", "category", "type", "route",
+                "orderId", "hotelId", "deepLink", "open_tab"
+        };
+
+        for (String key : keys) {
+            if (!source.hasExtra(key)) continue;
+            Object value = source.getExtras().get(key);
+            if (value instanceof String) {
+                target.putExtra(key, (String) value);
+            }
+        }
     }
 }

@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -55,6 +56,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
     private DatabaseReference mDatabase;
     private FoodItemAdapter adapter;
     private FusedLocationProviderClient fusedLocationClient;
+    private GridLayoutManager gridLayoutManager;
 
     private final List<FoodItem> allFoodItems = new ArrayList<>();
     private final List<FoodItem> filteredItems = new ArrayList<>();
@@ -121,10 +123,33 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
             chipCategory = view.findViewById(chipCategoryId);
         }
 
-        rvSearchResults.setLayoutManager(new GridLayoutManager(getContext(), 2));
+        int defaultSpan = getAdaptiveSpanCount();
+        gridLayoutManager = new GridLayoutManager(getContext(), defaultSpan);
+        rvSearchResults.setLayoutManager(gridLayoutManager);
         rvSearchResults.setHasFixedSize(true);
+        rvSearchResults.setItemAnimator(null);
+        rvSearchResults.setItemViewCacheSize(12);
         adapter = new FoodItemAdapter(getContext(), filteredItems, this);
         rvSearchResults.setAdapter(adapter);
+
+        rvSearchResults.post(() -> {
+            if (!isAdded()) return;
+            int adaptiveSpan = getAdaptiveSpanCount();
+            if (gridLayoutManager.getSpanCount() != adaptiveSpan) {
+                gridLayoutManager.setSpanCount(adaptiveSpan);
+            }
+        });
+    }
+
+    private int getAdaptiveSpanCount() {
+        int screenWidthPx = getResources().getDisplayMetrics().widthPixels;
+        int minCardWidthPx = (int) TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP,
+                170,
+                getResources().getDisplayMetrics()
+        );
+        int span = Math.max(1, screenWidthPx / Math.max(minCardWidthPx, 1));
+        return Math.min(span, 3);
     }
 
     private void setupSearch() {
@@ -203,20 +228,32 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
 
                 for (DataSnapshot itemSnapshot : snapshot.getChildren()) {
                     FoodItem item = itemSnapshot.getValue(FoodItem.class);
-                    if (item != null && item.isAvailableValue()) {
-                        item.setFoodId(itemSnapshot.getKey());
+                    if (item == null) continue;
 
-                        // Calculate Distance
-                        if (currentLat != 0 && currentLng != 0) {
-                            double dist = LocationUtils.calculateDistance(
-                                    currentLat, currentLng,
-                                    item.getLatitudeValue(), item.getLongitudeValue()
-                            );
-                            item.setDistance(dist);
-                        }
+                    item.setFoodId(itemSnapshot.getKey());
 
-                        allFoodItems.add(item);
+                    Object quantityRaw = getObjectAny(itemSnapshot, "quantity", "qty", "stock");
+                    if (quantityRaw != null) {
+                        item.setQuantity(quantityRaw);
                     }
+
+                    String status = getStringAny(itemSnapshot, "status", "itemStatus");
+                    if (status != null && !status.trim().isEmpty()) {
+                        item.setStatus(status);
+                    }
+
+                    if (!item.isListable()) continue;
+
+                    // Calculate Distance
+                    if (currentLat != 0 && currentLng != 0) {
+                        double dist = LocationUtils.calculateDistance(
+                                currentLat, currentLng,
+                                item.getLatitudeValue(), item.getLongitudeValue()
+                        );
+                        item.setDistance(dist);
+                    }
+
+                    allFoodItems.add(item);
                 }
 
                 progressBar.setVisibility(View.GONE);
@@ -236,7 +273,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
             searchDebounceHandler.removeCallbacks(searchRunnable);
         }
         searchRunnable = () -> filterItems(query);
-        searchDebounceHandler.postDelayed(searchRunnable, 220);
+        searchDebounceHandler.postDelayed(searchRunnable, 160);
     }
 
     private void filterItems(String query) {
@@ -339,5 +376,24 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         if (searchRunnable != null) {
             searchDebounceHandler.removeCallbacks(searchRunnable);
         }
+    }
+
+    private String getStringAny(DataSnapshot snapshot, String... keys) {
+        for (String key : keys) {
+            Object value = snapshot.child(key).getValue();
+            if (value != null) {
+                String str = String.valueOf(value).trim();
+                if (!str.isEmpty()) return str;
+            }
+        }
+        return null;
+    }
+
+    private Object getObjectAny(DataSnapshot snapshot, String... keys) {
+        for (String key : keys) {
+            Object value = snapshot.child(key).getValue();
+            if (value != null) return value;
+        }
+        return null;
     }
 }

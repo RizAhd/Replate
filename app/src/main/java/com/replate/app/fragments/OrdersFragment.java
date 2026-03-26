@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -33,7 +34,9 @@ import com.replate.app.models.Order;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Orders Fragment - Shows user's order history
@@ -211,5 +214,39 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
         intent.putExtra("showQR", true);
         startActivity(intent);
     }
-}
 
+    @Override
+    public void onCancelOrderClick(Order order) {
+        if (order == null || order.getOrderId() == null || !order.isActive()) {
+            Toast.makeText(getContext(), "This order cannot be cancelled", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Cancel this order?")
+                .setMessage("Are you sure you want to cancel this order? This action cannot be undone.")
+                .setNegativeButton("Keep", null)
+                .setPositiveButton("Cancel Order", (dialog, which) -> cancelOrder(order))
+                .show();
+    }
+
+    private void cancelOrder(@NonNull Order order) {
+        progressBar.setVisibility(View.VISIBLE);
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("orderStatus", "cancelled");
+        updates.put("updatedAt", System.currentTimeMillis());
+        updates.put("cancelledAt", System.currentTimeMillis());
+
+        mDatabase.child("orders").child(order.getOrderId())
+                .updateChildren(updates)
+                .addOnSuccessListener(unused -> {
+                    progressBar.setVisibility(View.GONE);
+                    Toast.makeText(getContext(), "Order cancelled", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    progressBar.setVisibility(View.GONE);
+                    Toast.makeText(getContext(), "Failed to cancel order", Toast.LENGTH_SHORT).show();
+                });
+    }
+}

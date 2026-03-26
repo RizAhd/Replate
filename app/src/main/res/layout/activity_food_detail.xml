@@ -3,7 +3,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/cream">
+    android:background="@color/cream"
+    android:clipToPadding="false"
+    android:fillViewport="true"
+    android:overScrollMode="never">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -14,7 +17,7 @@
         <!-- Food Image with Back Button -->
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="300dp">
+            android:layout_height="280dp">
 
             <ImageView
                 android:id="@+id/ivFoodImage"
@@ -48,7 +51,7 @@
                 android:background="@drawable/badge_discount"
                 android:paddingHorizontal="12dp"
                 android:paddingVertical="7dp"
-                android:text="-30%"
+                android:text="@string/food_detail_default_discount"
                 android:textColor="@color/white"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -59,8 +62,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="-28dp"
-            app:cardCornerRadius="28dp"
+            android:layout_marginTop="-24dp"
+            app:cardCornerRadius="24dp"
             app:cardElevation="6dp">
 
             <LinearLayout
@@ -74,10 +77,12 @@
                     android:id="@+id/tvFoodName"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Food Name"
+                    android:ellipsize="end"
+                    android:maxLines="2"
+                    android:text="@string/food_detail_default_name"
                     android:textAppearance="@style/TextAppearance.REPLATE.Headline"
                     android:textColor="@color/text_primary"
-                    android:textSize="@dimen/text_display" />
+                    android:textSize="@dimen/text_xl" />
 
                 <!-- Hotel Name -->
                 <TextView
@@ -85,7 +90,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
-                    android:text="Hotel Name"
+                    android:text="@string/food_detail_default_hotel"
                     android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
                 <!-- Distance and Pickup Time -->
@@ -104,7 +109,7 @@
                         android:background="@drawable/badge_distance"
                         android:paddingHorizontal="12dp"
                         android:paddingVertical="7dp"
-                        android:text="1.2 km away"
+                        android:text="@string/food_detail_default_distance"
                         android:textColor="@color/green_primary"
                         android:textSize="12sp"
                         android:textStyle="bold" />
@@ -121,7 +126,7 @@
                         android:background="@drawable/badge_distance"
                         android:paddingHorizontal="12dp"
                         android:paddingVertical="7dp"
-                        android:text="6:00 PM - 8:00 PM"
+                        android:text="@string/food_detail_default_pickup_window"
                         android:textColor="@color/ember2"
                         android:textSize="12sp"
                         android:textStyle="bold" />
@@ -151,7 +156,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Original"
+                            android:text="@string/food_detail_original_label"
                             android:textColor="@color/text_secondary"
                             android:textSize="@dimen/text_xs" />
 
@@ -186,7 +191,7 @@
                             android:id="@+id/btnMinus"
                             android:layout_width="@dimen/touch_target_min"
                             android:layout_height="@dimen/touch_target_min"
-                            android:background="@drawable/circle_gray"
+                            android:background="@drawable/circle_neutral"
                             android:text="-"
                             android:textColor="@color/text_primary"
                             android:textSize="20sp" />
@@ -205,9 +210,9 @@
                             android:id="@+id/btnPlus"
                             android:layout_width="@dimen/touch_target_min"
                             android:layout_height="@dimen/touch_target_min"
-                            android:background="@drawable/circle_primary"
+                            android:background="@drawable/circle_neutral"
                             android:text="+"
-                            android:textColor="@color/white"
+                            android:textColor="@color/text_primary"
                             android:textSize="20sp" />
                     </LinearLayout>
                 </LinearLayout>
@@ -219,21 +224,44 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="18dp"
                     android:lineSpacingExtra="4dp"
-                    android:text="Food description goes here..."
+                    android:text="@string/food_detail_description_placeholder"
                     android:textAppearance="@style/TextAppearance.REPLATE.Body"
                     android:textColor="@color/text_primary" />
 
                 <!-- Call Hotel Button -->
-                <Button
-                    android:id="@+id/btnCallHotel"
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="@dimen/button_height"
+                    android:layout_height="wrap_content"
                     android:layout_marginTop="18dp"
-                    android:background="@drawable/button_outline_primary"
-                    android:text="Call hotel"
-                    android:textAllCaps="false"
-                    android:textColor="@color/green_primary"
-                    android:textStyle="bold" />
+                    android:orientation="horizontal"
+                    android:weightSum="2">
+
+                    <Button
+                        android:id="@+id/btnCallHotel"
+                        android:layout_width="0dp"
+                        android:layout_height="@dimen/button_height"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="6dp"
+                        android:background="@drawable/button_outline_neutral"
+                        android:minHeight="@dimen/touch_target_min"
+                        android:text="@string/food_detail_call_hotel"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_primary"
+                        android:textStyle="bold" />
+
+                    <Button
+                        android:id="@+id/btnSmsHotel"
+                        android:layout_width="0dp"
+                        android:layout_height="@dimen/button_height"
+                        android:layout_weight="1"
+                        android:layout_marginStart="6dp"
+                        android:background="@drawable/button_outline_neutral"
+                        android:minHeight="@dimen/touch_target_min"
+                        android:text="@string/food_detail_sms_hotel"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_primary"
+                        android:textStyle="bold" />
+                </LinearLayout>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
@@ -242,8 +270,11 @@
             android:id="@+id/btnAddToCart"
             android:layout_width="match_parent"
             android:layout_height="@dimen/button_height"
-            android:layout_margin="16dp"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"
             android:background="@drawable/button_primary"
+            android:minHeight="@dimen/touch_target_min"
             android:text="Add to Cart - LKR 500.00"
             android:textAllCaps="false"
             android:textColor="@color/white"

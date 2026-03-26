@@ -5,7 +5,11 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -48,12 +52,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class HomeFragment extends Fragment implements
         FoodItemAdapter.OnFoodItemClickListener,
         CategoryAdapter.OnCategoryClickListener {
 
     private static final int LOCATION_PERMISSION_REQUEST = 1001;
+    private static final long BANNER_AUTO_SCROLL_MS = 3200L;
 
     // Views
     private View ivMenu;
@@ -61,7 +69,7 @@ public class HomeFragment extends Fragment implements
     private View ivNotification;
     private androidx.appcompat.widget.SearchView searchView;
     private ViewPager2 bannerViewPager;
-    private RecyclerView rvCategories, rvHotDeals, rvFoodItems;
+    private RecyclerView rvCategories, rvHotDeals, rvFoodItems, rvFavorites;
     private me.relex.circleindicator.CircleIndicator3 bannerIndicator;
     private ProgressBar progressBar;
 
@@ -78,6 +86,7 @@ public class HomeFragment extends Fragment implements
     private CategoryAdapter categoryAdapter;
     private FoodItemAdapter foodItemAdapter;
     private FoodItemAdapter hotDealsAdapter;
+    private FoodItemAdapter favoritesAdapter;
     private BannerAdapter bannerAdapter;
 
     // Data
@@ -85,6 +94,8 @@ public class HomeFragment extends Fragment implements
     private List<FoodItem> foodItems = new ArrayList<>();
     private List<FoodItem> allFoodItems = new ArrayList<>(); // Unfiltered list
     private List<FoodItem> hotDeals = new ArrayList<>();
+    private List<FoodItem> favoriteItems = new ArrayList<>();
+    private java.util.Set<String> favoriteFoodIds = new java.util.HashSet<>();
     private String selectedCategory = "All";
 
     // Shake to refresh (REQUIREMENT: Sensors)
@@ -102,6 +113,20 @@ public class HomeFragment extends Fragment implements
                     loadFoodItems();
                 }
             });
+
+    private final Handler bannerHandler = new Handler(Looper.getMainLooper());
+    private final ExecutorService locationExecutor = Executors.newSingleThreadExecutor();
+    private final Runnable bannerAutoScrollRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (bannerViewPager == null || bannerAdapter == null || bannerAdapter.getItemCount() <= 1 || !isAdded()) {
+                return;
+            }
+            int nextItem = (bannerViewPager.getCurrentItem() + 1) % bannerAdapter.getItemCount();
+            bannerViewPager.setCurrentItem(nextItem, true);
+            bannerHandler.postDelayed(this, BANNER_AUTO_SCROLL_MS);
+        }
+    };
 
     @Nullable
     @Override
@@ -126,16 +151,28 @@ public class HomeFragment extends Fragment implements
         rvCategories = view.findViewById(R.id.rvCategories);
         rvHotDeals = view.findViewById(R.id.rvHotDeals);
         rvFoodItems = view.findViewById(R.id.rvDeals);
+        rvFavorites = view.findViewById(R.id.rvFavorites);
         progressBar = view.findViewById(R.id.progressBar);
 
         rvCategories.setLayoutManager(new LinearLayoutManager(getContext(),
                 LinearLayoutManager.HORIZONTAL, false));
         rvHotDeals.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         rvFoodItems.setLayoutManager(new LinearLayoutManager(getContext()));
+        rvFavorites.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
 
         rvCategories.setHasFixedSize(true);
         rvHotDeals.setHasFixedSize(true);
         rvFoodItems.setHasFixedSize(true);
+        rvFavorites.setHasFixedSize(true);
+
+        rvCategories.setItemAnimator(null);
+        rvHotDeals.setItemAnimator(null);
+        rvFoodItems.setItemAnimator(null);
+        rvFavorites.setItemAnimator(null);
+
+        rvFoodItems.setItemViewCacheSize(10);
+        rvHotDeals.setItemViewCacheSize(8);
+        rvFavorites.setItemViewCacheSize(8);
 
         categoryAdapter = new CategoryAdapter(getContext(), categories, this);
         rvCategories.setAdapter(categoryAdapter);
@@ -146,6 +183,9 @@ public class HomeFragment extends Fragment implements
         hotDealsAdapter = new FoodItemAdapter(getContext(), hotDeals, this);
         rvHotDeals.setAdapter(hotDealsAdapter);
 
+        favoritesAdapter = new FoodItemAdapter(getContext(), favoriteItems, this);
+        rvFavorites.setAdapter(favoritesAdapter);
+
         // Setup banner
         setupBanner();
 
@@ -154,6 +194,7 @@ public class HomeFragment extends Fragment implements
 
         // Setup categories
         setupCategories();
+        observeFavorites();
 
         // Setup click listeners
         setupClickListeners();
@@ -197,9 +238,13 @@ public class HomeFragment extends Fragment implements
 
         bannerAdapter = new BannerAdapter(getContext(), bannerImages);
         bannerViewPager.setAdapter(bannerAdapter);
+        bannerIndicator.setViewPager(bannerViewPager);
 
-        // Auto-scroll banner
         bannerViewPager.setOffscreenPageLimit(3);
+        bannerViewPager.setPageTransformer((page, position) -> {
+            page.setAlpha(0.9f + (1 - Math.abs(position)) * 0.1f);
+            page.setScaleY(0.96f + (1 - Math.abs(position)) * 0.04f);
+        });
     }
 
     private void setupClickListeners() {
@@ -236,6 +281,7 @@ public class HomeFragment extends Fragment implements
                 == PackageManager.PERMISSION_GRANTED;
 
         if (!fineGranted && !coarseGranted) {
+            tvCurrentLocation.setText(getString(R.string.default_location));
             locationPermissionLauncher.launch(new String[]{
                     Manifest.permission.ACCESS_FINE_LOCATION,
                     Manifest.permission.ACCESS_COARSE_LOCATION
@@ -248,10 +294,46 @@ public class HomeFragment extends Fragment implements
                 if (location != null) {
                     currentLatitude = location.getLatitude();
                     currentLongitude = location.getLongitude();
+                    updateCurrentLocationLabel(currentLatitude, currentLongitude);
+                } else {
+                    tvCurrentLocation.setText(getString(R.string.default_location));
                 }
                 loadFoodItems();
             })
-            .addOnFailureListener(e -> loadFoodItems());
+            .addOnFailureListener(e -> {
+                tvCurrentLocation.setText(getString(R.string.default_location));
+                loadFoodItems();
+            });
+    }
+
+    private void updateCurrentLocationLabel(double latitude, double longitude) {
+        if (!Geocoder.isPresent() || !isAdded()) {
+            tvCurrentLocation.setText(String.format(Locale.getDefault(), "%.3f, %.3f", latitude, longitude));
+            return;
+        }
+
+        locationExecutor.execute(() -> {
+            String label = String.format(Locale.getDefault(), "%.3f, %.3f", latitude, longitude);
+            try {
+                Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
+                List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
+                if (addresses != null && !addresses.isEmpty()) {
+                    Address address = addresses.get(0);
+                    String locality = address.getSubLocality();
+                    if (locality == null || locality.trim().isEmpty()) locality = address.getLocality();
+                    if (locality == null || locality.trim().isEmpty()) locality = address.getAdminArea();
+                    if (locality != null && !locality.trim().isEmpty()) {
+                        label = locality;
+                    }
+                }
+            } catch (Exception ignored) {
+            }
+
+            String finalLabel = label;
+            if (isAdded()) {
+                requireActivity().runOnUiThread(() -> tvCurrentLocation.setText(finalLabel));
+            }
+        });
     }
 
     private void loadFoodItems() {
@@ -295,10 +377,16 @@ public class HomeFragment extends Fragment implements
                     }
 
                     String status = getStringAny(itemSnapshot, "status", "itemStatus");
-                    boolean isStatusAvailable = status == null || "available".equalsIgnoreCase(status);
-                    boolean hasQuantity = item.getQuantityValue() > 0;
+                    if (status != null && !status.trim().isEmpty()) {
+                        item.setStatus(status);
+                    }
 
-                    if (!isStatusAvailable || !hasQuantity) continue;
+                    Object quantityRaw = getObjectAny(itemSnapshot, "quantity", "qty", "stock");
+                    if (quantityRaw != null) {
+                        item.setQuantity(quantityRaw);
+                    }
+
+                    if (!item.isListable()) continue;
 
                     if (currentLatitude != 0 && currentLongitude != 0) {
                         double distance = calculateDistance(
@@ -316,6 +404,7 @@ public class HomeFragment extends Fragment implements
                 }
 
                 updateHotDeals();
+                updateFavorites();
                 filterByCategory(selectedCategory);
                 showLoading(false);
             }
@@ -326,6 +415,42 @@ public class HomeFragment extends Fragment implements
                 Toast.makeText(getContext(), "Failed to load food items", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void observeFavorites() {
+        if (mAuth.getCurrentUser() == null) {
+            updateFavorites();
+            return;
+        }
+        mDatabase.child("favorites").child(mAuth.getCurrentUser().getUid())
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        favoriteFoodIds.clear();
+                        for (DataSnapshot child : snapshot.getChildren()) {
+                            String key = child.getKey();
+                            Object val = child.getValue();
+                            if (key != null && !key.trim().isEmpty()) {
+                                favoriteFoodIds.add(key);
+                            }
+                            if (val instanceof String) {
+                                String id = ((String) val).trim();
+                                if (!id.isEmpty()) favoriteFoodIds.add(id);
+                            } else if (val instanceof java.util.Map) {
+                                Object foodId = ((java.util.Map<?, ?>) val).get("foodId");
+                                if (foodId != null) {
+                                    String id = String.valueOf(foodId).trim();
+                                    if (!id.isEmpty()) favoriteFoodIds.add(id);
+                                }
+                            }
+                        }
+                        updateFavorites();
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                    }
+                });
     }
 
     private void updateHotDeals() {
@@ -343,6 +468,27 @@ public class HomeFragment extends Fragment implements
             hotDeals.add(sortedByPrice.get(i));
         }
         hotDealsAdapter.updateData(new ArrayList<>(hotDeals));
+    }
+
+    private void updateFavorites() {
+        favoriteItems.clear();
+        if (!favoriteFoodIds.isEmpty()) {
+            for (FoodItem item : allFoodItems) {
+                if (item.getFoodId() != null && favoriteFoodIds.contains(item.getFoodId())) {
+                    favoriteItems.add(item);
+                }
+            }
+        }
+
+        if (favoriteItems.isEmpty()) {
+            int fallbackCount = Math.min(6, allFoodItems.size());
+            for (int i = 0; i < fallbackCount; i++) {
+                favoriteItems.add(allFoodItems.get(i));
+            }
+        }
+
+        favoritesAdapter.updateData(new ArrayList<>(favoriteItems));
+        rvFavorites.setVisibility(favoriteItems.isEmpty() ? View.GONE : View.VISIBLE);
     }
 
     private String getStringAny(DataSnapshot snapshot, String... keys) {
@@ -500,6 +646,8 @@ public class HomeFragment extends Fragment implements
             sensorManager.registerListener(shakeDetector, accelerometer,
                     SensorManager.SENSOR_DELAY_UI);
         }
+        bannerHandler.removeCallbacks(bannerAutoScrollRunnable);
+        bannerHandler.postDelayed(bannerAutoScrollRunnable, BANNER_AUTO_SCROLL_MS);
     }
 
     @Override
@@ -509,5 +657,13 @@ public class HomeFragment extends Fragment implements
         if (sensorManager != null && shakeDetector != null) {
             sensorManager.unregisterListener(shakeDetector);
         }
+        bannerHandler.removeCallbacks(bannerAutoScrollRunnable);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        bannerHandler.removeCallbacksAndMessages(null);
+        locationExecutor.shutdownNow();
     }
 }

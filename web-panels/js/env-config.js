@@ -18,7 +18,6 @@ const ENV = Object.freeze({
     FIREBASE_MESSAGING_SENDER:  "50353677588",
     FIREBASE_APP_ID:            "1:50353677588:web:75306663",
 
-    // ── FCM Server Key (used for sending push notifications server-side) ──
-    FIREBASE_FCM_SERVER_KEY:    "REMOVED_SECRET",
+    // ── Cloud Functions (notification + OTP APIs) ─────────────────────────
+    FUNCTIONS_BASE_URL:         "https://asia-southeast1-replate-food-rescue.cloudfunctions.net"
 });
-

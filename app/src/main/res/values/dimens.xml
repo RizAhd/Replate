@@ -34,4 +34,8 @@
     <dimen name="text_lg">18sp</dimen>
     <dimen name="text_xl">22sp</dimen>
     <dimen name="text_display">28sp</dimen>
+
+    <!-- Drawer dimensions -->
+    <dimen name="drawer_width">280dp</dimen>
+    <dimen name="drawer_header_min_height">160dp</dimen>
 </resources>

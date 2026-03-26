@@ -26,6 +26,7 @@ import com.replate.app.models.AppNotification;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Notifications Activity - Shows push notification history
@@ -142,12 +143,43 @@ public class NotificationsActivity extends AppCompatActivity
                     .child("read").setValue(true);
         }
 
-        if (notification.getOrderId() != null && !notification.getOrderId().trim().isEmpty()) {
-            openOrderFromPayload(notification.getOrderId().trim());
+        navigateFromNotification(notification);
+    }
+
+    private void navigateFromNotification(AppNotification notification) {
+        if (notification == null) return;
+
+        Intent intent = com.replate.app.notifications.NotificationRouter.buildIntent(
+                this,
+                com.replate.app.notifications.NotificationCategories.normalize(value(notification.getCategory())),
+                value(notification.getRoute()),
+                value(notification.getOrderId()),
+                value(notification.getHotelId()),
+                value(notification.getDeepLink()),
+                null
+        );
+
+        if (intent != null) {
+            startActivity(intent);
         }
     }
 
+    private String normalizeCategory(String rawCategory) {
+        return com.replate.app.notifications.NotificationCategories.normalize(rawCategory);
+    }
+
+    private String value(String input) {
+        return input == null ? "" : input.trim();
+    }
+
     private void openOrderFromPayload(String orderId) {
+        if (orderId == null || orderId.trim().isEmpty()) {
+            Intent fallback = new Intent(this, MainActivity.class);
+            fallback.putExtra("open_tab", "orders");
+            startActivity(fallback);
+            return;
+        }
+
         Intent intent = new Intent(this, OrderDetailActivity.class);
         intent.putExtra("orderId", orderId);
         startActivity(intent);

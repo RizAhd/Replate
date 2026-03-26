@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/drawerHeaderRoot"
     android:layout_width="match_parent"
-    android:layout_height="200dp"
+    android:layout_height="wrap_content"
+    android:minHeight="@dimen/drawer_header_min_height"
     android:background="@drawable/bg_gradient_green"
     android:gravity="bottom"
     android:orientation="vertical"
-    android:padding="20dp">
+    android:paddingStart="20dp"
+    android:paddingTop="20dp"
+    android:paddingEnd="20dp"
+    android:paddingBottom="20dp">
 
     <ImageView
         android:id="@+id/ivDrawerAvatar"
@@ -13,8 +18,8 @@
         android:layout_height="60dp"
         android:background="@drawable/circle_white"
         android:contentDescription="@string/drawer_profile_cd"
-        android:padding="12dp"
-        android:src="@drawable/ic_profile" />
+        android:padding="8dp"
+        android:src="@drawable/ic_replate_logo" />
 
     <TextView
         android:id="@+id/tvDrawerTitle"

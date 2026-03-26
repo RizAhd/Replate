@@ -124,6 +124,29 @@ public class EditProfileActivity extends AppCompatActivity {
         if (user != null) {
             mDatabase.child("users").child(user.getUid()).updateChildren(updates)
                 .addOnSuccessListener(aVoid -> {
+                    Map<String, Object> notif = new HashMap<>();
+                    notif.put("title", "Profile updated");
+                    notif.put("body", "Your profile changes were saved successfully.");
+                    notif.put("type", "profile_update");
+                    notif.put("category", com.replate.app.notifications.NotificationCategories.PROFILE_UPDATED);
+                    notif.put("route", "profile");
+                    notif.put("timestamp", System.currentTimeMillis());
+                    notif.put("read", false);
+                    mDatabase.child("notifications").child(user.getUid()).push().setValue(notif);
+
+                    com.replate.app.notifications.InAppNotificationCenter.publish(
+                            new com.replate.app.notifications.InAppNotificationCenter.InAppNotificationMessage(
+                                    "Profile updated",
+                                    "Your profile changes were saved successfully.",
+                                    com.replate.app.notifications.NotificationCategories.PROFILE_UPDATED,
+                                    "profile",
+                                    "",
+                                    "",
+                                    "",
+                                    null
+                            )
+                    );
+
                     Toast.makeText(this, "Profile Updated", Toast.LENGTH_SHORT).show();
                     finish();
                 })

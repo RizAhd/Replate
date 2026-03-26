@@ -7,15 +7,15 @@
     android:gravity="center">
 
     <!-- Food Emoji Center -->
-    <TextView
+    <ImageView
         android:id="@+id/ivEmoji"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="🍽️"
-        android:textSize="80sp"
+        android:layout_width="108dp"
+        android:layout_height="108dp"
         android:layout_centerHorizontal="true"
         android:layout_above="@id/appName"
-        android:layout_marginBottom="24dp" />
+        android:layout_marginBottom="20dp"
+        android:src="@drawable/ic_replate_logo"
+        android:contentDescription="@string/app_name" />
 
     <!-- App Name -->
     <TextView

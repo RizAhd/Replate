@@ -1,10 +1,12 @@
 package com.replate.app;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -36,6 +38,7 @@ import com.google.firebase.storage.StorageReference;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -61,6 +64,7 @@ public class SettingsActivity extends AppCompatActivity {
 
     private Bitmap capturedPhoto;
     private ActivityResultLauncher<Intent> cameraLauncher;
+    private ActivityResultLauncher<String> galleryLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,6 +90,22 @@ public class SettingsActivity extends AppCompatActivity {
                 }
         );
 
+        galleryLauncher = registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
+            if (uri == null) return;
+            try {
+                InputStream stream = getContentResolver().openInputStream(uri);
+                Bitmap bitmap = BitmapFactory.decodeStream(stream);
+                if (stream != null) stream.close();
+                if (bitmap != null) {
+                    ivProfileImage.setImageBitmap(bitmap);
+                    savePhotoToInternalStorage(bitmap);
+                    uploadProfilePhoto(bitmap);
+                }
+            } catch (Exception e) {
+                Toast.makeText(this, "Failed to read selected image", Toast.LENGTH_SHORT).show();
+            }
+        });
+
         initViews();
         loadUserData();
         loadPreferences();
@@ -107,7 +127,7 @@ public class SettingsActivity extends AppCompatActivity {
         ivBack.setOnClickListener(v -> finish());
 
         // CAMERA - MULTIMEDIA REQUIREMENT
-        btnChangePhoto.setOnClickListener(v -> openCamera());
+        btnChangePhoto.setOnClickListener(v -> showPhotoPicker());
 
         btnPickAddress.setOnClickListener(v -> {
             // Open Map to pick address (For now, user can just type or we open map)
@@ -141,14 +161,16 @@ public class SettingsActivity extends AppCompatActivity {
                         if (snapshot.exists()) {
                             String name = snapshot.child("name").getValue(String.class);
                             String phone = snapshot.child("phone").getValue(String.class);
-                            String address = snapshot.child("address").getValue(String.class); // Load address
+                            String address = snapshot.child("address").getValue(String.class);
                             String profileImage = snapshot.child("profileImage").getValue(String.class);
+                            if (profileImage == null || profileImage.trim().isEmpty()) {
+                                profileImage = snapshot.child("profileImageUrl").getValue(String.class);
+                            }
 
                             if (name != null) etName.setText(name);
                             if (phone != null) etPhone.setText(phone);
-                            if (address != null) etAddress.setText(address); // Set address
+                            if (address != null) etAddress.setText(address);
 
-                            // Load image with Glide...
                             if (profileImage != null && !profileImage.isEmpty()) {
                                 Glide.with(SettingsActivity.this)
                                         .load(profileImage)
@@ -169,6 +191,20 @@ public class SettingsActivity extends AppCompatActivity {
     private void loadPreferences() {
         switchNotifications.setChecked(prefs.getBoolean("notifications_enabled", true));
         switchLocation.setChecked(prefs.getBoolean("location_enabled", true));
+    }
+
+    private void showPhotoPicker() {
+        String[] options = new String[]{"Take photo", "Choose from gallery"};
+        new AlertDialog.Builder(this)
+                .setTitle("Update profile photo")
+                .setItems(options, (dialog, which) -> {
+                    if (which == 0) {
+                        openCamera();
+                    } else {
+                        galleryLauncher.launch("image/*");
+                    }
+                })
+                .show();
     }
 
     /**
@@ -232,8 +268,10 @@ public class SettingsActivity extends AppCompatActivity {
         photoRef.putBytes(data)
                 .addOnSuccessListener(taskSnapshot ->
                         photoRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                            mDatabase.child("users").child(user.getUid())
-                                    .child("profileImage").setValue(uri.toString());
+                            Map<String, Object> photoUpdate = new HashMap<>();
+                            photoUpdate.put("profileImage", uri.toString());
+                            photoUpdate.put("profileImageUrl", uri.toString());
+                            mDatabase.child("users").child(user.getUid()).updateChildren(photoUpdate);
                             Toast.makeText(this, "Photo updated!", Toast.LENGTH_SHORT).show();
                         }))
                 .addOnFailureListener(e ->

@@ -20,20 +20,38 @@
     <string name="cd_settings">Settings icon</string>
     <string name="cd_help">Help icon</string>
     <string name="cd_arrow_right">Open</string>
+    <string name="cd_search">Search illustration</string>
 
     <!-- Home -->
-    <string name="home_explore_nearby">Explore nearby</string>
-    <string name="default_location">Colombo 3</string>
+    <string name="home_explore_nearby">Delivering to</string>
+    <string name="default_location">Fetching location…</string>
     <string name="home_hero_title">Rescue fresh meals before they go to waste</string>
-    <string name="home_hero_subtitle">Discover nearby hot deals, lower prices, and quick pickup windows in one place.</string>
-    <string name="home_search_hint">Search food near you…</string>
-    <string name="home_categories_title">Categories</string>
-    <string name="home_categories_subtitle">Browse rescue meals by what you feel like eating</string>
-    <string name="home_hot_deals_title">Hot deals</string>
-    <string name="home_lowest_prices">Lowest prices</string>
-    <string name="home_hot_deals_subtitle">Hand-picked discounts sorted by the best value</string>
-    <string name="home_nearby_title">Deals near you</string>
-    <string name="home_nearby_subtitle">Fresh pickups sorted by distance and availability</string>
+    <string name="home_hero_subtitle">Find nearby offers from trusted hotels and pick up in minutes.</string>
+    <string name="home_search_hint">Search food, hotels, cuisines…</string>
+    <string name="home_categories_title">Browse categories</string>
+    <string name="home_categories_subtitle">Pick what you’re craving right now</string>
+    <string name="home_hot_deals_title">Popular right now</string>
+    <string name="home_lowest_prices">Best value</string>
+    <string name="home_hot_deals_subtitle">Most ordered picks near your location</string>
+    <string name="home_nearby_title">Nearby hotels and food</string>
+    <string name="home_nearby_subtitle">Closest pickup options based on your live location</string>
+    <string name="home_favorites_title">Recommended for you</string>
+    <string name="home_favorites_subtitle">Curated offers based on your saved and recent choices</string>
+
+    <!-- Map -->
+    <string name="map_search_hint">Search places, towns, landmarks…</string>
+    <string name="map_route_button">Show route</string>
+    <string name="map_loading_items">Loading available items…</string>
+    <string name="map_tap_marker_route">Tap a marker to view route details</string>
+    <string name="map_route_unavailable">Route unavailable</string>
+    <string name="map_route_template">Distance: %1$s • ETA: %2$s</string>
+    <string name="map_items_load_failed">Unable to load items right now.</string>
+    <string name="map_items_tap_marker">Tap marker to load hotel menu...</string>
+    <string name="map_deals_rating_template">%1$s • ★%2$.1f</string>
+    <string name="map_calculating_route">Calculating best route...</string>
+    <string name="map_waiting_current_location">Waiting for current location...</string>
+    <string name="map_select_destination_first">Select destination first</string>
+    <string name="map_route_template_clear">Distance %1$s · ETA %2$s</string>
 
     <!-- Cart -->
     <string name="cart_title">Your cart</string>
@@ -72,6 +90,17 @@
     <string name="food_hotel_placeholder">Hotel Paradise</string>
     <string name="food_pickup_placeholder">Pickup: 6:00 PM - 8:00 PM</string>
 
+    <!-- Food detail defaults -->
+    <string name="food_detail_default_discount">-30%</string>
+    <string name="food_detail_default_name">Food Name</string>
+    <string name="food_detail_default_hotel">Hotel Name</string>
+    <string name="food_detail_default_distance">1.2 km away</string>
+    <string name="food_detail_default_pickup_window">6:00 PM - 8:00 PM</string>
+    <string name="food_detail_original_label">Original</string>
+    <string name="food_detail_call_hotel">Call hotel</string>
+    <string name="food_detail_sms_hotel">SMS hotel</string>
+    <string name="food_detail_description_placeholder">Food description goes here...</string>
+
     <!-- Profile -->
     <string name="profile_user_name_placeholder">User Name</string>
     <string name="profile_user_email_placeholder">user@email.com</string>
@@ -103,4 +132,106 @@
     <string name="settings_push_notifications">Push Notifications</string>
     <string name="settings_location_services">Location Services</string>
     <string name="settings_version">Version 1.0.0</string>
+
+    <!-- Checkout -->
+    <string name="checkout_title">Checkout</string>
+    <string name="checkout_subtitle">Reserve your rescued meal and confirm the best pickup window.</string>
+    <string name="checkout_fulfilment_title">Fulfilment</string>
+    <string name="checkout_fulfilment_subtitle">Choose whether you’ll pick up the order or request delivery.</string>
+    <string name="checkout_pickup">Pickup</string>
+    <string name="checkout_delivery">Delivery</string>
+    <string name="checkout_delivery_address">Delivery address</string>
+    <string name="checkout_address_hint">Full Address</string>
+    <string name="checkout_pick_from_map">Pick from Map</string>
+    <string name="checkout_summary_title">Order summary</string>
+    <string name="checkout_summary_subtitle">Review the meals currently saved in your cart.</string>
+    <string name="checkout_subtotal">Subtotal</string>
+    <string name="checkout_savings">You save</string>
+    <string name="checkout_savings_default">-LKR 0.00</string>
+    <string name="checkout_total">Total</string>
+    <string name="checkout_pickup_time_title">Pickup time</string>
+    <string name="checkout_pickup_time_subtitle">Select the time you expect to arrive at the hotel.</string>
+    <string name="checkout_pickup_time_hint">Select pickup time</string>
+    <string name="checkout_payment_method">Payment method</string>
+    <string name="checkout_payment_cash">Cash on Pickup</string>
+    <string name="checkout_payment_card">Card Payment (PayHere)</string>
+    <string name="checkout_details_title">Your details</string>
+    <string name="checkout_full_name_hint">Full Name</string>
+    <string name="checkout_phone_hint">Phone Number</string>
+    <string name="checkout_place_order">Place Order</string>
+    <string name="checkout_delivery_fee">Delivery fee</string>
+    <string name="checkout_delivery_fee_amount">LKR 250.00</string>
+    <string name="checkout_confirm_message">Are you sure you want to place this order?
+Total: LKR %1$.2f</string>
+
+    <!-- Login/Register -->
+    <string name="auth_brand_title">REPLATE</string>
+    <string name="auth_brand_subtitle">Because Every Meal Matters</string>
+    <string name="auth_tab_login">LOGIN</string>
+    <string name="auth_tab_register">REGISTER</string>
+    <string name="auth_welcome_back">Welcome back</string>
+    <string name="auth_login_subtitle">Sign in to discover nearby rescue meals and manage your orders.</string>
+    <string name="auth_hint_email">Email</string>
+    <string name="auth_hint_password">Password</string>
+    <string name="auth_forgot_password">Forgot Password?</string>
+    <string name="auth_btn_login">LOGIN</string>
+    <string name="auth_create_account">Create your account</string>
+    <string name="auth_register_subtitle">Join REPLATE to save money, rescue meals, and track pickup orders.</string>
+    <string name="auth_hint_full_name">Full Name</string>
+    <string name="auth_hint_phone">Phone</string>
+    <string name="auth_hint_confirm_password">Confirm Password</string>
+    <string name="auth_btn_create_account">CREATE ACCOUNT</string>
+
+    <!-- Search -->
+    <string name="search_title">Search</string>
+    <string name="search_hint_full">Search for food, hotels, cuisines...</string>
+    <string name="search_chip_all">All</string>
+    <string name="search_chip_nearby">Nearby</string>
+    <string name="search_chip_price_low">Price: Low to High</string>
+    <string name="search_chip_top_rated">Top Rated</string>
+    <string name="search_chip_category">Category</string>
+    <string name="search_chip_best_discount">Best Discount</string>
+    <string name="search_results_default">0 results found</string>
+    <string name="search_empty_title">Start searching for food deals</string>
+
+    <!-- Edit profile -->
+    <string name="edit_profile_title">Edit Profile</string>
+    <string name="edit_profile_hint_name">Full Name</string>
+    <string name="edit_profile_hint_phone">Phone Number</string>
+    <string name="edit_profile_hint_address">Address</string>
+    <string name="edit_profile_pick_map">Pick Address on Map</string>
+    <string name="edit_profile_save">Save Changes</string>
+
+    <!-- Order review -->
+    <string name="order_review_title">Rate your order</string>
+    <string name="order_review_hint">Share your pickup experience</string>
+    <string name="order_review_comment_hint">Write a short review (optional)</string>
+    <string name="order_review_submit">Submit review</string>
+
+    <!-- Mock payment -->
+    <string name="mock_pay_title">PayHere</string>
+    <string name="mock_pay_total_amount">Total Amount</string>
+    <string name="mock_pay_total_default">LKR 1,250.00</string>
+    <string name="mock_pay_method_title">Payment Method</string>
+    <string name="mock_pay_card_option">Credit/Debit Card</string>
+    <string name="mock_pay_wallet_option">Mobile Wallet</string>
+    <string name="mock_pay_card_details">Card Details</string>
+    <string name="mock_pay_card_number">Card Number</string>
+    <string name="mock_pay_expiry">Expiry</string>
+    <string name="mock_pay_cvv">CVV</string>
+    <string name="mock_pay_cardholder">Cardholder Name</string>
+    <string name="mock_pay_action">Pay LKR 1,250.00</string>
+    <string name="mock_pay_secured">🔒 Secured by PayHere</string>
+
+    <!-- Location picker -->
+    <string name="location_picker_title">Select Location</string>
+    <string name="location_picker_hint">Search location or move map...</string>
+    <string name="location_picker_use_live">Use Live Location</string>
+    <string name="location_picker_confirm">Confirm Location</string>
+    <string name="location_picker_move_hint">Move map to select location...</string>
+    <string name="location_picker_search_hint">Search by area, street, or landmark</string>
+    <string name="location_picker_not_found">Location not found</string>
+    <string name="location_picker_search_failed">Search failed. Check internet.</string>
+    <string name="location_picker_select_prompt">Please select a location</string>
+
 </resources>

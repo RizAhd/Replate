@@ -127,10 +127,30 @@ public class FoodItem implements Serializable {
 
     @Exclude
     public boolean isAvailableValue() {
-        if (status != null) return "available".equalsIgnoreCase(status);
+        String normalizedStatus = status == null ? "" : status.trim().toLowerCase();
+
+        // Explicit terminal states should always hide the item.
+        if ("sold_out".equals(normalizedStatus)
+                || "expired".equals(normalizedStatus)
+                || "inactive".equals(normalizedStatus)
+                || "unavailable".equals(normalizedStatus)
+                || "deleted".equals(normalizedStatus)) {
+            return false;
+        }
+
+        // Explicit available states should always show the item.
+        if ("available".equals(normalizedStatus)
+                || "active".equals(normalizedStatus)
+                || "approved".equals(normalizedStatus)
+                || "live".equals(normalizedStatus)) {
+            return true;
+        }
+
         if (isAvailable != null) return toBool(isAvailable);
         if (available != null) return toBool(available);
-        return false;
+
+        // Legacy payloads without status flags are treated as available.
+        return true;
     }
 
     public Object getIsAvailable() { return isAvailable; }
@@ -214,5 +234,38 @@ public class FoodItem implements Serializable {
     public String getDistanceFormatted() {
         if (distance < 1) return String.format("%.0f m", distance * 1000);
         return String.format("%.1f km", distance);
+    }
+
+    @Exclude
+    public boolean hasStock() {
+        return quantity == null || getQuantityValue() > 0;
+    }
+
+    @Exclude
+    public boolean hasValidCoordinates() {
+        return getLatitudeValue() != 0 && getLongitudeValue() != 0;
+    }
+
+    @Exclude
+    public boolean isListable() {
+        return isAvailableValue() && hasStock();
+    }
+
+    @Exclude
+    public boolean matchesCategory(String selectedCategory) {
+        if (selectedCategory == null || selectedCategory.trim().isEmpty() || "All".equalsIgnoreCase(selectedCategory)) {
+            return true;
+        }
+        return selectedCategory.equalsIgnoreCase(category == null ? "" : category.trim());
+    }
+
+    @Exclude
+    public boolean matchesQuery(String query) {
+        if (query == null || query.trim().isEmpty()) return true;
+        String q = query.toLowerCase();
+        return (foodName != null && foodName.toLowerCase().contains(q))
+                || (hotelName != null && hotelName.toLowerCase().contains(q))
+                || (category != null && category.toLowerCase().contains(q))
+                || (description != null && description.toLowerCase().contains(q));
     }
 }

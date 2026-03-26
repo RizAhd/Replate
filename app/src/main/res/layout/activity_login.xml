@@ -28,19 +28,19 @@
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginTop="56dp">
 
-        <TextView
-            android:id="@+id/ivEmoji3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="🍽️"
-            android:textSize="74sp" />
+        <ImageView
+            android:id="@+id/ivBrandLogo"
+            android:layout_width="88dp"
+            android:layout_height="88dp"
+            android:src="@drawable/ic_replate_logo"
+            android:contentDescription="@string/app_name" />
 
         <TextView
             android:id="@+id/tvBrandTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="REPLATE"
+            android:text="@string/auth_brand_title"
             android:textAppearance="@style/TextAppearance.REPLATE.Headline"
             android:textColor="@color/white" />
 
@@ -49,7 +49,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:text="Because Every Meal Matters"
+            android:text="@string/auth_brand_subtitle"
             android:textAppearance="@style/TextAppearance.REPLATE.Body"
             android:textColor="@color/white_85" />
     </LinearLayout>
@@ -96,12 +96,12 @@
                 <com.google.android.material.tabs.TabItem
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="LOGIN" />
+                    android:text="@string/auth_tab_login" />
 
                 <com.google.android.material.tabs.TabItem
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="REGISTER" />
+                    android:text="@string/auth_tab_register" />
             </com.google.android.material.tabs.TabLayout>
 
             <ScrollView
@@ -128,7 +128,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Welcome back"
+                            android:text="@string/auth_welcome_back"
                             android:textAppearance="@style/TextAppearance.REPLATE.Headline"
                             android:textColor="@color/text_primary"
                             android:textSize="@dimen/text_xl" />
@@ -137,7 +137,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
-                            android:text="Sign in to discover nearby rescue meals and manage your orders."
+                            android:text="@string/auth_login_subtitle"
                             android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
                         <com.google.android.material.textfield.TextInputLayout
@@ -146,7 +146,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="18dp"
-                            android:hint="Email">
+                            android:hint="@string/auth_hint_email">
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/etLoginEmail"
@@ -161,7 +161,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="14dp"
-                            android:hint="Password"
+                            android:hint="@string/auth_hint_password"
                             app:endIconMode="password_toggle">
 
                             <com.google.android.material.textfield.TextInputEditText
@@ -177,7 +177,7 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="end"
                             android:layout_marginTop="10dp"
-                            android:text="Forgot Password?"
+                            android:text="@string/auth_forgot_password"
                             android:textColor="@color/green_primary"
                             android:textStyle="bold" />
 
@@ -187,7 +187,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="@dimen/button_height"
                             android:layout_marginTop="22dp"
-                            android:text="LOGIN" />
+                            android:text="@string/auth_btn_login" />
                     </LinearLayout>
 
                     <!-- Register Form -->
@@ -201,7 +201,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Create your account"
+                            android:text="@string/auth_create_account"
                             android:textAppearance="@style/TextAppearance.REPLATE.Headline"
                             android:textColor="@color/text_primary"
                             android:textSize="@dimen/text_xl" />
@@ -210,7 +210,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
-                            android:text="Join REPLATE to save money, rescue meals, and track pickup orders."
+                            android:text="@string/auth_register_subtitle"
                             android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
                         <com.google.android.material.textfield.TextInputLayout
@@ -219,7 +219,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="18dp"
-                            android:hint="Full Name">
+                            android:hint="@string/auth_hint_full_name">
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/etRegisterName"
@@ -234,7 +234,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
-                            android:hint="Email">
+                            android:hint="@string/auth_hint_email">
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/etRegisterEmail"
@@ -249,7 +249,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
-                            android:hint="Phone">
+                            android:hint="@string/auth_hint_phone">
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/etRegisterPhone"
@@ -264,7 +264,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
-                            android:hint="Password"
+                            android:hint="@string/auth_hint_password"
                             app:endIconMode="password_toggle">
 
                             <com.google.android.material.textfield.TextInputEditText
@@ -280,7 +280,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
-                            android:hint="Confirm Password"
+                            android:hint="@string/auth_hint_confirm_password"
                             app:endIconMode="password_toggle">
 
                             <com.google.android.material.textfield.TextInputEditText
@@ -296,7 +296,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="@dimen/button_height"
                             android:layout_marginTop="22dp"
-                            android:text="CREATE ACCOUNT" />
+                            android:text="@string/auth_btn_create_account" />
                     </LinearLayout>
 
                     <!-- Progress Bar -->

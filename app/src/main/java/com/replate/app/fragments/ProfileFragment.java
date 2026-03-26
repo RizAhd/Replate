@@ -95,6 +95,9 @@ public class ProfileFragment extends Fragment {
                         if (snapshot.exists()) {
                             String name = snapshot.child("name").getValue(String.class);
                             String profileImage = snapshot.child("profileImage").getValue(String.class);
+                            if (profileImage == null || profileImage.trim().isEmpty()) {
+                                profileImage = snapshot.child("profileImageUrl").getValue(String.class);
+                            }
 
                             if (name != null && !name.isEmpty()) {
                                 tvUserName.setText(name);
@@ -183,6 +186,13 @@ public class ProfileFragment extends Fragment {
         btnLogout.setOnClickListener(v -> showLogoutDialog());
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        loadUserData();
+        loadStats();
+    }
+
     private void showLogoutDialog() {
         new AlertDialog.Builder(requireContext())
                 .setTitle("Logout")
@@ -204,4 +214,3 @@ public class ProfileFragment extends Fragment {
                 .show();
     }
 }
-

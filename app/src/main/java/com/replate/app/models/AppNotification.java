@@ -14,6 +14,9 @@ public class AppNotification implements Serializable {
     private Object timestamp;
     private boolean read;
     private String type;
+    private String category;
+    private String route;
+    private String deepLink;
     private String orderId;
     private String hotelId;
 
@@ -25,6 +28,9 @@ public class AppNotification implements Serializable {
     public Object getTimestamp() { return timestamp; }
     public boolean isRead() { return read; }
     public String getType() { return type; }
+    public String getCategory() { return category; }
+    public String getRoute() { return route; }
+    public String getDeepLink() { return deepLink; }
     public String getOrderId() { return orderId; }
     public String getHotelId() { return hotelId; }
 
@@ -40,6 +46,9 @@ public class AppNotification implements Serializable {
     public void setTimestamp(Object timestamp) { this.timestamp = timestamp; }
     public void setRead(boolean read) { this.read = read; }
     public void setType(String type) { this.type = type; }
+    public void setCategory(String category) { this.category = category; }
+    public void setRoute(String route) { this.route = route; }
+    public void setDeepLink(String deepLink) { this.deepLink = deepLink; }
     public void setOrderId(String orderId) { this.orderId = orderId; }
     public void setHotelId(String hotelId) { this.hotelId = hotelId; }
 }

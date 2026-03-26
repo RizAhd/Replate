@@ -10,6 +10,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
+        android:fillViewport="true"
+        android:overScrollMode="never"
         android:paddingBottom="@dimen/space_4">
 
         <LinearLayout
@@ -114,27 +116,28 @@
                     </RelativeLayout>
 
                     <TextView
+                        android:id="@+id/tvHeroTitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/space_3"
+                        android:layout_marginTop="@dimen/space_1_5"
                         android:text="@string/home_hero_title"
                         android:textAppearance="@style/TextAppearance.REPLATE.Headline"
                         android:textColor="@color/white"
-                        android:textSize="@dimen/text_display" />
+                        android:textSize="@dimen/text_lg" />
 
                     <TextView
+                        android:id="@+id/tvHeroSubtitle"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/space_1"
+                        android:layout_marginTop="@dimen/space_0_5"
                         android:text="@string/home_hero_subtitle"
-                        android:textColor="@color/text_on_primary_muted"
                         android:textAppearance="@style/TextAppearance.REPLATE.Body"
-                        android:lineSpacingExtra="3dp" />
+                        android:textColor="@color/text_on_primary_muted" />
 
                     <com.google.android.material.card.MaterialCardView
                         android:layout_width="match_parent"
                         android:layout_height="56dp"
-                        android:layout_marginTop="@dimen/space_2_5"
+                        android:layout_marginTop="@dimen/space_1_5"
                         app:cardBackgroundColor="@color/surface_white"
                         app:cardCornerRadius="@dimen/radius_lg"
                         app:cardElevation="0dp">
@@ -191,6 +194,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:clipToPadding="false"
+                    android:nestedScrollingEnabled="false"
                     android:paddingHorizontal="12dp"
                     app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
             </LinearLayout>
@@ -272,7 +276,41 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:nestedScrollingEnabled="false"/>
+                    android:clipToPadding="false"
+                    android:nestedScrollingEnabled="false"
+                    android:paddingBottom="4dp"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:layout_marginBottom="@dimen/space_2"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="@dimen/space_2"
+                    android:text="@string/home_favorites_title"
+                    android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/space_2"
+                    android:layout_marginTop="@dimen/space_0_5"
+                    android:text="@string/home_favorites_subtitle"
+                    android:textAppearance="@style/TextAppearance.REPLATE.Body" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvFavorites"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:clipToPadding="false"
+                    android:nestedScrollingEnabled="false"
+                    android:paddingHorizontal="6dp" />
             </LinearLayout>
 
         </LinearLayout>

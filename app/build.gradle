@@ -107,6 +107,9 @@ dependencies {
     // WorkManager
     implementation 'androidx.work:work-runtime:2.9.0'
 
+    // Lifecycle (required for ProcessLifecycleOwner in notification foreground detection)
+    implementation 'androidx.lifecycle:lifecycle-process:2.7.0'
+
     // Testing (keep these)
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
