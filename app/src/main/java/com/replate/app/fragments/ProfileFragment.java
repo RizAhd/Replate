@@ -198,17 +198,44 @@ public class ProfileFragment extends Fragment {
                 .setTitle("Logout")
                 .setMessage("Are you sure you want to logout?")
                 .setPositiveButton("Logout", (dialog, which) -> {
-                    mAuth.signOut();
+                    try {
+                        // Clear FCM token
+                        try {
+                            com.replate.app.services.FcmTokenManager.clearTokenForCurrentUser();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
 
-                    // Clear saved preferences
-                    requireActivity().getSharedPreferences("REPLATE_PREFS", 0)
-                            .edit().clear().apply();
+                        // Sign out from Firebase
+                        mAuth.signOut();
 
-                    // Go to login
-                    Intent intent = new Intent(getContext(), LoginActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(intent);
-                    requireActivity().finish();
+                        // Clear saved preferences
+                        android.app.Activity activity = getActivity();
+                        if (activity != null) {
+                            activity.getSharedPreferences("REPLATE_PREFS", android.content.Context.MODE_PRIVATE)
+                                    .edit().clear().apply();
+                        }
+
+                        // Create intent to go to login
+                        Intent intent = new Intent(requireContext(), LoginActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+                        // Post with delay to allow cleanup
+                        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                            try {
+                                startActivity(intent);
+                                if (activity != null) {
+                                    activity.finish();
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }, 200);
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Toast.makeText(getContext(), "Logout error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
                 })
                 .setNegativeButton("Cancel", null)
                 .show();

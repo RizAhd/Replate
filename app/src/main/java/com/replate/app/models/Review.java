@@ -106,17 +106,12 @@ public class Review implements Serializable {
         this.verifiedPurchase = verifiedPurchase;
     }
 
-    @Exclude
     public boolean isVerifiedPurchase() {
         if (verifiedPurchase == null) return false;
         if (verifiedPurchase instanceof Boolean) return (Boolean) verifiedPurchase;
         return "true".equalsIgnoreCase(String.valueOf(verifiedPurchase));
     }
 
-    @Exclude
-    public boolean hasVerifiedPurchaseBadge() {
-        return isVerifiedPurchase();
-    }
 
     public String getHotelId() {
         return hotelId;
