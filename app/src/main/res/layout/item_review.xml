@@ -37,6 +37,20 @@
                 android:textSize="12sp" />
         </LinearLayout>
 
+        <TextView
+            android:id="@+id/tvVerifiedPurchase"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/badge_distance"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="4dp"
+            android:text="Verified pickup"
+            android:textColor="@color/green_primary"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
         <RatingBar
             android:id="@+id/ratingReviewItem"
             style="?android:attr/ratingBarStyleSmall"
@@ -55,7 +69,37 @@
             android:text="Comment"
             android:textColor="@color/text_primary"
             android:textSize="14sp" />
+
+        <LinearLayout
+            android:id="@+id/layoutReviewActions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="end"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/btnEditReview"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="6dp"
+                android:text="Edit"
+                android:textColor="@color/green_primary"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/btnDeleteReview"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="6dp"
+                android:text="Delete"
+                android:textColor="@color/error"
+                android:textStyle="bold" />
+        </LinearLayout>
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>
-
