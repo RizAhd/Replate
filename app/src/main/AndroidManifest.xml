@@ -44,11 +44,11 @@
         <!-- Default FCM notification channel/icon/color metadata -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
-            android:value="replate_notifications_v2" />
+            android:value="replate_notifications_v3" />
 
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
-            android:resource="@mipmap/ic_launcher_round" />
+            android:resource="@drawable/ic_notification" />
 
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"

@@ -42,7 +42,7 @@ import java.util.Map;
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     private static final String TAG = "FCMService";
-    private static final String CHANNEL_ID = "replate_notifications_v2";
+    private static final String CHANNEL_ID = "replate_notifications_v3";
     private static final String CHANNEL_NAME = "REPLATE Alerts";
 
     @Override
@@ -175,7 +175,8 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
         Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
-        Bitmap largeIcon = BitmapFactory.decodeResource(getResources(), R.drawable.ic_replate_logo);
+
+        Bitmap largeIcon = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher_round);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_notification)

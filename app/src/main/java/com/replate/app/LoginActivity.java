@@ -595,14 +595,19 @@ public class LoginActivity extends AppCompatActivity {
     private void saveUserSession(FirebaseUser user, String role) {
         if (user != null) {
             SharedPreferences prefs = getSharedPreferences("REPLATE_PREFS", MODE_PRIVATE);
-            prefs.edit()
+            SharedPreferences.Editor editor = prefs.edit()
                 .putString("userId", user.getUid())
                 .putString("userEmail", user.getEmail())
                 .putString("role", role)
                 .putString("userType", role)
-                .putBoolean("isLoggedIn", true)
-                .apply();
+                .putBoolean("isLoggedIn", true);
 
+            // Ask location only once, right after successful customer auth.
+            if ("customer".equalsIgnoreCase(role)) {
+                editor.putBoolean("pending_location_permission_prompt", true);
+            }
+
+            editor.apply();
             FcmTokenManager.syncTokenForCurrentUser(this, role);
         }
     }

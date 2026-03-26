@@ -1,16 +1,21 @@
 package com.replate.app;
 
+import android.Manifest;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -60,6 +65,12 @@ public class MainActivity extends AppCompatActivity {
 
     private final com.replate.app.notifications.InAppNotificationCenter.Listener inAppListener = message ->
             runOnUiThread(() -> com.replate.app.notifications.InAppNotificationPopup.show(MainActivity.this, message));
+
+    private final ActivityResultLauncher<String[]> locationPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
+                SharedPreferences prefs = getSharedPreferences("REPLATE_PREFS", MODE_PRIVATE);
+                prefs.edit().putBoolean("pending_location_permission_prompt", false).apply();
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -154,6 +165,7 @@ public class MainActivity extends AppCompatActivity {
         checkNotificationPermissions();
 
         handleDeepLinkFromNotification(getIntent());
+        maybeRequestLocationAfterAuth();
     }
 
     private void bindDrawerHeader() {
@@ -398,6 +410,13 @@ public class MainActivity extends AppCompatActivity {
         }
 
         try {
+            if (drawerLayout != null && drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                drawerLayout.closeDrawer(GravityCompat.START);
+            }
+        } catch (Exception ignored) {
+        }
+
+        try {
             FcmTokenManager.clearTokenForCurrentUser();
         } catch (Exception ignored) {
         }
@@ -410,9 +429,33 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences sessionPrefs = getSharedPreferences("REPLATE_PREFS", MODE_PRIVATE);
         sessionPrefs.edit().clear().apply();
 
-        Intent i = new Intent(this, LoginActivity.class);
-        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        Intent i = new Intent(this, SplashActivity.class);
+        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(i);
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
         finish();
+    }
+
+    private void maybeRequestLocationAfterAuth() {
+        SharedPreferences prefs = getSharedPreferences("REPLATE_PREFS", MODE_PRIVATE);
+        boolean shouldPrompt = prefs.getBoolean("pending_location_permission_prompt", false);
+        if (!shouldPrompt) {
+            return;
+        }
+
+        boolean hasFine = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
+        boolean hasCoarse = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
+
+        if (hasFine || hasCoarse) {
+            prefs.edit().putBoolean("pending_location_permission_prompt", false).apply();
+            return;
+        }
+
+        locationPermissionLauncher.launch(new String[]{
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+        });
     }
 }

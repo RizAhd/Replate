@@ -78,7 +78,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     // Views
     private FrameLayout loadingOverlay;
     private CardView bottomSheet;
-    private ImageView ivRestaurantImage;
+    private View ivRestaurantImage;
     private View ivMyLocation;
     private TextView tvRestaurantName;
     private TextView tvRestaurantAddress;
@@ -158,7 +158,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         btnViewDeals = view.findViewById(R.id.btnViewDeals);
         searchView = view.findViewById(R.id.searchView);
 
-        bottomSheet.setVisibility(View.GONE);
+        if (bottomSheet != null) {
+            bottomSheet.setVisibility(View.GONE);
+        }
         setupSearch();
     }
 
@@ -201,7 +203,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     }
 
     private void setupClickListeners() {
-        ivMyLocation.setOnClickListener(v -> moveToCurrentLocation());
+        if (ivMyLocation != null) {
+            ivMyLocation.setOnClickListener(v -> moveToCurrentLocation());
+        }
 
         btnViewDeals.setOnClickListener(v -> {
             if (selectedPlace == null) {
@@ -579,7 +583,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         tvRouteInfo.setText(getString(R.string.map_tap_marker_route));
         tvAvailableItems.setText(getString(R.string.map_loading_items));
         loadAvailableItemsPreview(place.getId(), place.getName());
-        ivRestaurantImage.setImageResource(R.drawable.placeholder_food);
+        if (ivRestaurantImage instanceof ImageView) {
+            ((ImageView) ivRestaurantImage).setImageResource(R.drawable.placeholder_food);
+        }
         bottomSheet.setVisibility(View.VISIBLE);
 
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(selectedDestinationLatLng, 15f));

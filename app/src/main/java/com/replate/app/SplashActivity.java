@@ -1,23 +1,16 @@
 package com.replate.app;
 
-import android.Manifest;
 import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 import android.view.animation.OvershootInterpolator;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 
 public class SplashActivity extends AppCompatActivity {
-
-    private ActivityResultLauncher<String[]> locationPermissionLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,11 +18,6 @@ public class SplashActivity extends AppCompatActivity {
         setContentView(R.layout.activity_splash);
 
         final Intent launchIntent = getIntent();
-
-        locationPermissionLauncher = registerForActivityResult(
-                new ActivityResultContracts.RequestMultiplePermissions(),
-                result -> proceedToNextScreen(launchIntent)
-        );
 
         View ivEmoji = findViewById(R.id.ivEmoji);
 
@@ -49,27 +37,8 @@ public class SplashActivity extends AppCompatActivity {
         scaleX.start();
         scaleY.start();
 
-        // 2.5s Delay
-        new Handler().postDelayed(() -> handleStartupPermissionsAndNavigate(launchIntent), 2500);
-    }
-
-    private void handleStartupPermissionsAndNavigate(Intent launchIntent) {
-        SharedPreferences prefs = getSharedPreferences("REPLATE_PREFS", MODE_PRIVATE);
-        boolean askedBefore = prefs.getBoolean("location_permission_asked", false);
-
-        boolean hasFine = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
-        boolean hasCoarse = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
-
-        if (!hasFine && !hasCoarse && !askedBefore) {
-            prefs.edit().putBoolean("location_permission_asked", true).apply();
-            locationPermissionLauncher.launch(new String[]{
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-            });
-            return;
-        }
-
-        proceedToNextScreen(launchIntent);
+        // 2.5s Delay then continue without any permission prompts.
+        new Handler().postDelayed(() -> proceedToNextScreen(launchIntent), 2500);
     }
 
     private void proceedToNextScreen(Intent launchIntent) {
