@@ -129,7 +129,7 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
     }
 
     class FoodViewHolder extends RecyclerView.ViewHolder {
-        CardView cardView;
+        View cardView;
         ImageView ivFoodImage;
         TextView tvFoodName, tvHotelName, tvOriginalPrice, tvDiscountedPrice;
         TextView tvDiscount, tvDistance, tvPickupTime;
@@ -138,7 +138,8 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
         FoodViewHolder(@NonNull View itemView) {
             super(itemView);
             cardView = itemView.findViewById(R.id.cardView);
-            ivFoodImage = itemView.findViewById(R.id.ivFoodImage);
+            View imageCandidate = itemView.findViewById(R.id.ivFoodImage);
+            ivFoodImage = imageCandidate instanceof ImageView ? (ImageView) imageCandidate : null;
             tvFoodName = itemView.findViewById(R.id.tvFoodName);
             tvHotelName = itemView.findViewById(R.id.tvHotelName);
             tvOriginalPrice = itemView.findViewById(R.id.tvOriginalPrice);
@@ -147,7 +148,6 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
             tvDistance = itemView.findViewById(R.id.tvDistance);
             tvPickupTime = itemView.findViewById(R.id.tvPickupTime);
             View addButton = itemView.findViewById(R.id.ivAddToCart);
-            // Fallback to the card tap area if add button is missing in a variant layout.
             ivAddToCart = addButton != null ? addButton : itemView.findViewById(R.id.cardView);
         }
 
@@ -178,11 +178,13 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
             loadFoodImage(item.getImageUrl());
 
             // Click listeners
-            cardView.setOnClickListener(v -> {
-                if (listener != null) {
-                    listener.onFoodItemClick(item);
-                }
-            });
+            if (cardView != null) {
+                cardView.setOnClickListener(v -> {
+                    if (listener != null) {
+                        listener.onFoodItemClick(item);
+                    }
+                });
+            }
 
             if (ivAddToCart != null) {
                 ivAddToCart.setOnClickListener(v -> {
@@ -194,6 +196,10 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
         }
 
         private void loadFoodImage(String imageSource) {
+            if (ivFoodImage == null) {
+                return;
+            }
+
             if (imageSource == null || imageSource.trim().isEmpty()) {
                 ivFoodImage.setImageResource(R.drawable.placeholder_food);
                 return;

@@ -53,14 +53,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class HomeFragment extends Fragment implements
         FoodItemAdapter.OnFoodItemClickListener,
         CategoryAdapter.OnCategoryClickListener {
 
-    private static final int LOCATION_PERMISSION_REQUEST = 1001;
     private static final long BANNER_AUTO_SCROLL_MS = 3200L;
 
     // Views
@@ -115,7 +112,8 @@ public class HomeFragment extends Fragment implements
             });
 
     private final Handler bannerHandler = new Handler(Looper.getMainLooper());
-    private ExecutorService locationExecutor;
+    private final Handler uiHandler = new Handler(Looper.getMainLooper());
+
     private final Runnable bannerAutoScrollRunnable = new Runnable() {
         @Override
         public void run() {
@@ -137,9 +135,6 @@ public class HomeFragment extends Fragment implements
         // Initialize Firebase
         mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference();
-
-        // Initialize location executor
-        locationExecutor = Executors.newSingleThreadExecutor();
 
         // Initialize location client
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
@@ -202,7 +197,8 @@ public class HomeFragment extends Fragment implements
         // Setup click listeners
         setupClickListeners();
 
-        // Get user location and load food items
+        // Load food immediately, then enhance with nearby sorting once location resolves.
+        loadFoodItems();
         getUserLocation();
 
         // Setup shake-to-refresh (REQUIREMENT: Sensors - Accelerometer)
@@ -285,10 +281,7 @@ public class HomeFragment extends Fragment implements
 
         if (!fineGranted && !coarseGranted) {
             tvCurrentLocation.setText(getString(R.string.default_location));
-            locationPermissionLauncher.launch(new String[]{
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-            });
+            // Permission request is handled post-auth in MainActivity.
             return;
         }
 
@@ -298,15 +291,12 @@ public class HomeFragment extends Fragment implements
                     currentLatitude = location.getLatitude();
                     currentLongitude = location.getLongitude();
                     updateCurrentLocationLabel(currentLatitude, currentLongitude);
+                    applyDistanceSortAndRefresh();
                 } else {
                     tvCurrentLocation.setText(getString(R.string.default_location));
                 }
-                loadFoodItems();
             })
-            .addOnFailureListener(e -> {
-                tvCurrentLocation.setText(getString(R.string.default_location));
-                loadFoodItems();
-            });
+            .addOnFailureListener(e -> tvCurrentLocation.setText(getString(R.string.default_location)));
     }
 
     private void updateCurrentLocationLabel(double latitude, double longitude) {
@@ -315,70 +305,58 @@ public class HomeFragment extends Fragment implements
             return;
         }
 
-        // Always ensure we have a working executor
-        synchronized (this) {
-            if (locationExecutor == null || locationExecutor.isShutdown() || locationExecutor.isTerminated()) {
-                locationExecutor = Executors.newSingleThreadExecutor();
-            }
-        }
-
-        try {
-            locationExecutor.execute(() -> {
+        new Thread(() -> {
+            String label = String.format(Locale.getDefault(), "%.3f, %.3f", latitude, longitude);
+            try {
                 if (!isAdded()) return;
-
-                String label = String.format(Locale.getDefault(), "%.3f, %.3f", latitude, longitude);
-                try {
-                    Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
-                    List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
-                    if (addresses != null && !addresses.isEmpty()) {
-                        Address address = addresses.get(0);
-                        String locality = address.getSubLocality();
-                        if (locality == null || locality.trim().isEmpty()) locality = address.getLocality();
-                        if (locality == null || locality.trim().isEmpty()) locality = address.getAdminArea();
-                        if (locality != null && !locality.trim().isEmpty()) {
-                            label = locality;
-                        }
+                Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
+                List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
+                if (addresses != null && !addresses.isEmpty()) {
+                    Address address = addresses.get(0);
+                    String locality = address.getSubLocality();
+                    if (locality == null || locality.trim().isEmpty()) locality = address.getLocality();
+                    if (locality == null || locality.trim().isEmpty()) locality = address.getAdminArea();
+                    if (locality != null && !locality.trim().isEmpty()) {
+                        label = locality;
                     }
-                } catch (Exception ignored) {
                 }
+            } catch (Exception ignored) {
+            }
 
-                String finalLabel = label;
-                if (isAdded() && getActivity() != null) {
-                    getActivity().runOnUiThread(() -> {
-                        if (isAdded() && tvCurrentLocation != null) {
-                            tvCurrentLocation.setText(finalLabel);
-                        }
-                    });
+            String finalLabel = label;
+            uiHandler.post(() -> {
+                if (isAdded() && tvCurrentLocation != null) {
+                    tvCurrentLocation.setText(finalLabel);
                 }
             });
-        } catch ( RejectedExecutionException e) {
-            // Executor was shut down, recreate it
-            synchronized (this) {
-                locationExecutor = Executors.newSingleThreadExecutor();
-                try {
-                    locationExecutor.execute(() -> {
-                        if (isAdded() && tvCurrentLocation != null) {
-                            String label = String.format(Locale.getDefault(), "%.3f, %.3f", latitude, longitude);
-                            tvCurrentLocation.setText(label);
-                        }
-                    });
-                } catch (Exception ignored) {
-                    if (isAdded() && tvCurrentLocation != null) {
-                        tvCurrentLocation.setText(String.format(Locale.getDefault(), "%.3f, %.3f", latitude, longitude));
-                    }
-                }
-            }
-        } catch (Exception e) {
-            if (isAdded() && tvCurrentLocation != null) {
-                tvCurrentLocation.setText(String.format(Locale.getDefault(), "%.3f, %.3f", latitude, longitude));
-            }
+        }).start();
+    }
+
+    private void applyDistanceSortAndRefresh() {
+        if (allFoodItems == null || allFoodItems.isEmpty()) {
+            return;
         }
+
+        for (FoodItem item : allFoodItems) {
+            double distance = calculateDistance(
+                    currentLatitude,
+                    currentLongitude,
+                    item.getLatitudeValue(),
+                    item.getLongitudeValue()
+            );
+            item.setDistance(distance);
+        }
+
+        Collections.sort(allFoodItems, (a, b) -> Double.compare(a.getDistance(), b.getDistance()));
+        updateHotDeals();
+        updateFavorites();
+        filterByCategory(selectedCategory);
     }
 
     private void loadFoodItems() {
         showLoading(true);
 
-        mDatabase.child("foodItems").addValueEventListener(new ValueEventListener() {
+        mDatabase.child("foodItems").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 allFoodItems.clear();
@@ -703,8 +681,6 @@ public class HomeFragment extends Fragment implements
     public void onDestroyView() {
         super.onDestroyView();
         bannerHandler.removeCallbacksAndMessages(null);
-        if (locationExecutor != null && !locationExecutor.isShutdown()) {
-            locationExecutor.shutdownNow();
-        }
+        uiHandler.removeCallbacksAndMessages(null);
     }
 }

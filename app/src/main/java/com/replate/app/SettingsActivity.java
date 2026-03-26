@@ -263,6 +263,7 @@ public class SettingsActivity extends AppCompatActivity {
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (!canUseUi()) return;
                         if (snapshot.exists()) {
                             String name = snapshot.child("name").getValue(String.class);
                             String phone = snapshot.child("phone").getValue(String.class);
@@ -276,19 +277,24 @@ public class SettingsActivity extends AppCompatActivity {
                             if (phone != null) etPhone.setText(phone);
                             if (address != null) etAddress.setText(address);
 
-                            if (profileImage != null && !profileImage.isEmpty()) {
-                                Glide.with(SettingsActivity.this)
-                                        .load(profileImage)
-                                        .placeholder(R.drawable.ic_profile_placeholder)
-                                        .into(ivProfileImage);
+                            if (profileImage != null && !profileImage.isEmpty() && canUseUi()) {
+                                try {
+                                    Glide.with(SettingsActivity.this)
+                                            .load(profileImage)
+                                            .placeholder(R.drawable.ic_profile_placeholder)
+                                            .into(ivProfileImage);
+                                } catch (IllegalArgumentException ignored) {
+                                }
                             }
                         }
                     }
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
-                        Toast.makeText(SettingsActivity.this,
-                                "Failed to load profile", Toast.LENGTH_SHORT).show();
+                        if (canUseUi()) {
+                            Toast.makeText(SettingsActivity.this,
+                                    "Failed to load profile", Toast.LENGTH_SHORT).show();
+                        }
                     }
                 });
     }
@@ -387,7 +393,7 @@ public class SettingsActivity extends AppCompatActivity {
     private void uploadProfilePhotoToRef(StorageReference photoRef, FirebaseUser user) {
         photoRef.getDownloadUrl()
                 .addOnSuccessListener(uri -> {
-                    if (isFinishing() || isDestroyed()) return;
+                    if (!canUseUi()) return;
                     if (uri == null) {
                         showBrandedToast("Failed to get photo URL");
                         return;
@@ -401,7 +407,7 @@ public class SettingsActivity extends AppCompatActivity {
                     mDatabase.child("users").child(user.getUid())
                             .updateChildren(photoUpdate)
                             .addOnSuccessListener(aVoid -> {
-                                if (isFinishing() || isDestroyed()) return;
+                                if (!canUseUi()) return;
                                 showBrandedToast("Photo updated");
                                 if (ivProfileImage == null) return;
                                 try {
@@ -414,13 +420,13 @@ public class SettingsActivity extends AppCompatActivity {
                                 }
                             })
                             .addOnFailureListener(e -> {
-                                if (!isFinishing() && !isDestroyed()) {
+                                if (canUseUi()) {
                                     showBrandedToast("Failed to save profile photo");
                                 }
                             });
                 })
                 .addOnFailureListener(e -> {
-                    if (!isFinishing() && !isDestroyed()) {
+                    if (canUseUi()) {
                         showBrandedToast("Failed to get photo URL");
                     }
                 });
