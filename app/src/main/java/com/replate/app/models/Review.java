@@ -113,6 +113,11 @@ public class Review implements Serializable {
         return "true".equalsIgnoreCase(String.valueOf(verifiedPurchase));
     }
 
+    @Exclude
+    public boolean hasVerifiedPurchaseBadge() {
+        return isVerifiedPurchase();
+    }
+
     public String getHotelId() {
         return hotelId;
     }
