@@ -67,7 +67,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
     private TextView tvResultsCount;
     private TextView tvActiveFilter;
     private View cardFilterAction;
-
+    private View loadingOverlaySearch;
 
     private DatabaseReference mDatabase;
     private FoodItemAdapter adapter;
@@ -124,6 +124,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         if (progressBar != null) {
             progressBar.setVisibility(View.GONE);
         }
+        setLoadingState(false);
     }
 
     private void getUserLocation() {
@@ -147,6 +148,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         rvSearchResults = view.findViewById(R.id.rvSearchResults);
         emptyState = view.findViewById(R.id.emptyState);
         progressBar = view.findViewById(R.id.progressBar);
+        loadingOverlaySearch = view.findViewById(R.id.loadingOverlaySearch);
         tvResultsCount = view.findViewById(R.id.tvResultsCount);
         tvActiveFilter = view.findViewById(R.id.tvActiveFilter);
         cardFilterAction = view.findViewById(R.id.cardFilterAction);
@@ -365,8 +367,8 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
     }
 
     private void loadAllFoodItems() {
-        if (progressBar != null && allFoodItems.isEmpty()) {
-            progressBar.setVisibility(View.VISIBLE);
+        if (allFoodItems.isEmpty()) {
+            setLoadingState(true);
         }
 
         mDatabase.child("foodItems").addValueEventListener(new ValueEventListener() {
@@ -407,22 +409,27 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
                     cacheManager.saveFoodItems(new ArrayList<>(allFoodItems));
                 }
 
-                if (progressBar != null) {
-                    progressBar.setVisibility(View.GONE);
-                }
+                setLoadingState(false);
                 filterItems(etSearch == null ? "" : etSearch.getText().toString());
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                if (progressBar != null) {
-                    progressBar.setVisibility(View.GONE);
-                }
+                setLoadingState(false);
                 if (allFoodItems.isEmpty()) {
                     Toast.makeText(getContext(), "Error loading data", Toast.LENGTH_SHORT).show();
                 }
             }
         });
+    }
+
+    private void setLoadingState(boolean loading) {
+        if (progressBar != null) {
+            progressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
+        }
+        if (loadingOverlaySearch != null) {
+            loadingOverlaySearch.setVisibility(loading ? View.VISIBLE : View.GONE);
+        }
     }
 
     private void scheduleFilter(String query) {

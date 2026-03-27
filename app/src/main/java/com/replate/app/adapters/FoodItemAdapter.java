@@ -20,6 +20,9 @@ import com.replate.app.models.FoodItem;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Adapter for displaying food items in a RecyclerView
@@ -128,6 +131,10 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
         return value == null ? "" : value;
     }
 
+    // Cache resolved Firebase Storage URLs to avoid repeated network resolution during scroll.
+    private static final Map<String, String> RESOLVED_IMAGE_URL_CACHE = new ConcurrentHashMap<>();
+    private static final Set<String> FAILED_IMAGE_SOURCES = ConcurrentHashMap.newKeySet();
+
     class FoodViewHolder extends RecyclerView.ViewHolder {
         View cardView;
         ImageView ivFoodImage;
@@ -206,6 +213,7 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
             }
 
             String src = imageSource.trim();
+            ivFoodImage.setTag(src);
 
             if (src.startsWith("http://") || src.startsWith("https://")) {
                 Glide.with(context)
@@ -217,26 +225,50 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
                 return;
             }
 
-            if (src.startsWith("gs://")) {
-                FirebaseStorage.getInstance().getReferenceFromUrl(src).getDownloadUrl()
-                        .addOnSuccessListener(uri -> Glide.with(context)
+            if (FAILED_IMAGE_SOURCES.contains(src)) {
+                ivFoodImage.setImageResource(R.drawable.placeholder_food);
+                return;
+            }
+
+            String cachedResolved = RESOLVED_IMAGE_URL_CACHE.get(src);
+            if (cachedResolved != null && !cachedResolved.trim().isEmpty()) {
+                Glide.with(context)
+                        .load(cachedResolved)
+                        .placeholder(R.drawable.placeholder_food)
+                        .error(R.drawable.placeholder_food)
+                        .centerCrop()
+                        .into(ivFoodImage);
+                return;
+            }
+
+            com.google.firebase.storage.StorageReference ref = src.startsWith("gs://")
+                    ? FirebaseStorage.getInstance().getReferenceFromUrl(src)
+                    : FirebaseStorage.getInstance().getReference().child(src);
+
+            ref.getDownloadUrl()
+                    .addOnSuccessListener(uri -> {
+                        String currentTag = ivFoodImage.getTag() == null ? "" : String.valueOf(ivFoodImage.getTag());
+                        if (!src.equals(currentTag)) {
+                            return;
+                        }
+                        String resolved = uri == null ? "" : uri.toString();
+                        if (!resolved.isEmpty()) {
+                            RESOLVED_IMAGE_URL_CACHE.put(src, resolved);
+                        }
+                        Glide.with(context)
                                 .load(uri)
                                 .placeholder(R.drawable.placeholder_food)
                                 .error(R.drawable.placeholder_food)
                                 .centerCrop()
-                                .into(ivFoodImage))
-                        .addOnFailureListener(e -> ivFoodImage.setImageResource(R.drawable.placeholder_food));
-                return;
-            }
-
-            FirebaseStorage.getInstance().getReference().child(src).getDownloadUrl()
-                    .addOnSuccessListener(uri -> Glide.with(context)
-                            .load(uri)
-                            .placeholder(R.drawable.placeholder_food)
-                            .error(R.drawable.placeholder_food)
-                            .centerCrop()
-                            .into(ivFoodImage))
-                    .addOnFailureListener(e -> ivFoodImage.setImageResource(R.drawable.placeholder_food));
+                                .into(ivFoodImage);
+                    })
+                    .addOnFailureListener(e -> {
+                        FAILED_IMAGE_SOURCES.add(src);
+                        String currentTag = ivFoodImage.getTag() == null ? "" : String.valueOf(ivFoodImage.getTag());
+                        if (src.equals(currentTag)) {
+                            ivFoodImage.setImageResource(R.drawable.placeholder_food);
+                        }
+                    });
         }
     }
 }
