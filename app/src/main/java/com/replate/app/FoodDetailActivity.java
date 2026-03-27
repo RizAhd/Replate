@@ -275,9 +275,25 @@ public class FoodDetailActivity extends AppCompatActivity {
                         float total = 0f;
 
                         for (DataSnapshot child : snapshot.getChildren()) {
-                            Review review = child.getValue(Review.class);
-                            if (review == null) continue;
+                            Review review = new Review();
                             review.setReviewId(child.getKey());
+                            review.setFoodId(getStringValue(child, "foodId"));
+                            review.setUserId(getStringValue(child, "userId"));
+                            review.setUserName(getStringValue(child, "userName"));
+                            review.setComment(getStringValue(child, "comment"));
+                            review.setHotelId(getStringValue(child, "hotelId"));
+                            review.setHotelName(getStringValue(child, "hotelName"));
+                            review.setOrderId(getStringValue(child, "orderId"));
+                            review.setRating(child.child("rating").getValue());
+                            review.setCreatedAt(child.child("createdAt").getValue());
+
+                            Object verified = child.child("verifiedPurchase").getValue();
+                            if (verified == null) {
+                                // Backward compatibility with old node naming.
+                                verified = child.child("isVerifiedPurchase").getValue();
+                            }
+                            review.setVerifiedPurchase(verified);
+
                             reviews.add(review);
                             total += review.getRatingValue();
                         }
@@ -439,10 +455,13 @@ public class FoodDetailActivity extends AppCompatActivity {
                         int count = 0;
                         float sum = 0f;
                         for (DataSnapshot child : snapshot.getChildren()) {
-                            Review review = child.getValue(Review.class);
-                            if (review == null) continue;
-                            sum += review.getRatingValue();
-                            count++;
+                            Object ratingValue = child.child("rating").getValue();
+                            if (ratingValue == null) continue;
+                            try {
+                                sum += Float.parseFloat(String.valueOf(ratingValue));
+                                count++;
+                            } catch (NumberFormatException ignored) {
+                            }
                         }
 
                         float avg = count > 0 ? sum / count : 0f;
@@ -633,5 +652,10 @@ public class FoodDetailActivity extends AppCompatActivity {
 
     private interface PhoneCallback {
         void onPhone(String phone);
+    }
+
+    private String getStringValue(DataSnapshot parent, String key) {
+        Object value = parent.child(key).getValue();
+        return value == null ? "" : String.valueOf(value).trim();
     }
 }

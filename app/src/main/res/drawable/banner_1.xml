@@ -17,10 +17,11 @@
         </shape>
     </item>
 
-    <item android:gravity="end|top" android:right="14dp" android:top="16dp">
-        <bitmap
-            android:src="@drawable/ic_onboarding_save"
-            android:tint="#F2FFFFFF"
-            android:gravity="center" />
-    </item>
+    <item
+        android:top="16dp"
+        android:right="14dp"
+        android:width="56dp"
+        android:height="56dp"
+        android:gravity="end|top"
+        android:drawable="@drawable/ic_onboarding_save" />
 </layer-list>
