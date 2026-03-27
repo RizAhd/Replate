@@ -59,7 +59,6 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
     private TextView tvActiveFilter;
     private View cardFilterAction;
 
-    private Chip chipAll, chipNearby, chipPriceLow, chipDiscount, chipRating, chipCategory;
 
     private DatabaseReference mDatabase;
     private FoodItemAdapter adapter;
@@ -123,12 +122,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         tvActiveFilter = view.findViewById(R.id.tvActiveFilter);
         cardFilterAction = view.findViewById(R.id.cardFilterAction);
 
-        chipAll = view.findViewById(R.id.chipAll);
-        chipNearby = view.findViewById(R.id.chipNearby);
-        chipPriceLow = view.findViewById(R.id.chipPriceLow);
-        chipDiscount = view.findViewById(R.id.chipDiscount);
-        chipRating = view.findViewById(R.id.chipRating);
-        chipCategory = view.findViewById(R.id.chipCategory);
+        // ...removed chip references...
 
         int defaultSpan = getAdaptiveSpanCount();
         gridLayoutManager = new GridLayoutManager(getContext(), defaultSpan);
@@ -175,41 +169,8 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
     }
 
     private void setupFilterChips() {
-        chipAll.setOnClickListener(v -> {
-            currentFilter = "all";
-            uncheckAllExcept(chipAll);
-            onFilterChangedByUser();
-        });
-
-        chipNearby.setOnClickListener(v -> {
-            currentFilter = "nearby";
-            uncheckAllExcept(chipNearby);
-            onFilterChangedByUser();
-        });
-
-        chipPriceLow.setOnClickListener(v -> {
-            currentFilter = "price_low";
-            uncheckAllExcept(chipPriceLow);
-            onFilterChangedByUser();
-        });
-
-        chipDiscount.setOnClickListener(v -> {
-            currentFilter = "discount";
-            uncheckAllExcept(chipDiscount);
-            onFilterChangedByUser();
-        });
-
-        chipRating.setOnClickListener(v -> {
-            currentFilter = "rating";
-            uncheckAllExcept(chipRating);
-            onFilterChangedByUser();
-        });
-
-        chipCategory.setOnClickListener(v -> {
-            currentFilter = "category";
-            uncheckAllExcept(chipCategory);
-            onFilterChangedByUser();
-        });
+        // Filter chips are now handled via bottom sheet filter dialog
+        // This method is kept for compatibility
     }
 
     private void setupAdvancedFilterAction() {
@@ -266,21 +227,8 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
     }
 
     private void syncChipStateWithCurrentFilter() {
-        if (chipAll == null || chipNearby == null || chipPriceLow == null || chipDiscount == null) return;
-
-        if ("all".equals(currentFilter) || "for_you".equals(currentFilter)) {
-            uncheckAllExcept(chipAll);
-        } else if ("nearby".equals(currentFilter)) {
-            uncheckAllExcept(chipNearby);
-        } else if ("price_low".equals(currentFilter)) {
-            uncheckAllExcept(chipPriceLow);
-        } else if ("discount".equals(currentFilter)) {
-            uncheckAllExcept(chipDiscount);
-        } else if ("rating".equals(currentFilter) && chipRating != null) {
-            uncheckAllExcept(chipRating);
-        } else if ("category".equals(currentFilter) && chipCategory != null) {
-            uncheckAllExcept(chipCategory);
-        }
+        // Filter chips are now handled via bottom sheet filter dialog
+        // This method is kept for compatibility but does nothing
     }
 
     private void updateActiveFilterLabel() {
@@ -326,12 +274,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
     }
 
     private void uncheckAllExcept(Chip selected) {
-        chipAll.setChecked(chipAll == selected);
-        chipNearby.setChecked(chipNearby == selected);
-        chipPriceLow.setChecked(chipPriceLow == selected);
-        chipDiscount.setChecked(chipDiscount == selected);
-        if (chipRating != null) chipRating.setChecked(chipRating == selected);
-        if (chipCategory != null) chipCategory.setChecked(chipCategory == selected);
+        // Chips no longer used - handled via bottom sheet filter dialog
     }
 
     private void loadAllFoodItems() {
@@ -388,7 +331,8 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
             searchDebounceHandler.removeCallbacks(searchRunnable);
         }
         searchRunnable = () -> filterItems(query);
-        searchDebounceHandler.postDelayed(searchRunnable, 130);
+        // Reduced debounce time for instant search results (80ms instead of 130ms)
+        searchDebounceHandler.postDelayed(searchRunnable, 80);
     }
 
     private void filterItems(String query) {
