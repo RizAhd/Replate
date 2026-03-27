@@ -281,38 +281,47 @@ public class HomeFragment extends Fragment implements
     }
 
     private void getUserLocation() {
+        if (!isAdded()) return;
         boolean fineGranted = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED;
         boolean coarseGranted = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED;
 
         if (!fineGranted && !coarseGranted) {
-            tvCurrentLocation.setText(getString(R.string.default_location));
+            if (tvCurrentLocation != null) {
+                tvCurrentLocation.setText(getString(R.string.default_location));
+            }
             // Permission request is handled post-auth in MainActivity.
             return;
         }
 
         fusedLocationClient.getLastLocation()
             .addOnSuccessListener(location -> {
+                if (!isAdded()) return;
                 if (location != null) {
                     currentLatitude = location.getLatitude();
                     currentLongitude = location.getLongitude();
                     updateCurrentLocationLabel(currentLatitude, currentLongitude);
                     applyDistanceSortAndRefresh();
-                } else {
+                } else if (tvCurrentLocation != null) {
                     tvCurrentLocation.setText(getString(R.string.default_location));
                 }
             })
-            .addOnFailureListener(e -> tvCurrentLocation.setText(getString(R.string.default_location)));
+            .addOnFailureListener(e -> {
+                if (!isAdded() || tvCurrentLocation == null) return;
+                tvCurrentLocation.setText(getString(R.string.default_location));
+            });
     }
 
     private void updateCurrentLocationLabel(double latitude, double longitude) {
-        if (!Geocoder.isPresent() || !isAdded()) {
+        if (!isAdded() || tvCurrentLocation == null) return;
+        if (!Geocoder.isPresent()) {
             tvCurrentLocation.setText(String.format(Locale.getDefault(), "%.3f, %.3f", latitude, longitude));
             return;
         }
 
-        new Thread(() -> {
+        // Use a plain background thread per request to avoid terminated-executor crashes.
+        Thread worker = new Thread(() -> {
             String label = String.format(Locale.getDefault(), "%.3f, %.3f", latitude, longitude);
             try {
                 if (!isAdded()) return;
@@ -332,11 +341,11 @@ public class HomeFragment extends Fragment implements
 
             String finalLabel = label;
             uiHandler.post(() -> {
-                if (isAdded() && tvCurrentLocation != null) {
-                    tvCurrentLocation.setText(finalLabel);
-                }
+                if (!isAdded() || tvCurrentLocation == null) return;
+                tvCurrentLocation.setText(finalLabel);
             });
-        }).start();
+        });
+        worker.start();
     }
 
     private void applyDistanceSortAndRefresh() {
@@ -436,7 +445,8 @@ public class HomeFragment extends Fragment implements
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 showLoading(false);
-                Toast.makeText(getContext(), "Failed to load food items", Toast.LENGTH_SHORT).show();
+                if (!isAdded() || getContext() == null) return;
+                Toast.makeText(requireContext(), "Failed to load food items", Toast.LENGTH_SHORT).show();
             }
         });
     }

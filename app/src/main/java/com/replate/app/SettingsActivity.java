@@ -437,16 +437,17 @@ public class SettingsActivity extends AppCompatActivity {
                     mDatabase.child("users").child(user.getUid())
                             .updateChildren(photoUpdate)
                             .addOnSuccessListener(aVoid -> {
-                                if (!canUseUi()) return;
+                                if (!canUseUi() || ivProfileImage == null) return;
                                 showBrandedToast("Photo updated");
-                                if (ivProfileImage == null) return;
                                 try {
-                                    Glide.with(SettingsActivity.this)
+                                    if (ivProfileImage.getWindowToken() == null) return;
+                                    Glide.with(ivProfileImage)
                                             .load(photoUrl)
                                             .placeholder(R.drawable.ic_profile_placeholder)
+                                            .error(R.drawable.ic_profile_placeholder)
                                             .into(ivProfileImage);
                                 } catch (IllegalArgumentException e) {
-                                    Log.e(TAG, "Activity was destroyed", e);
+                                    Log.w(TAG, "Skipped image load: view/activity not valid", e);
                                 }
                             })
                             .addOnFailureListener(e -> {

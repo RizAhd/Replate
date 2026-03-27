@@ -158,7 +158,8 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 progressBar.setVisibility(View.GONE);
-                Toast.makeText(getContext(), "Failed to load orders", Toast.LENGTH_SHORT).show();
+                if (!isAdded() || getContext() == null) return;
+                Toast.makeText(requireContext(), "Failed to load orders", Toast.LENGTH_SHORT).show();
             }
         });
     }
