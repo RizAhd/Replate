@@ -38,8 +38,12 @@ public class SplashActivity extends AppCompatActivity {
             scaleY.start();
         }
 
-        // 2.5s Delay then continue without any permission prompts.
-        new Handler().postDelayed(() -> proceedToNextScreen(launchIntent), 2500);
+        SharedPreferences prefs = getSharedPreferences("REPLATE_PREFS", MODE_PRIVATE);
+        boolean returningUser = prefs.getString("userId", null) != null;
+        long splashDelayMs = returningUser ? 900L : 1800L;
+
+        // Shorter delay for returning users to improve startup speed.
+        new Handler().postDelayed(() -> proceedToNextScreen(launchIntent), splashDelayMs);
     }
 
     private void proceedToNextScreen(Intent launchIntent) {

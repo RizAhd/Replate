@@ -48,8 +48,8 @@ public class FirebasePlacesDataSource implements PlacesDataSource {
                             || "available".equalsIgnoreCase(status);
                     if (!isApproved) continue;
 
-                    double lat = readDouble(hotelNode, "latitude");
-                    double lng = readDouble(hotelNode, "longitude");
+                    double lat = readDoubleAny(hotelNode, "latitude", "lat", "hotelLatitude");
+                    double lng = readDoubleAny(hotelNode, "longitude", "lng", "hotelLongitude", "long");
                     if (lat == 0 || lng == 0) continue;
 
                     String hotelName = readString(hotelNode, "hotelName");
@@ -108,9 +108,10 @@ public class FirebasePlacesDataSource implements PlacesDataSource {
                                 }
                             }
 
+                            if (hotelId == null) hotelId = "";
                             if (hotelId.isEmpty() || !approvedHotels.containsKey(hotelId)) continue;
 
-                            int count = hotelDealCount.containsKey(hotelId) ? hotelDealCount.get(hotelId) : 0;
+                            int count = hotelDealCount.getOrDefault(hotelId, 0);
                             hotelDealCount.put(hotelId, count + 1);
 
                             if (!hotelCategory.containsKey(hotelId)) {
@@ -121,8 +122,8 @@ public class FirebasePlacesDataSource implements PlacesDataSource {
 
                         List<FoodPlace> places = new ArrayList<>();
                         for (HotelSeed hotel : approvedHotels.values()) {
-                            int deals = hotelDealCount.containsKey(hotel.hotelId) ? hotelDealCount.get(hotel.hotelId) : 0;
-                            String category = hotelCategory.containsKey(hotel.hotelId) ? hotelCategory.get(hotel.hotelId) : "Food";
+                            int deals = hotelDealCount.getOrDefault(hotel.hotelId, 0);
+                            String category = hotelCategory.getOrDefault(hotel.hotelId, "Food");
                             String categoryWithCount = deals > 0 ? category + " • " + deals + " items" : category + " • No items";
 
                             places.add(new FoodPlace(
@@ -201,6 +202,14 @@ public class FirebasePlacesDataSource implements PlacesDataSource {
         return null;
     }
 
+    private double readDoubleAny(DataSnapshot snapshot, String... keys) {
+        for (String key : keys) {
+            double value = readDouble(snapshot, key);
+            if (value != 0) return value;
+        }
+        return 0;
+    }
+
     private static class HotelSeed {
         final String hotelId;
         final String name;
@@ -219,4 +228,3 @@ public class FirebasePlacesDataSource implements PlacesDataSource {
         }
     }
 }
-

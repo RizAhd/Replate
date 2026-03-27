@@ -46,6 +46,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.gms.tasks.CancellationTokenSource;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -413,10 +414,35 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
 
         fusedLocationClient.getLastLocation()
-                .addOnSuccessListener(this::handleLocation)
-                .addOnFailureListener(e -> Toast.makeText(getContext(), "Could not get location yet", Toast.LENGTH_SHORT).show());
+                .addOnSuccessListener(location -> {
+                    handleLocation(location);
+                    if (location == null) {
+                        requestFreshMapLocation();
+                    }
+                })
+                .addOnFailureListener(e -> requestFreshMapLocation());
 
         startLiveLocationUpdates();
+    }
+
+    @SuppressLint("MissingPermission")
+    private void requestFreshMapLocation() {
+        if (!isAdded()) return;
+        boolean fineGranted = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
+        boolean coarseGranted = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
+        if (!fineGranted && !coarseGranted) {
+            return;
+        }
+
+        CancellationTokenSource cts = new CancellationTokenSource();
+        fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, cts.getToken())
+                .addOnSuccessListener(this::handleLocation)
+                .addOnFailureListener(e -> {
+                    if (!isAdded()) return;
+                    Toast.makeText(getContext(), "Unable to fetch live location", Toast.LENGTH_SHORT).show();
+                });
     }
 
     private void startLiveLocationUpdates() {
@@ -457,11 +483,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                                 selectedDestinationLatLng.longitude
                         );
                         tvRouteInfo.setText(String.format(Locale.getDefault(), "Distance: %.2f km • Updating…", distance));
-                    }
-
-                    // Refresh marker colors/order context as live location improves.
-                    if (false && !markerPlaceMap.isEmpty()) {
-                        loadAndRenderPlaceMarkers();
                     }
                 }
             };
