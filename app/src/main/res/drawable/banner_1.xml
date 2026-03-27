@@ -10,18 +10,17 @@
         </shape>
     </item>
 
-    <item android:gravity="end|bottom" android:right="-20dp" android:bottom="-12dp">
+    <item android:gravity="end|bottom" android:right="-24dp" android:bottom="-24dp">
         <shape android:shape="oval">
-            <size android:width="160dp" android:height="160dp" />
-            <solid android:color="#26FFFFFF" />
+            <size android:width="180dp" android:height="180dp" />
+            <solid android:color="#22FFFFFF" />
         </shape>
     </item>
 
-    <item
-        android:top="16dp"
-        android:right="14dp"
-        android:width="56dp"
-        android:height="56dp"
-        android:gravity="end|top"
-        android:drawable="@drawable/ic_onboarding_save" />
+    <item android:gravity="start|top" android:left="-18dp" android:top="-18dp">
+        <shape android:shape="oval">
+            <size android:width="120dp" android:height="120dp" />
+            <solid android:color="#1AFFFFFF" />
+        </shape>
+    </item>
 </layer-list>
