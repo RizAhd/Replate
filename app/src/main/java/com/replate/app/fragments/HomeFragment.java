@@ -262,8 +262,15 @@ public class HomeFragment extends Fragment implements
             startActivity(intent);
         });
 
-        // Search bar click
+        // Search bar click - redirect to search page on click
         if (searchView != null) {
+            // Redirect when search view is clicked
+            searchView.setOnSearchClickListener(v -> {
+                Intent intent = new Intent(getContext(), SearchActivity.class);
+                startActivity(intent);
+            });
+
+            // Also handle focus
             searchView.setOnQueryTextFocusChangeListener((v, hasFocus) -> {
                 if (hasFocus) {
                     Intent intent = new Intent(getContext(), SearchActivity.class);

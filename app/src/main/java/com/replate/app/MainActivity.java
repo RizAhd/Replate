@@ -165,7 +165,10 @@ public class MainActivity extends AppCompatActivity {
         checkNotificationPermissions();
 
         handleDeepLinkFromNotification(getIntent());
-        maybeRequestLocationAfterAuth();
+
+        // Request location permission after auth with a small delay for better UX
+        // This ensures the UI is fully loaded before showing permission dialog
+        mainContent.postDelayed(this::maybeRequestLocationAfterAuth, 500);
     }
 
     private void bindDrawerHeader() {
