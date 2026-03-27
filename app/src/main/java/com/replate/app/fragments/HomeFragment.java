@@ -48,6 +48,7 @@ import com.replate.app.helpers.CartDatabaseHelper;
 import com.replate.app.models.Category;
 import com.replate.app.models.FoodItem;
 import com.replate.app.utils.ShakeDetector;
+import com.replate.app.helpers.FoodItemCacheManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -93,6 +94,9 @@ public class HomeFragment extends Fragment implements
     private List<FoodItem> allFoodItems = new ArrayList<>(); // Unfiltered list
     private List<FoodItem> hotDeals = new ArrayList<>();
     private List<FoodItem> favoriteItems = new ArrayList<>();
+
+    // Caching
+    private FoodItemCacheManager cacheManager;
     private java.util.Set<String> favoriteFoodIds = new java.util.HashSet<>();
     private String selectedCategory = "All";
 
@@ -139,6 +143,9 @@ public class HomeFragment extends Fragment implements
 
         // Initialize location client
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
+
+        // Initialize cache manager for faster startup
+        cacheManager = new FoodItemCacheManager(requireContext());
 
         // Initialize views
         ivMenu = view.findViewById(R.id.ivMenu);
@@ -198,7 +205,10 @@ public class HomeFragment extends Fragment implements
         // Setup click listeners
         setupClickListeners();
 
-        // Load food immediately, then enhance with nearby sorting once location resolves.
+        // Load cached food items immediately for faster perceived performance
+        loadCachedFoodItems();
+
+        // Load food from Firebase (will replace cached data with fresh data)
         loadFoodItems();
         getUserLocation();
 
@@ -370,6 +380,35 @@ public class HomeFragment extends Fragment implements
         filterByCategory(selectedCategory);
     }
 
+    /**
+     * Load cached food items for faster startup
+     * Shows cached data immediately while Firebase loads fresh data
+     */
+    private void loadCachedFoodItems() {
+        try {
+            if (cacheManager == null || !cacheManager.hasCachedData()) {
+                return;
+            }
+
+            List<FoodItem> cachedItems = cacheManager.getCachedFoodItems();
+            if (cachedItems == null || cachedItems.isEmpty()) {
+                return;
+            }
+
+            allFoodItems.clear();
+            allFoodItems.addAll(cachedItems);
+
+            // Apply category and other filters
+            updateHotDeals();
+            updateFavorites();
+            filterByCategory(selectedCategory);
+
+            showLoading(false);
+        } catch (Exception e) {
+            android.util.Log.e("HomeFragment", "Error loading cached food items", e);
+        }
+    }
+
     private void loadFoodItems() {
         showLoading(true);
 
@@ -440,6 +479,16 @@ public class HomeFragment extends Fragment implements
                 updateHotDeals();
                 updateFavorites();
                 filterByCategory(selectedCategory);
+
+                // Cache the loaded food items for faster startup next time
+                if (cacheManager != null && !allFoodItems.isEmpty()) {
+                    try {
+                        cacheManager.saveFoodItems(new ArrayList<>(allFoodItems));
+                    } catch (Exception e) {
+                        android.util.Log.e("HomeFragment", "Error caching food items", e);
+                    }
+                }
+
                 showLoading(false);
             }
 
