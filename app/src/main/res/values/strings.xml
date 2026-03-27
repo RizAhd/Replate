@@ -242,6 +242,8 @@ Total: LKR %1$.2f</string>
     <string name="search_filters_category">Category</string>
     <string name="search_filters_reset">Reset</string>
     <string name="search_filters_apply">Apply</string>
+    <string name="search_loading_fresh">Loading fresh results...</string>
+    <string name="food_card_add">Add</string>
 
     <!-- Edit profile -->
     <string name="edit_profile_title">Edit Profile</string>
