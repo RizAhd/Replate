@@ -56,82 +56,111 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
     }
 
     private void initViews() {
-        ImageView ivBack = findViewById(R.id.ivBack);
-        rvCartItems = findViewById(R.id.rvCartItems);
-        emptyState = findViewById(R.id.emptyState);
-        checkoutSection = findViewById(R.id.checkoutSection);
-        tvTotalAmount = findViewById(R.id.tvTotalAmount);
-        tvClearCart = findViewById(R.id.tvClearCart);
-        tvItemCount = findViewById(R.id.tvItemCount);
-        tvSavingsValue = findViewById(R.id.tvSavingsValue);
-        tvCartSummary = findViewById(R.id.tvCartSummary);
-        btnCheckout = findViewById(R.id.btnCheckout);
-        btnBrowse = findViewById(R.id.btnBrowse);
+        try {
+            ImageView ivBack = findViewById(R.id.ivBack);
+            rvCartItems = findViewById(R.id.rvCartItems);
+            emptyState = findViewById(R.id.emptyState);
+            checkoutSection = findViewById(R.id.checkoutSection);
+            tvTotalAmount = findViewById(R.id.tvTotalAmount);
+            tvClearCart = findViewById(R.id.tvClearCart);
+            tvItemCount = findViewById(R.id.tvItemCount);
+            tvSavingsValue = findViewById(R.id.tvSavingsValue);
+            tvCartSummary = findViewById(R.id.tvCartSummary);
+            btnCheckout = findViewById(R.id.btnCheckout);
+            btnBrowse = findViewById(R.id.btnBrowse);
 
-        rvCartItems.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new CartAdapter(this, cartItems, this);
-        rvCartItems.setAdapter(adapter);
-
-        ivBack.setOnClickListener(v -> finish());
-
-        tvClearCart.setOnClickListener(v -> {
-            if (!cartItems.isEmpty()) {
-                new AlertDialog.Builder(this)
-                        .setTitle("Clear Cart")
-                        .setMessage("Remove all items from cart?")
-                        .setPositiveButton("Clear", (d, w) -> {
-                            cartDb.clearCart();
-                            loadCartItems();
-                            Toast.makeText(this, "Cart cleared", Toast.LENGTH_SHORT).show();
-                        })
-                        .setNegativeButton("Cancel", null)
-                        .show();
+            if (rvCartItems != null) {
+                rvCartItems.setLayoutManager(new LinearLayoutManager(this));
+                adapter = new CartAdapter(this, cartItems, this);
+                rvCartItems.setAdapter(adapter);
             }
-        });
 
-        btnCheckout.setOnClickListener(v -> {
-            Intent intent = new Intent(this, CheckoutActivity.class);
-            startActivity(intent);
-        });
+            if (ivBack != null) {
+                ivBack.setOnClickListener(v -> finish());
+            }
 
-        btnBrowse.setOnClickListener(v -> finish());
+            if (tvClearCart != null) {
+                tvClearCart.setOnClickListener(v -> {
+                    if (!cartItems.isEmpty()) {
+                        new AlertDialog.Builder(this)
+                                .setTitle("Clear Cart")
+                                .setMessage("Remove all items from cart?")
+                                .setPositiveButton("Clear", (d, w) -> {
+                                    if (cartDb != null) {
+                                        cartDb.clearCart();
+                                    }
+                                    loadCartItems();
+                                    Toast.makeText(this, "Cart cleared", Toast.LENGTH_SHORT).show();
+                                })
+                                .setNegativeButton("Cancel", null)
+                                .show();
+                    }
+                });
+            }
+
+            if (btnCheckout != null) {
+                btnCheckout.setOnClickListener(v -> {
+                    Intent intent = new Intent(this, CheckoutActivity.class);
+                    startActivity(intent);
+                });
+            }
+
+            if (btnBrowse != null) {
+                btnBrowse.setOnClickListener(v -> finish());
+            }
+        } catch (Exception e) {
+            android.util.Log.e("CartActivity", "Error initializing views", e);
+        }
     }
 
     private void loadCartItems() {
-        cartItems.clear();
-        cartItems.addAll(cartDb.getAllItems());
-        adapter.notifyDataSetChanged();
-        updateUI();
+        try {
+            cartItems.clear();
+            if (cartDb != null) {
+                cartItems.addAll(cartDb.getAllItems());
+            }
+            if (adapter != null) {
+                adapter.notifyDataSetChanged();
+            }
+            updateUI();
+        } catch (Exception e) {
+            android.util.Log.e("CartActivity", "Error loading cart items", e);
+        }
     }
 
     private void updateUI() {
-        if (cartItems.isEmpty()) {
-            rvCartItems.setVisibility(View.GONE);
-            emptyState.setVisibility(View.VISIBLE);
-            checkoutSection.setVisibility(View.GONE);
-            if (tvCartSummary != null) {
-                tvCartSummary.setText("Your cart will automatically keep items saved offline.");
-            }
-        } else {
-            rvCartItems.setVisibility(View.VISIBLE);
-            emptyState.setVisibility(View.GONE);
-            checkoutSection.setVisibility(View.VISIBLE);
+        try {
+            if (cartItems.isEmpty()) {
+                if (rvCartItems != null) rvCartItems.setVisibility(View.GONE);
+                if (emptyState != null) emptyState.setVisibility(View.VISIBLE);
+                if (checkoutSection != null) checkoutSection.setVisibility(View.GONE);
+                if (tvCartSummary != null) {
+                    tvCartSummary.setText("Your cart will automatically keep items saved offline.");
+                }
+            } else {
+                if (rvCartItems != null) rvCartItems.setVisibility(View.VISIBLE);
+                if (emptyState != null) emptyState.setVisibility(View.GONE);
+                if (checkoutSection != null) checkoutSection.setVisibility(View.VISIBLE);
 
-            double total = cartDb.getCartTotal();
-            double savings = 0;
-            int itemCount = 0;
-            for (CartItem item : cartItems) {
-                itemCount += item.getQuantity();
-                savings += (item.getOriginalPrice() - item.getPrice()) * item.getQuantity();
-            }
+                double total = cartDb != null ? cartDb.getCartTotal() : 0;
+                double savings = 0;
+                int itemCount = 0;
+                for (CartItem item : cartItems) {
+                    if (item != null) {
+                        itemCount += item.getQuantity();
+                        savings += (item.getOriginalPrice() - item.getPrice()) * item.getQuantity();
+                    }
+                }
 
-            tvTotalAmount.setText(String.format(Locale.getDefault(), "LKR %.2f", total));
-            if (tvItemCount != null) {
-                tvItemCount.setText(itemCount == 1 ? "1 item" : itemCount + " items");
-            }
-            if (tvSavingsValue != null) {
-                tvSavingsValue.setText(String.format(Locale.getDefault(), "LKR %.2f", Math.max(savings, 0)));
-            }
+                if (tvTotalAmount != null) {
+                    tvTotalAmount.setText(String.format(Locale.getDefault(), "LKR %.2f", total));
+                }
+                if (tvItemCount != null) {
+                    tvItemCount.setText(itemCount == 1 ? "1 item" : itemCount + " items");
+                }
+                if (tvSavingsValue != null) {
+                    tvSavingsValue.setText(String.format(Locale.getDefault(), "LKR %.2f", Math.max(savings, 0)));
+                }
             if (tvCartSummary != null) {
                 tvCartSummary.setText(itemCount == 1
                         ? "You have 1 rescue meal ready for checkout"
