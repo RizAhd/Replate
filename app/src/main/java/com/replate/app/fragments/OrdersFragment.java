@@ -243,11 +243,13 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
                 .updateChildren(updates)
                 .addOnSuccessListener(unused -> {
                     progressBar.setVisibility(View.GONE);
-                    Toast.makeText(getContext(), "Order cancelled", Toast.LENGTH_SHORT).show();
+                    if (!isAdded() || getContext() == null) return;
+                    Toast.makeText(requireContext(), "Order cancelled", Toast.LENGTH_SHORT).show();
                 })
                 .addOnFailureListener(e -> {
                     progressBar.setVisibility(View.GONE);
-                    Toast.makeText(getContext(), "Failed to cancel order", Toast.LENGTH_SHORT).show();
+                    if (!isAdded() || getContext() == null) return;
+                    Toast.makeText(requireContext(), "Failed to cancel order", Toast.LENGTH_SHORT).show();
                 });
     }
 }

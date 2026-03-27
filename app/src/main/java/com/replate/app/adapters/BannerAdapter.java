@@ -52,7 +52,11 @@ public class BannerAdapter extends RecyclerView.Adapter<BannerAdapter.BannerView
 
     @Override
     public void onBindViewHolder(@NonNull BannerViewHolder holder, int position) {
-        holder.ivBanner.setImageResource(bannerImages.get(position));
+        try {
+            holder.ivBanner.setImageResource(bannerImages.get(position));
+        } catch (Exception ignored) {
+            holder.ivBanner.setImageResource(R.drawable.bg_gradient_green);
+        }
 
         int index = position % BANNER_TITLES.length;
         holder.tvBannerBadge.setText(BANNER_BADGES[index]);
