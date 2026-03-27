@@ -33,7 +33,7 @@ public class CartFragment extends Fragment {
 
         tvCartCount = view.findViewById(R.id.tvCartCount);
         tvCartTotal = view.findViewById(R.id.tvCartTotal);
-        btnOpenCart = view.findViewById(R.id.btnOpenCart);
+        btnOpenCart = view.findViewById(R.id.btnBrowseFood);
 
         btnOpenCart.setOnClickListener(v -> startActivity(new Intent(requireContext(), CartActivity.class)));
         return view;
