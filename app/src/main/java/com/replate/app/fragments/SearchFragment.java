@@ -7,13 +7,15 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.PopupMenu;
 import android.widget.ProgressBar;
+import android.widget.RadioGroup;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,7 +28,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.material.chip.Chip;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -39,7 +43,9 @@ import com.replate.app.models.FoodItem;
 import com.replate.app.utils.LocationUtils;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import android.os.Handler;
 import android.os.Looper;
 
@@ -50,6 +56,8 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
 
     private static final String PREFS = "REPLATE_PREFS";
     private static final String PREF_SEARCH_FILTER = "search_preferred_filter";
+    private static final String PREF_SEARCH_CATEGORY = "search_preferred_category";
+    private static final String PREF_SEARCH_AVAILABLE_ONLY = "search_available_only";
 
     private EditText etSearch;
     private RecyclerView rvSearchResults;
@@ -72,6 +80,8 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
     private Runnable searchRunnable;
 
     private String currentFilter = "for_you";
+    private String selectedCategory = "All";
+    private boolean availableOnly = false;
     private double currentLat = 0;
     private double currentLng = 0;
 
@@ -179,45 +189,87 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
     }
 
     private void showAdvancedFilterMenu(View anchor) {
-        PopupMenu menu = new PopupMenu(requireContext(), anchor);
-        menu.getMenu().add(0, 1, 0, getString(R.string.search_filter_for_you));
-        menu.getMenu().add(0, 2, 1, getString(R.string.search_filter_nearby));
-        menu.getMenu().add(0, 3, 2, getString(R.string.search_filter_low_price));
-        menu.getMenu().add(0, 4, 3, getString(R.string.search_filter_discount));
-        menu.getMenu().add(0, 5, 4, getString(R.string.search_filter_rating));
-        menu.getMenu().add(0, 6, 5, getString(R.string.search_filter_category));
+        if (!isAdded() || getContext() == null) return;
 
-        menu.setOnMenuItemClickListener(this::onAdvancedFilterItemSelected);
-        menu.show();
-    }
+        BottomSheetDialog dialog = new BottomSheetDialog(requireContext());
+        View sheetView = LayoutInflater.from(requireContext())
+                .inflate(R.layout.bottom_sheet_search_filters, null);
+        dialog.setContentView(sheetView);
 
-    private boolean onAdvancedFilterItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case 1:
-                currentFilter = "for_you";
-                break;
-            case 2:
-                currentFilter = "nearby";
-                break;
-            case 3:
-                currentFilter = "price_low";
-                break;
-            case 4:
-                currentFilter = "discount";
-                break;
-            case 5:
-                currentFilter = "rating";
-                break;
-            case 6:
-                currentFilter = "category";
-                break;
-            default:
-                return false;
+        RadioGroup rgSort = sheetView.findViewById(R.id.rgSort);
+        Spinner spCategory = sheetView.findViewById(R.id.spCategory);
+        MaterialCheckBox cbAvailableOnly = sheetView.findViewById(R.id.cbAvailableOnly);
+        MaterialButton btnApply = sheetView.findViewById(R.id.btnApplyFilters);
+        MaterialButton btnReset = sheetView.findViewById(R.id.btnResetFilters);
+
+        // Set current sort selection
+        switch (currentFilter) {
+            case "nearby":    rgSort.check(R.id.rbNearby);    break;
+            case "price_low": rgSort.check(R.id.rbPriceLow);  break;
+            case "price_high": rgSort.check(R.id.rbPriceHigh); break;
+            case "discount":  rgSort.check(R.id.rbDiscount);  break;
+            case "rating":    rgSort.check(R.id.rbRating);    break;
+            default:          rgSort.check(R.id.rbForYou);    break;
         }
 
-        syncChipStateWithCurrentFilter();
-        onFilterChangedByUser();
-        return true;
+        // Build category list from loaded items
+        Set<String> categorySet = new LinkedHashSet<>();
+        categorySet.add("All");
+        for (FoodItem item : allFoodItems) {
+            String cat = item.getCategory();
+            if (cat != null && !cat.trim().isEmpty()) {
+                categorySet.add(cat.trim());
+            }
+        }
+        List<String> categoryList = new ArrayList<>(categorySet);
+        ArrayAdapter<String> catAdapter = new ArrayAdapter<>(requireContext(),
+                android.R.layout.simple_spinner_item, categoryList);
+        catAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spCategory.setAdapter(catAdapter);
+
+        int catIndex = categoryList.indexOf(selectedCategory);
+        spCategory.setSelection(catIndex >= 0 ? catIndex : 0);
+
+        // Available only checkbox
+        cbAvailableOnly.setChecked(availableOnly);
+
+        // Track pending spinner selection without closing dialog
+        java.util.concurrent.atomic.AtomicReference<String> pendingCategory =
+                new java.util.concurrent.atomic.AtomicReference<>(selectedCategory);
+        spCategory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                pendingCategory.set(categoryList.get(position));
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        btnApply.setOnClickListener(v -> {
+            // Read sort selection
+            int checkedId = rgSort.getCheckedRadioButtonId();
+            if (checkedId == R.id.rbNearby)        currentFilter = "nearby";
+            else if (checkedId == R.id.rbPriceLow)  currentFilter = "price_low";
+            else if (checkedId == R.id.rbPriceHigh) currentFilter = "price_high";
+            else if (checkedId == R.id.rbDiscount)  currentFilter = "discount";
+            else if (checkedId == R.id.rbRating)    currentFilter = "rating";
+            else                                     currentFilter = "for_you";
+
+            selectedCategory = pendingCategory.get();
+            availableOnly = cbAvailableOnly.isChecked();
+
+            dialog.dismiss();
+            onFilterChangedByUser();
+        });
+
+        btnReset.setOnClickListener(v -> {
+            rgSort.check(R.id.rbForYou);
+            spCategory.setSelection(0);
+            cbAvailableOnly.setChecked(false);
+            pendingCategory.set("All");
+        });
+
+        dialog.show();
     }
 
     private void onFilterChangedByUser() {
@@ -242,6 +294,9 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
             case "price_low":
                 label = getString(R.string.search_filter_low_price);
                 break;
+            case "price_high":
+                label = getString(R.string.search_filter_high_price);
+                break;
             case "discount":
                 label = getString(R.string.search_filter_discount);
                 break;
@@ -258,22 +313,35 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
                 label = getString(R.string.search_chip_all);
                 break;
         }
+
+        if (!"All".equalsIgnoreCase(selectedCategory)) {
+            label = label + " · " + selectedCategory;
+        }
+        if (availableOnly) {
+            label = label + " · " + getString(R.string.search_filter_available_only);
+        }
         tvActiveFilter.setText(getString(R.string.search_active_filter_template, label));
     }
 
     private void loadSavedFilterPreference() {
         SharedPreferences prefs = requireContext().getSharedPreferences(PREFS, android.content.Context.MODE_PRIVATE);
         currentFilter = prefs.getString(PREF_SEARCH_FILTER, "for_you");
+        selectedCategory = prefs.getString(PREF_SEARCH_CATEGORY, "All");
+        availableOnly = prefs.getBoolean(PREF_SEARCH_AVAILABLE_ONLY, false);
         syncChipStateWithCurrentFilter();
         updateActiveFilterLabel();
     }
 
     private void saveFilterPreference(String filter) {
         SharedPreferences prefs = requireContext().getSharedPreferences(PREFS, android.content.Context.MODE_PRIVATE);
-        prefs.edit().putString(PREF_SEARCH_FILTER, filter).apply();
+        prefs.edit()
+                .putString(PREF_SEARCH_FILTER, filter)
+                .putString(PREF_SEARCH_CATEGORY, selectedCategory)
+                .putBoolean(PREF_SEARCH_AVAILABLE_ONLY, availableOnly)
+                .apply();
     }
 
-    private void uncheckAllExcept(Chip selected) {
+    private void uncheckAllExcept(Object selected) {
         // Chips no longer used - handled via bottom sheet filter dialog
     }
 
@@ -352,15 +420,25 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
                     || category.contains(searchQuery)
                     || description.contains(searchQuery);
 
-            if (matchesSearch) {
-                filteredItems.add(item);
-            }
+            if (!matchesSearch) continue;
+
+            // Category filter
+            if (!item.matchesCategory(selectedCategory)) continue;
+
+            // Available only filter
+            if (availableOnly && !item.isAvailableValue()) continue;
+
+            filteredItems.add(item);
         }
 
         switch (currentFilter) {
             case "price_low":
                 filteredItems.sort((a, b) ->
                         Double.compare(a.getDiscountedPriceValue(), b.getDiscountedPriceValue()));
+                break;
+            case "price_high":
+                filteredItems.sort((a, b) ->
+                        Double.compare(b.getDiscountedPriceValue(), a.getDiscountedPriceValue()));
                 break;
             case "discount":
                 filteredItems.sort((a, b) ->
