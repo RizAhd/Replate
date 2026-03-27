@@ -126,7 +126,10 @@ public class MainActivity extends AppCompatActivity {
             int itemId = item.getItemId();
             if (itemId == R.id.nav_home) return switchFragment(homeFragment);
             if (itemId == R.id.nav_map) return switchFragment(mapFragment);
-            if (itemId == R.id.nav_cart) return switchFragment(cartFragment);
+            if (itemId == R.id.nav_cart) {
+                startActivity(new Intent(this, CartActivity.class));
+                return false;
+            }
             if (itemId == R.id.nav_orders) return switchFragment(ordersFragment);
             if (itemId == R.id.nav_profile) return switchFragment(profileFragment);
             return false;
@@ -157,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
             } else if (id == R.id.drawer_map) {
                 bottomNavigation.setSelectedItemId(R.id.nav_map);
             } else if (id == R.id.drawer_cart) {
-                bottomNavigation.setSelectedItemId(R.id.nav_cart);
+                startActivity(new Intent(this, CartActivity.class));
             } else if (id == R.id.drawer_orders) {
                 bottomNavigation.setSelectedItemId(R.id.nav_orders);
             } else if (id == R.id.drawer_profile) {
