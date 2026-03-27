@@ -440,14 +440,17 @@ public class SettingsActivity extends AppCompatActivity {
                                 if (!canUseUi() || ivProfileImage == null) return;
                                 showBrandedToast("Photo updated");
                                 try {
+                                    if (isFinishing() || isDestroyed()) return;
                                     if (ivProfileImage.getWindowToken() == null) return;
-                                    Glide.with(ivProfileImage)
+                                    Glide.with(SettingsActivity.this)
                                             .load(photoUrl)
                                             .placeholder(R.drawable.ic_profile_placeholder)
                                             .error(R.drawable.ic_profile_placeholder)
                                             .into(ivProfileImage);
                                 } catch (IllegalArgumentException e) {
                                     Log.w(TAG, "Skipped image load: view/activity not valid", e);
+                                } catch (Exception e) {
+                                    Log.w(TAG, "Glide error loading profile photo", e);
                                 }
                             })
                             .addOnFailureListener(e -> {

@@ -1,6 +1,7 @@
 package com.replate.app.fragments;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
@@ -445,8 +446,11 @@ public class HomeFragment extends Fragment implements
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 showLoading(false);
-                if (!isAdded() || getContext() == null) return;
-                Toast.makeText(requireContext(), "Failed to load food items", Toast.LENGTH_SHORT).show();
+                if (!isAdded()) return;
+                Context ctx = getContext();
+                if (ctx != null) {
+                    Toast.makeText(ctx, "Failed to load food items", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }

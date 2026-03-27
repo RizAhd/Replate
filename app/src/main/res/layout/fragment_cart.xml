@@ -367,9 +367,6 @@
         android:textStyle="bold"
         app:cornerRadius="12dp"
         app:backgroundTint="@color/green_primary"
-        app:layout_anchor="@id/priceBreakdownCard"
-        app:layout_anchorGravity="bottom|end"
-        android:layout_gravity="bottom"
         android:elevation="6dp" />
 
 </CoordinatorLayout>
