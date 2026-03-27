@@ -20,22 +20,23 @@ public class SplashActivity extends AppCompatActivity {
         final Intent launchIntent = getIntent();
 
         View ivEmoji = findViewById(R.id.ivEmoji);
+        if (ivEmoji != null) {
+            // Scale Animation 0 -> 1 with Overshoot
+            ivEmoji.setScaleX(0f);
+            ivEmoji.setScaleY(0f);
 
-        // Scale Animation 0 -> 1 with Overshoot
-        ivEmoji.setScaleX(0f);
-        ivEmoji.setScaleY(0f);
+            ObjectAnimator scaleX = ObjectAnimator.ofFloat(ivEmoji, "scaleX", 0f, 1f);
+            ObjectAnimator scaleY = ObjectAnimator.ofFloat(ivEmoji, "scaleY", 0f, 1f);
 
-        ObjectAnimator scaleX = ObjectAnimator.ofFloat(ivEmoji, "scaleX", 0f, 1f);
-        ObjectAnimator scaleY = ObjectAnimator.ofFloat(ivEmoji, "scaleY", 0f, 1f);
+            scaleX.setDuration(600);
+            scaleY.setDuration(600);
 
-        scaleX.setDuration(600);
-        scaleY.setDuration(600);
+            scaleX.setInterpolator(new OvershootInterpolator());
+            scaleY.setInterpolator(new OvershootInterpolator());
 
-        scaleX.setInterpolator(new OvershootInterpolator());
-        scaleY.setInterpolator(new OvershootInterpolator());
-
-        scaleX.start();
-        scaleY.start();
+            scaleX.start();
+            scaleY.start();
+        }
 
         // 2.5s Delay then continue without any permission prompts.
         new Handler().postDelayed(() -> proceedToNextScreen(launchIntent), 2500);

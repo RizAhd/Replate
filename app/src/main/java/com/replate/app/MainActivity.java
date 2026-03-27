@@ -6,6 +6,8 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
+import android.net.Uri;
+import android.provider.Settings;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
@@ -14,6 +16,7 @@ import android.widget.TextView;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
@@ -69,7 +72,23 @@ public class MainActivity extends AppCompatActivity {
     private final ActivityResultLauncher<String[]> locationPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
                 SharedPreferences prefs = getSharedPreferences("REPLATE_PREFS", MODE_PRIVATE);
-                prefs.edit().putBoolean("pending_location_permission_prompt", false).apply();
+                boolean fineGranted = Boolean.TRUE.equals(result.get(Manifest.permission.ACCESS_FINE_LOCATION));
+                boolean coarseGranted = Boolean.TRUE.equals(result.get(Manifest.permission.ACCESS_COARSE_LOCATION));
+
+                if (fineGranted || coarseGranted) {
+                    prefs.edit().putBoolean("pending_location_permission_prompt", false).apply();
+                    return;
+                }
+
+                boolean showRationaleFine = shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION);
+                boolean showRationaleCoarse = shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_COARSE_LOCATION);
+                boolean permanentlyDenied = !showRationaleFine && !showRationaleCoarse;
+
+                if (permanentlyDenied) {
+                    showLocationSettingsDialog();
+                } else {
+                    showLocationRationaleDialog();
+                }
             });
 
     @Override
@@ -456,9 +475,45 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
+        boolean showRationaleFine = shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION);
+        boolean showRationaleCoarse = shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_COARSE_LOCATION);
+
+        if (showRationaleFine || showRationaleCoarse) {
+            showLocationRationaleDialog();
+            return;
+        }
+
         locationPermissionLauncher.launch(new String[]{
                 Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION
         });
+    }
+
+    private void showLocationRationaleDialog() {
+        if (isFinishing() || isDestroyed()) return;
+        new AlertDialog.Builder(this)
+                .setTitle("Enable live location")
+                .setMessage("We use your current location to show nearby hotels, faster search results, and accurate pickup routes.")
+                .setPositiveButton("Continue", (d, w) ->
+                        locationPermissionLauncher.launch(new String[]{
+                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                Manifest.permission.ACCESS_COARSE_LOCATION
+                        }))
+                .setNegativeButton("Not now", null)
+                .show();
+    }
+
+    private void showLocationSettingsDialog() {
+        if (isFinishing() || isDestroyed()) return;
+        new AlertDialog.Builder(this)
+                .setTitle("Location permission needed")
+                .setMessage("Location access is permanently denied. Open app settings to enable live location and nearby hotel routes.")
+                .setPositiveButton("Open settings", (d, w) -> {
+                    Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                    intent.setData(Uri.parse("package:" + getPackageName()));
+                    startActivity(intent);
+                })
+                .setNegativeButton("Not now", null)
+                .show();
     }
 }

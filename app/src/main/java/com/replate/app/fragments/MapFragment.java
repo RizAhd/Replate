@@ -60,6 +60,9 @@ import com.replate.app.map.routing.RouteResult;
 import com.replate.app.utils.LocationUtils;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -113,10 +116,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 if (fineGranted || coarseGranted) {
                     enableMyLocationAndCenter();
                 } else {
-                    Toast.makeText(getContext(), "Location permission denied. Map uses default area.", Toast.LENGTH_LONG).show();
-                    if (mMap != null) {
-                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(6.9497, 80.7891), 12f));
-                    }
+                    Toast.makeText(getContext(), "Location permission denied. Enable location for live map updates.", Toast.LENGTH_LONG).show();
                 }
             });
 
@@ -207,16 +207,21 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             ivMyLocation.setOnClickListener(v -> moveToCurrentLocation());
         }
 
-        btnViewDeals.setOnClickListener(v -> {
-            if (selectedPlace == null) {
-                Toast.makeText(getContext(), "Select a place marker first", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            drawRouteToSelectedPlace();
-        });
+        if (btnViewDeals != null) {
+            btnViewDeals.setOnClickListener(v -> {
+                if (selectedPlace == null) {
+                    Toast.makeText(getContext(), "Select a place marker first", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                drawRouteToSelectedPlace();
+            });
+        }
     }
 
     private void setupSearch() {
+        if (searchView == null) {
+            return;
+        }
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -244,7 +249,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             return;
         }
 
-        loadingOverlay.setVisibility(View.VISIBLE);
+        if (loadingOverlay != null) {
+            loadingOverlay.setVisibility(View.VISIBLE);
+        }
         new Thread(() -> {
             if (!isAdded()) {
                 return;
@@ -259,7 +266,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                     if (!isAdded()) {
                         return;
                     }
-                    loadingOverlay.setVisibility(View.GONE);
+                    if (loadingOverlay != null) {
+                        loadingOverlay.setVisibility(View.GONE);
+                    }
                     if (result != null && !result.isEmpty()) {
                         Address address = result.get(0);
                         searchPin = new LatLng(address.getLatitude(), address.getLongitude());
@@ -281,7 +290,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                     if (!isAdded()) {
                         return;
                     }
-                    loadingOverlay.setVisibility(View.GONE);
+                    if (loadingOverlay != null) {
+                        loadingOverlay.setVisibility(View.GONE);
+                    }
                     Toast.makeText(getContext(), "Search failed. Check internet.", Toast.LENGTH_SHORT).show();
                 });
             }
@@ -320,11 +331,15 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     }
 
     private void loadAndRenderPlaceMarkers() {
-        loadingOverlay.setVisibility(View.VISIBLE);
+        if (loadingOverlay != null) {
+            loadingOverlay.setVisibility(View.VISIBLE);
+        }
         placesDataSource.fetchPlaces(new PlacesDataSource.Callback() {
             @Override
             public void onSuccess(@NonNull List<FoodPlace> places) {
-                loadingOverlay.setVisibility(View.GONE);
+                if (loadingOverlay != null) {
+                    loadingOverlay.setVisibility(View.GONE);
+                }
                 if (places.isEmpty()) {
                     showNoRegisteredHotelsState();
                     return;
@@ -334,7 +349,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
             @Override
             public void onError(@NonNull String message) {
-                loadingOverlay.setVisibility(View.GONE);
+                if (loadingOverlay != null) {
+                    loadingOverlay.setVisibility(View.GONE);
+                }
                 showNoRegisteredHotelsState();
                 Toast.makeText(getContext(), "Could not load hotel locations: " + message, Toast.LENGTH_SHORT).show();
             }
@@ -351,6 +368,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     }
 
     private void requestOrLoadLocation() {
+        if (!isAdded()) {
+            return;
+        }
         boolean fineGranted = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED;
         boolean coarseGranted = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION)
@@ -369,7 +389,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     @SuppressLint("MissingPermission")
     private void enableMyLocationAndCenter() {
-        if (mMap == null) {
+        if (mMap == null || !isAdded()) {
             return;
         }
 
@@ -394,13 +414,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
         fusedLocationClient.getLastLocation()
                 .addOnSuccessListener(this::handleLocation)
-                .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "Could not get location", Toast.LENGTH_SHORT).show();
-                    if (currentUserLatLng == null) {
-                        LatLng fallback = new LatLng(6.9497, 80.7891);
-                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(fallback, 12f));
-                    }
-                });
+                .addOnFailureListener(e -> Toast.makeText(getContext(), "Could not get location yet", Toast.LENGTH_SHORT).show());
 
         startLiveLocationUpdates();
     }
@@ -433,6 +447,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                         hasCenteredOnUser = true;
                     }
 
+
                     // Keep route info fresh while user is moving.
                     if (selectedDestinationLatLng != null && tvRouteInfo != null) {
                         double distance = LocationUtils.calculateDistance(
@@ -442,6 +457,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                                 selectedDestinationLatLng.longitude
                         );
                         tvRouteInfo.setText(String.format(Locale.getDefault(), "Distance: %.2f km • Updating…", distance));
+                    }
+
+                    // Refresh marker colors/order context as live location improves.
+                    if (false && !markerPlaceMap.isEmpty()) {
+                        loadAndRenderPlaceMarkers();
                     }
                 }
             };
@@ -474,14 +494,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
 
         if (location == null) {
-            Toast.makeText(getContext(), "Using default location (Nuwara Eliya)", Toast.LENGTH_SHORT).show();
-            if (currentUserLatLng == null) {
-                currentUserLatLng = new LatLng(6.9497, 80.7891);
-            }
-            if (!hasCenteredOnUser) {
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentUserLatLng, 13f));
-                hasCenteredOnUser = true;
-            }
+            Toast.makeText(getContext(), "Waiting for live location...", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -511,7 +524,18 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         markerByHotelId.clear();
         clearRouteOnly();
 
-        for (FoodPlace place : places) {
+        List<FoodPlace> sortedPlaces = new ArrayList<>(places);
+        if (currentUserLatLng != null) {
+            Collections.sort(sortedPlaces, Comparator.comparingDouble(place ->
+                    LocationUtils.calculateDistance(
+                            currentUserLatLng.latitude,
+                            currentUserLatLng.longitude,
+                            place.getLatitude(),
+                            place.getLongitude()
+                    )));
+        }
+
+        for (FoodPlace place : sortedPlaces) {
             LatLng latLng = new LatLng(place.getLatitude(), place.getLongitude());
             float markerColor = markerColorForDistance(latLng);
 

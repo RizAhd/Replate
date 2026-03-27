@@ -52,7 +52,10 @@ public class CartFragment extends Fragment {
             return view;
         } catch (Exception e) {
             android.util.Log.e("CartFragment", "Error creating cart fragment view", e);
-            return super.onCreateView(inflater, container, savedInstanceState);
+            if (isAdded()) {
+                return new View(requireContext());
+            }
+            return null;
         }
     }
 

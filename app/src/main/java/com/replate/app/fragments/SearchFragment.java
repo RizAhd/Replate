@@ -39,6 +39,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.replate.app.FoodDetailActivity;
 import com.replate.app.R;
 import com.replate.app.adapters.FoodItemAdapter;
+import com.replate.app.helpers.FoodItemCacheManager;
 import com.replate.app.models.FoodItem;
 import com.replate.app.utils.LocationUtils;
 
@@ -72,6 +73,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
     private FoodItemAdapter adapter;
     private FusedLocationProviderClient fusedLocationClient;
     private GridLayoutManager gridLayoutManager;
+    private FoodItemCacheManager cacheManager;
 
     private final List<FoodItem> allFoodItems = new ArrayList<>();
     private final List<FoodItem> filteredItems = new ArrayList<>();
@@ -93,6 +95,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
+        cacheManager = new FoodItemCacheManager(requireContext());
 
         initViews(view);
         loadSavedFilterPreference();
@@ -100,11 +103,27 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         setupFilterChips();
         setupAdvancedFilterAction();
 
+        // Cache-first rendering for instant feel.
+        loadCachedSearchItems();
+
         // Instant loading first; location can enhance sort afterward.
         loadAllFoodItems();
         getUserLocation();
 
         return view;
+    }
+
+    private void loadCachedSearchItems() {
+        if (cacheManager == null) return;
+        List<FoodItem> cachedItems = cacheManager.getCachedFoodItems();
+        if (cachedItems == null || cachedItems.isEmpty()) return;
+
+        allFoodItems.clear();
+        allFoodItems.addAll(cachedItems);
+        filterItems(etSearch == null ? "" : etSearch.getText().toString());
+        if (progressBar != null) {
+            progressBar.setVisibility(View.GONE);
+        }
     }
 
     private void getUserLocation() {
@@ -346,7 +365,9 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
     }
 
     private void loadAllFoodItems() {
-        progressBar.setVisibility(View.VISIBLE);
+        if (progressBar != null && allFoodItems.isEmpty()) {
+            progressBar.setVisibility(View.VISIBLE);
+        }
 
         mDatabase.child("foodItems").addValueEventListener(new ValueEventListener() {
             @Override
@@ -382,14 +403,24 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
                     allFoodItems.add(item);
                 }
 
-                progressBar.setVisibility(View.GONE);
+                if (cacheManager != null && !allFoodItems.isEmpty()) {
+                    cacheManager.saveFoodItems(new ArrayList<>(allFoodItems));
+                }
+
+                if (progressBar != null) {
+                    progressBar.setVisibility(View.GONE);
+                }
                 filterItems(etSearch == null ? "" : etSearch.getText().toString());
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                progressBar.setVisibility(View.GONE);
-                Toast.makeText(getContext(), "Error loading data", Toast.LENGTH_SHORT).show();
+                if (progressBar != null) {
+                    progressBar.setVisibility(View.GONE);
+                }
+                if (allFoodItems.isEmpty()) {
+                    Toast.makeText(getContext(), "Error loading data", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
@@ -483,25 +514,39 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
     }
 
     private double getRatingForSort(FoodItem item) {
-        if (item == null) return 0.0;
+        if (item == null) {
+            return 0.0;
+        }
         double explicit = 0.0;
         try {
             explicit = item.getRatingValue();
         } catch (Exception ignored) {
         }
-        if (explicit > 0) return explicit;
+        if (explicit > 0) {
+            return explicit;
+        }
         return Math.min(5.0, 3.0 + (item.getDiscountPercentValue() / 100.0) * 2.0);
     }
 
     private void updateUI() {
-        tvResultsCount.setText(getString(R.string.search_results_count_template, filteredItems.size()));
+        if (tvResultsCount != null) {
+            tvResultsCount.setText(getString(R.string.search_results_count_template, filteredItems.size()));
+        }
 
         if (filteredItems.isEmpty()) {
-            emptyState.setVisibility(View.VISIBLE);
-            rvSearchResults.setVisibility(View.GONE);
+            if (emptyState != null) {
+                emptyState.setVisibility(View.VISIBLE);
+            }
+            if (rvSearchResults != null) {
+                rvSearchResults.setVisibility(View.GONE);
+            }
         } else {
-            emptyState.setVisibility(View.GONE);
-            rvSearchResults.setVisibility(View.VISIBLE);
+            if (emptyState != null) {
+                emptyState.setVisibility(View.GONE);
+            }
+            if (rvSearchResults != null) {
+                rvSearchResults.setVisibility(View.VISIBLE);
+            }
         }
     }
 
@@ -514,8 +559,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
 
     @Override
     public void onAddToCartClick(FoodItem foodItem) {
-        Toast.makeText(getContext(), foodItem.getFoodName() + " added to cart!",
-            Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), foodItem.getFoodName() + " added to cart!", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -531,7 +575,9 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
             Object value = snapshot.child(key).getValue();
             if (value != null) {
                 String str = String.valueOf(value).trim();
-                if (!str.isEmpty()) return str;
+                if (!str.isEmpty()) {
+                    return str;
+                }
             }
         }
         return null;
@@ -540,7 +586,9 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
     private Object getObjectAny(DataSnapshot snapshot, String... keys) {
         for (String key : keys) {
             Object value = snapshot.child(key).getValue();
-            if (value != null) return value;
+            if (value != null) {
+                return value;
+            }
         }
         return null;
     }

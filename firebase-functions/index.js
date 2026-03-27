@@ -243,7 +243,7 @@ async function sendToUserRecords(userRecords, payload) {
       android: {
         priority: "high",
         notification: {
-          channelId: "replate_notifications_v2",
+          channelId: "replate_notifications_v3",
           priority: "high",
           defaultSound: true,
           defaultVibrateTimings: true,
@@ -277,7 +277,7 @@ async function sendToTopic(topic, payload) {
     android: {
       priority: "high",
       notification: {
-        channelId: "replate_notifications_v2",
+        channelId: "replate_notifications_v3",
         priority: "high",
         defaultSound: true,
         defaultVibrateTimings: true,

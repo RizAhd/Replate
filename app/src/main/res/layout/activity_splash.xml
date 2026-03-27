@@ -9,11 +9,11 @@
     <!-- Food Emoji Center -->
     <ImageView
         android:id="@+id/ivEmoji"
-        android:layout_width="108dp"
-        android:layout_height="108dp"
+        android:layout_width="140dp"
+        android:layout_height="140dp"
         android:layout_centerHorizontal="true"
         android:layout_above="@id/appName"
-        android:layout_marginBottom="20dp"
+        android:layout_marginBottom="26dp"
         android:src="@drawable/ic_replate_logo"
         android:contentDescription="@string/app_name" />
 
@@ -23,11 +23,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:text="REPLATE"
-        android:textSize="48sp"
+        android:text="@string/app_name"
+        android:textSize="46sp"
         android:textStyle="bold"
         android:textColor="@color/white"
-        android:letterSpacing="0.1"
+        android:letterSpacing="0.08"
         android:fontFamily="serif"/>
 
     <!-- Tagline -->
@@ -40,7 +40,7 @@
         android:text="Where Leftover Food Finds New Life"
         android:textSize="16sp"
         android:textColor="#99FFFFFF"
-        android:layout_marginTop="8dp"/>
+        android:layout_marginTop="10dp"/>
 
     <!-- Thin Loading Bar -->
     <ProgressBar

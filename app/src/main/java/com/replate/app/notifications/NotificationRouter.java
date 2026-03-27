@@ -26,6 +26,21 @@ public final class NotificationRouter {
         String normalizedRoute = route == null ? "notifications" : route.trim().toLowerCase(Locale.US);
         String safeOrderId = orderId == null ? "" : orderId.trim();
 
+        if (NotificationCategories.PICKUP_READY.equals(normalizedCategory)
+                || NotificationCategories.PICKUP_REMINDER.equals(normalizedCategory)
+                || normalizedRoute.contains("map")
+                || normalizedRoute.contains("pickup")) {
+            Intent mapIntent = new Intent(context, MainActivity.class);
+            mapIntent.putExtra("open_tab", "map");
+            if (hotelId != null && !hotelId.trim().isEmpty()) {
+                mapIntent.putExtra("focus_hotel_id", hotelId.trim());
+            }
+            if (!safeOrderId.isEmpty()) {
+                mapIntent.putExtra("orderId", safeOrderId);
+            }
+            return mapIntent;
+        }
+
         if (isOrderCategory(normalizedCategory) || normalizedRoute.contains("order")) {
             if (NotificationCategories.HOTEL_NEW_ORDER.equals(normalizedCategory)) {
                 Intent hotelOrders = tryHotelOrdersIntent(context);
@@ -46,15 +61,6 @@ public final class NotificationRouter {
             Intent homeIntent = new Intent(context, MainActivity.class);
             homeIntent.putExtra("open_tab", "home");
             return homeIntent;
-        }
-
-        if (normalizedRoute.contains("map") || NotificationCategories.PICKUP_REMINDER.equals(normalizedCategory)) {
-            Intent mapIntent = new Intent(context, MainActivity.class);
-            mapIntent.putExtra("open_tab", "map");
-            if (hotelId != null && !hotelId.trim().isEmpty()) {
-                mapIntent.putExtra("focus_hotel_id", hotelId.trim());
-            }
-            return mapIntent;
         }
 
         if (deepLink != null && !deepLink.trim().isEmpty()) {
