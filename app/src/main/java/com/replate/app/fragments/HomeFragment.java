@@ -30,6 +30,8 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.Priority;
+import com.google.android.gms.tasks.CancellationTokenSource;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -302,7 +304,6 @@ public class HomeFragment extends Fragment implements
             if (tvCurrentLocation != null) {
                 tvCurrentLocation.setText(getString(R.string.default_location));
             }
-            // Permission request is handled post-auth in MainActivity.
             return;
         }
 
@@ -314,14 +315,43 @@ public class HomeFragment extends Fragment implements
                     currentLongitude = location.getLongitude();
                     updateCurrentLocationLabel(currentLatitude, currentLongitude);
                     applyDistanceSortAndRefresh();
-                } else if (tvCurrentLocation != null) {
-                    tvCurrentLocation.setText(getString(R.string.default_location));
+                } else {
+                    requestFreshCurrentLocation();
                 }
             })
-            .addOnFailureListener(e -> {
-                if (!isAdded() || tvCurrentLocation == null) return;
+            .addOnFailureListener(e -> requestFreshCurrentLocation());
+    }
+
+    private void requestFreshCurrentLocation() {
+        if (!isAdded()) return;
+        boolean fineGranted = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
+        boolean coarseGranted = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
+        if (!fineGranted && !coarseGranted) {
+            if (tvCurrentLocation != null) {
                 tvCurrentLocation.setText(getString(R.string.default_location));
-            });
+            }
+            return;
+        }
+
+        CancellationTokenSource cts = new CancellationTokenSource();
+        fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, cts.getToken())
+                .addOnSuccessListener(location -> {
+                    if (!isAdded()) return;
+                    if (location != null) {
+                        currentLatitude = location.getLatitude();
+                        currentLongitude = location.getLongitude();
+                        updateCurrentLocationLabel(currentLatitude, currentLongitude);
+                        applyDistanceSortAndRefresh();
+                    } else if (tvCurrentLocation != null) {
+                        tvCurrentLocation.setText(getString(R.string.default_location));
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    if (!isAdded() || tvCurrentLocation == null) return;
+                    tvCurrentLocation.setText(getString(R.string.default_location));
+                });
     }
 
     private void updateCurrentLocationLabel(double latitude, double longitude) {

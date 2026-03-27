@@ -335,10 +335,17 @@ public class FoodDetailActivity extends AppCompatActivity {
     }
 
     private void loadReviews() {
+        if (foodItem == null || mDatabase == null) {
+            return;
+        }
         String hotelId = foodItem.getHotelId();
         if (hotelId == null || hotelId.trim().isEmpty()) {
-            tvNoReviews.setVisibility(android.view.View.VISIBLE);
-            tvReviewSummary.setText(getString(R.string.food_detail_review_summary_zero));
+            if (tvNoReviews != null) {
+                tvNoReviews.setVisibility(android.view.View.VISIBLE);
+            }
+            if (tvReviewSummary != null) {
+                tvReviewSummary.setText(getString(R.string.food_detail_review_summary_zero));
+            }
             return;
         }
 
@@ -348,6 +355,7 @@ public class FoodDetailActivity extends AppCompatActivity {
                 .addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@androidx.annotation.NonNull DataSnapshot snapshot) {
+                        if (isFinishing() || isDestroyed()) return;
                         List<Review> reviews = new ArrayList<>();
                         float total = 0f;
 
@@ -376,18 +384,26 @@ public class FoodDetailActivity extends AppCompatActivity {
                         }
 
                         Collections.sort(reviews, (a, b) -> Long.compare(b.getCreatedAtValue(), a.getCreatedAtValue()));
-                        reviewAdapter.submitList(reviews);
+                        if (reviewAdapter != null) {
+                            reviewAdapter.submitList(reviews);
+                        }
 
                         boolean hasReviews = !reviews.isEmpty();
-                        tvNoReviews.setVisibility(hasReviews ? android.view.View.GONE : android.view.View.VISIBLE);
+                        if (tvNoReviews != null) {
+                            tvNoReviews.setVisibility(hasReviews ? android.view.View.GONE : android.view.View.VISIBLE);
+                        }
 
                         float avg = hasReviews ? (total / reviews.size()) : 0f;
-                        tvReviewSummary.setText(String.format(Locale.getDefault(), "%.1f (%d reviews)", avg, reviews.size()));
+                        if (tvReviewSummary != null) {
+                            tvReviewSummary.setText(String.format(Locale.getDefault(), "%.1f (%d reviews)", avg, reviews.size()));
+                        }
                     }
 
                     @Override
                     public void onCancelled(@androidx.annotation.NonNull DatabaseError error) {
-                        tvNoReviews.setVisibility(android.view.View.VISIBLE);
+                        if (tvNoReviews != null) {
+                            tvNoReviews.setVisibility(android.view.View.VISIBLE);
+                        }
                     }
                 });
     }
@@ -593,9 +609,13 @@ public class FoodDetailActivity extends AppCompatActivity {
     }
 
     private void loadRecommendations() {
+        if (foodItem == null || mDatabase == null) {
+            return;
+        }
         mDatabase.child("foodItems").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@androidx.annotation.NonNull DataSnapshot snapshot) {
+                if (isFinishing() || isDestroyed()) return;
                 List<FoodItem> all = new ArrayList<>();
                 for (DataSnapshot child : snapshot.getChildren()) {
                     FoodItem item = child.getValue(FoodItem.class);
@@ -611,13 +631,19 @@ public class FoodDetailActivity extends AppCompatActivity {
                     all = new ArrayList<>(all.subList(0, 10));
                 }
 
-                relatedFoodAdapter.submitList(all);
-                tvNoRecommendations.setVisibility(all.isEmpty() ? android.view.View.VISIBLE : android.view.View.GONE);
+                if (relatedFoodAdapter != null) {
+                    relatedFoodAdapter.submitList(all);
+                }
+                if (tvNoRecommendations != null) {
+                    tvNoRecommendations.setVisibility(all.isEmpty() ? android.view.View.VISIBLE : android.view.View.GONE);
+                }
             }
 
             @Override
             public void onCancelled(@androidx.annotation.NonNull DatabaseError error) {
-                tvNoRecommendations.setVisibility(android.view.View.VISIBLE);
+                if (tvNoRecommendations != null) {
+                    tvNoRecommendations.setVisibility(android.view.View.VISIBLE);
+                }
             }
         });
     }
