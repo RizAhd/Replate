@@ -113,7 +113,7 @@ public class Review implements Serializable {
     }
 
     @Exclude
-    public boolean isVerifiedPurchaseBadge() {
+    public boolean verifyPurchaseStatus() {
         if (verifiedPurchase == null) return false;
         if (verifiedPurchase instanceof Boolean) return (Boolean) verifiedPurchase;
         return "true".equalsIgnoreCase(String.valueOf(verifiedPurchase));
@@ -121,7 +121,7 @@ public class Review implements Serializable {
 
     @Exclude
     public boolean fetchVerifiedPurchase() {
-        return isVerifiedPurchaseBadge();
+        return verifyPurchaseStatus();
     }
 
 

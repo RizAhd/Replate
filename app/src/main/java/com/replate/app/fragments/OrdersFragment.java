@@ -1,5 +1,6 @@
 package com.replate.app.fragments;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -158,8 +159,11 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 progressBar.setVisibility(View.GONE);
-                if (!isAdded() || getContext() == null) return;
-                Toast.makeText(requireContext(), "Failed to load orders", Toast.LENGTH_SHORT).show();
+                if (!isAdded()) return;
+                Context ctx = getContext();
+                if (ctx != null) {
+                    Toast.makeText(ctx, "Failed to load orders", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
@@ -219,10 +223,16 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
     @Override
     public void onCancelOrderClick(Order order) {
         if (order == null || order.getOrderId() == null || !order.isActive()) {
-            Toast.makeText(getContext(), "This order cannot be cancelled", Toast.LENGTH_SHORT).show();
+            if (isAdded()) {
+                Context ctx = getContext();
+                if (ctx != null) {
+                    Toast.makeText(ctx, "This order cannot be cancelled", Toast.LENGTH_SHORT).show();
+                }
+            }
             return;
         }
 
+        if (!isAdded()) return;
         new AlertDialog.Builder(requireContext())
                 .setTitle("Cancel this order?")
                 .setMessage("Are you sure you want to cancel this order? This action cannot be undone.")
@@ -243,13 +253,19 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
                 .updateChildren(updates)
                 .addOnSuccessListener(unused -> {
                     progressBar.setVisibility(View.GONE);
-                    if (!isAdded() || getContext() == null) return;
-                    Toast.makeText(requireContext(), "Order cancelled", Toast.LENGTH_SHORT).show();
+                    if (!isAdded()) return;
+                    Context ctx = getContext();
+                    if (ctx != null) {
+                        Toast.makeText(ctx, "Order cancelled", Toast.LENGTH_SHORT).show();
+                    }
                 })
                 .addOnFailureListener(e -> {
                     progressBar.setVisibility(View.GONE);
-                    if (!isAdded() || getContext() == null) return;
-                    Toast.makeText(requireContext(), "Failed to cancel order", Toast.LENGTH_SHORT).show();
+                    if (!isAdded()) return;
+                    Context ctx = getContext();
+                    if (ctx != null) {
+                        Toast.makeText(ctx, "Failed to cancel order", Toast.LENGTH_SHORT).show();
+                    }
                 });
     }
 }
