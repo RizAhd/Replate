@@ -268,20 +268,20 @@ public class HomeFragment extends Fragment implements
         }
 
         // Notification click
-        ivNotification.setOnClickListener(v -> {
-            Intent intent = new Intent(getContext(), NotificationsActivity.class);
-            startActivity(intent);
-        });
+        if (ivNotification != null) {
+            ivNotification.setOnClickListener(v -> {
+                Intent intent = new Intent(getContext(), NotificationsActivity.class);
+                startActivity(intent);
+            });
+        }
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                        // Search bar click - redirect to search page on click
+        // Search bar click - redirect to search page on click
         if (searchView != null) {
-            // Redirect when search view is clicked
             searchView.setOnSearchClickListener(v -> {
                 Intent intent = new Intent(getContext(), SearchActivity.class);
                 startActivity(intent);
             });
 
-            // Also handle focus
             searchView.setOnQueryTextFocusChangeListener((v, hasFocus) -> {
                 if (hasFocus) {
                     Intent intent = new Intent(getContext(), SearchActivity.class);
@@ -410,7 +410,10 @@ public class HomeFragment extends Fragment implements
     }
 
     private void loadFoodItems() {
-        showLoading(true);
+        // Keep cached content visible while refreshing from network.
+        if (allFoodItems == null || allFoodItems.isEmpty()) {
+            showLoading(true);
+        }
 
         mDatabase.child("foodItems").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -497,7 +500,7 @@ public class HomeFragment extends Fragment implements
                 showLoading(false);
                 if (!isAdded()) return;
                 Context ctx = getContext();
-                if (ctx != null) {
+                if (ctx != null && (allFoodItems == null || allFoodItems.isEmpty())) {
                     Toast.makeText(ctx, "Failed to load food items", Toast.LENGTH_SHORT).show();
                 }
             }

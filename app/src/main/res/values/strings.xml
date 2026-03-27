@@ -79,6 +79,22 @@
     <string name="cart_qty_default">1</string>
     <string name="cart_subtotal_label">Subtotal</string>
 
+    <!-- Cart actions and states -->
+    <string name="cart_clear_title">Clear Cart</string>
+    <string name="cart_clear_message">Remove all items from cart?</string>
+    <string name="cart_clear_confirm">Clear</string>
+    <string name="cart_cleared">Cart cleared</string>
+    <string name="cart_removed">%1$s removed</string>
+    <string name="cart_item_fallback">Item</string>
+    <string name="cart_summary_offline_saved">Your cart will automatically keep items saved offline.</string>
+    <string name="cart_summary_single_ready">You have 1 rescue meal ready for checkout</string>
+    <string name="cart_summary_multi_ready">You have %1$d rescue meals ready for checkout</string>
+    <string name="cart_total_savings_label">Total Savings</string>
+    <string name="cart_amount_label">Amount</string>
+    <string name="cart_title_emoji">&#x1F6D2; Your Order</string>
+    <string name="cart_emoji">&#x1F6D2;</string>
+    <string name="cart_environment_tip">Every purchase saves food waste &amp; helps the environment</string>
+
     <!-- Price placeholders -->
     <string name="price_zero_lkr">LKR 0.00</string>
     <string name="price_original_placeholder">LKR 800.00</string>
@@ -101,6 +117,13 @@
     <string name="food_detail_call_hotel">Call hotel</string>
     <string name="food_detail_sms_hotel">SMS hotel</string>
     <string name="food_detail_description_placeholder">Food description goes here...</string>
+
+    <!-- Food detail review composer -->
+    <string name="food_detail_review_summary_zero">0.0 (0 reviews)</string>
+    <string name="food_detail_review_hide_form">Hide review form</string>
+    <string name="food_detail_review_write">Write a review</string>
+    <string name="food_detail_review_update">Update Review</string>
+    <string name="food_detail_review_submit">Submit Review</string>
 
     <!-- Profile -->
     <string name="profile_user_name_placeholder">User Name</string>
@@ -259,5 +282,17 @@ Total: LKR %1$.2f</string>
     <string name="location_picker_not_found">Location not found</string>
     <string name="location_picker_search_failed">Search failed. Check internet.</string>
     <string name="location_picker_select_prompt">Please select a location</string>
+
+    <!-- Splash -->
+    <string name="splash_tagline">Where Leftover Food Finds New Life</string>
+
+    <!-- Location permission UX -->
+    <string name="location_permission_title">Enable live location</string>
+    <string name="location_permission_message">We use your current location to show nearby hotels, faster search results, and accurate pickup routes.</string>
+    <string name="location_permission_continue">Continue</string>
+    <string name="location_permission_not_now">Not now</string>
+    <string name="location_permission_settings_title">Location permission needed</string>
+    <string name="location_permission_settings_message">Location access is permanently denied. Open app settings to enable live location and nearby hotel routes.</string>
+    <string name="location_permission_open_settings">Open settings</string>
 
 </resources>

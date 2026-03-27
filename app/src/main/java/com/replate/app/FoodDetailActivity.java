@@ -47,7 +47,8 @@ public class FoodDetailActivity extends AppCompatActivity {
     private TextView tvFoodName, tvHotelName, tvDescription;
     private TextView tvOriginalPrice, tvDiscountedPrice, tvDiscount;
     private TextView tvPickupTime, tvDistance, tvQuantity;
-    private Button btnAddToCart, btnMinus, btnPlus, btnCallHotel, btnSmsHotel;
+    private Button btnAddToCart, btnMinus, btnPlus;
+    private View btnCallHotel, btnSmsHotel;
 
     private TextView tvReviewSummary, tvNoReviews, tvNoRecommendations;
     private RatingBar ratingInput;
@@ -257,7 +258,9 @@ public class FoodDetailActivity extends AppCompatActivity {
                 btnToggleReviewComposer.setOnClickListener(v -> {
                     boolean currentlyVisible = layoutReviewComposer.getVisibility() == android.view.View.VISIBLE;
                     layoutReviewComposer.setVisibility(currentlyVisible ? android.view.View.GONE : android.view.View.VISIBLE);
-                    btnToggleReviewComposer.setText(currentlyVisible ? "Write a review" : "Hide review form");
+                    btnToggleReviewComposer.setText(currentlyVisible
+                            ? getString(R.string.food_detail_review_write)
+                            : getString(R.string.food_detail_review_hide_form));
                 });
             }
 
@@ -335,7 +338,7 @@ public class FoodDetailActivity extends AppCompatActivity {
         String hotelId = foodItem.getHotelId();
         if (hotelId == null || hotelId.trim().isEmpty()) {
             tvNoReviews.setVisibility(android.view.View.VISIBLE);
-            tvReviewSummary.setText("0.0 (0 reviews)");
+            tvReviewSummary.setText(getString(R.string.food_detail_review_summary_zero));
             return;
         }
 
@@ -477,8 +480,8 @@ public class FoodDetailActivity extends AppCompatActivity {
         ratingInput.setRating(review.getRatingValue());
         etReviewComment.setText(review.getComment());
         if (layoutReviewComposer != null) layoutReviewComposer.setVisibility(android.view.View.VISIBLE);
-        if (btnToggleReviewComposer != null) btnToggleReviewComposer.setText("Hide review form");
-        btnSubmitReview.setText("Update Review");
+        if (btnToggleReviewComposer != null) btnToggleReviewComposer.setText(getString(R.string.food_detail_review_hide_form));
+        btnSubmitReview.setText(getString(R.string.food_detail_review_update));
         etReviewComment.requestFocus();
     }
 
@@ -486,9 +489,9 @@ public class FoodDetailActivity extends AppCompatActivity {
         editingReviewId = null;
         ratingInput.setRating(0f);
         etReviewComment.setText("");
-        btnSubmitReview.setText("Submit Review");
+        btnSubmitReview.setText(getString(R.string.food_detail_review_submit));
         if (layoutReviewComposer != null) layoutReviewComposer.setVisibility(android.view.View.GONE);
-        if (btnToggleReviewComposer != null) btnToggleReviewComposer.setText("Write a review");
+        if (btnToggleReviewComposer != null) btnToggleReviewComposer.setText(getString(R.string.food_detail_review_write));
     }
 
     private void confirmDeleteReview(Review review) {
@@ -596,140 +599,4 @@ public class FoodDetailActivity extends AppCompatActivity {
                 List<FoodItem> all = new ArrayList<>();
                 for (DataSnapshot child : snapshot.getChildren()) {
                     FoodItem item = child.getValue(FoodItem.class);
-                    if (item == null) continue;
-                    item.setFoodId(child.getKey());
-                    if (!item.isListable()) continue;
-                    if (foodItem.getFoodId() != null && foodItem.getFoodId().equals(item.getFoodId())) continue;
-                    all.add(item);
-                }
-
-                Collections.sort(all, (a, b) -> Integer.compare(scoreRecommendation(b), scoreRecommendation(a)));
-                if (all.size() > 10) {
-                    all = new ArrayList<>(all.subList(0, 10));
-                }
-
-                relatedFoodAdapter.submitList(all);
-                tvNoRecommendations.setVisibility(all.isEmpty() ? android.view.View.VISIBLE : android.view.View.GONE);
-            }
-
-            @Override
-            public void onCancelled(@androidx.annotation.NonNull DatabaseError error) {
-                tvNoRecommendations.setVisibility(android.view.View.VISIBLE);
-            }
-        });
-    }
-
-    private int scoreRecommendation(FoodItem candidate) {
-        int score = 0;
-        if (sameIgnoreCase(foodItem.getCategory(), candidate.getCategory())) score += 4;
-        if (sameIgnoreCase(foodItem.getHotelId(), candidate.getHotelId())) score += 3;
-        if (sameIgnoreCase(foodItem.getHotelName(), candidate.getHotelName())) score += 2;
-
-        // Reward similar price bands so recommendations feel relevant.
-        double basePrice = foodItem.getDiscountedPriceValue();
-        double candidatePrice = candidate.getDiscountedPriceValue();
-        if (basePrice > 0 && candidatePrice > 0) {
-            double diffRatio = Math.abs(candidatePrice - basePrice) / basePrice;
-            if (diffRatio <= 0.15) score += 2;
-            else if (diffRatio <= 0.30) score += 1;
-        }
-
-        String currentName = foodItem.getFoodName() == null ? "" : foodItem.getFoodName().toLowerCase(Locale.US);
-        String candidateName = candidate.getFoodName() == null ? "" : candidate.getFoodName().toLowerCase(Locale.US);
-        if (!currentName.isEmpty() && !candidateName.isEmpty()) {
-            String[] chunks = currentName.split("\\s+");
-            for (String chunk : chunks) {
-                if (chunk.length() > 3 && candidateName.contains(chunk)) {
-                    score += 1;
-                    break;
-                }
-            }
-        }
-
-        score += Math.round((float) candidate.getRatingValue());
-        return score;
-    }
-
-    private boolean sameIgnoreCase(String a, String b) {
-        if (a == null || b == null) return false;
-        return a.trim().equalsIgnoreCase(b.trim());
-    }
-
-    private void openRelatedFoodItem(FoodItem item) {
-        Intent intent = new Intent(this, FoodDetailActivity.class);
-        intent.putExtra("foodItem", item);
-        startActivity(intent);
-    }
-
-    /**
-     * Call hotel phone - TELEPHONY REQUIREMENT
-     */
-    private void callHotel() {
-        resolveHotelPhone(phone -> {
-            pendingCallNumber = phone;
-            new AlertDialog.Builder(this)
-                    .setTitle("Contact hotel")
-                    .setItems(new CharSequence[]{"Open Dialer", "Call Now"}, (dialog, which) -> {
-                        if (which == 0) {
-                            TelephonyUtils.openDialer(this, phone);
-                        } else {
-                            if (TelephonyUtils.hasCallPermission(this)) {
-                                TelephonyUtils.callNow(this, phone);
-                            } else {
-                                callPermissionLauncher.launch(Manifest.permission.CALL_PHONE);
-                            }
-                        }
-                    })
-                    .show();
-        });
-    }
-
-    private void smsHotel() {
-        resolveHotelPhone(phone -> {
-            String message = "Hi " + (foodItem.getHotelName() != null ? foodItem.getHotelName() : "Hotel")
-                    + ", I have a question about " + foodItem.getFoodName() + " on REPLATE.";
-            try {
-                TelephonyUtils.openSms(this, phone, message);
-            } catch (Exception e) {
-                Toast.makeText(this, "No SMS app available", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private void resolveHotelPhone(PhoneCallback callback) {
-        String fromItem = TelephonyUtils.normalizePhone(foodItem.getHotelPhone(), "");
-        if (!fromItem.isEmpty()) {
-            callback.onPhone(fromItem);
-            return;
-        }
-
-        String hotelId = foodItem.getHotelId();
-        if (hotelId == null || hotelId.trim().isEmpty()) {
-            callback.onPhone("0112345678");
-            return;
-        }
-
-        mDatabase.child("hotels").child(hotelId).child("phone")
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@androidx.annotation.NonNull DataSnapshot snapshot) {
-                        String phone = TelephonyUtils.normalizePhone(snapshot.getValue(String.class), "0112345678");
-                        callback.onPhone(phone);
-                    }
-
-                    @Override
-                    public void onCancelled(@androidx.annotation.NonNull DatabaseError error) {
-                        callback.onPhone("0112345678");
-                    }
-                });
-    }
-
-    private interface PhoneCallback {
-        void onPhone(String phone);
-    }
-
-    private String getStringValue(DataSnapshot parent, String key) {
-        Object value = parent.child(key).getValue();
-        return value == null ? "" : String.valueOf(value).trim();
-    }
-}
+                    if
