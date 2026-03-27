@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -83,16 +82,16 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
                 tvClearCart.setOnClickListener(v -> {
                     if (!cartItems.isEmpty()) {
                         new AlertDialog.Builder(this)
-                                .setTitle("Clear Cart")
-                                .setMessage("Remove all items from cart?")
-                                .setPositiveButton("Clear", (d, w) -> {
+                                .setTitle(getString(R.string.cart_clear_title))
+                                .setMessage(getString(R.string.cart_clear_message))
+                                .setPositiveButton(getString(R.string.cart_clear_confirm), (d, w) -> {
                                     if (cartDb != null) {
                                         cartDb.clearCart();
                                     }
                                     loadCartItems();
-                                    Toast.makeText(this, "Cart cleared", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(this, getString(R.string.cart_cleared), Toast.LENGTH_SHORT).show();
                                 })
-                                .setNegativeButton("Cancel", null)
+                                .setNegativeButton(android.R.string.cancel, null)
                                 .show();
                     }
                 });
@@ -135,7 +134,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
                 if (emptyState != null) emptyState.setVisibility(View.VISIBLE);
                 if (checkoutSection != null) checkoutSection.setVisibility(View.GONE);
                 if (tvCartSummary != null) {
-                    tvCartSummary.setText("Your cart will automatically keep items saved offline.");
+                    tvCartSummary.setText(getString(R.string.cart_summary_offline_saved));
                 }
             } else {
                 if (rvCartItems != null) rvCartItems.setVisibility(View.VISIBLE);
@@ -161,24 +160,34 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
                 if (tvSavingsValue != null) {
                     tvSavingsValue.setText(String.format(Locale.getDefault(), "LKR %.2f", Math.max(savings, 0)));
                 }
-            if (tvCartSummary != null) {
-                tvCartSummary.setText(itemCount == 1
-                        ? "You have 1 rescue meal ready for checkout"
-                        : "You have " + itemCount + " rescue meals ready for checkout");
+                if (tvCartSummary != null) {
+                    tvCartSummary.setText(itemCount == 1
+                            ? getString(R.string.cart_summary_single_ready)
+                            : getString(R.string.cart_summary_multi_ready, itemCount));
+                }
             }
+        } catch (Exception e) {
+            android.util.Log.e("CartActivity", "Error updating UI", e);
         }
     }
 
     @Override
     public void onQuantityChanged(CartItem item, int newQuantity) {
+        if (cartDb == null || item == null || item.getFoodId() == null) {
+            return;
+        }
         cartDb.updateQuantity(item.getFoodId(), newQuantity);
         loadCartItems();
     }
 
     @Override
     public void onRemoveItem(CartItem item) {
+        if (cartDb == null || item == null || item.getFoodId() == null) {
+            return;
+        }
         cartDb.removeItem(item.getFoodId());
         loadCartItems();
-        Toast.makeText(this, item.getFoodName() + " removed", Toast.LENGTH_SHORT).show();
+        String label = item.getFoodName() == null ? getString(R.string.cart_item_fallback) : item.getFoodName();
+        Toast.makeText(this, getString(R.string.cart_removed, label), Toast.LENGTH_SHORT).show();
     }
 }
