@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -9,79 +10,88 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <androidx.appcompat.widget.SearchView
-        android:id="@+id/searchLocation"
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/searchCard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:background="@android:color/white"
-        android:elevation="6dp"
-        android:queryHint="Search location" />
+        android:layout_marginStart="@dimen/space_2"
+        android:layout_marginTop="@dimen/space_2"
+        android:layout_marginEnd="@dimen/space_2"
+        app:cardCornerRadius="@dimen/radius_lg"
+        app:cardElevation="@dimen/elevation_card_raised"
+        app:cardBackgroundColor="@color/surface_white">
 
-    <Button
+        <androidx.appcompat.widget.SearchView
+            android:id="@+id/searchLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:queryHint="@string/location_picker_search_hint" />
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnUseLiveLocation"
+        style="@style/Widget.REPLATE.Button.Primary"
         android:layout_width="wrap_content"
         android:layout_height="40dp"
-        android:layout_below="@id/searchLocation"
+        android:layout_below="@id/searchCard"
         android:layout_alignParentEnd="true"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="16dp"
-        android:backgroundTint="@color/leaf"
-        android:text="Use Live"
-        android:textAllCaps="false"
-        android:textColor="@color/white" />
+        android:layout_marginTop="@dimen/space_1"
+        android:layout_marginEnd="@dimen/space_2"
+        android:minHeight="0dp"
+        android:text="@string/location_picker_use_live"
+        android:textSize="@dimen/text_xs"
+        app:icon="@drawable/ic_my_location"
+        app:iconGravity="textStart"
+        app:iconPadding="@dimen/space_0_5"
+        app:cornerRadius="@dimen/radius_md" />
 
     <ImageView
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="@dimen/touch_target_min"
+        android:layout_height="@dimen/touch_target_min"
         android:layout_centerInParent="true"
-        android:layout_marginBottom="24dp"
-        android:src="@drawable/ic_location_pin" />
+        android:layout_marginBottom="@dimen/space_3"
+        android:src="@drawable/ic_location_pin"
+        android:contentDescription="@string/cd_location_icon" />
 
-    <androidx.cardview.widget.CardView
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_margin="16dp"
-        android:backgroundTint="@color/white"
-        android:elevation="8dp">
+        android:layout_margin="@dimen/space_2"
+        app:cardBackgroundColor="@color/surface_white"
+        app:cardCornerRadius="@dimen/radius_xl"
+        app:cardElevation="@dimen/elevation_sheet">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="@dimen/space_2_5">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Select Location"
-                android:textColor="@color/black"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+                android:text="@string/location_picker_title"
+                android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
             <TextView
                 android:id="@+id/tvSelectedAddress"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Move map to select location..."
-                android:textColor="@color/grey" />
+                android:layout_marginTop="@dimen/space_1"
+                android:text="@string/location_picker_move_hint"
+                android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnConfirmLocation"
+                style="@style/Widget.REPLATE.Button.Primary"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:backgroundTint="@color/leaf"
-                android:text="Confirm Location"
-                android:textColor="@color/white" />
+                android:layout_height="@dimen/button_height"
+                android:layout_marginTop="@dimen/space_2"
+                android:text="@string/location_picker_confirm" />
 
         </LinearLayout>
-
-    </androidx.cardview.widget.CardView>
+    </com.google.android.material.card.MaterialCardView>
 
 </RelativeLayout>

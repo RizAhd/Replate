@@ -52,10 +52,13 @@
 
         <!-- Status bar -->
         <item name="android:statusBarColor">@color/status_bar</item>
-        <item name="android:navigationBarColor">@color/md_theme_surface</item>
+        <item name="android:navigationBarColor">@color/surface_white</item>
 
         <!-- Window -->
         <item name="android:windowBackground">@color/md_theme_background</item>
+
+        <!-- Activity transitions — smooth slide -->
+        <item name="android:windowAnimationStyle">@style/WindowAnimationTransition</item>
 
         <!-- Typography system -->
         <item name="android:fontFamily">@font/poppins_regular</item>
@@ -72,10 +75,18 @@
         <item name="editTextStyle">@style/Widget.REPLATE.TextInputEditText</item>
     </style>
 
-    <!-- Splash Screen Theme — Bold Leaf Green -->
+    <!-- Window animation style for smooth transitions -->
+    <style name="WindowAnimationTransition" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/slide_in_right</item>
+        <item name="android:activityOpenExitAnimation">@anim/slide_out_left</item>
+        <item name="android:activityCloseEnterAnimation">@anim/slide_in_left</item>
+        <item name="android:activityCloseExitAnimation">@anim/slide_out_right</item>
+    </style>
+
+    <!-- Splash Screen Theme -->
     <style name="Theme.REPLATE.Splash" parent="Theme.REPLATE">
         <item name="android:statusBarColor">@color/leaf</item>
-        <item name="android:windowBackground">@color/leaf_pale</item>
+        <item name="android:windowBackground">@color/leaf</item>
     </style>
 
     <!-- Bottom Nav Active Indicator -->
@@ -83,7 +94,7 @@
         <item name="android:color">@color/md_theme_primaryContainer</item>
     </style>
 
-    <!-- Prompt Specific Theme -->
+    <!-- Prompt Specific Theme (backward compat) -->
     <style name="Theme.Replate" parent="Theme.Material3.Light.NoActionBar">
         <item name="colorPrimary">@color/green_primary</item>
         <item name="colorSecondary">@color/orange_accent</item>
@@ -92,3 +103,4 @@
         <item name="android:fontFamily">@font/poppins_regular</item>
     </style>
 </resources>
+

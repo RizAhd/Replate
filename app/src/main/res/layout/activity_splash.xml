@@ -1,57 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/green_primary"
-    android:gravity="center">
+    android:background="@color/green_primary">
 
-    <!-- Food Emoji Center -->
     <ImageView
         android:id="@+id/ivEmoji"
-        android:layout_width="140dp"
-        android:layout_height="140dp"
-        android:layout_centerHorizontal="true"
-        android:layout_above="@id/appName"
-        android:layout_marginBottom="26dp"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:contentDescription="@string/app_name"
         android:src="@drawable/ic_replate_logo"
-        android:contentDescription="@string/app_name" />
+        app:layout_constraintBottom_toTopOf="@id/appName"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintVertical_bias="0.4" />
 
-    <!-- App Name -->
     <TextView
         android:id="@+id/appName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
+        android:layout_marginTop="@dimen/space_2"
+        android:fontFamily="@font/poppins_bold"
+        android:letterSpacing="0.06"
         android:text="@string/app_name"
-        android:textSize="46sp"
-        android:textStyle="bold"
         android:textColor="@color/white"
-        android:letterSpacing="0.08"
-        android:fontFamily="serif"/>
+        android:textSize="@dimen/text_display"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/ivEmoji" />
 
-    <!-- Tagline -->
     <TextView
         android:id="@+id/tagline"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/appName"
-        android:layout_centerHorizontal="true"
-        android:text="Where Leftover Food Finds New Life"
-        android:textSize="16sp"
-        android:textColor="#99FFFFFF"
-        android:layout_marginTop="10dp"/>
+        android:layout_marginTop="@dimen/space_1"
+        android:fontFamily="@font/poppins_regular"
+        android:gravity="center"
+        android:letterSpacing="0.04"
+        android:text="@string/splash_tagline"
+        android:textColor="@color/white_85"
+        android:textSize="@dimen/text_sm"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/appName" />
 
-    <!-- Thin Loading Bar -->
-    <ProgressBar
+    <com.google.android.material.progressindicator.LinearProgressIndicator
         android:id="@+id/progressBar"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="4dp"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="48dp"
-        android:layout_marginHorizontal="64dp"
-        android:progressTint="@color/white"
-        android:indeterminate="true" />
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="56dp"
+        android:indeterminate="true"
+        app:indicatorColor="@color/white"
+        app:trackColor="#33FFFFFF"
+        app:trackCornerRadius="2dp"
+        app:trackThickness="3dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintWidth_percent="0.6" />
 
-</RelativeLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

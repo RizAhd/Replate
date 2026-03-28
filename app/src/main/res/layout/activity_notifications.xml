@@ -46,13 +46,13 @@
                     android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"
-                    android:background="#1AFFFFFF"
-                    android:paddingHorizontal="12dp"
-                    android:paddingVertical="8dp"
+                    android:background="@drawable/badge_outline_white"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:paddingHorizontal="@dimen/space_1_5"
+                    android:paddingVertical="@dimen/space_1"
                     android:text="Mark all read"
                     android:textColor="@color/white"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
+                    android:textSize="@dimen/text_xs" />
             </RelativeLayout>
 
             <TextView

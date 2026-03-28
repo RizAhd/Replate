@@ -17,7 +17,6 @@ import android.widget.ProgressBar;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -60,6 +59,8 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
     private static final String PREF_SEARCH_FILTER = "search_preferred_filter";
     private static final String PREF_SEARCH_CATEGORY = "search_preferred_category";
     private static final String PREF_SEARCH_AVAILABLE_ONLY = "search_available_only";
+    private static final String EXTRA_INITIAL_FILTER = "initial_filter";
+    private static final String EXTRA_FROM_CART_EMPTY = "from_cart_empty";
 
     private EditText etSearch;
     private RecyclerView rvSearchResults;
@@ -100,6 +101,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
 
         initViews(view);
         loadSavedFilterPreference();
+        applyLaunchOverrides();
         setupSearch();
         setupFilterChips();
         setupAdvancedFilterAction();
@@ -361,6 +363,32 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
                 .putString(PREF_SEARCH_CATEGORY, selectedCategory)
                 .putBoolean(PREF_SEARCH_AVAILABLE_ONLY, availableOnly)
                 .apply();
+    }
+
+    private void applyLaunchOverrides() {
+        if (!isAdded() || getActivity() == null) return;
+        Intent intent = getActivity().getIntent();
+        if (intent == null) return;
+
+        String launchFilter = intent.getStringExtra(EXTRA_INITIAL_FILTER);
+        if (launchFilter != null && !launchFilter.trim().isEmpty()) {
+            String normalized = launchFilter.trim().toLowerCase();
+            if ("nearby".equals(normalized)
+                    || "price_low".equals(normalized)
+                    || "price_high".equals(normalized)
+                    || "discount".equals(normalized)
+                    || "rating".equals(normalized)
+                    || "for_you".equals(normalized)) {
+                currentFilter = normalized;
+                saveFilterPreference(currentFilter);
+                updateActiveFilterLabel();
+            }
+            intent.removeExtra(EXTRA_INITIAL_FILTER);
+        }
+
+        if (intent.getBooleanExtra(EXTRA_FROM_CART_EMPTY, false)) {
+            intent.removeExtra(EXTRA_FROM_CART_EMPTY);
+        }
     }
 
     private void uncheckAllExcept(Object selected) {

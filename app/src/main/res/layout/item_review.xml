@@ -3,15 +3,18 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="8dp"
-    app:cardCornerRadius="14dp"
-    app:cardElevation="2dp">
+    android:layout_marginTop="@dimen/space_1"
+    app:cardCornerRadius="@dimen/radius_md"
+    app:cardElevation="0dp"
+    app:cardBackgroundColor="@color/surface_subtle"
+    app:strokeColor="@color/md_theme_outlineVariant"
+    app:strokeWidth="1dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="12dp">
+        android:padding="@dimen/space_1_5">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -24,31 +27,33 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:fontFamily="@font/poppins_semibold"
                 android:text="User"
                 android:textColor="@color/text_primary"
-                android:textStyle="bold" />
+                android:textSize="@dimen/text_sm" />
 
             <TextView
                 android:id="@+id/tvReviewDate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:fontFamily="@font/poppins_regular"
                 android:text="01 Jan 2026"
                 android:textColor="@color/text_secondary"
-                android:textSize="12sp" />
+                android:textSize="@dimen/text_xs" />
         </LinearLayout>
 
         <TextView
             android:id="@+id/tvVerifiedPurchase"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="@dimen/space_0_5"
             android:background="@drawable/badge_distance"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="4dp"
+            android:fontFamily="@font/poppins_medium"
+            android:paddingHorizontal="@dimen/space_1_5"
+            android:paddingVertical="@dimen/space_0_5"
             android:text="Verified pickup"
-            android:textColor="@color/green_primary"
-            android:textSize="11sp"
-            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:textSize="@dimen/text_caption"
             android:visibility="gone" />
 
         <RatingBar
@@ -59,22 +64,23 @@
             android:isIndicator="true"
             android:numStars="5"
             android:stepSize="0.5"
-            android:layout_marginTop="4dp" />
+            android:layout_marginTop="@dimen/space_0_5" />
 
         <TextView
             android:id="@+id/tvReviewComment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
+            android:layout_marginTop="@dimen/space_1"
+            android:fontFamily="@font/poppins_regular"
             android:text="Comment"
             android:textColor="@color/text_primary"
-            android:textSize="14sp" />
+            android:textSize="@dimen/text_sm" />
 
         <LinearLayout
             android:id="@+id/layoutReviewActions"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="@dimen/space_1"
             android:gravity="end"
             android:orientation="horizontal"
             android:visibility="gone">
@@ -83,22 +89,24 @@
                 android:id="@+id/btnEditReview"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingHorizontal="10dp"
-                android:paddingVertical="6dp"
+                android:fontFamily="@font/poppins_medium"
+                android:paddingHorizontal="@dimen/space_1_5"
+                android:paddingVertical="@dimen/space_1"
                 android:text="Edit"
                 android:textColor="@color/green_primary"
-                android:textStyle="bold" />
+                android:textSize="@dimen/text_sm" />
 
             <TextView
                 android:id="@+id/btnDeleteReview"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:paddingHorizontal="10dp"
-                android:paddingVertical="6dp"
+                android:layout_marginStart="@dimen/space_1"
+                android:fontFamily="@font/poppins_medium"
+                android:paddingHorizontal="@dimen/space_1_5"
+                android:paddingVertical="@dimen/space_1"
                 android:text="Delete"
                 android:textColor="@color/error"
-                android:textStyle="bold" />
+                android:textSize="@dimen/text_sm" />
         </LinearLayout>
     </LinearLayout>
 

@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingBottom="24dp">
+        android:paddingBottom="@dimen/space_4">
 
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
@@ -457,17 +457,14 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnPlaceOrder"
+            style="@style/Widget.REPLATE.Button.Primary"
             android:layout_width="match_parent"
             android:layout_height="@dimen/button_height"
-            android:layout_marginHorizontal="16dp"
-            android:background="@drawable/button_primary"
-            android:text="@string/checkout_place_order"
-            android:textAllCaps="false"
-            android:textColor="@color/white"
-            android:textSize="@dimen/text_md"
-            android:textStyle="bold" />
+            android:layout_marginHorizontal="@dimen/space_2"
+            android:layout_marginTop="@dimen/space_1"
+            android:text="@string/checkout_place_order" />
 
         <ProgressBar
             android:id="@+id/progressBar"

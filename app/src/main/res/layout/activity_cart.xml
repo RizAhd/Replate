@@ -50,13 +50,13 @@
                     android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"
-                    android:background="#1FFFFFFF"
-                    android:paddingHorizontal="12dp"
-                    android:paddingVertical="8dp"
+                    android:background="@drawable/badge_outline_white"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:paddingHorizontal="@dimen/space_1_5"
+                    android:paddingVertical="@dimen/space_1"
                     android:text="@string/cart_clear_all"
                     android:textColor="@color/white"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
+                    android:textSize="@dimen/text_xs" />
             </RelativeLayout>
 
             <TextView
@@ -94,15 +94,15 @@
         android:visibility="gone">
 
         <com.google.android.material.card.MaterialCardView
-            android:layout_width="110dp"
-            android:layout_height="110dp"
+            android:layout_width="128dp"
+            android:layout_height="128dp"
             app:cardBackgroundColor="@color/green_pale"
-            app:cardCornerRadius="32dp"
+            app:cardCornerRadius="@dimen/radius_hero"
             app:cardElevation="0dp">
 
             <ImageView
-                android:layout_width="52dp"
-                android:layout_height="52dp"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
                 android:layout_gravity="center"
                 android:contentDescription="@string/cd_cart"
                 android:src="@drawable/ic_cart"
@@ -112,30 +112,26 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="@dimen/space_3"
             android:text="@string/cart_empty_title"
             android:textAppearance="@style/TextAppearance.REPLATE.Headline"
-            android:textColor="@color/text_primary"
-            android:textSize="@dimen/text_xl" />
+            android:textColor="@color/text_primary" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="@dimen/space_1"
             android:gravity="center"
             android:text="@string/cart_empty_subtitle"
             android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnBrowse"
+            style="@style/Widget.REPLATE.Button.Primary"
             android:layout_width="match_parent"
             android:layout_height="@dimen/button_height"
-            android:layout_marginTop="20dp"
-            android:background="@drawable/button_primary"
-            android:text="@string/cart_browse_deals"
-            android:textAllCaps="false"
-            android:textColor="@color/white"
-            android:textStyle="bold" />
+            android:layout_marginTop="@dimen/space_3"
+            android:text="@string/cart_browse_deals" />
     </LinearLayout>
 
     <com.google.android.material.card.MaterialCardView
@@ -231,17 +227,13 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCheckout"
+                style="@style/Widget.REPLATE.Button.Primary"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/button_height"
-                android:layout_marginTop="16dp"
-                android:background="@drawable/button_primary"
-                android:text="@string/cart_proceed_checkout"
-                android:textAllCaps="false"
-                android:textColor="@color/white"
-                android:textSize="@dimen/text_md"
-                android:textStyle="bold" />
+                android:layout_marginTop="@dimen/space_2"
+                android:text="@string/cart_proceed_checkout" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 </LinearLayout>

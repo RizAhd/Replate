@@ -101,40 +101,47 @@
         android:paddingHorizontal="28dp"
         android:visibility="gone">
 
-        <ImageView
-            android:layout_width="120dp"
-            android:layout_height="120dp"
-            android:src="@drawable/ic_empty_orders" />
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="128dp"
+            android:layout_height="128dp"
+            app:cardBackgroundColor="@color/green_pale"
+            app:cardCornerRadius="@dimen/radius_hero"
+            app:cardElevation="0dp">
+
+            <ImageView
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_empty_orders"
+                app:tint="@color/green_primary" />
+        </com.google.android.material.card.MaterialCardView>
 
         <TextView
             android:id="@+id/tvEmptyMessage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/space_3"
             android:text="No orders yet"
-            android:textAppearance="@style/TextAppearance.REPLATE.Subheading"
+            android:textAppearance="@style/TextAppearance.REPLATE.Headline"
             android:textColor="@color/text_primary" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="@dimen/space_1"
             android:gravity="center"
             android:text="When you reserve a rescue meal, it will appear here with pickup details and QR access."
             android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnBrowse"
+            style="@style/Widget.REPLATE.Button.Primary"
             android:layout_width="wrap_content"
             android:layout_height="@dimen/button_height"
-            android:layout_marginTop="24dp"
-            android:background="@drawable/button_primary"
+            android:layout_marginTop="@dimen/space_3"
             android:minWidth="160dp"
-            android:paddingHorizontal="32dp"
-            android:text="Browse Deals"
-            android:textAllCaps="false"
-            android:textColor="@color/white"
-            android:textStyle="bold" />
+            android:paddingHorizontal="@dimen/space_4"
+            android:text="Browse Deals" />
 
     </LinearLayout>
 

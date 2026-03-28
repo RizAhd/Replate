@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/cardOrder"
@@ -56,14 +56,14 @@
                 android:id="@+id/tvHotelName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="@dimen/space_1_5"
                 android:text="Hotel Paradise"
                 android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="@dimen/space_0_5"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
@@ -71,14 +71,15 @@
                     android:id="@+id/tvItemsCount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:fontFamily="@font/poppins_regular"
                     android:text="3 items"
                     android:textColor="@color/text_secondary"
-                    android:textSize="14sp" />
+                    android:textSize="@dimen/text_sm" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="8dp"
+                    android:layout_marginHorizontal="@dimen/space_1"
                     android:text="•"
                     android:textColor="@color/text_secondary" />
 
@@ -86,10 +87,10 @@
                     android:id="@+id/tvTotalAmount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:fontFamily="@font/poppins_semibold"
                     android:text="LKR 1500"
                     android:textColor="@color/primary"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
+                    android:textSize="@dimen/text_sm" />
             </LinearLayout>
 
             <TextView
@@ -117,38 +118,30 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
+                android:layout_marginTop="@dimen/space_2"
                 android:orientation="horizontal"
                 android:weightSum="2">
 
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnViewQR"
+                    style="@style/Widget.REPLATE.Button.Secondary"
                     android:layout_width="0dp"
                     android:layout_height="@dimen/button_height"
                     android:layout_weight="1"
-                    android:layout_marginEnd="6dp"
-                    android:background="@drawable/button_outline_neutral"
-                    android:paddingHorizontal="14dp"
+                    android:layout_marginEnd="@dimen/space_1"
                     android:text="View QR"
-                    android:textAllCaps="false"
-                    android:textColor="@color/text_primary"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
+                    android:textSize="@dimen/text_xs"
                     android:visibility="gone" />
 
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnCancelOrder"
+                    style="@style/Widget.REPLATE.Button.Danger"
                     android:layout_width="0dp"
                     android:layout_height="@dimen/button_height"
                     android:layout_weight="1"
-                    android:layout_marginStart="6dp"
-                    android:background="@drawable/button_outline_neutral"
-                    android:paddingHorizontal="14dp"
+                    android:layout_marginStart="@dimen/space_1"
                     android:text="Cancel"
-                    android:textAllCaps="false"
-                    android:textColor="@color/error"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
+                    android:textSize="@dimen/text_xs"
                     android:visibility="gone" />
             </LinearLayout>
         </LinearLayout>

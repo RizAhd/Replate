@@ -21,17 +21,22 @@
             android:layout_height="0dp"
             android:layout_weight="1" />
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/nav_divider_height"
+            android:background="@color/nav_divider" />
+
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottomNavigation"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/md_theme_surfaceContainerLowest"
+            android:background="@color/surface_white"
             app:itemIconTint="@drawable/bottom_nav_color"
             app:itemTextColor="@drawable/bottom_nav_color"
             app:labelVisibilityMode="labeled"
             app:menu="@menu/bottom_nav_menu"
             app:itemActiveIndicatorStyle="@style/Widget.REPLATE.BottomNav.ActiveIndicator"
-            app:elevation="8dp" />
+            app:elevation="0dp" />
     </LinearLayout>
 
     <com.google.android.material.navigation.NavigationView

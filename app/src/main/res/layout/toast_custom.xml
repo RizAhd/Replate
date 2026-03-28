@@ -4,18 +4,18 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:gravity="center_vertical"
-    android:paddingStart="14dp"
-    android:paddingEnd="14dp"
-    android:paddingTop="10dp"
-    android:paddingBottom="10dp"
+    android:paddingStart="@dimen/space_2"
+    android:paddingEnd="@dimen/space_2"
+    android:paddingTop="@dimen/space_1_5"
+    android:paddingBottom="@dimen/space_1_5"
     android:background="@drawable/bg_toast_custom"
-    android:elevation="4dp">
+    android:elevation="@dimen/elevation_card_raised">
 
     <ImageView
         android:id="@+id/ivToastIcon"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
-        android:layout_marginEnd="10dp"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:layout_marginEnd="@dimen/space_1_5"
         android:contentDescription="@string/app_name"
         android:src="@mipmap/ic_launcher" />
 
@@ -23,9 +23,9 @@
         android:id="@+id/tvToastMessage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:fontFamily="@font/poppins_medium"
         android:maxLines="2"
         android:textColor="@android:color/white"
-        android:textSize="14sp"
-        android:textStyle="bold" />
+        android:textSize="@dimen/text_sm" />
 
 </LinearLayout>

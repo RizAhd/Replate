@@ -214,16 +214,13 @@
                         android:textStyle="bold" />
                 </LinearLayout>
 
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnOpenPickupRoute"
+                    style="@style/Widget.REPLATE.Button.Primary"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/button_height"
-                    android:layout_marginTop="10dp"
-                    android:background="@drawable/button_primary"
-                    android:text="Open Pickup Route"
-                    android:textAllCaps="false"
-                    android:textColor="@color/white"
-                    android:textStyle="bold" />
+                    android:layout_marginTop="@dimen/space_1_5"
+                    android:text="Open Pickup Route" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
@@ -375,16 +372,13 @@
                     android:textColor="@color/primary"
                     android:textStyle="bold" />
 
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnSubmitReview"
+                    style="@style/Widget.REPLATE.Button.Primary"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/button_height"
-                    android:layout_marginTop="12dp"
-                    android:background="@drawable/button_primary"
-                    android:text="@string/order_review_submit"
-                    android:textAllCaps="false"
-                    android:textColor="@color/white"
-                    android:textStyle="bold" />
+                    android:layout_marginTop="@dimen/space_1_5"
+                    android:text="@string/order_review_submit" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
     </LinearLayout>

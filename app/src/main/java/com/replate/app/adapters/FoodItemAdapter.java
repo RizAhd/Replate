@@ -8,7 +8,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -20,6 +19,7 @@ import com.replate.app.models.FoodItem;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -163,23 +163,23 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
             tvHotelName.setText(item.getHotelName());
 
             // Format prices with LKR
-            tvOriginalPrice.setText(String.format("LKR %.2f", item.getOriginalPriceValue()));
+            tvOriginalPrice.setText(String.format(Locale.getDefault(), "LKR %.2f", item.getOriginalPriceValue()));
             tvOriginalPrice.setPaintFlags(tvOriginalPrice.getPaintFlags() | android.graphics.Paint.STRIKE_THRU_TEXT_FLAG);
-            tvDiscountedPrice.setText(String.format("LKR %.2f", item.getDiscountedPriceValue()));
+            tvDiscountedPrice.setText(String.format(Locale.getDefault(), "LKR %.2f", item.getDiscountedPriceValue()));
 
             // Discount badge
-            tvDiscount.setText(String.format("-%d%%", item.getDiscountPercentValue()));
+            tvDiscount.setText(String.format(Locale.getDefault(), "-%d%%", item.getDiscountPercentValue()));
 
-            // Distance
+            // Keep distance visible for consistent card hierarchy.
             if (item.getDistance() > 0) {
                 tvDistance.setText(item.getDistanceFormatted());
-                tvDistance.setVisibility(View.VISIBLE);
             } else {
-                tvDistance.setVisibility(View.GONE);
+                tvDistance.setText(context.getString(R.string.food_distance_nearby));
             }
+            tvDistance.setVisibility(View.VISIBLE);
 
             // Pickup time
-            tvPickupTime.setText("Pickup: " + item.getPickupTimeFormatted());
+            tvPickupTime.setText(context.getString(R.string.food_pickup_template, item.getPickupTimeFormatted()));
 
             // Load image with Glide
             loadFoodImage(item.getImageUrl());
@@ -218,6 +218,7 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
             if (src.startsWith("http://") || src.startsWith("https://")) {
                 Glide.with(context)
                         .load(src)
+                        .dontAnimate()
                         .placeholder(R.drawable.placeholder_food)
                         .error(R.drawable.placeholder_food)
                         .centerCrop()
@@ -234,6 +235,7 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
             if (cachedResolved != null && !cachedResolved.trim().isEmpty()) {
                 Glide.with(context)
                         .load(cachedResolved)
+                        .dontAnimate()
                         .placeholder(R.drawable.placeholder_food)
                         .error(R.drawable.placeholder_food)
                         .centerCrop()
@@ -257,6 +259,7 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
                         }
                         Glide.with(context)
                                 .load(uri)
+                                .dontAnimate()
                                 .placeholder(R.drawable.placeholder_food)
                                 .error(R.drawable.placeholder_food)
                                 .centerCrop()

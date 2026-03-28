@@ -6,7 +6,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -106,7 +105,13 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
             }
 
             if (btnBrowse != null) {
-                btnBrowse.setOnClickListener(v -> finish());
+                btnBrowse.setOnClickListener(v -> {
+                    Intent browseIntent = new Intent(this, SearchActivity.class);
+                    browseIntent.putExtra("initial_filter", "nearby");
+                    browseIntent.putExtra("from_cart_empty", true);
+                    startActivity(browseIntent);
+                    finish();
+                });
             }
         } catch (Exception e) {
             android.util.Log.e("CartActivity", "Error initializing views", e);

@@ -8,6 +8,8 @@
     <dimen name="space_2_5">20dp</dimen>
     <dimen name="space_3">24dp</dimen>
     <dimen name="space_4">32dp</dimen>
+    <dimen name="space_5">40dp</dimen>
+    <dimen name="space_6">48dp</dimen>
 
     <!-- Corner radii -->
     <dimen name="radius_xs">8dp</dimen>
@@ -18,8 +20,8 @@
     <dimen name="radius_hero">28dp</dimen>
 
     <!-- Elevation -->
-    <dimen name="elevation_card">3dp</dimen>
-    <dimen name="elevation_card_raised">6dp</dimen>
+    <dimen name="elevation_card">2dp</dimen>
+    <dimen name="elevation_card_raised">4dp</dimen>
     <dimen name="elevation_sheet">8dp</dimen>
 
     <!-- Touch targets -->
@@ -35,7 +37,15 @@
     <dimen name="text_xl">22sp</dimen>
     <dimen name="text_display">28sp</dimen>
 
+    <!-- Named image heights -->
+    <dimen name="image_height_detail">300dp</dimen>
+    <dimen name="image_height_card">200dp</dimen>
+    <dimen name="banner_height">180dp</dimen>
+
     <!-- Drawer dimensions -->
     <dimen name="drawer_width">280dp</dimen>
     <dimen name="drawer_header_min_height">160dp</dimen>
+
+    <!-- Bottom nav divider -->
+    <dimen name="nav_divider_height">1dp</dimen>
 </resources>

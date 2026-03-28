@@ -20,6 +20,19 @@ public class SplashActivity extends AppCompatActivity {
         final Intent launchIntent = getIntent();
 
         View ivEmoji = findViewById(R.id.ivEmoji);
+        View appNameView = findViewById(R.id.appName);
+        View taglineView = findViewById(R.id.tagline);
+
+        // Fade-in title and tagline
+        if (appNameView != null) {
+            appNameView.setAlpha(0f);
+            appNameView.animate().alpha(1f).setStartDelay(300).setDuration(500).start();
+        }
+        if (taglineView != null) {
+            taglineView.setAlpha(0f);
+            taglineView.animate().alpha(1f).setStartDelay(500).setDuration(500).start();
+        }
+
         if (ivEmoji != null) {
             // Scale Animation 0 -> 1 with Overshoot
             ivEmoji.setScaleX(0f);

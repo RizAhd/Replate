@@ -31,22 +31,23 @@
         android:id="@+id/textTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="@dimen/space_4"
+        android:fontFamily="@font/poppins_bold"
         android:gravity="center"
+        android:lineSpacingExtra="2dp"
         android:textColor="@color/text_primary"
-        android:textSize="28sp"
-        android:textStyle="bold"
-        android:lineSpacingExtra="2dp" />
+        android:textSize="@dimen/text_display" />
 
     <TextView
         android:id="@+id/textDescription"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="@dimen/space_2"
+        android:fontFamily="@font/poppins_regular"
         android:gravity="center"
-        android:lineSpacingExtra="5dp"
-        android:paddingHorizontal="10dp"
+        android:lineSpacingExtra="4dp"
+        android:paddingHorizontal="@dimen/space_1_5"
         android:textColor="@color/text_secondary"
-        android:textSize="16sp" />
+        android:textSize="@dimen/text_md" />
 
 </LinearLayout>

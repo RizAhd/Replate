@@ -12,12 +12,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingBottom="20dp">
+        android:paddingBottom="@dimen/space_3">
 
         <!-- Food Image with Back Button -->
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="280dp">
+            android:layout_height="@dimen/image_height_detail">
 
             <ImageView
                 android:id="@+id/ivFoodImage"
@@ -29,16 +29,17 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="#33000000" />
+                android:background="#26000000" />
 
             <!-- Back Button -->
             <ImageView
                 android:id="@+id/ivBack"
-                android:layout_width="42dp"
-                android:layout_height="42dp"
-                android:layout_margin="16dp"
+                android:layout_width="@dimen/touch_target_min"
+                android:layout_height="@dimen/touch_target_min"
+                android:layout_margin="@dimen/space_2"
                 android:background="@drawable/circle_white"
-                android:padding="9dp"
+                android:elevation="@dimen/elevation_card_raised"
+                android:padding="@dimen/space_1_5"
                 android:src="@drawable/ic_back" />
 
             <!-- Discount Badge -->
@@ -47,24 +48,25 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="top|end"
-                android:layout_margin="16dp"
+                android:layout_margin="@dimen/space_2"
                 android:background="@drawable/badge_discount"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="7dp"
+                android:fontFamily="@font/poppins_bold"
+                android:paddingHorizontal="@dimen/space_1_5"
+                android:paddingVertical="@dimen/space_1"
                 android:text="@string/food_detail_default_discount"
                 android:textColor="@color/white"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:textSize="@dimen/text_md" />
         </FrameLayout>
 
         <!-- Food Details Card -->
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
+            android:layout_marginHorizontal="@dimen/space_2"
             android:layout_marginTop="-24dp"
-            app:cardCornerRadius="24dp"
-            app:cardElevation="6dp">
+            app:cardCornerRadius="@dimen/radius_xl"
+            app:cardElevation="@dimen/elevation_card_raised"
+            app:cardBackgroundColor="@color/surface_white">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -300,45 +302,38 @@
                         android:textSize="13sp" />
                 </LinearLayout>
             </LinearLayout>
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- Add to Cart Button -->
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAddToCart"
+            style="@style/Widget.REPLATE.Button.Primary"
             android:layout_width="match_parent"
             android:layout_height="@dimen/button_height"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="8dp"
-            android:background="@drawable/button_primary"
-            android:minHeight="@dimen/touch_target_min"
-            android:text="Add to Cart - LKR 500.00"
-            android:textAllCaps="false"
-            android:textColor="@color/white"
-            android:textSize="@dimen/text_md"
-            android:textStyle="bold" />
+            android:layout_marginHorizontal="@dimen/space_2"
+            android:layout_marginTop="@dimen/space_2"
+            android:layout_marginBottom="@dimen/space_1"
+            android:text="Add to Cart - LKR 500.00" />
 
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="8dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="4dp">
+            android:layout_marginHorizontal="@dimen/space_2"
+            android:layout_marginTop="@dimen/space_1_5"
+            app:cardCornerRadius="@dimen/radius_lg"
+            app:cardElevation="@dimen/elevation_card">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="@dimen/space_2">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="User Reviews"
-                    android:textColor="@color/text_primary"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
                 <TextView
                     android:id="@+id/tvReviewSummary"
@@ -433,24 +428,23 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="10dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="4dp">
+            android:layout_marginHorizontal="@dimen/space_2"
+            android:layout_marginTop="@dimen/space_1_5"
+            android:layout_marginBottom="@dimen/space_2"
+            app:cardCornerRadius="@dimen/radius_lg"
+            app:cardElevation="@dimen/elevation_card">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="@dimen/space_2">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Recommended for you"
-                    android:textColor="@color/text_primary"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
                 <TextView
                     android:id="@+id/tvNoRecommendations"

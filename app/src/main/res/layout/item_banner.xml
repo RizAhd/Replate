@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginHorizontal="6dp"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="3dp">
+    android:layout_marginHorizontal="@dimen/space_1"
+    app:cardCornerRadius="@dimen/radius_lg"
+    app:cardElevation="@dimen/elevation_card"
+    app:cardBackgroundColor="@color/surface_white">
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -21,52 +22,53 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#52000000" />
+            android:background="#4D000000" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
             android:orientation="vertical"
-            android:paddingHorizontal="14dp"
-            android:paddingTop="10dp"
-            android:paddingBottom="12dp">
+            android:paddingHorizontal="@dimen/space_2"
+            android:paddingTop="@dimen/space_1_5"
+            android:paddingBottom="@dimen/space_2">
 
             <TextView
                 android:id="@+id/tvBannerBadge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@drawable/badge_discount"
-                android:paddingHorizontal="9dp"
-                android:paddingVertical="4dp"
+                android:fontFamily="@font/poppins_bold"
+                android:paddingHorizontal="@dimen/space_1_5"
+                android:paddingVertical="@dimen/space_0_5"
                 android:text="HOT DEAL"
                 android:textAllCaps="true"
                 android:textColor="@color/white"
-                android:textSize="10sp"
-                android:textStyle="bold" />
+                android:textSize="@dimen/text_caption" />
 
             <TextView
                 android:id="@+id/tvBannerTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="@dimen/space_1"
+                android:fontFamily="@font/poppins_bold"
                 android:maxLines="2"
                 android:text="Save More, Waste Less"
                 android:textColor="@color/white"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textSize="@dimen/text_lg" />
 
             <TextView
                 android:id="@+id/tvBannerSubtitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="3dp"
+                android:layout_marginTop="@dimen/space_0_5"
+                android:fontFamily="@font/poppins_regular"
                 android:maxLines="2"
                 android:text="Discover low-price rescued meals near you."
-                android:textColor="#F2FFFFFF"
-                android:textSize="12sp" />
+                android:textColor="@color/white_85"
+                android:textSize="@dimen/text_xs" />
 
         </LinearLayout>
     </FrameLayout>
 
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>

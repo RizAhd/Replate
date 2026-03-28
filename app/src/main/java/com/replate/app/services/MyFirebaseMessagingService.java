@@ -49,6 +49,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     public void onNewToken(@NonNull String token) {
         super.onNewToken(token);
         Log.d(TAG, "New FCM token: " + token);
+        FcmTokenManager.persistLatestToken(getApplicationContext(), token);
         saveTokenToDatabase(token);
     }
 
@@ -99,6 +100,12 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     }
 
     private void saveTokenToDatabase(String token) {
+        if (token == null || token.trim().isEmpty()) {
+            return;
+        }
+
+        FcmTokenManager.persistLatestToken(getApplicationContext(), token);
+
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) return;
 
@@ -215,7 +222,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     }
 
     private Intent buildIntentForNotification(Map<String, String> data) {
-        return NotificationRouter.buildIntent(
+        Intent intent = NotificationRouter.buildIntent(
                 this,
                 NotificationCategories.normalize(value(data, "category", value(data, "type", "general"))),
                 value(data, "route", "notifications"),
@@ -224,6 +231,14 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 value(data, "deepLink", ""),
                 data
         );
+
+        // Keep raw values for downstream routing handlers.
+        intent.putExtra("category", value(data, "category", value(data, "type", "general")));
+        intent.putExtra("route", value(data, "route", "notifications"));
+        intent.putExtra("orderId", value(data, "orderId", ""));
+        intent.putExtra("hotelId", value(data, "hotelId", ""));
+        intent.putExtra("deepLink", value(data, "deepLink", ""));
+        return intent;
     }
 
     private boolean isAppInForeground() {

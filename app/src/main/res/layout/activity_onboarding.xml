@@ -112,17 +112,13 @@
                 app:ci_margin="8dp"
                 app:ci_width="10dp" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonNext"
+                style="@style/Widget.REPLATE.Button.Primary"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/button_height"
-                android:layout_marginTop="10dp"
-                android:background="@drawable/button_primary"
-                android:text="Next"
-                android:textAllCaps="false"
-                android:textColor="@color/white"
-                android:textSize="@dimen/text_md"
-                android:textStyle="bold" />
+                android:layout_marginTop="@dimen/space_1_5"
+                android:text="Next" />
 
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
