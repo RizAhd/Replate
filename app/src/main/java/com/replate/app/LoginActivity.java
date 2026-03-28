@@ -33,7 +33,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.replate.app.utils.FcmTokenManager;
+import com.replate.app.utils.NotificationPermissionHelper;
 import com.replate.app.utils.ToastUtils;
+import com.replate.app.utils.UserRoleHelper;
 
 import org.json.JSONObject;
 
@@ -105,20 +107,18 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void requestNotificationPermissionIfNeeded() {
-        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.TIRAMISU) {
+        if (!NotificationPermissionHelper.isRuntimePermissionRequired()
+                || NotificationPermissionHelper.hasPermission(this)) {
             return;
         }
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-                == PackageManager.PERMISSION_GRANTED) {
+        if (NotificationPermissionHelper.shouldShowRationale(this)) {
+            NotificationPermissionHelper.showRationaleDialog(this,
+                    () -> NotificationPermissionHelper.request(this, REQ_POST_NOTIFICATIONS));
             return;
         }
 
-        ActivityCompat.requestPermissions(
-                this,
-                new String[]{Manifest.permission.POST_NOTIFICATIONS},
-                REQ_POST_NOTIFICATIONS
-        );
+        NotificationPermissionHelper.request(this, REQ_POST_NOTIFICATIONS);
     }
 
     /**
@@ -266,23 +266,16 @@ public class LoginActivity extends AppCompatActivity {
             .addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    String role = "customer";
-                    if (snapshot.exists()) {
-                        String roleVal = snapshot.child("role").getValue(String.class);
-                        String typeVal = snapshot.child("userType").getValue(String.class);
-                        if (roleVal != null && !roleVal.trim().isEmpty()) {
-                            role = roleVal.trim().toLowerCase();
-                        } else if (typeVal != null && !typeVal.trim().isEmpty()) {
-                            role = typeVal.trim().toLowerCase();
-                        }
-                    } else {
-                        // Backfill missing profile for old auth-only users.
+                    String role = snapshot.exists()
+                            ? UserRoleHelper.fromSnapshot(snapshot)
+                            : UserRoleHelper.ROLE_CUSTOMER;
+                    if (!snapshot.exists()) {
                         Map<String, Object> fallback = new HashMap<>();
                         fallback.put("name", user.getDisplayName() == null ? "Customer" : user.getDisplayName());
                         fallback.put("email", user.getEmail());
                         fallback.put("phone", "");
-                        fallback.put("userType", "customer");
-                        fallback.put("role", "customer");
+                        fallback.put("userType", UserRoleHelper.ROLE_CUSTOMER);
+                        fallback.put("role", UserRoleHelper.ROLE_CUSTOMER);
                         fallback.put("createdAt", System.currentTimeMillis());
                         fallback.put("profileImage", "");
                         fallback.put("emailVerified", true);
@@ -311,8 +304,8 @@ public class LoginActivity extends AppCompatActivity {
                 @Override
                 public void onCancelled(@NonNull DatabaseError error) {
                     showLoading(false);
-                    saveUserSession(user, "customer");
-                    goToHomeByRole("customer", user.getUid());
+                    saveUserSession(user, UserRoleHelper.ROLE_CUSTOMER);
+                    goToHomeByRole(UserRoleHelper.ROLE_CUSTOMER, user.getUid());
                 }
             });
     }

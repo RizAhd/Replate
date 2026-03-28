@@ -159,11 +159,18 @@
     <string name="settings_location_services">Location Services</string>
     <string name="settings_version">Version 1.0.0</string>
     <string name="settings_notification_tools">Notification Tools</string>
-    <string name="settings_notification_tools_desc">Send a quick test push to this account and verify popup + tray behavior.</string>
+    <string name="settings_notification_tools_desc">Refresh your FCM token, verify what is saved for this account, and send a secure self-test push.</string>
     <string name="settings_send_test_push">Send Test Push</string>
+    <string name="settings_refresh_fcm_token">Refresh FCM Token</string>
+    <string name="settings_current_fcm_token_label">Current device token</string>
+    <string name="settings_current_fcm_token_empty">Token not available yet. Refresh once Firebase finishes registration.</string>
+    <string name="settings_current_fcm_token_format">%1$s</string>
     <string name="settings_test_push_sending">Sending test push...</string>
     <string name="settings_test_push_sent">Test push sent. Check popup banner now.</string>
     <string name="settings_test_push_failed">Failed to send test push.</string>
+    <string name="settings_token_refreshing">Refreshing token...</string>
+    <string name="settings_token_refreshed">FCM token refreshed and synced.</string>
+    <string name="settings_token_refresh_failed">Couldn’t refresh FCM token.</string>
 
     <!-- Checkout -->
     <string name="checkout_title">Checkout</string>
@@ -289,6 +296,16 @@ Total: LKR %1$.2f</string>
 
     <!-- Splash -->
     <string name="splash_tagline">Where Leftover Food Finds New Life</string>
+
+    <!-- Notification permission UX -->
+    <string name="notifications_permission_title">Enable notifications</string>
+    <string name="notifications_permission_message">Allow notifications to get new orders, order updates, pickup alerts, and admin approvals in real time.</string>
+    <string name="notifications_permission_continue">Allow</string>
+    <string name="notifications_permission_not_now">Not now</string>
+    <string name="notifications_permission_denied">Notifications are disabled. You can enable them later from app settings.</string>
+    <string name="notifications_permission_settings">Open notification settings</string>
+    <string name="notification_hotel_approved_title">Hotel approved</string>
+    <string name="notification_hotel_approved_body">Your hotel account is approved. You can now manage orders and listings.</string>
 
     <!-- Location permission UX -->
     <string name="location_permission_title">Enable live location</string>

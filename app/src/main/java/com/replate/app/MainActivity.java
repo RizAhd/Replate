@@ -47,6 +47,8 @@ import com.replate.app.fragments.ProfileFragment;
 import com.replate.app.receivers.NetworkChangeReceiver;
 import com.replate.app.services.OrderSyncWorker;
 import com.replate.app.utils.FcmTokenManager;
+import com.replate.app.utils.NotificationPermissionHelper;
+import com.replate.app.utils.UserRoleHelper;
 
 import java.util.concurrent.TimeUnit;
 
@@ -104,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         SharedPreferences prefs = getSharedPreferences("REPLATE_PREFS", MODE_PRIVATE);
-        String sessionRole = prefs.getString("role", "customer");
+        String sessionRole = UserRoleHelper.fromPrefs(prefs);
         FcmTokenManager.syncTokenForCurrentUser(this, sessionRole);
 
         drawerLayout = findViewById(R.id.drawerLayout);
@@ -285,11 +287,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void checkNotificationPermissions() {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            if (androidx.core.app.ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                androidx.core.app.ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 101);
-            }
+        if (!NotificationPermissionHelper.isRuntimePermissionRequired()
+                || NotificationPermissionHelper.hasPermission(this)) {
+            return;
         }
+
+        if (NotificationPermissionHelper.shouldShowRationale(this)) {
+            NotificationPermissionHelper.showRationaleDialog(this,
+                    () -> NotificationPermissionHelper.request(this, 101));
+            return;
+        }
+
+        NotificationPermissionHelper.request(this, 101);
     }
 
     private void applySystemInsets() {

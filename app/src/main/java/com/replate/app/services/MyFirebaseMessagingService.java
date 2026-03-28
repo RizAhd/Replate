@@ -32,6 +32,7 @@ import com.replate.app.notifications.InAppNotificationCenter;
 import com.replate.app.notifications.NotificationCategories;
 import com.replate.app.notifications.NotificationRouter;
 import com.replate.app.utils.FcmTokenManager;
+import com.replate.app.utils.UserRoleHelper;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -48,14 +49,21 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     @Override
     public void onNewToken(@NonNull String token) {
         super.onNewToken(token);
-        Log.d(TAG, "New FCM token: " + token);
+        Log.d(TAG, "onNewToken received new token=" + token);
         FcmTokenManager.persistLatestToken(getApplicationContext(), token);
-        saveTokenToDatabase(token);
+        syncTokenToActiveUser(token);
     }
 
     @Override
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
+
+        Log.d(TAG, "FCM message received from=" + remoteMessage.getFrom());
+        Log.d(TAG, "FCM data payload=" + remoteMessage.getData());
+        if (remoteMessage.getNotification() != null) {
+            Log.d(TAG, "FCM notification payload title=" + remoteMessage.getNotification().getTitle()
+                    + " body=" + remoteMessage.getNotification().getBody());
+        }
 
         String title = "REPLATE";
         String body = "You have a new notification";
@@ -95,34 +103,33 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             ));
         }
 
-        // Always attempt a system notification so users get heads-up popups too.
         showNotification(title, body, data);
     }
 
-    private void saveTokenToDatabase(String token) {
-        if (token == null || token.trim().isEmpty()) {
+    private void syncTokenToActiveUser(@NonNull String token) {
+        if (token.trim().isEmpty()) {
+            Log.w(TAG, "Skipping token sync because token is blank");
             return;
         }
 
-        FcmTokenManager.persistLatestToken(getApplicationContext(), token);
-
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user == null) return;
-
-        FirebaseDatabase.getInstance().getReference()
-                .child("users")
-                .child(user.getUid())
-                .child("fcmToken")
-                .setValue(token);
+        if (user == null) {
+            Log.d(TAG, "No authenticated user while syncing token; token stored locally for later sync.");
+            return;
+        }
 
         SharedPreferences prefs = getSharedPreferences("REPLATE_PREFS", MODE_PRIVATE);
-        String role = prefs.getString("role", "customer");
+        String role = UserRoleHelper.fromPrefs(prefs);
+        Log.d(TAG, "Syncing refreshed token for uid=" + user.getUid() + " role=" + role);
         FcmTokenManager.syncTokenForCurrentUser(getApplicationContext(), role);
     }
 
     private void saveNotification(String title, String body, Map<String, String> data) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user == null) return;
+        if (user == null) {
+            Log.d(TAG, "Skipping local notification persistence because no user session is active.");
+            return;
+        }
 
         Map<String, Object> notifData = new HashMap<>();
         notifData.put("title", title);
@@ -181,8 +188,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         );
 
         Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-
-
         Bitmap largeIcon = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher_round);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
@@ -232,7 +237,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 data
         );
 
-        // Keep raw values for downstream routing handlers.
         intent.putExtra("category", value(data, "category", value(data, "type", "general")));
         intent.putExtra("route", value(data, "route", "notifications"));
         intent.putExtra("orderId", value(data, "orderId", ""));

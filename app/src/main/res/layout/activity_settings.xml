@@ -238,7 +238,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:visibility="gone"
             app:cardBackgroundColor="@color/white"
             app:cardCornerRadius="@dimen/radius_xl"
             app:cardElevation="@dimen/elevation_card">
@@ -263,12 +262,38 @@
                     android:textAppearance="@style/TextAppearance.REPLATE.Body"
                     android:textColor="@color/text_secondary" />
 
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/space_2"
+                    android:text="@string/settings_current_fcm_token_label"
+                    android:textAppearance="@style/TextAppearance.REPLATE.Label" />
+
+                <TextView
+                    android:id="@+id/tvCurrentFcmToken"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/space_0_5"
+                    android:background="@drawable/card_background_shape"
+                    android:padding="@dimen/space_1_5"
+                    android:text="@string/settings_current_fcm_token_empty"
+                    android:textAppearance="@style/TextAppearance.REPLATE.Caption"
+                    android:textColor="@color/text_secondary" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnRefreshFcmToken"
+                    style="@style/Widget.REPLATE.Button.Secondary"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/button_height"
+                    android:layout_marginTop="@dimen/space_1_5"
+                    android:text="@string/settings_refresh_fcm_token" />
+
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnSendTestPush"
                     style="@style/Widget.REPLATE.Button.Primary"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/button_height"
-                    android:layout_marginTop="@dimen/space_1_5"
+                    android:layout_marginTop="@dimen/space_1"
                     android:text="@string/settings_send_test_push" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

@@ -23,6 +23,7 @@ const VALID_NOTIFICATION_CATEGORIES = new Set([
   "admin_announcement",
   "admin_broadcast",
   "hotel_new_order",
+  "hotel_approved",
   "profile_updated",
   "login_success",
 ]);
@@ -106,6 +107,7 @@ function normalizeCategory(rawCategory, fallback = "admin_broadcast") {
   if (candidate.includes("cancel")) return "order_cancelled";
   if (candidate.includes("pickup") && candidate.includes("remind")) return "pickup_reminder";
   if (candidate.includes("pickup") || candidate.includes("ready")) return "pickup_ready";
+  if (candidate.includes("approved") && candidate.includes("hotel")) return "hotel_approved";
   if (candidate.includes("hotel") || candidate.includes("new_order")) return "hotel_new_order";
   if (candidate.includes("place") || candidate.includes("create") || candidate.includes("order")) return "order_placed";
   if (candidate.includes("profile")) return "profile_updated";
@@ -177,6 +179,63 @@ async function loadUsersByRole(targetRole) {
   return users;
 }
 
+async function loadUserNotificationRecord(uid) {
+  if (!uid) return null;
+
+  const userSnap = await db.ref(`users/${uid}`).get();
+  if (!userSnap.exists()) return null;
+
+  const user = userSnap.val() || {};
+  const role = roleFromUser(user);
+  let token = String(user.fcmToken || user.notification?.fcmToken || "").trim();
+  const cleanupPaths = [
+    `users/${uid}/fcmToken`,
+    `users/${uid}/notification/fcmToken`,
+  ];
+
+  if (role === "hotel") {
+    const hotelsSnap = await db.ref("hotels").orderByChild("userId").equalTo(uid).get();
+    if (hotelsSnap.exists()) {
+      hotelsSnap.forEach((child) => {
+        const hotel = child.val() || {};
+        cleanupPaths.push(`hotels/${child.key}/fcmToken`);
+        cleanupPaths.push(`hotels/${child.key}/notification/fcmToken`);
+        if (!token) {
+          token = String(hotel.fcmToken || hotel.notification?.fcmToken || "").trim();
+        }
+      });
+    }
+  }
+
+  return { uid, role, token, cleanupPaths, user };
+}
+
+async function loadHotelNotificationRecord(hotelId) {
+  if (!hotelId) return null;
+
+  const directHotelSnap = await db.ref(`hotels/${hotelId}`).get();
+  if (directHotelSnap.exists()) {
+    const hotel = directHotelSnap.val() || {};
+    const userId = String(hotel.userId || hotel.ownerUid || hotel.uid || hotelId).trim();
+    const userRecord = await loadUserNotificationRecord(userId);
+    if (userRecord) return userRecord;
+
+    const token = String(hotel.fcmToken || hotel.notification?.fcmToken || "").trim();
+    return {
+      uid: userId,
+      role: "hotel",
+      token,
+      cleanupPaths: [
+        `hotels/${hotelId}/fcmToken`,
+        `hotels/${hotelId}/notification/fcmToken`,
+      ],
+      user: hotel,
+    };
+  }
+
+  return loadUserNotificationRecord(String(hotelId).trim());
+}
+
 async function persistNotificationForUsers(userIds, payload, source = "system") {
   if (!Array.isArray(userIds) || userIds.length === 0) return;
 
@@ -210,9 +269,14 @@ async function cleanupInvalidTokens(records, failures) {
     }
 
     const record = records[failure.index];
-    if (record && record.uid) {
-      removals.push(db.ref(`users/${record.uid}/fcmToken`).remove());
+    if (!record || !Array.isArray(record.cleanupPaths)) {
+      return;
     }
+
+    record.cleanupPaths.forEach((path) => {
+      if (!path) return;
+      removals.push(db.ref(path).remove());
+    });
   });
 
   if (removals.length > 0) {
@@ -459,24 +523,15 @@ exports.sendTargetedNotification = functions.region(REGION).https.onRequest(asyn
       ...body,
     });
 
-    const users = await Promise.all(
-      userIds.map(async (uid) => {
-        const snap = await db.ref(`users/${uid}`).get();
-        if (!snap.exists()) return null;
-        const value = snap.val() || {};
-        return { uid, token: value.fcmToken || "" };
-      })
-    );
-
-    const filtered = users.filter(Boolean);
-    const result = await sendToUserRecords(filtered, payload);
-    await persistNotificationForUsers(userIds, payload, requester.role === "hotel" ? "hotel_targeted" : "admin_targeted");
+    const users = (await Promise.all(userIds.map((uid) => loadUserNotificationRecord(String(uid).trim())))).filter(Boolean);
+    const result = await sendToUserRecords(users, payload);
+    await persistNotificationForUsers(users.map((u) => u.uid), payload, requester.role === "hotel" ? "hotel_targeted" : "admin_targeted");
 
     await db.ref("notificationLogs").push({
       senderUid: requester.uid,
       senderRole: requester.role,
       action: "targeted",
-      userIds,
+      userIds: users.map((u) => u.uid),
       payload,
       result,
       createdAt: Date.now(),
@@ -489,7 +544,7 @@ exports.sendTargetedNotification = functions.region(REGION).https.onRequest(asyn
   }
 });
 
-exports.sendDealNotification = functions.region(REGION).https.onRequest(async (req, res) => {
+exports.sendSelfTestNotification = functions.region(REGION).https.onRequest(async (req, res) => {
   setCorsHeaders(res);
   if (req.method === "OPTIONS") return res.status(204).send("");
 
@@ -498,20 +553,27 @@ exports.sendDealNotification = functions.region(REGION).https.onRequest(async (r
       return res.status(405).json({ success: false, message: "Method not allowed" });
     }
 
-    const requester = await verifyRequestAuth(req, ["admin", "hotel"]);
+    const requester = await verifyRequestAuth(req, ["admin", "hotel", "customer"]);
+    const record = await loadUserNotificationRecord(requester.uid);
+    if (!record || !record.token) {
+      return res.status(400).json({ success: false, message: "Missing FCM token for current user" });
+    }
+
     const payload = buildPayload({
-      type: "deal",
-      category: req.body && req.body.isHotDeal ? "hot_deals" : "new_deals",
-      route: "deals",
+      title: req.body?.title || "REPLATE Test Push",
+      body: req.body?.body || "If you can see this popup, push notifications are working.",
+      category: req.body?.category || "admin_announcement",
+      route: req.body?.route || "notifications",
       ...req.body,
     });
 
-    const result = await sendToTopic("deals_customers", payload);
+    const result = await sendToUserRecords([record], payload);
+    await persistNotificationForUsers([requester.uid], payload, "self_test");
 
     await db.ref("notificationLogs").push({
       senderUid: requester.uid,
       senderRole: requester.role,
-      action: "deal_broadcast",
+      action: "self_test",
       payload,
       result,
       createdAt: Date.now(),
@@ -519,8 +581,8 @@ exports.sendDealNotification = functions.region(REGION).https.onRequest(async (r
 
     return res.status(200).json({ success: true, result });
   } catch (err) {
-    console.error("sendDealNotification error", err);
-    return res.status(500).json({ success: false, message: err.message || "Failed to send deal notification" });
+    console.error("sendSelfTestNotification error", err);
+    return res.status(500).json({ success: false, message: err.message || "Failed to send self-test notification" });
   }
 });
 
@@ -556,13 +618,12 @@ exports.onOrderCreatedNotify = functions
 
     const customerId = String(order.userId || "").trim();
     const hotelId = String(order.hotelId || "").trim();
-    const customerName = String(order.customerName || "Customer");
+    const customerName = String(order.customerName || order.userName || "Customer");
     const hotelName = String(order.hotelName || "Hotel");
 
     if (customerId) {
-      const userSnap = await db.ref(`users/${customerId}`).get();
-      if (userSnap.exists()) {
-        const token = userSnap.val().fcmToken || "";
+      const customerRecord = await loadUserNotificationRecord(customerId);
+      if (customerRecord) {
         const payload = buildPayload({
           title: "Order placed successfully",
           body: `Your order at ${hotelName} has been placed.`,
@@ -573,37 +634,30 @@ exports.onOrderCreatedNotify = functions
           hotelId,
         });
 
-        if (token) {
-          await sendToUserRecords([{ uid: customerId, token }], payload);
+        if (customerRecord.token) {
+          await sendToUserRecords([customerRecord], payload);
         }
-        await persistNotificationForUsers([customerId], payload, "order_created");
+        await persistNotificationForUsers([customerRecord.uid], payload, "order_created");
       }
     }
 
     if (hotelId) {
-      const hotelSnap = await db.ref(`hotels/${hotelId}`).get();
-      if (hotelSnap.exists()) {
-        const hotelVal = hotelSnap.val() || {};
-        const hotelUserId = String(hotelVal.userId || "").trim();
-        if (hotelUserId) {
-          const hotelUserSnap = await db.ref(`users/${hotelUserId}`).get();
-          const hotelToken = hotelUserSnap.exists() ? (hotelUserSnap.val().fcmToken || "") : "";
+      const hotelRecord = await loadHotelNotificationRecord(hotelId);
+      if (hotelRecord && hotelRecord.uid) {
+        const payload = buildPayload({
+          title: "New order received",
+          body: `${customerName} placed a new order.`,
+          type: "order_placed",
+          category: "hotel_new_order",
+          route: "order",
+          orderId,
+          hotelId,
+        });
 
-          const payload = buildPayload({
-            title: "New order received",
-            body: `${customerName} placed a new order.`,
-            type: "order_placed",
-            category: "hotel_new_order",
-            route: "order",
-            orderId,
-            hotelId,
-          });
-
-          if (hotelToken) {
-            await sendToUserRecords([{ uid: hotelUserId, token: hotelToken }], payload);
-          }
-          await persistNotificationForUsers([hotelUserId], payload, "order_created");
+        if (hotelRecord.token) {
+          await sendToUserRecords([hotelRecord], payload);
         }
+        await persistNotificationForUsers([hotelRecord.uid], payload, "order_created");
       }
     }
 
@@ -621,16 +675,16 @@ exports.onOrderStatusChangedNotify = functions
 
     const orderId = context.params.orderId;
     const userId = String(after.userId || "").trim();
-    if (!userId) return null;
-
-    const userSnap = await db.ref(`users/${userId}`).get();
-    if (!userSnap.exists()) return null;
-
-    const token = userSnap.val().fcmToken || "";
+    const hotelId = String(after.hotelId || "").trim();
     const status = String(after.orderStatus || "updated").toLowerCase();
 
     const statusMap = {
       pending_pickup: {
+        title: "Order accepted",
+        body: "Your order is accepted and waiting for pickup.",
+        category: "order_accepted",
+      },
+      accepted: {
         title: "Order accepted",
         body: "Your order is accepted and waiting for pickup.",
         category: "order_accepted",
@@ -663,45 +717,93 @@ exports.onOrderStatusChangedNotify = functions
       category: "order_accepted",
     };
 
-    const payload = buildPayload({
+    const customerPayload = buildPayload({
       ...content,
       type: "order_status",
       route: "order",
       orderId,
-      hotelId: after.hotelId || "",
+      hotelId,
       data: { newStatus: status },
     });
 
-    if (token) {
-      await sendToUserRecords([{ uid: userId, token }], payload);
+    if (userId) {
+      const customerRecord = await loadUserNotificationRecord(userId);
+      if (customerRecord) {
+        if (customerRecord.token) {
+          await sendToUserRecords([customerRecord], customerPayload);
+        }
+        await persistNotificationForUsers([customerRecord.uid], customerPayload, "order_status_update");
+      }
     }
-    await persistNotificationForUsers([userId], payload, "order_status_update");
+
+    if (status === "cancelled" && hotelId) {
+      const hotelRecord = await loadHotelNotificationRecord(hotelId);
+      if (hotelRecord && hotelRecord.uid) {
+        const hotelPayload = buildPayload({
+          title: "Order cancelled",
+          body: `${after.customerName || after.userName || "A customer"} cancelled an order.`,
+          type: "order_cancelled",
+          category: "order_cancelled",
+          route: "order",
+          orderId,
+          hotelId,
+          data: { newStatus: status },
+        });
+
+        if (hotelRecord.token) {
+          await sendToUserRecords([hotelRecord], hotelPayload);
+        }
+        await persistNotificationForUsers([hotelRecord.uid], hotelPayload, "order_status_update");
+      }
+    }
 
     return null;
   });
 
-exports.onFoodItemCreatedNotify = functions
+exports.onHotelStatusChangedNotify = functions
   .region(REGION)
-  .database.ref("/foodItems/{foodId}")
-  .onCreate(async (snapshot) => {
-    const food = snapshot.val() || {};
-    const status = String(food.status || "").toLowerCase();
-    if (status && status !== "available") return null;
+  .database.ref("/hotels/{hotelId}")
+  .onUpdate(async (change, context) => {
+    const before = change.before.val() || {};
+    const after = change.after.val() || {};
+    const beforeStatus = String(before.status || "").trim().toLowerCase();
+    const afterStatus = String(after.status || "").trim().toLowerCase();
 
-    const payload = buildPayload({
-      title: "New deal near you",
-      body: `${food.hotelName || "A hotel"} added ${food.foodName || "a meal"} at discount.`,
-      type: "new_deal",
-      category: "new_deals",
-      route: "deals",
-      hotelId: food.hotelId || "",
-      data: {
-        foodId: food.foodId || "",
-        discountPercentage: String(food.discountPercentage || food.discountPercent || ""),
-      },
-    });
+    if (!afterStatus || beforeStatus === afterStatus) return null;
 
-    await sendToTopic("deals_customers", payload);
+    const hotelId = context.params.hotelId;
+    const hotelRecord = await loadHotelNotificationRecord(hotelId);
+    if (!hotelRecord || !hotelRecord.uid) return null;
+
+    let payload = null;
+    if (afterStatus === "approved") {
+      payload = buildPayload({
+        title: "Hotel approved",
+        body: "Your hotel account is approved. You can now manage orders and listings.",
+        type: "hotel_approved",
+        category: "hotel_approved",
+        route: "hotel_dashboard",
+        hotelId,
+        data: { status: afterStatus },
+      });
+    } else if (afterStatus === "rejected") {
+      payload = buildPayload({
+        title: "Hotel status updated",
+        body: "Your hotel registration needs attention. Please contact support or review your submitted details.",
+        type: "admin_announcement",
+        category: "admin_announcement",
+        route: "profile",
+        hotelId,
+        data: { status: afterStatus },
+      });
+    }
+
+    if (!payload) return null;
+
+    if (hotelRecord.token) {
+      await sendToUserRecords([hotelRecord], payload);
+    }
+    await persistNotificationForUsers([hotelRecord.uid], payload, "hotel_status_update");
     return null;
   });
 
