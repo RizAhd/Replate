@@ -689,6 +689,35 @@ exports.onOrderCreatedNotify = functions
     }
 
     console.log(`[onOrderCreatedNotify] COMPLETED for orderId=${orderId}`);
+
+    // Server-side safety net: decrement food quantity & auto-deactivate if sold out
+    try {
+      const items = order.items || [];
+      for (const item of items) {
+        const foodId = String(item.foodId || "").trim();
+        const orderedQty = Number(item.quantity) || 1;
+        if (!foodId) continue;
+
+        const foodRef = db.ref(`foodItems/${foodId}`);
+        const foodSnap = await foodRef.get();
+        if (!foodSnap.exists()) continue;
+
+        const currentQty = Number(foodSnap.child("quantity").val()) || 0;
+        const newQty = Math.max(0, currentQty - orderedQty);
+        await foodRef.child("quantity").set(newQty);
+
+        if (newQty <= 0) {
+          await foodRef.child("status").set("sold_out");
+          await foodRef.child("isAvailable").set(false);
+          console.log(`[onOrderCreatedNotify] Food ${foodId} auto-deactivated (sold out)`);
+        } else {
+          console.log(`[onOrderCreatedNotify] Food ${foodId} quantity updated: ${currentQty} -> ${newQty}`);
+        }
+      }
+    } catch (qtyErr) {
+      console.error("[onOrderCreatedNotify] Error decrementing food quantity", qtyErr);
+    }
+
     return null;
   });
 
