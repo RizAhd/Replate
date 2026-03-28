@@ -102,20 +102,32 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Confirm Pickup</h5>
+                <h5 class="modal-title" id="verificationModalTitle">Confirm Pickup</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p><strong>Order ID:</strong> <span id="modalOrderId"></span></p>
-                <p><strong>Customer:</strong> <span id="modalCustomer"></span></p>
-                <p><strong>Items:</strong></p>
-                <ul id="modalItems"></ul>
-                <p class="text-end fw-bold">Total: <span id="modalTotal"></span></p>
-                <p><strong>Review:</strong> <span id="modalReview"></span></p>
+                <div id="verificationModalBody">
+                    <p><strong>Order ID:</strong> <span id="modalOrderId"></span></p>
+                    <p><strong>Customer:</strong> <span id="modalCustomer"></span></p>
+                    <p><strong>QR Code:</strong> <code id="modalQR" class="text-muted"></code></p>
+                    <p><strong>Items:</strong></p>
+                    <ul id="modalItems"></ul>
+                    <p class="text-end fw-bold">Total: <span id="modalTotal"></span></p>
+                    <p><strong>Review:</strong> <span id="modalReview"></span></p>
+                </div>
+                <div id="verificationSuccessBody" class="d-none text-center" style="padding: 2rem 1rem;">
+                    <div style="width:80px;height:80px;border-radius:50%;background:#1A6B3C;display:inline-flex;align-items:center;justify-content:center;margin-bottom:1rem;">
+                        <i class="fas fa-check" style="color:#fff;font-size:2rem;"></i>
+                    </div>
+                    <h4 class="text-success mb-2">Pickup Confirmed!</h4>
+                    <p class="text-muted mb-0">Order has been marked as completed.</p>
+                </div>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer" id="verificationModalFooter">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-success" onclick="confirmPickup()">✅ Confirm & Complete</button>
+                <button type="button" class="btn btn-success" id="btnConfirmPickup" onclick="confirmPickup()">
+                    <i class="fas fa-check-circle me-1"></i> Confirm &amp; Complete
+                </button>
             </div>
         </div>
     </div>
@@ -369,6 +381,8 @@
         document.getElementById('modalReview').innerText = order.reviewRating
             ? `⭐ ${Number(order.reviewRating).toFixed(1)}${order.reviewComment ? ' - ' + order.reviewComment : ''}`
             : 'No review yet';
+
+        document.getElementById('modalQR').innerText = order.qrCode || '';
 
         verificationModalInstance.show();
     }

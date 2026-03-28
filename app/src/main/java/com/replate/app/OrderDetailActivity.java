@@ -65,6 +65,8 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
 
     private DatabaseReference mDatabase;
     private Order order;
+    private ValueEventListener orderListener;
+    private String currentOrderId;
 
     // Light sensor for QR brightness
     private SensorManager sensorManager;
@@ -162,22 +164,30 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
     }
 
     private void loadOrderFromFirebase(String orderId) {
-        mDatabase.child("orders").child(orderId)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        order = snapshot.getValue(Order.class);
-                        if (order != null) {
-                            order.setOrderId(snapshot.getKey());
-                            displayOrderDetails();
-                        }
-                    }
+        currentOrderId = orderId;
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                        ToastUtils.showCustomToast(OrderDetailActivity.this, "Failed to load order");
-                    }
-                });
+        // Avoid duplicate listeners if this method is called again.
+        if (orderListener != null && currentOrderId != null) {
+            mDatabase.child("orders").child(currentOrderId).removeEventListener(orderListener);
+        }
+
+        orderListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                order = snapshot.getValue(Order.class);
+                if (order != null) {
+                    order.setOrderId(snapshot.getKey());
+                    displayOrderDetails();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                ToastUtils.showCustomToast(OrderDetailActivity.this, "Failed to load order");
+            }
+        };
+
+        mDatabase.child("orders").child(orderId).addValueEventListener(orderListener);
     }
 
     private void displayOrderDetails() {
@@ -476,5 +486,13 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
                     public void onCancelled(@NonNull DatabaseError error) {
                     }
                 });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (orderListener != null && currentOrderId != null) {
+            mDatabase.child("orders").child(currentOrderId).removeEventListener(orderListener);
+        }
     }
 }

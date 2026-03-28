@@ -509,9 +509,8 @@ public class CheckoutActivity extends AppCompatActivity {
                             )
                     );
 
-                    Intent intent = new Intent(this, OrderDetailActivity.class);
+                    Intent intent = new Intent(this, OrderSuccessActivity.class);
                     intent.putExtra("orderId", orderId);
-                    intent.putExtra("newOrder", true);
                     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     startActivity(intent);
                     finish();
