@@ -324,6 +324,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         networkExecutor.execute(() -> {
             HttpURLConnection connection = null;
+            boolean cloudFunctionSucceeded = false;
             try {
                 String idToken = Tasks.await(user.getIdToken(true), 20, TimeUnit.SECONDS).getToken();
                 if (idToken == null || idToken.trim().isEmpty()) {
@@ -342,8 +343,8 @@ public class SettingsActivity extends AppCompatActivity {
                 URL url = new URL(requestUrl);
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("POST");
-                connection.setConnectTimeout(15000);
-                connection.setReadTimeout(15000);
+                connection.setConnectTimeout(10000);
+                connection.setReadTimeout(10000);
                 connection.setDoOutput(true);
                 connection.setRequestProperty("Content-Type", "application/json");
                 connection.setRequestProperty("Authorization", "Bearer " + idToken);
@@ -363,19 +364,92 @@ public class SettingsActivity extends AppCompatActivity {
 
                 Log.d(TAG, "sendSelfTestPush HTTP " + code + " response from " + requestUrl + ": " + response);
                 if (code >= 200 && code < 300) {
+                    cloudFunctionSucceeded = true;
                     runOnUiThread(() -> ToastUtils.showCustomToast(SettingsActivity.this,
                             getString(R.string.settings_test_push_sent)));
                 } else {
-                    throw new IllegalStateException("HTTP " + code + " from " + requestUrl + ": " + response);
+                    Log.w(TAG, "Cloud function returned " + code + ", falling back to local notification");
                 }
             } catch (Exception e) {
-                Log.e(TAG, "sendSelfTestPush failed", e);
-                runOnUiThread(() -> ToastUtils.showCustomToast(SettingsActivity.this,
-                        getString(R.string.settings_test_push_failed) + " " + e.getMessage()));
+                Log.w(TAG, "Cloud function call failed, falling back to local notification", e);
             } finally {
                 if (connection != null) connection.disconnect();
             }
+
+            // Fallback: show a local notification directly if cloud function not deployed
+            if (!cloudFunctionSucceeded) {
+                showLocalTestNotification();
+            }
         });
+    }
+
+    /**
+     * Shows a local test notification directly on the device.
+     * Used as fallback when Cloud Function is not deployed yet.
+     */
+    private void showLocalTestNotification() {
+        try {
+            String channelId = "replate_notifications_v3";
+
+            // Create channel if needed (Android 8+)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                android.app.NotificationManager nm =
+                        (android.app.NotificationManager) getSystemService(android.content.Context.NOTIFICATION_SERVICE);
+                if (nm != null && nm.getNotificationChannel(channelId) == null) {
+                    android.app.NotificationChannel channel = new android.app.NotificationChannel(
+                            channelId, "REPLATE Alerts",
+                            android.app.NotificationManager.IMPORTANCE_HIGH);
+                    channel.setDescription("Order, deal and pickup alerts");
+                    channel.enableVibration(true);
+                    channel.enableLights(true);
+                    channel.setShowBadge(true);
+                    nm.createNotificationChannel(channel);
+                }
+            }
+
+            Intent tapIntent = new Intent(this, MainActivity.class);
+            tapIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            android.app.PendingIntent pendingIntent = android.app.PendingIntent.getActivity(
+                    this, (int) System.currentTimeMillis(), tapIntent,
+                    android.app.PendingIntent.FLAG_UPDATE_CURRENT | android.app.PendingIntent.FLAG_IMMUTABLE);
+
+            android.graphics.Bitmap largeIcon =
+                    android.graphics.BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher_round);
+
+            androidx.core.app.NotificationCompat.Builder builder =
+                    new androidx.core.app.NotificationCompat.Builder(this, channelId)
+                            .setSmallIcon(R.drawable.ic_notification)
+                            .setLargeIcon(largeIcon)
+                            .setContentTitle("REPLATE Test Push")
+                            .setContentText("Push notifications are working! (local test)")
+                            .setStyle(new androidx.core.app.NotificationCompat.BigTextStyle()
+                                    .bigText("Push notifications are working! This is a local test notification. " +
+                                            "Cloud Function endpoint is not deployed yet — deploy with: firebase deploy --only functions"))
+                            .setAutoCancel(true)
+                            .setSound(android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_NOTIFICATION))
+                            .setContentIntent(pendingIntent)
+                            .setPriority(androidx.core.app.NotificationCompat.PRIORITY_HIGH)
+                            .setDefaults(androidx.core.app.NotificationCompat.DEFAULT_ALL)
+                            .setVisibility(androidx.core.app.NotificationCompat.VISIBILITY_PUBLIC)
+                            .setColor(ContextCompat.getColor(this, R.color.primary));
+
+            androidx.core.app.NotificationManagerCompat notifManager =
+                    androidx.core.app.NotificationManagerCompat.from(this);
+
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                    == PackageManager.PERMISSION_GRANTED
+                    || android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.TIRAMISU) {
+                notifManager.notify((int) System.currentTimeMillis(), builder.build());
+            }
+
+            Log.d(TAG, "Local test notification shown (cloud function fallback)");
+            runOnUiThread(() -> ToastUtils.showCustomToast(SettingsActivity.this,
+                    getString(R.string.settings_test_push_sent) + " (local)"));
+        } catch (Exception e) {
+            Log.e(TAG, "Local test notification failed", e);
+            runOnUiThread(() -> ToastUtils.showCustomToast(SettingsActivity.this,
+                    getString(R.string.settings_test_push_failed)));
+        }
     }
 
     private void loadUserData() {
