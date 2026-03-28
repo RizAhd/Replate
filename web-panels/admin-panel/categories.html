@@ -13,22 +13,8 @@
 
 <div class="container-fluid">
     <div class="row">
-        <!-- Admin Sidebar -->
-        <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse bg-dark text-white">
-            <div class="position-sticky pt-3">
-                <a class="navbar-brand d-block px-3 py-3 mb-3 text-center text-white" href="#">
-                    <img src="../assets/replate-icon.svg" alt="REPLATE" class="brand-logo-sm">ADMIN
-                </a>
-                <ul class="nav flex-column">
-                    <li class="nav-item"><a class="nav-link text-white" href="approve-hotels.html">🏨 Approve Hotels</a></li>
-                    <li class="nav-item"><a class="nav-link text-white" href="transactions.html">💰 Transactions</a></li>
-                    <li class="nav-item"><a class="nav-link text-white active" href="categories.html">🏷️ Categories</a></li>
-                    <li class="nav-item"><a class="nav-link text-white" href="analytics.html">📊 Analytics</a></li>
-                    <li class="nav-item"><a class="nav-link text-white" href="notifications.html">🔔 Notifications</a></li>
-                    <li class="nav-item"><a class="nav-link text-white" href="#" onclick="logout()">🚪 Logout</a></li>
-                </ul>
-            </div>
-        </nav>
+        <!-- Sidebar rendered by ui-shell.js -->
+        <nav id="appShellSidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse"></nav>
 
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
             <h2 class="mb-4">Manage Food Categories</h2>
@@ -77,10 +63,26 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="../js/env-config.js"></script>
 <script src="../js/firebase-config.js"></script>
+<script src="../js/ui-shell.js"></script>
 
 <script>
+    const adminShellLinks = [
+        { key: 'approve-hotels', href: 'approve-hotels.html', icon: 'fas fa-hotel', label: 'Approve Hotels' },
+        { key: 'transactions', href: 'transactions.html', icon: 'fas fa-money-bill-wave', label: 'Transactions' },
+        { key: 'categories', href: 'categories.html', icon: 'fas fa-tags', label: 'Categories' },
+        { key: 'analytics', href: 'analytics.html', icon: 'fas fa-chart-line', label: 'Analytics' },
+        { key: 'notifications', href: 'notifications.html', icon: 'fas fa-bell', label: 'Notifications' },
+        { key: 'logout', href: '#', icon: 'fas fa-sign-out-alt', label: 'Logout', logout: true }
+    ];
+
     auth.onAuthStateChanged((user) => {
+        ReplateUI.renderSidebar('appShellSidebar', {
+            title: '<img src="../assets/replate-icon.svg" alt="REPLATE" class="brand-logo-sm">ADMIN',
+            activeKey: 'categories',
+            links: adminShellLinks,
+        });
         if (user) loadCategories();
+        else window.location.href = 'login.html';
     });
 
     function loadCategories() {
