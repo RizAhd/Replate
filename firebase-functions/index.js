@@ -544,7 +544,7 @@ exports.sendTargetedNotification = functions.region(REGION).https.onRequest(asyn
   }
 });
 
-exports.sendSelfTestNotification = functions.region(REGION).https.onRequest(async (req, res) => {
+const sendSelfTestPushHandler = async (req, res) => {
   setCorsHeaders(res);
   if (req.method === "OPTIONS") return res.status(204).send("");
 
@@ -581,10 +581,17 @@ exports.sendSelfTestNotification = functions.region(REGION).https.onRequest(asyn
 
     return res.status(200).json({ success: true, result });
   } catch (err) {
-    console.error("sendSelfTestNotification error", err);
+    console.error("sendSelfTestPush error", err);
     return res.status(500).json({ success: false, message: err.message || "Failed to send self-test notification" });
   }
-});
+};
+
+// Canonical endpoint used by Android app:
+// https://us-central1-replate-food-rescue.cloudfunctions.net/sendSelfTestPush
+exports.sendSelfTestPush = functions.region("us-central1").https.onRequest(sendSelfTestPushHandler);
+
+// Backward-compatible alias for older app versions.
+exports.sendSelfTestNotification = functions.region(REGION).https.onRequest(sendSelfTestPushHandler);
 
 exports.onUserProfileCreatedNotify = functions
   .region(REGION)
