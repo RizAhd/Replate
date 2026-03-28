@@ -2,11 +2,13 @@ package com.replate.app.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -28,6 +30,7 @@ import com.replate.app.MainActivity;
 import com.replate.app.NotificationsActivity;
 import com.replate.app.R;
 import com.replate.app.SettingsActivity;
+import com.replate.app.utils.AccountDeletionManager;
 import com.replate.app.utils.ToastUtils;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -39,7 +42,7 @@ public class ProfileFragment extends Fragment {
 
     private CircleImageView ivProfileImage;
     private TextView tvUserName, tvUserEmail, tvOrdersCount, tvSavings;
-    private Button btnEditProfile, btnLogout;
+    private Button btnEditProfile, btnLogout, btnDeleteAccount;
     private LinearLayout menuOrders, menuFavorites, menuNotifications, menuSettings, menuHelp;
 
     private FirebaseAuth mAuth;
@@ -76,6 +79,7 @@ public class ProfileFragment extends Fragment {
         tvSavings = view.findViewById(R.id.tvSavings);
         btnEditProfile = view.findViewById(R.id.btnEditProfile);
         btnLogout = view.findViewById(R.id.btnLogout);
+        btnDeleteAccount = view.findViewById(R.id.btnDeleteAccount);
         menuOrders = view.findViewById(R.id.menuOrders);
         menuFavorites = view.findViewById(R.id.menuFavorites);
         menuNotifications = view.findViewById(R.id.menuNotifications);
@@ -186,6 +190,8 @@ public class ProfileFragment extends Fragment {
         });
 
         btnLogout.setOnClickListener(v -> showLogoutDialog());
+
+        btnDeleteAccount.setOnClickListener(v -> showDeleteAccountDialog());
     }
 
     @Override
@@ -217,5 +223,84 @@ public class ProfileFragment extends Fragment {
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
+    }
+
+    private void showDeleteAccountDialog() {
+        // Step 1: Warning confirmation dialog
+        new AlertDialog.Builder(requireContext())
+                .setTitle(getString(R.string.delete_account_confirm_title))
+                .setMessage(getString(R.string.delete_account_confirm_message))
+                .setPositiveButton(getString(R.string.delete_account_confirm_btn), (d, w) ->
+                        showPasswordConfirmDialog())
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    private void showPasswordConfirmDialog() {
+        // Step 2: Password entry dialog
+        EditText etPassword = new EditText(requireContext());
+        etPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        etPassword.setHint(getString(R.string.delete_account_password_hint));
+        int pad = (int) (16 * requireContext().getResources().getDisplayMetrics().density);
+        etPassword.setPadding(pad, pad, pad, pad);
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle(getString(R.string.delete_account_password_title))
+                .setView(etPassword)
+                .setPositiveButton(getString(R.string.delete_account_confirm_btn), (d, w) -> {
+                    String password = etPassword.getText() == null ? "" : etPassword.getText().toString().trim();
+                    if (password.isEmpty()) {
+                        ToastUtils.showCustomToast(getContext(), getString(R.string.delete_account_password_hint));
+                        return;
+                    }
+                    performDeletion(password);
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    private void performDeletion(@NonNull String password) {
+        if (getContext() == null) return;
+
+        // Show non-cancelable progress dialog
+        AlertDialog progress = new AlertDialog.Builder(requireContext())
+                .setMessage(getString(R.string.delete_account_deleting))
+                .setCancelable(false)
+                .create();
+        progress.show();
+
+        AccountDeletionManager.deleteAccount(requireContext(), password,
+                new AccountDeletionManager.DeletionCallback() {
+                    @Override
+                    public void onSuccess() {
+                        if (progress.isShowing()) progress.dismiss();
+                        // Sign out and navigate to login
+                        try {
+                            mAuth.signOut();
+                        } catch (Exception ignored) {}
+                        ToastUtils.showCustomToast(getContext(), getString(R.string.delete_account_success));
+                        try {
+                            Intent intent = new Intent(requireContext(), LoginActivity.class);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            startActivity(intent);
+                        } catch (Exception e) {
+                            Log.e("DeleteAccount", "Navigation error after deletion", e);
+                        }
+                    }
+
+                    @Override
+                    public void onWrongPassword() {
+                        if (progress.isShowing()) progress.dismiss();
+                        ToastUtils.showCustomToast(getContext(), getString(R.string.delete_account_wrong_password));
+                        showPasswordConfirmDialog(); // Let user retry
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull String reason) {
+                        if (progress.isShowing()) progress.dismiss();
+                        ToastUtils.showCustomToast(getContext(), getString(R.string.delete_account_failed));
+                        Log.e("DeleteAccount", "Deletion failed: " + reason);
+                    }
+                });
     }
 }
