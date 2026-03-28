@@ -587,8 +587,8 @@ const sendSelfTestPushHandler = async (req, res) => {
 };
 
 // Canonical endpoint used by Android app:
-// https://us-central1-replate-food-rescue.cloudfunctions.net/sendSelfTestPush
-exports.sendSelfTestPush = functions.region("us-central1").https.onRequest(sendSelfTestPushHandler);
+// https://asia-southeast1-replate-food-rescue.cloudfunctions.net/sendSelfTestPush
+exports.sendSelfTestPush = functions.region(REGION).https.onRequest(sendSelfTestPushHandler);
 
 
 exports.onUserProfileCreatedNotify = functions

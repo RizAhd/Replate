@@ -116,24 +116,21 @@ public class MainActivity extends AppCompatActivity {
         applySystemInsets();
         bindDrawerHeader();
 
+        // Only create home fragment now; others lazy-init on demand
         homeFragment = new HomeFragment();
-        mapFragment = new MapFragment();
-        cartFragment = new CartFragment();
-        ordersFragment = new OrdersFragment();
-        profileFragment = new ProfileFragment();
 
         loadFragment(homeFragment);
 
         bottomNavigation.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
-            if (itemId == R.id.nav_home) return switchFragment(homeFragment);
-            if (itemId == R.id.nav_map) return switchFragment(mapFragment);
+            if (itemId == R.id.nav_home) return switchFragment(getHomeFragment());
+            if (itemId == R.id.nav_map) return switchFragment(getMapFragment());
             if (itemId == R.id.nav_cart) {
                 startActivity(new Intent(this, CartActivity.class));
                 return false;
             }
-            if (itemId == R.id.nav_orders) return switchFragment(ordersFragment);
-            if (itemId == R.id.nav_profile) return switchFragment(profileFragment);
+            if (itemId == R.id.nav_orders) return switchFragment(getOrdersFragment());
+            if (itemId == R.id.nav_profile) return switchFragment(getProfileFragment());
             return false;
         });
 
@@ -183,12 +180,15 @@ public class MainActivity extends AppCompatActivity {
             return true;
         });
 
-        registerNetworkReceiver();
-        FirebaseMessaging.getInstance().subscribeToTopic("all_users");
-        scheduleBackgroundSync();
-        checkNotificationPermissions();
-
         handleDeepLinkFromNotification(getIntent());
+
+        // Defer non-critical operations to after first frame for faster startup
+        mainContent.post(() -> {
+            registerNetworkReceiver();
+            FirebaseMessaging.getInstance().subscribeToTopic("all_users");
+            scheduleBackgroundSync();
+            checkNotificationPermissions();
+        });
 
         // Request location permission after auth with a small delay for better UX
         // This ensures the UI is fully loaded before showing permission dialog
@@ -245,6 +245,31 @@ public class MainActivity extends AppCompatActivity {
     private boolean switchFragment(Fragment fragment) {
         loadFragment(fragment);
         return true;
+    }
+
+    private HomeFragment getHomeFragment() {
+        if (homeFragment == null) homeFragment = new HomeFragment();
+        return homeFragment;
+    }
+
+    private MapFragment getMapFragment() {
+        if (mapFragment == null) mapFragment = new MapFragment();
+        return mapFragment;
+    }
+
+    private CartFragment getCartFragment() {
+        if (cartFragment == null) cartFragment = new CartFragment();
+        return cartFragment;
+    }
+
+    private OrdersFragment getOrdersFragment() {
+        if (ordersFragment == null) ordersFragment = new OrdersFragment();
+        return ordersFragment;
+    }
+
+    private ProfileFragment getProfileFragment() {
+        if (profileFragment == null) profileFragment = new ProfileFragment();
+        return profileFragment;
     }
 
     private void loadFragment(Fragment fragment) {
