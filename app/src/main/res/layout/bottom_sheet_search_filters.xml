@@ -15,26 +15,21 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/search_filters_title"
-            android:textColor="@color/text_primary"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textAppearance="@style/TextAppearance.REPLATE.Headline" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="@dimen/space_0_5"
             android:text="@string/search_filters_subtitle"
-            android:textColor="@color/text_secondary"
-            android:textSize="12sp" />
+            android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
+            android:layout_marginTop="@dimen/space_2"
             android:text="@string/search_filters_sort"
-            android:textColor="@color/text_primary"
-            android:textSize="13sp"
-            android:textStyle="bold" />
+            android:textAppearance="@style/TextAppearance.REPLATE.Label" />
 
         <RadioGroup
             android:id="@+id/rgSort"
@@ -82,11 +77,9 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
+            android:layout_marginTop="@dimen/space_2"
             android:text="@string/search_filters_category"
-            android:textColor="@color/text_primary"
-            android:textSize="13sp"
-            android:textStyle="bold" />
+            android:textAppearance="@style/TextAppearance.REPLATE.Label" />
 
         <Spinner
             android:id="@+id/spCategory"

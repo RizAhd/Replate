@@ -58,7 +58,7 @@
 
     <!-- Main Card Container -->
 
-    <androidx.cardview.widget.CardView
+    <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardContainer"
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -310,5 +310,5 @@
                 </LinearLayout>
             </ScrollView>
         </LinearLayout>
-    </androidx.cardview.widget.CardView>
+    </com.google.android.material.card.MaterialCardView>
 </androidx.constraintlayout.widget.ConstraintLayout>

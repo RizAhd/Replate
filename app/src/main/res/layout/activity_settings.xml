@@ -61,16 +61,18 @@
                         app:civ_border_color="@color/white"
                         app:civ_border_width="3dp" />
 
-                    <Button
+                    <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnChangePhoto"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
                         android:layout_width="wrap_content"
                         android:layout_height="@dimen/button_height"
                         android:layout_marginTop="12dp"
-                        android:background="@drawable/button_outline_white"
                         android:text="@string/settings_change_photo"
                         android:textAllCaps="false"
                         android:textColor="@color/white"
-                        android:textStyle="bold" />
+                        android:fontFamily="@font/poppins_semibold"
+                        app:strokeColor="@color/white_70"
+                        app:cornerRadius="@dimen/radius_md" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -150,16 +152,17 @@
                         android:inputType="textPostalAddress" />
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnPickAddress"
-                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    style="@style/Widget.REPLATE.Button.Text"
                     android:layout_width="wrap_content"
                     android:layout_height="40dp"
                     android:layout_gravity="end"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="@dimen/space_1"
                     android:text="@string/settings_pick_from_map"
-                    android:textAllCaps="false"
-                    android:textColor="@color/ember" />
+                    android:textSize="@dimen/text_xs"
+                    app:icon="@drawable/ic_location_pin"
+                    app:iconTint="@color/ember" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnSaveProfile"

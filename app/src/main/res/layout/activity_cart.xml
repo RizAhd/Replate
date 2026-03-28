@@ -78,10 +78,8 @@
         android:clipToPadding="false"
         android:nestedScrollingEnabled="true"
         android:overScrollMode="never"
-        android:paddingStart="8dp"
-        android:paddingTop="4dp"
-        android:paddingEnd="8dp"
-        android:paddingBottom="12dp" />
+        android:paddingTop="@dimen/space_0_5"
+        android:paddingBottom="@dimen/space_1_5" />
 
     <LinearLayout
         android:id="@+id/emptyState"

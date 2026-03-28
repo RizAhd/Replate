@@ -77,7 +77,7 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardQR"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -110,10 +110,9 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="@dimen/space_2"
                     android:text="Or share this pickup OTP"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="13sp" />
+                    android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
                 <TextView
                     android:id="@+id/tvOTP"
@@ -129,9 +128,9 @@
                     android:textSize="@dimen/text_display"
                     android:textStyle="bold" />
             </LinearLayout>
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
 
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
@@ -155,32 +154,31 @@
                     android:id="@+id/tvHotelName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="@dimen/space_1_5"
                     android:text="Hotel Name"
-                    android:textColor="@color/text_primary"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+                    android:textAppearance="@style/TextAppearance.REPLATE.Subheading"
+                    android:textColor="@color/text_primary" />
 
                 <TextView
                     android:id="@+id/tvHotelAddress"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
+                    android:layout_marginTop="@dimen/space_0_5"
                     android:text="Hotel Address"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="13sp" />
+                    android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
                 <TextView
                     android:id="@+id/tvPickupTime"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:background="@drawable/badge_distance"
-                    android:paddingHorizontal="12dp"
-                    android:paddingVertical="7dp"
+                    android:layout_marginTop="@dimen/space_1_5"
+                    android:background="@drawable/badge_status_pending"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:paddingHorizontal="@dimen/space_1_5"
+                    android:paddingVertical="@dimen/space_1"
                     android:text="Pickup: 6:00 PM - 8:00 PM"
-                    android:textColor="@color/accent"
-                    android:textSize="12sp" />
+                    android:textColor="@color/ember2"
+                    android:textSize="@dimen/text_xs" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -189,29 +187,31 @@
                     android:orientation="horizontal"
                     android:weightSum="2">
 
-                    <Button
+                    <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnCallHotel"
+                        style="@style/Widget.REPLATE.Button.Secondary"
                         android:layout_width="0dp"
                         android:layout_height="@dimen/button_height"
                         android:layout_weight="1"
                         android:layout_marginEnd="6dp"
-                        android:background="@drawable/button_outline_neutral"
                         android:text="Call Hotel"
-                        android:textAllCaps="false"
-                        android:textColor="@color/text_primary"
-                        android:textStyle="bold" />
+                        android:textSize="@dimen/text_xs"
+                        app:icon="@drawable/ic_phone"
+                        app:iconGravity="textStart"
+                        app:iconPadding="6dp" />
 
-                    <Button
+                    <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnSmsHotel"
+                        style="@style/Widget.REPLATE.Button.Secondary"
                         android:layout_width="0dp"
                         android:layout_height="@dimen/button_height"
                         android:layout_weight="1"
                         android:layout_marginStart="6dp"
-                        android:background="@drawable/button_outline_neutral"
                         android:text="SMS Hotel"
-                        android:textAllCaps="false"
-                        android:textColor="@color/text_primary"
-                        android:textStyle="bold" />
+                        android:textSize="@dimen/text_xs"
+                        app:icon="@drawable/ic_email"
+                        app:iconGravity="textStart"
+                        app:iconPadding="6dp" />
                 </LinearLayout>
 
                 <com.google.android.material.button.MaterialButton
@@ -222,9 +222,9 @@
                     android:layout_marginTop="@dimen/space_1_5"
                     android:text="Open Pickup Route" />
             </LinearLayout>
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
 
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
@@ -306,7 +306,7 @@
                         android:textStyle="bold" />
                 </LinearLayout>
             </LinearLayout>
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/reviewSection"
@@ -341,11 +341,14 @@
 
                 <RatingBar
                     android:id="@+id/ratingReview"
-                    style="?android:attr/ratingBarStyleSmall"
+                    style="?android:attr/ratingBarStyleIndicator"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
+                    android:layout_marginTop="@dimen/space_1_5"
                     android:numStars="5"
+                    android:scaleX="0.8"
+                    android:scaleY="0.8"
+                    android:transformPivotX="0dp"
                     android:rating="0"
                     android:stepSize="1" />
 
@@ -383,3 +386,5 @@
         </com.google.android.material.card.MaterialCardView>
     </LinearLayout>
 </ScrollView>
+
+

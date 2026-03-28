@@ -60,13 +60,15 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
             app:cardBackgroundColor="@color/surface_white"
             app:cardCornerRadius="@dimen/radius_lg"
-            app:cardElevation="@dimen/elevation_card">
+            app:cardElevation="@dimen/elevation_card"
+            app:strokeColor="@color/md_theme_outlineVariant"
+            app:strokeWidth="1dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -128,9 +130,9 @@
                         android:textStyle="bold" />
                 </RadioGroup>
             </LinearLayout>
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
 
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardDeliveryAddress"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -180,9 +182,9 @@
                     app:cornerRadius="@dimen/radius_md"
                     app:icon="@drawable/ic_location_pin" />
             </LinearLayout>
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
 
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="16dp"
@@ -314,9 +316,9 @@
                         android:textStyle="bold" />
                 </LinearLayout>
             </LinearLayout>
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
 
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardPickupTime"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -360,9 +362,9 @@
                         android:hint="@string/checkout_pickup_time_hint" />
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
 
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
@@ -405,9 +407,9 @@
                         android:text="@string/checkout_payment_card" />
                 </RadioGroup>
             </LinearLayout>
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
 
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
@@ -455,7 +457,7 @@
                         android:inputType="phone" />
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnPlaceOrder"
@@ -475,4 +477,5 @@
             android:visibility="gone" />
     </LinearLayout>
 </ScrollView>
+
 

@@ -644,8 +644,14 @@ main > h2 {
 .table-responsive {
     border-radius: var(--radius-md);
     border: 1px solid var(--border);
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
     background: var(--surface);
+}
+
+.table-responsive .table {
+    min-width: 640px;
 }
 
 .table {
@@ -977,7 +983,7 @@ main > h2 {
 #imagePreviewContainer,
 #imagePreview {
     width: 100%;
-    height: 220px;
+    height: clamp(160px, 36vw, 220px);
     border-radius: var(--radius-md);
     background: var(--bg);
     border: 2px dashed var(--border);
@@ -1088,7 +1094,7 @@ main > h2 {
 
     main {
         margin-left: 0 !important;
-        padding: 72px 20px 40px !important;
+        padding: 72px 18px 40px !important;
         width: 100% !important;
     }
 
@@ -1139,8 +1145,24 @@ main > h2 {
         font-size: 0.8rem;
     }
 
+    .table thead th {
+        white-space: normal;
+    }
+
+    .table-responsive .table {
+        min-width: 560px;
+    }
+
     .btn {
         width: 100%;
+    }
+
+    .table .btn,
+    .card-header .btn,
+    .modal-footer .btn,
+    .nav-pills .btn,
+    .nav-tabs .btn {
+        width: auto;
     }
 
     .btn-sm {
@@ -1156,6 +1178,20 @@ main > h2 {
         padding: 14px 18px;
         flex-wrap: wrap;
         gap: 8px;
+    }
+
+    .nav-pills,
+    .nav-tabs {
+        flex-wrap: wrap;
+    }
+
+    .otp-digits {
+        letter-spacing: 8px;
+        font-size: 1.6rem;
+    }
+
+    #reader {
+        min-height: 220px !important;
     }
 }
 

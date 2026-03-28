@@ -53,12 +53,13 @@
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
 
-            <androidx.cardview.widget.CardView
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/space_1_5"
                 app:cardCornerRadius="16dp"
-                app:cardElevation="0dp">
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="@color/white">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -92,7 +93,7 @@
                         android:textSize="@dimen/text_sm" />
                 </LinearLayout>
 
-            </androidx.cardview.widget.CardView>
+            </com.google.android.material.card.MaterialCardView>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -107,7 +108,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:background="@drawable/badge_distance"
+                    android:background="@drawable/badge_outline_white"
                     android:fontFamily="@font/poppins_medium"
                     android:paddingHorizontal="@dimen/space_1_5"
                     android:paddingVertical="@dimen/space_0_5"
@@ -131,15 +132,16 @@
             android:id="@+id/tvResultsCount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
-            android:background="@drawable/badge_distance"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="5dp"
+            android:layout_marginHorizontal="@dimen/space_2"
+            android:layout_marginTop="@dimen/space_1_5"
+            android:layout_marginBottom="@dimen/space_1"
+            android:background="@drawable/badge_status_active"
+            android:paddingHorizontal="@dimen/space_1_5"
+            android:paddingVertical="@dimen/space_0_5"
             android:text="@string/search_results_default"
-            android:textAppearance="@style/TextAppearance.REPLATE.Body"
-            android:textColor="@color/text_primary" />
+            android:textAppearance="@style/TextAppearance.REPLATE.Caption"
+            android:fontFamily="@font/poppins_semibold"
+            android:textColor="@color/green_primary" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvSearchResults"
