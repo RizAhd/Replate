@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -13,7 +14,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.messaging.FirebaseMessaging;
 
-import java.util.Locale;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Manages FCM token lifecycle and role-based topic subscriptions.
@@ -32,17 +34,43 @@ public final class FcmTokenManager {
 
     private FcmTokenManager() {}
 
-    public static void syncTokenForCurrentUser(@NonNull Context context, String role) {
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user == null) return;
+    public interface TokenLookupCallback {
+        void onLoaded(@Nullable TokenLookupResult result);
+    }
 
-        final String normalizedRole = normalizeRole(role);
+    public static final class TokenLookupResult {
+        public final String uid;
+        public final String role;
+        public final String token;
+        public final List<String> cleanupPaths;
+
+        TokenLookupResult(String uid, String role, String token, List<String> cleanupPaths) {
+            this.uid = uid;
+            this.role = role;
+            this.token = token;
+            this.cleanupPaths = cleanupPaths;
+        }
+    }
+
+    public static void syncTokenForCurrentUser(@NonNull Context context, @Nullable String role) {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) {
+            Log.d(TAG, "Skipping token sync because no authenticated user is available yet.");
+            return;
+        }
+
+        final String normalizedRole = UserRoleHelper.normalize(role);
+        FirebaseMessaging.getInstance().setAutoInitEnabled(true);
         FirebaseMessaging.getInstance().getToken()
                 .addOnSuccessListener(token -> {
-                    if (token == null || token.trim().isEmpty()) return;
+                    if (token == null || token.trim().isEmpty()) {
+                        Log.w(TAG, "FCM token fetch returned empty token for uid=" + user.getUid());
+                        return;
+                    }
                     persistLatestToken(context, token);
-                    writeTokenToDatabase(user.getUid(), token, normalizedRole);
+                    writeTokenToDatabase(user.getUid(), token.trim(), normalizedRole);
                     subscribeTopics(normalizedRole);
+                    Log.d(TAG, "FCM token synced for uid=" + user.getUid() + " role=" + normalizedRole);
                 })
                 .addOnFailureListener(e -> Log.w(TAG, "Unable to fetch FCM token", e));
     }
@@ -58,8 +86,8 @@ public final class FcmTokenManager {
 
         DatabaseReference root = FirebaseDatabase.getInstance().getReference();
         String uid = user.getUid();
-        root.child("users").child(uid).child("fcmToken").removeValue();
-        root.child("users").child(uid).child("notification").child("fcmToken").removeValue();
+        clearTokenAtPath(root, "users/" + uid + "/fcmToken");
+        clearTokenAtPath(root, "users/" + uid + "/notification/fcmToken");
 
         root.child("hotels")
                 .orderByChild("userId")
@@ -68,8 +96,10 @@ public final class FcmTokenManager {
                 .addOnSuccessListener(snapshot -> {
                     if (snapshot == null || !snapshot.exists()) return;
                     for (DataSnapshot child : snapshot.getChildren()) {
-                        root.child("hotels").child(child.getKey()).child("fcmToken").removeValue();
-                        root.child("hotels").child(child.getKey()).child("notification").child("fcmToken").removeValue();
+                        String hotelKey = child.getKey();
+                        if (hotelKey == null || hotelKey.trim().isEmpty()) continue;
+                        clearTokenAtPath(root, "hotels/" + hotelKey + "/fcmToken");
+                        clearTokenAtPath(root, "hotels/" + hotelKey + "/notification/fcmToken");
                     }
                 });
 
@@ -78,14 +108,51 @@ public final class FcmTokenManager {
                 .addOnFailureListener(e -> Log.w(TAG, "Failed deleting FCM token", e));
     }
 
-    public static void subscribeTopics(String role) {
+    public static void fetchReceiverToken(@NonNull String uid, @NonNull TokenLookupCallback callback) {
+        DatabaseReference root = FirebaseDatabase.getInstance().getReference();
+        root.child("users").child(uid).get()
+                .addOnSuccessListener(snapshot -> {
+                    if (snapshot == null || !snapshot.exists()) {
+                        callback.onLoaded(null);
+                        return;
+                    }
+
+                    String role = UserRoleHelper.fromSnapshot(snapshot);
+                    String userToken = safeString(snapshot.child("fcmToken").getValue(String.class));
+                    String notifToken = safeString(snapshot.child("notification").child("fcmToken").getValue(String.class));
+                    List<String> cleanupPaths = new ArrayList<>();
+                    cleanupPaths.add("users/" + uid + "/fcmToken");
+                    cleanupPaths.add("users/" + uid + "/notification/fcmToken");
+
+                    if (UserRoleHelper.isHotel(role)) {
+                        fetchHotelToken(root, uid, role, userToken, notifToken, cleanupPaths, callback);
+                        return;
+                    }
+
+                    String resolvedToken = !userToken.isEmpty() ? userToken : notifToken;
+                    callback.onLoaded(new TokenLookupResult(uid, role, resolvedToken, cleanupPaths));
+                })
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "Failed to read receiver token for uid=" + uid, e);
+                    callback.onLoaded(null);
+                });
+    }
+
+    public static void clearStaleToken(@NonNull TokenLookupResult result) {
+        DatabaseReference root = FirebaseDatabase.getInstance().getReference();
+        for (String path : result.cleanupPaths) {
+            clearTokenAtPath(root, path);
+        }
+    }
+
+    public static void subscribeTopics(@Nullable String role) {
         FirebaseMessaging.getInstance().subscribeToTopic(TOPIC_ALL_USERS);
 
-        switch (normalizeRole(role)) {
-            case "hotel":
+        switch (UserRoleHelper.normalize(role)) {
+            case UserRoleHelper.ROLE_HOTEL:
                 FirebaseMessaging.getInstance().subscribeToTopic(TOPIC_HOTELS);
                 break;
-            case "admin":
+            case UserRoleHelper.ROLE_ADMIN:
                 FirebaseMessaging.getInstance().subscribeToTopic(TOPIC_ADMINS);
                 break;
             default:
@@ -103,16 +170,17 @@ public final class FcmTokenManager {
         FirebaseMessaging.getInstance().unsubscribeFromTopic(TOPIC_DEALS_CUSTOMERS);
     }
 
-    private static void writeTokenToDatabase(String uid, String token, String role) {
+    private static void writeTokenToDatabase(@NonNull String uid, @NonNull String token, @Nullable String role) {
         DatabaseReference root = FirebaseDatabase.getInstance().getReference();
         long now = System.currentTimeMillis();
+        String normalizedRole = UserRoleHelper.normalize(role);
 
         root.child("users").child(uid).child("fcmToken").setValue(token);
         root.child("users").child(uid).child("notification").child("fcmToken").setValue(token);
-        root.child("users").child(uid).child("notification").child("role").setValue(role);
+        root.child("users").child(uid).child("notification").child("role").setValue(normalizedRole);
         root.child("users").child(uid).child("notification").child("lastTokenUpdateAt").setValue(now);
 
-        if ("hotel".equals(role)) {
+        if (UserRoleHelper.isHotel(normalizedRole)) {
             root.child("hotels")
                     .orderByChild("userId")
                     .equalTo(uid)
@@ -121,13 +189,57 @@ public final class FcmTokenManager {
         }
     }
 
+    private static void fetchHotelToken(DatabaseReference root,
+                                        String uid,
+                                        String role,
+                                        String userToken,
+                                        String notifToken,
+                                        List<String> cleanupPaths,
+                                        TokenLookupCallback callback) {
+        root.child("hotels")
+                .orderByChild("userId")
+                .equalTo(uid)
+                .get()
+                .addOnSuccessListener(snapshot -> {
+                    String resolvedToken = !userToken.isEmpty() ? userToken : notifToken;
+                    if (snapshot != null && snapshot.exists()) {
+                        for (DataSnapshot child : snapshot.getChildren()) {
+                            String hotelKey = child.getKey();
+                            if (hotelKey == null || hotelKey.trim().isEmpty()) continue;
+                            cleanupPaths.add("hotels/" + hotelKey + "/fcmToken");
+                            cleanupPaths.add("hotels/" + hotelKey + "/notification/fcmToken");
+
+                            String hotelToken = safeString(child.child("fcmToken").getValue(String.class));
+                            if (resolvedToken.isEmpty()) {
+                                resolvedToken = !hotelToken.isEmpty()
+                                        ? hotelToken
+                                        : safeString(child.child("notification").child("fcmToken").getValue(String.class));
+                            }
+                        }
+                    }
+                    callback.onLoaded(new TokenLookupResult(uid, role, resolvedToken, cleanupPaths));
+                })
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "Failed to resolve hotel token for uid=" + uid, e);
+                    callback.onLoaded(new TokenLookupResult(uid, role, !userToken.isEmpty() ? userToken : notifToken, cleanupPaths));
+                });
+    }
+
     private static void updateHotelTokens(DatabaseReference root, DataSnapshot snapshot, String token, long updatedAt) {
         if (snapshot == null || !snapshot.exists()) return;
         for (DataSnapshot child : snapshot.getChildren()) {
-            root.child("hotels").child(child.getKey()).child("fcmToken").setValue(token);
-            root.child("hotels").child(child.getKey()).child("notification").child("fcmToken").setValue(token);
-            root.child("hotels").child(child.getKey()).child("notification").child("lastTokenUpdateAt").setValue(updatedAt);
+            String hotelKey = child.getKey();
+            if (hotelKey == null || hotelKey.trim().isEmpty()) continue;
+            root.child("hotels").child(hotelKey).child("fcmToken").setValue(token);
+            root.child("hotels").child(hotelKey).child("notification").child("fcmToken").setValue(token);
+            root.child("hotels").child(hotelKey).child("notification").child("lastTokenUpdateAt").setValue(updatedAt);
         }
+    }
+
+    private static void clearTokenAtPath(DatabaseReference root, String path) {
+        if (path == null || path.trim().isEmpty()) return;
+        root.child(path).removeValue()
+                .addOnFailureListener(e -> Log.w(TAG, "Failed clearing stale token path: " + path, e));
     }
 
     private static void saveTokenInPrefs(Context context, String token) {
@@ -143,9 +255,7 @@ public final class FcmTokenManager {
         return prefs.getString(KEY_LAST_FCM_TOKEN, "");
     }
 
-    public static String normalizeRole(String role) {
-        if (role == null) return "customer";
-        String normalized = role.trim().toLowerCase(Locale.US);
-        return normalized.isEmpty() ? "customer" : normalized;
+    private static String safeString(@Nullable String value) {
+        return value == null ? "" : value.trim();
     }
 }

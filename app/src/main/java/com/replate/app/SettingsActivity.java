@@ -11,17 +11,14 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -38,12 +35,15 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageException;
 import com.google.firebase.storage.StorageReference;
+import com.replate.app.utils.FcmTokenManager;
+import com.replate.app.utils.NotificationPermissionHelper;
 import com.replate.app.utils.ToastUtils;
+import com.replate.app.utils.UserRoleHelper;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -64,8 +64,7 @@ import java.util.concurrent.TimeUnit;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 /**
- * Settings Activity - Profile editing, camera, SharedPreferences
- * Requirements: Multimedia (Camera), Data Storage (SharedPreferences, Internal Storage)
+ * Settings Activity - Profile editing, camera, SharedPreferences, and notification tools.
  */
 public class SettingsActivity extends AppCompatActivity {
 
@@ -74,9 +73,10 @@ public class SettingsActivity extends AppCompatActivity {
     private static final String TAG = "SettingsActivity";
 
     private CircleImageView ivProfileImage;
-    private TextInputEditText etName, etPhone, etEmail, etAddress; // Added etAddress
+    private TextInputEditText etName, etPhone, etEmail, etAddress;
     private Button btnChangePhoto, btnSaveProfile, btnPickAddress;
-    private Button btnSendTestPush;
+    private Button btnSendTestPush, btnRefreshFcmToken;
+    private TextView tvCurrentFcmToken;
     private MaterialCardView cardNotificationTools;
     private SwitchMaterial switchNotifications, switchLocation;
 
@@ -90,6 +90,16 @@ public class SettingsActivity extends AppCompatActivity {
     private ActivityResultLauncher<Intent> cameraLauncher;
     private ActivityResultLauncher<String> galleryLauncher;
     private ActivityResultLauncher<Intent> locationPickerLauncher;
+    private final ActivityResultLauncher<String> notificationsPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
+                if (switchNotifications != null) {
+                    switchNotifications.setChecked(granted || !NotificationPermissionHelper.isRuntimePermissionRequired());
+                }
+                prefs.edit().putBoolean("notifications_enabled", granted || !NotificationPermissionHelper.isRuntimePermissionRequired()).apply();
+                if (!granted && NotificationPermissionHelper.isRuntimePermissionRequired()) {
+                    ToastUtils.showCustomToast(this, getString(R.string.notifications_permission_denied));
+                }
+            });
 
     private Double pickedLat = null;
     private Double pickedLng = null;
@@ -168,6 +178,8 @@ public class SettingsActivity extends AppCompatActivity {
         initViews();
         loadUserData();
         loadPreferences();
+        bindCurrentTokenText(FcmTokenManager.getLastToken(this));
+        refreshSavedTokenFromFirebase();
     }
 
     private void initViews() {
@@ -176,30 +188,30 @@ public class SettingsActivity extends AppCompatActivity {
         etName = findViewById(R.id.etName);
         etPhone = findViewById(R.id.etPhone);
         etEmail = findViewById(R.id.etEmail);
-        etAddress = findViewById(R.id.etAddress); // Initialize
+        etAddress = findViewById(R.id.etAddress);
         btnChangePhoto = findViewById(R.id.btnChangePhoto);
         btnSaveProfile = findViewById(R.id.btnSaveProfile);
         btnPickAddress = findViewById(R.id.btnPickAddress);
         btnSendTestPush = findViewById(R.id.btnSendTestPush);
+        btnRefreshFcmToken = findViewById(R.id.btnRefreshFcmToken);
+        tvCurrentFcmToken = findViewById(R.id.tvCurrentFcmToken);
         cardNotificationTools = findViewById(R.id.cardNotificationTools);
         switchNotifications = findViewById(R.id.switchNotifications);
         switchLocation = findViewById(R.id.switchLocation);
 
         ivBack.setOnClickListener(v -> finish());
-
-        // CAMERA - MULTIMEDIA REQUIREMENT
         btnChangePhoto.setOnClickListener(v -> showPhotoPicker());
-
-        btnPickAddress.setOnClickListener(v -> {
-            Intent intent = new Intent(this, LocationPickerActivity.class);
-            locationPickerLauncher.launch(intent);
-        });
-
+        btnPickAddress.setOnClickListener(v -> locationPickerLauncher.launch(new Intent(this, LocationPickerActivity.class)));
         btnSaveProfile.setOnClickListener(v -> saveProfile());
 
-        // Save preferences on toggle (SHARED PREFERENCES REQUIREMENT)
-        switchNotifications.setOnCheckedChangeListener((btn, checked) ->
-                prefs.edit().putBoolean("notifications_enabled", checked).apply());
+        switchNotifications.setOnCheckedChangeListener((btn, checked) -> {
+            if (checked && !NotificationPermissionHelper.hasPermission(this)) {
+                switchNotifications.setChecked(false);
+                requestNotificationPermissionFromSettings();
+                return;
+            }
+            prefs.edit().putBoolean("notifications_enabled", checked).apply();
+        });
 
         switchLocation.setOnCheckedChangeListener((btn, checked) ->
                 prefs.edit().putBoolean("location_enabled", checked).apply());
@@ -208,22 +220,102 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void setupNotificationTools() {
-        String role = prefs.getString("role", "customer");
-        boolean isAdmin = "admin".equalsIgnoreCase(role.trim());
-
         if (cardNotificationTools != null) {
-            cardNotificationTools.setVisibility(isAdmin ? android.view.View.VISIBLE : android.view.View.GONE);
+            cardNotificationTools.setVisibility(View.VISIBLE);
         }
 
-        if (isAdmin && btnSendTestPush != null) {
+        if (btnRefreshFcmToken != null) {
+            btnRefreshFcmToken.setOnClickListener(v -> refreshAndSyncToken());
+        }
+
+        if (btnSendTestPush != null) {
             btnSendTestPush.setOnClickListener(v -> sendSelfTestPush());
         }
+    }
+
+    private void requestNotificationPermissionFromSettings() {
+        if (!NotificationPermissionHelper.isRuntimePermissionRequired()) {
+            prefs.edit().putBoolean("notifications_enabled", true).apply();
+            if (switchNotifications != null) switchNotifications.setChecked(true);
+            return;
+        }
+
+        if (NotificationPermissionHelper.hasPermission(this)) {
+            prefs.edit().putBoolean("notifications_enabled", true).apply();
+            if (switchNotifications != null) switchNotifications.setChecked(true);
+            return;
+        }
+
+        if (NotificationPermissionHelper.shouldShowRationale(this)) {
+            NotificationPermissionHelper.showRationaleDialog(this,
+                    () -> NotificationPermissionHelper.request(notificationsPermissionLauncher));
+            return;
+        }
+
+        NotificationPermissionHelper.request(notificationsPermissionLauncher);
+    }
+
+    private void refreshAndSyncToken() {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) {
+            ToastUtils.showCustomToast(this, getString(R.string.settings_token_refresh_failed));
+            return;
+        }
+
+        ToastUtils.showCustomToast(this, getString(R.string.settings_token_refreshing));
+        FirebaseMessaging.getInstance().setAutoInitEnabled(true);
+        FirebaseMessaging.getInstance().getToken()
+                .addOnSuccessListener(token -> {
+                    if (token == null || token.trim().isEmpty()) {
+                        ToastUtils.showCustomToast(this, getString(R.string.settings_token_refresh_failed));
+                        return;
+                    }
+                    bindCurrentTokenText(token);
+                    String role = UserRoleHelper.fromPrefs(prefs);
+                    FcmTokenManager.persistLatestToken(this, token);
+                    FcmTokenManager.syncTokenForCurrentUser(this, role);
+                    Log.d(TAG, "Manual FCM token refresh completed for uid=" + user.getUid() + " token=" + token);
+                    ToastUtils.showCustomToast(this, getString(R.string.settings_token_refreshed));
+                })
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "Manual FCM token refresh failed", e);
+                    ToastUtils.showCustomToast(this, getString(R.string.settings_token_refresh_failed));
+                });
+    }
+
+    private void refreshSavedTokenFromFirebase() {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) return;
+
+        FcmTokenManager.fetchReceiverToken(user.getUid(), result -> runOnUiThread(() -> {
+            if (!canUseUi()) return;
+            String token = result == null ? "" : result.token;
+            if (token == null || token.trim().isEmpty()) {
+                token = FcmTokenManager.getLastToken(SettingsActivity.this);
+            }
+            bindCurrentTokenText(token);
+        }));
+    }
+
+    private void bindCurrentTokenText(String token) {
+        if (tvCurrentFcmToken == null) return;
+        if (token == null || token.trim().isEmpty()) {
+            tvCurrentFcmToken.setText(getString(R.string.settings_current_fcm_token_empty));
+            return;
+        }
+        tvCurrentFcmToken.setText(getString(R.string.settings_current_fcm_token_format, token.trim()));
+        Log.d(TAG, "Current FCM token=" + token.trim());
     }
 
     private void sendSelfTestPush() {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user == null) {
             ToastUtils.showCustomToast(this, getString(R.string.settings_test_push_failed));
+            return;
+        }
+
+        if (!NotificationPermissionHelper.hasPermission(this)) {
+            requestNotificationPermissionFromSettings();
             return;
         }
 
@@ -237,7 +329,7 @@ public class SettingsActivity extends AppCompatActivity {
                     throw new IllegalStateException("Missing auth token");
                 }
 
-                URL url = new URL(FUNCTIONS_BASE_URL + "/sendTargetedNotification");
+                URL url = new URL(FUNCTIONS_BASE_URL + "/sendSelfTestNotification");
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("POST");
                 connection.setConnectTimeout(15000);
@@ -251,9 +343,7 @@ public class SettingsActivity extends AppCompatActivity {
                 payload.put("body", "If you can see this popup, push notifications are working.");
                 payload.put("category", "admin_announcement");
                 payload.put("route", "notifications");
-                JSONArray users = new JSONArray();
-                users.put(user.getUid());
-                payload.put("userIds", users);
+                payload.put("data", new JSONObject().put("debug", "true").put("source", "settings_self_test"));
 
                 byte[] out = payload.toString().getBytes(StandardCharsets.UTF_8);
                 connection.getOutputStream().write(out);
@@ -275,6 +365,7 @@ public class SettingsActivity extends AppCompatActivity {
                     throw new IllegalStateException("HTTP " + code + ": " + response);
                 }
             } catch (Exception e) {
+                Log.e(TAG, "sendSelfTestPush failed", e);
                 runOnUiThread(() -> ToastUtils.showCustomToast(SettingsActivity.this,
                         getString(R.string.settings_test_push_failed) + " " + e.getMessage()));
             } finally {
@@ -330,7 +421,11 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void loadPreferences() {
-        switchNotifications.setChecked(prefs.getBoolean("notifications_enabled", true));
+        boolean notificationsEnabled = prefs.getBoolean("notifications_enabled", true);
+        if (NotificationPermissionHelper.isRuntimePermissionRequired() && !NotificationPermissionHelper.hasPermission(this)) {
+            notificationsEnabled = false;
+        }
+        switchNotifications.setChecked(notificationsEnabled);
         switchLocation.setChecked(prefs.getBoolean("location_enabled", true));
     }
 

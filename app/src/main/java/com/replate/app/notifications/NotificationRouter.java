@@ -28,6 +28,13 @@ public final class NotificationRouter {
         String safeHotelId = hotelId == null ? "" : hotelId.trim();
         String safeDeepLink = deepLink == null ? "" : deepLink.trim();
 
+        if (NotificationCategories.HOTEL_APPROVED.equals(normalizedCategory)
+                || normalizedRoute.contains("hotel_dashboard")
+                || normalizedRoute.contains("approval")) {
+            Intent dashboardIntent = tryHotelDashboardIntent(context);
+            return applyCommonExtras(dashboardIntent, normalizedCategory, normalizedRoute, safeOrderId, safeHotelId, safeDeepLink);
+        }
+
         if (NotificationCategories.PICKUP_READY.equals(normalizedCategory)
                 || NotificationCategories.PICKUP_REMINDER.equals(normalizedCategory)
                 || normalizedRoute.contains("map")
@@ -46,9 +53,7 @@ public final class NotificationRouter {
         if (isOrderCategory(normalizedCategory) || normalizedRoute.contains("order")) {
             if (NotificationCategories.HOTEL_NEW_ORDER.equals(normalizedCategory)) {
                 Intent hotelOrders = tryHotelOrdersIntent(context);
-                if (hotelOrders != null) {
-                    return applyCommonExtras(hotelOrders, normalizedCategory, normalizedRoute, safeOrderId, safeHotelId, safeDeepLink);
-                }
+                return applyCommonExtras(hotelOrders, normalizedCategory, normalizedRoute, safeOrderId, safeHotelId, safeDeepLink);
             }
 
             Intent orderIntent = new Intent(context, OrderDetailActivity.class);
@@ -116,5 +121,15 @@ public final class NotificationRouter {
             return fallback;
         }
     }
-}
 
+    private static Intent tryHotelDashboardIntent(Context context) {
+        try {
+            Class<?> hotelDashboardClass = Class.forName("com.replate.app.hotel.HotelDashboardActivity");
+            return new Intent(context, hotelDashboardClass);
+        } catch (ClassNotFoundException ignored) {
+            Intent fallback = new Intent(context, MainActivity.class);
+            fallback.putExtra("open_tab", "profile");
+            return fallback;
+        }
+    }
+}
