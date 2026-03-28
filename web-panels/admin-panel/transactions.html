@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Transactions - REPLATE Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -28,7 +28,7 @@
 
             <div class="card data-panel p-3">
                 <div class="table-responsive">
-                    <table id="transactionsTable" class="table table-striped align-middle" style="width:100%">
+                    <table id="transactionsTable" class="table table-striped align-middle table-stack" style="width:100%">
                         <thead>
                             <tr>
                                 <th>Order ID</th>
@@ -97,13 +97,13 @@
 
                 rows.push(`
                     <tr>
-                        <td><code>#${displayId}</code></td>
-                        <td>${date}</td>
-                        <td>${order.customerName || '—'}</td>
-                        <td>${order.hotelName || '—'}</td>
-                        <td>LKR ${amount}</td>
-                        <td>${order.reviewRating ? `⭐ ${Number(order.reviewRating).toFixed(1)}` : '<span class="text-muted">—</span>'}</td>
-                        <td><span class="badge ${bgClass}">${label}</span></td>
+                        <td data-label="Order ID"><code>#${displayId}</code></td>
+                        <td data-label="Date">${date}</td>
+                        <td data-label="Customer">${order.customerName || '—'}</td>
+                        <td data-label="Hotel">${order.hotelName || '—'}</td>
+                        <td data-label="Amount">LKR ${amount}</td>
+                        <td data-label="Review">${order.reviewRating ? `⭐ ${Number(order.reviewRating).toFixed(1)}` : '<span class="text-muted">—</span>'}</td>
+                        <td data-label="Status"><span class="badge ${bgClass}">${label}</span></td>
                     </tr>`);
             });
 
@@ -115,7 +115,8 @@
             $('#transactionsTable').DataTable({
                 pageLength: 25,
                 order: [[1, 'desc']],
-                autoWidth: false
+                autoWidth: false,
+                scrollX: true
             });
         });
     }
