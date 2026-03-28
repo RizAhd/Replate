@@ -23,6 +23,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 /**
  * Adapter for displaying food items in a RecyclerView
@@ -32,6 +34,8 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
     private final Context context;
     private List<FoodItem> foodItems;
     private final OnFoodItemClickListener listener;
+    private static final Executor DIFF_EXECUTOR = Executors.newSingleThreadExecutor();
+    private int diffGeneration = 0;
 
     // Click listener interface
     public interface OnFoodItemClickListener {
@@ -75,52 +79,64 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
     }
 
     public void updateData(List<FoodItem> newFoodItems) {
-        List<FoodItem> oldList = this.foodItems == null ? Collections.emptyList() : this.foodItems;
-        List<FoodItem> newList = newFoodItems == null ? Collections.emptyList() : newFoodItems;
+        List<FoodItem> oldList = this.foodItems == null ? Collections.emptyList() : new ArrayList<>(this.foodItems);
+        List<FoodItem> newList = newFoodItems == null ? Collections.emptyList() : new ArrayList<>(newFoodItems);
 
-        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new DiffUtil.Callback() {
-            @Override
-            public int getOldListSize() {
-                return oldList.size();
-            }
+        final int gen = ++diffGeneration;
 
-            @Override
-            public int getNewListSize() {
-                return newList.size();
-            }
-
-            @Override
-            public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
-                FoodItem oldItem = oldList.get(oldItemPosition);
-                FoodItem newItem = newList.get(newItemPosition);
-
-                String oldId = oldItem.getFoodId();
-                String newId = newItem.getFoodId();
-                if (!isBlank(oldId) && !isBlank(newId)) {
-                    return oldId.equals(newId);
+        DIFF_EXECUTOR.execute(() -> {
+            DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new DiffUtil.Callback() {
+                @Override
+                public int getOldListSize() {
+                    return oldList.size();
                 }
-                return safe(oldItem.getFoodName()).equals(safe(newItem.getFoodName()))
-                        && safe(oldItem.getHotelName()).equals(safe(newItem.getHotelName()));
-            }
 
-            @Override
-            public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
-                FoodItem oldItem = oldList.get(oldItemPosition);
-                FoodItem newItem = newList.get(newItemPosition);
+                @Override
+                public int getNewListSize() {
+                    return newList.size();
+                }
 
-                return safe(oldItem.getFoodName()).equals(safe(newItem.getFoodName()))
-                        && safe(oldItem.getHotelName()).equals(safe(newItem.getHotelName()))
-                        && oldItem.getOriginalPriceValue() == newItem.getOriginalPriceValue()
-                        && oldItem.getDiscountedPriceValue() == newItem.getDiscountedPriceValue()
-                        && oldItem.getDiscountPercentValue() == newItem.getDiscountPercentValue()
-                        && oldItem.getDistance() == newItem.getDistance()
-                        && safe(oldItem.getPickupTimeFormatted()).equals(safe(newItem.getPickupTimeFormatted()))
-                        && safe(oldItem.getImageUrl()).equals(safe(newItem.getImageUrl()));
+                @Override
+                public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
+                    FoodItem oldItem = oldList.get(oldItemPosition);
+                    FoodItem newItem = newList.get(newItemPosition);
+
+                    String oldId = oldItem.getFoodId();
+                    String newId = newItem.getFoodId();
+                    if (!isBlank(oldId) && !isBlank(newId)) {
+                        return oldId.equals(newId);
+                    }
+                    return safe(oldItem.getFoodName()).equals(safe(newItem.getFoodName()))
+                            && safe(oldItem.getHotelName()).equals(safe(newItem.getHotelName()));
+                }
+
+                @Override
+                public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
+                    FoodItem oldItem = oldList.get(oldItemPosition);
+                    FoodItem newItem = newList.get(newItemPosition);
+
+                    return safe(oldItem.getFoodName()).equals(safe(newItem.getFoodName()))
+                            && safe(oldItem.getHotelName()).equals(safe(newItem.getHotelName()))
+                            && oldItem.getOriginalPriceValue() == newItem.getOriginalPriceValue()
+                            && oldItem.getDiscountedPriceValue() == newItem.getDiscountedPriceValue()
+                            && oldItem.getDiscountPercentValue() == newItem.getDiscountPercentValue()
+                            && oldItem.getDistance() == newItem.getDistance()
+                            && safe(oldItem.getPickupTimeFormatted()).equals(safe(newItem.getPickupTimeFormatted()))
+                            && safe(oldItem.getImageUrl()).equals(safe(newItem.getImageUrl()));
+                }
+            });
+
+            // Only dispatch if this is still the latest update
+            if (gen == diffGeneration) {
+                android.os.Handler mainHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+                mainHandler.post(() -> {
+                    if (gen == diffGeneration) {
+                        this.foodItems = new ArrayList<>(newList);
+                        diffResult.dispatchUpdatesTo(this);
+                    }
+                });
             }
         });
-
-        this.foodItems = new ArrayList<>(newList);
-        diffResult.dispatchUpdatesTo(this);
     }
 
     private boolean isBlank(String value) {
@@ -236,6 +252,8 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
                 Glide.with(context)
                         .load(cachedResolved)
                         .dontAnimate()
+                        .thumbnail(0.25f)
+                        .override(400, 300)
                         .placeholder(R.drawable.placeholder_food)
                         .error(R.drawable.placeholder_food)
                         .centerCrop()
@@ -260,6 +278,8 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
                         Glide.with(context)
                                 .load(uri)
                                 .dontAnimate()
+                                .thumbnail(0.25f)
+                                .override(400, 300)
                                 .placeholder(R.drawable.placeholder_food)
                                 .error(R.drawable.placeholder_food)
                                 .centerCrop()

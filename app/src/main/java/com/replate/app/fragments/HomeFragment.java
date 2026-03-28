@@ -183,6 +183,18 @@ public class HomeFragment extends Fragment implements
         rvHotDeals.setItemViewCacheSize(8);
         rvFavorites.setItemViewCacheSize(8);
 
+        // Share RecyclerView pool between food lists for faster view recycling
+        RecyclerView.RecycledViewPool sharedPool = new RecyclerView.RecycledViewPool();
+        sharedPool.setMaxRecycledViews(0, 15);
+        rvHotDeals.setRecycledViewPool(sharedPool);
+        rvFoodItems.setRecycledViewPool(sharedPool);
+        rvFavorites.setRecycledViewPool(sharedPool);
+
+        // Improve draw performance
+        rvFoodItems.setDrawingCacheEnabled(true);
+        rvHotDeals.setDrawingCacheEnabled(true);
+        rvFavorites.setDrawingCacheEnabled(true);
+
         categoryAdapter = new CategoryAdapter(getContext(), categories, this);
         rvCategories.setAdapter(categoryAdapter);
 
@@ -203,7 +215,6 @@ public class HomeFragment extends Fragment implements
 
         // Setup categories
         setupCategories();
-        observeFavorites();
 
         // Setup click listeners
         setupClickListeners();
@@ -211,9 +222,13 @@ public class HomeFragment extends Fragment implements
         // Load cached food items immediately for faster perceived performance
         loadCachedFoodItems();
 
-        // Load food from Firebase (will replace cached data with fresh data)
-        loadFoodItems();
-        getUserLocation();
+        // Defer heavy operations to after first frame render for smoother startup
+        view.post(() -> {
+            if (!isAdded()) return;
+            observeFavorites();
+            loadFoodItems();
+            getUserLocation();
+        });
 
         // Setup shake-to-refresh (REQUIREMENT: Sensors - Accelerometer)
         sensorManager = (SensorManager) requireActivity().getSystemService(android.content.Context.SENSOR_SERVICE);
@@ -449,81 +464,91 @@ public class HomeFragment extends Fragment implements
         mDatabase.child("foodItems").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                allFoodItems.clear();
+                // Process Firebase data on background thread to prevent UI jank
+                final DataSnapshot snapshotCopy = snapshot;
+                new Thread(() -> {
+                    List<FoodItem> newItems = new ArrayList<>();
 
-                for (DataSnapshot itemSnapshot : snapshot.getChildren()) {
-                    FoodItem item = itemSnapshot.getValue(FoodItem.class);
-                    if (item == null) continue;
+                    for (DataSnapshot itemSnapshot : snapshotCopy.getChildren()) {
+                        FoodItem item = itemSnapshot.getValue(FoodItem.class);
+                        if (item == null) continue;
 
-                    item.setFoodId(itemSnapshot.getKey());
+                        item.setFoodId(itemSnapshot.getKey());
 
-                    // Fix schema variants from Firebase nodes used by web panels.
-                    if (item.getImageUrl() == null || item.getImageUrl().trim().isEmpty()) {
-                        item.setImageUrl(getStringAny(itemSnapshot,
-                                "imageUrl", "photoUrl", "foodImage", "image", "imageURL", "image_path"));
+                        // Fix schema variants from Firebase nodes used by web panels.
+                        if (item.getImageUrl() == null || item.getImageUrl().trim().isEmpty()) {
+                            item.setImageUrl(getStringAny(itemSnapshot,
+                                    "imageUrl", "photoUrl", "foodImage", "image", "imageURL", "image_path"));
+                        }
+                        if (item.getLatitudeValue() == 0) {
+                            Object lat = getObjectAny(itemSnapshot, "latitude", "hotelLatitude", "lat");
+                            if (lat != null) item.setLatitude(lat);
+                        }
+                        if (item.getLongitudeValue() == 0) {
+                            Object lng = getObjectAny(itemSnapshot, "longitude", "hotelLongitude", "lng");
+                            if (lng != null) item.setLongitude(lng);
+                        }
+                        if ((item.getPickupTimeStart() == null || item.getPickupTimeStart().isEmpty())) {
+                            String pickupStart = getStringAny(itemSnapshot, "pickupTimeStart", "pickupStart", "pickup_from");
+                            if (pickupStart != null) item.setPickupTimeStart(pickupStart);
+                        }
+                        if ((item.getPickupTimeEnd() == null || item.getPickupTimeEnd().isEmpty())) {
+                            String pickupEnd = getStringAny(itemSnapshot, "pickupTimeEnd", "pickupEnd", "pickup_to");
+                            if (pickupEnd != null) item.setPickupTimeEnd(pickupEnd);
+                        }
+                        if (item.getDiscountPercentValue() == 0) {
+                            Object discount = getObjectAny(itemSnapshot, "discountPercent", "discountPercentage", "discount");
+                            if (discount != null) item.setDiscountPercent(discount);
+                        }
+
+                        String status = getStringAny(itemSnapshot, "status", "itemStatus");
+                        if (status != null && !status.trim().isEmpty()) {
+                            item.setStatus(status);
+                        }
+
+                        Object quantityRaw = getObjectAny(itemSnapshot, "quantity", "qty", "stock");
+                        if (quantityRaw != null) {
+                            item.setQuantity(quantityRaw);
+                        }
+
+                        if (!item.isListable()) continue;
+
+                        if (currentLatitude != 0 && currentLongitude != 0) {
+                            double distance = calculateDistance(
+                                    currentLatitude, currentLongitude,
+                                    item.getLatitudeValue(), item.getLongitudeValue()
+                            );
+                            item.setDistance(distance);
+                        }
+
+                        newItems.add(item);
                     }
-                    if (item.getLatitudeValue() == 0) {
-                        Object lat = getObjectAny(itemSnapshot, "latitude", "hotelLatitude", "lat");
-                        if (lat != null) item.setLatitude(lat);
-                    }
-                    if (item.getLongitudeValue() == 0) {
-                        Object lng = getObjectAny(itemSnapshot, "longitude", "hotelLongitude", "lng");
-                        if (lng != null) item.setLongitude(lng);
-                    }
-                    if ((item.getPickupTimeStart() == null || item.getPickupTimeStart().isEmpty())) {
-                        String pickupStart = getStringAny(itemSnapshot, "pickupTimeStart", "pickupStart", "pickup_from");
-                        if (pickupStart != null) item.setPickupTimeStart(pickupStart);
-                    }
-                    if ((item.getPickupTimeEnd() == null || item.getPickupTimeEnd().isEmpty())) {
-                        String pickupEnd = getStringAny(itemSnapshot, "pickupTimeEnd", "pickupEnd", "pickup_to");
-                        if (pickupEnd != null) item.setPickupTimeEnd(pickupEnd);
-                    }
-                    if (item.getDiscountPercentValue() == 0) {
-                        Object discount = getObjectAny(itemSnapshot, "discountPercent", "discountPercentage", "discount");
-                        if (discount != null) item.setDiscountPercent(discount);
+
+                    if (currentLatitude != 0) {
+                        Collections.sort(newItems, (a, b) -> Double.compare(a.getDistance(), b.getDistance()));
                     }
 
-                    String status = getStringAny(itemSnapshot, "status", "itemStatus");
-                    if (status != null && !status.trim().isEmpty()) {
-                        item.setStatus(status);
+                    // Cache on background thread
+                    if (cacheManager != null && !newItems.isEmpty()) {
+                        try {
+                            cacheManager.saveFoodItems(new ArrayList<>(newItems));
+                        } catch (Exception e) {
+                            android.util.Log.e("HomeFragment", "Error caching food items", e);
+                        }
                     }
 
-                    Object quantityRaw = getObjectAny(itemSnapshot, "quantity", "qty", "stock");
-                    if (quantityRaw != null) {
-                        item.setQuantity(quantityRaw);
-                    }
-
-                    if (!item.isListable()) continue;
-
-                    if (currentLatitude != 0 && currentLongitude != 0) {
-                        double distance = calculateDistance(
-                                currentLatitude, currentLongitude,
-                                item.getLatitudeValue(), item.getLongitudeValue()
-                        );
-                        item.setDistance(distance);
-                    }
-
-                    allFoodItems.add(item);
-                }
-
-                if (currentLatitude != 0) {
-                    Collections.sort(allFoodItems, (a, b) -> Double.compare(a.getDistance(), b.getDistance()));
-                }
-
-                updateHotDeals();
-                updateFavorites();
-                filterByCategory(selectedCategory);
-
-                // Cache the loaded food items for faster startup next time
-                if (cacheManager != null && !allFoodItems.isEmpty()) {
-                    try {
-                        cacheManager.saveFoodItems(new ArrayList<>(allFoodItems));
-                    } catch (Exception e) {
-                        android.util.Log.e("HomeFragment", "Error caching food items", e);
-                    }
-                }
-
-                showLoading(false);
+                    // Post UI updates back to main thread
+                    final List<FoodItem> finalItems = newItems;
+                    uiHandler.post(() -> {
+                        if (!isAdded()) return;
+                        allFoodItems.clear();
+                        allFoodItems.addAll(finalItems);
+                        updateHotDeals();
+                        updateFavorites();
+                        filterByCategory(selectedCategory);
+                        showLoading(false);
+                    });
+                }).start();
             }
 
             @Override

@@ -22,8 +22,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.Priority;
-import com.google.android.gms.tasks.CancellationTokenSource;
 import com.bumptech.glide.Glide;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
@@ -119,7 +117,7 @@ public class FoodDetailActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        updateDistanceFromLiveLocation();
+        // Distance is already set in onCreate; no need to re-query GPS on every resume
     }
 
     private void initViews() {
@@ -799,16 +797,8 @@ public class FoodDetailActivity extends AppCompatActivity {
             return;
         }
 
-        CancellationTokenSource cts = new CancellationTokenSource();
-        fusedLocationClient.getCurrentLocation(Priority.PRIORITY_BALANCED_POWER_ACCURACY, cts.getToken())
-                .addOnSuccessListener(location -> {
-                    if (location != null) {
-                        bindDistanceText(location, targetLat, targetLng);
-                    } else {
-                        loadFallbackLastLocation(targetLat, targetLng);
-                    }
-                })
-                .addOnFailureListener(e -> loadFallbackLastLocation(targetLat, targetLng));
+        // Use getLastLocation (instant, cached) to avoid slow GPS scan and frame drops
+        loadFallbackLastLocation(targetLat, targetLng);
     }
 
     @SuppressLint("MissingPermission")

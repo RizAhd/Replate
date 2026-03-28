@@ -744,7 +744,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             return;
         }
 
-        foodItemsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        // Use orderByChild query to avoid scanning all food items
+        foodItemsRef.orderByChild("hotelId").equalTo(hotelId)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (!isAdded()) return;
@@ -752,14 +754,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 int added = 0;
 
                 for (DataSnapshot child : snapshot.getChildren()) {
-                    String childHotelId = asString(child.child("hotelId").getValue());
-                    String childHotelName = asString(child.child("hotelName").getValue());
-
-                    boolean sameHotel = hotelId.equals(childHotelId)
-                            || (!childHotelName.isEmpty() && hotelName.equalsIgnoreCase(childHotelName));
-                    if (!sameHotel) {
-                        continue;
-                    }
 
                     String status = asString(child.child("status").getValue());
                     int quantity = asInt(child.child("quantity").getValue());

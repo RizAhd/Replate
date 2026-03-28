@@ -69,7 +69,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 public class SettingsActivity extends AppCompatActivity {
 
     private static final int CAMERA_PERMISSION_REQUEST = 2001;
-    private static final String FUNCTIONS_BASE_URL = "https://us-central1-replate-food-rescue.cloudfunctions.net";
+    private static final String FUNCTIONS_BASE_URL = "https://asia-southeast1-replate-food-rescue.cloudfunctions.net";
     private static final String SELF_TEST_FUNCTION_PATH = "/sendSelfTestPush";
     private static final String TAG = "SettingsActivity";
 
