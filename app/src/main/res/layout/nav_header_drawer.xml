@@ -7,46 +7,47 @@
     android:background="@drawable/bg_gradient_green"
     android:gravity="bottom"
     android:orientation="vertical"
-    android:paddingStart="20dp"
-    android:paddingTop="20dp"
-    android:paddingEnd="20dp"
-    android:paddingBottom="20dp">
+    android:paddingStart="@dimen/space_2_5"
+    android:paddingTop="@dimen/space_5"
+    android:paddingEnd="@dimen/space_2_5"
+    android:paddingBottom="@dimen/space_2_5">
 
     <ImageView
         android:id="@+id/ivDrawerAvatar"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
         android:background="@drawable/circle_white"
         android:contentDescription="@string/drawer_profile_cd"
-        android:padding="8dp"
+        android:padding="@dimen/space_1"
         android:src="@drawable/ic_replate_logo" />
 
     <TextView
         android:id="@+id/tvDrawerTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="14dp"
+        android:layout_marginTop="@dimen/space_2"
+        android:fontFamily="@font/poppins_bold"
         android:text="@string/app_name"
         android:textColor="@color/white"
-        android:textSize="22sp"
-        android:textStyle="bold" />
+        android:textSize="@dimen/text_xl" />
 
     <TextView
         android:id="@+id/tvDrawerName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="@dimen/space_0_5"
+        android:fontFamily="@font/poppins_medium"
         android:text="@string/drawer_welcome_back"
         android:textColor="@color/white"
-        android:textSize="15sp"
-        android:textStyle="bold" />
+        android:textSize="@dimen/text_sm" />
 
     <TextView
         android:id="@+id/tvDrawerEmail"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
+        android:fontFamily="@font/poppins_regular"
         android:text="@string/drawer_tagline"
-        android:textColor="#D9FFFFFF"
-        android:textSize="13sp" />
+        android:textColor="@color/white_85"
+        android:textSize="@dimen/text_xs" />
 </LinearLayout>

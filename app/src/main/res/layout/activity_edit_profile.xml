@@ -96,23 +96,20 @@
                     android:inputType="textPostalAddress" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnPickLocation"
+                style="@style/Widget.REPLATE.Button.Secondary"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/button_height"
-                android:layout_marginBottom="24dp"
-                android:text="@string/edit_profile_pick_map"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:textColor="@color/leaf"
-                app:strokeColor="@color/leaf" />
+                android:layout_marginBottom="@dimen/space_3"
+                android:text="@string/edit_profile_pick_map" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSave"
+                style="@style/Widget.REPLATE.Button.Primary"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/button_height"
-                android:text="@string/edit_profile_save"
-                android:backgroundTint="@color/leaf"
-                android:textColor="@color/white" />
+                android:text="@string/edit_profile_save" />
 
         </LinearLayout>
     </ScrollView>

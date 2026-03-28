@@ -52,19 +52,17 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:fontFamily="@font/poppins_semibold"
                             android:text="Map explorer"
                             android:textColor="@color/ember2"
-                            android:textSize="12sp"
-                            android:textStyle="bold" />
+                            android:textSize="@dimen/text_xs" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
+                            android:layout_marginTop="@dimen/space_0_5"
                             android:text="Find pickup deals around you"
-                            android:textColor="@color/text_primary"
-                            android:textSize="18sp"
-                            android:textStyle="bold" />
+                            android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
                     </LinearLayout>
 
                     <com.google.android.material.card.MaterialCardView
@@ -155,43 +153,40 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Restaurant Name"
-                        android:textColor="@color/text_primary"
-                        android:textSize="20sp"
-                        android:textStyle="bold" />
+                        android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
                     <TextView
                         android:id="@+id/tvRestaurantAddress"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
+                        android:layout_marginTop="@dimen/space_0_5"
                         android:ellipsize="end"
                         android:maxLines="2"
                         android:text="Address"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="13sp" />
+                        android:textAppearance="@style/TextAppearance.REPLATE.Caption" />
 
                     <TextView
                         android:id="@+id/tvDealsCount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
+                        android:layout_marginTop="@dimen/space_1"
                         android:background="@drawable/badge_distance"
-                        android:paddingHorizontal="10dp"
-                        android:paddingVertical="6dp"
+                        android:fontFamily="@font/poppins_medium"
+                        android:paddingHorizontal="@dimen/space_1_5"
+                        android:paddingVertical="@dimen/space_0_5"
                         android:text="5 deals available"
-                        android:textColor="@color/green_primary"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/text_xs" />
 
                     <TextView
                         android:id="@+id/tvRouteInfo"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
+                        android:layout_marginTop="@dimen/space_1"
+                        android:fontFamily="@font/poppins_medium"
                         android:text="@string/map_tap_marker_route"
                         android:textColor="@color/text_secondary"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
+                        android:textSize="@dimen/text_xs" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -213,16 +208,13 @@
                 android:textAppearance="@style/TextAppearance.REPLATE.Body"
                 android:textColor="@color/text_primary" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnViewDeals"
+                style="@style/Widget.REPLATE.Button.Primary"
                 android:layout_width="match_parent"
-                android:layout_height="54dp"
-                android:layout_marginTop="18dp"
-                android:background="@drawable/button_primary"
-                android:text="@string/map_route_button"
-                android:textAllCaps="false"
-                android:textColor="@color/white"
-                android:textStyle="bold" />
+                android:layout_height="@dimen/button_height"
+                android:layout_marginTop="@dimen/space_2"
+                android:text="@string/map_route_button" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 

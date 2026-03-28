@@ -25,6 +25,8 @@ public final class NotificationRouter {
         String normalizedCategory = NotificationCategories.normalize(category);
         String normalizedRoute = route == null ? "notifications" : route.trim().toLowerCase(Locale.US);
         String safeOrderId = orderId == null ? "" : orderId.trim();
+        String safeHotelId = hotelId == null ? "" : hotelId.trim();
+        String safeDeepLink = deepLink == null ? "" : deepLink.trim();
 
         if (NotificationCategories.PICKUP_READY.equals(normalizedCategory)
                 || NotificationCategories.PICKUP_REMINDER.equals(normalizedCategory)
@@ -32,26 +34,28 @@ public final class NotificationRouter {
                 || normalizedRoute.contains("pickup")) {
             Intent mapIntent = new Intent(context, MainActivity.class);
             mapIntent.putExtra("open_tab", "map");
-            if (hotelId != null && !hotelId.trim().isEmpty()) {
-                mapIntent.putExtra("focus_hotel_id", hotelId.trim());
+            if (!safeHotelId.isEmpty()) {
+                mapIntent.putExtra("focus_hotel_id", safeHotelId);
             }
             if (!safeOrderId.isEmpty()) {
                 mapIntent.putExtra("orderId", safeOrderId);
             }
-            return mapIntent;
+            return applyCommonExtras(mapIntent, normalizedCategory, normalizedRoute, safeOrderId, safeHotelId, safeDeepLink);
         }
 
         if (isOrderCategory(normalizedCategory) || normalizedRoute.contains("order")) {
             if (NotificationCategories.HOTEL_NEW_ORDER.equals(normalizedCategory)) {
                 Intent hotelOrders = tryHotelOrdersIntent(context);
-                if (hotelOrders != null) return hotelOrders;
+                if (hotelOrders != null) {
+                    return applyCommonExtras(hotelOrders, normalizedCategory, normalizedRoute, safeOrderId, safeHotelId, safeDeepLink);
+                }
             }
 
             Intent orderIntent = new Intent(context, OrderDetailActivity.class);
             if (!safeOrderId.isEmpty()) {
                 orderIntent.putExtra("orderId", safeOrderId);
             }
-            return orderIntent;
+            return applyCommonExtras(orderIntent, normalizedCategory, normalizedRoute, safeOrderId, safeHotelId, safeDeepLink);
         }
 
         if (NotificationCategories.NEW_DEALS.equals(normalizedCategory)
@@ -60,17 +64,36 @@ public final class NotificationRouter {
                 || normalizedRoute.contains("home")) {
             Intent homeIntent = new Intent(context, MainActivity.class);
             homeIntent.putExtra("open_tab", "home");
-            return homeIntent;
+            return applyCommonExtras(homeIntent, normalizedCategory, normalizedRoute, safeOrderId, safeHotelId, safeDeepLink);
         }
 
-        if (deepLink != null && !deepLink.trim().isEmpty()) {
+        if (!safeDeepLink.isEmpty()) {
             try {
-                return new Intent(Intent.ACTION_VIEW, Uri.parse(deepLink));
+                Intent deepLinkIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(safeDeepLink));
+                return applyCommonExtras(deepLinkIntent, normalizedCategory, normalizedRoute, safeOrderId, safeHotelId, safeDeepLink);
             } catch (Exception ignored) {
             }
         }
 
-        return new Intent(context, NotificationsActivity.class);
+        Intent fallback = new Intent(context, NotificationsActivity.class);
+        return applyCommonExtras(fallback, normalizedCategory, normalizedRoute, safeOrderId, safeHotelId, safeDeepLink);
+    }
+
+    private static Intent applyCommonExtras(Intent intent,
+                                            String category,
+                                            String route,
+                                            String orderId,
+                                            String hotelId,
+                                            String deepLink) {
+        if (intent == null) {
+            return new Intent();
+        }
+        intent.putExtra("category", category == null ? "general" : category);
+        intent.putExtra("route", route == null ? "notifications" : route);
+        intent.putExtra("orderId", orderId == null ? "" : orderId);
+        intent.putExtra("hotelId", hotelId == null ? "" : hotelId);
+        intent.putExtra("deepLink", deepLink == null ? "" : deepLink);
+        return intent;
     }
 
     private static boolean isOrderCategory(String category) {

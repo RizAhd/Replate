@@ -157,20 +157,21 @@
             <androidx.viewpager2.widget.ViewPager2
                 android:id="@+id/bannerViewPager"
                 android:layout_width="match_parent"
-                android:layout_height="162dp"
+                android:layout_height="@dimen/banner_height"
+                android:layout_marginTop="@dimen/space_1"
                 android:clipToPadding="false"
-                android:paddingHorizontal="16dp"/>
+                android:paddingHorizontal="@dimen/space_2"/>
 
             <me.relex.circleindicator.CircleIndicator3
                 android:id="@+id/bannerIndicator"
                 android:layout_width="match_parent"
-                android:layout_height="32dp"
-                android:layout_marginTop="8dp"/>
+                android:layout_height="24dp"
+                android:layout_marginTop="@dimen/space_0_5"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="@dimen/space_3"
                 android:orientation="vertical">
 
                 <TextView
@@ -192,17 +193,17 @@
                     android:id="@+id/rvCategories"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
+                    android:layout_marginTop="@dimen/space_1_5"
                     android:clipToPadding="false"
                     android:nestedScrollingEnabled="false"
-                    android:paddingHorizontal="12dp"
+                    android:paddingHorizontal="@dimen/space_1_5"
                     app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="@dimen/space_3"
                 android:orientation="vertical">
 
                 <LinearLayout
@@ -223,12 +224,12 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:background="@drawable/badge_discount"
-                        android:paddingHorizontal="10dp"
-                        android:paddingVertical="6dp"
+                        android:paddingHorizontal="@dimen/space_1_5"
+                        android:paddingVertical="@dimen/space_0_5"
                         android:text="@string/home_lowest_prices"
                         android:textColor="@color/white"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
+                        android:textSize="@dimen/text_xs"
+                        android:fontFamily="@font/poppins_semibold" />
                 </LinearLayout>
 
                 <TextView
@@ -243,17 +244,17 @@
                     android:id="@+id/rvHotDeals"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="@dimen/space_1_5"
                     android:clipToPadding="false"
                     android:nestedScrollingEnabled="false"
-                    android:paddingHorizontal="6dp" />
+                    android:paddingHorizontal="@dimen/space_1" />
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:layout_marginBottom="20dp"
+                android:layout_marginTop="@dimen/space_3"
+                android:layout_marginBottom="@dimen/space_2"
                 android:orientation="vertical">
 
                 <TextView
@@ -275,17 +276,17 @@
                     android:id="@+id/rvDeals"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="@dimen/space_1_5"
                     android:clipToPadding="false"
                     android:nestedScrollingEnabled="false"
-                    android:paddingBottom="4dp"/>
+                    android:paddingBottom="@dimen/space_0_5"/>
             </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/layoutFavoritesSection"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
+                android:layout_marginTop="@dimen/space_3"
                 android:layout_marginBottom="@dimen/space_2"
                 android:orientation="vertical"
                 android:visibility="gone">
@@ -309,10 +310,10 @@
                     android:id="@+id/rvFavorites"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="@dimen/space_1_5"
                     android:clipToPadding="false"
                     android:nestedScrollingEnabled="false"
-                    android:paddingHorizontal="6dp" />
+                    android:paddingHorizontal="@dimen/space_1" />
             </LinearLayout>
 
         </LinearLayout>

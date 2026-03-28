@@ -58,8 +58,12 @@
         <!-- Window -->
         <item name="android:windowBackground">@color/md_theme_background</item>
 
+        <!-- Activity transitions -->
+        <item name="android:windowAnimationStyle">@style/WindowAnimationTransition</item>
+
         <!-- Typography system -->
-        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:fontFamily">@font/poppins_regular</item>
+        <item name="fontFamily">@font/poppins_regular</item>
         <item name="textAppearanceTitleLarge">@style/TextAppearance.REPLATE.Headline</item>
         <item name="textAppearanceTitleMedium">@style/TextAppearance.REPLATE.Subheading</item>
         <item name="textAppearanceBodyMedium">@style/TextAppearance.REPLATE.Body</item>
@@ -69,12 +73,13 @@
         <item name="materialCardViewStyle">@style/Widget.REPLATE.Card</item>
         <item name="materialButtonStyle">@style/Widget.REPLATE.Button.Primary</item>
         <item name="textInputStyle">@style/Widget.REPLATE.TextInputLayout</item>
+        <item name="editTextStyle">@style/Widget.REPLATE.TextInputEditText</item>
     </style>
 
     <!-- Splash Screen Theme -->
     <style name="Theme.REPLATE.Splash" parent="Theme.REPLATE">
-        <item name="android:statusBarColor">@color/md_theme_primaryContainer</item>
-        <item name="android:windowBackground">@color/md_theme_primaryContainer</item>
+        <item name="android:statusBarColor">@color/leaf</item>
+        <item name="android:windowBackground">@color/leaf</item>
     </style>
 
     <!-- Bottom Nav Active Indicator -->

@@ -1,22 +1,29 @@
 package com.replate.app;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.Priority;
+import com.google.android.gms.tasks.CancellationTokenSource;
 import com.bumptech.glide.Glide;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
@@ -33,6 +40,7 @@ import com.replate.app.models.FoodItem;
 import com.replate.app.models.Review;
 import com.replate.app.utils.TelephonyUtils;
 import com.replate.app.utils.ToastUtils;
+import com.replate.app.utils.LocationUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -61,6 +69,7 @@ public class FoodDetailActivity extends AppCompatActivity {
     private FoodItem foodItem;
     private int quantity = 1;
     private DatabaseReference mDatabase;
+    private FusedLocationProviderClient fusedLocationClient;
     private String pendingCallNumber;
     private String currentUserName = "Anonymous";
     private String currentUserId = "";
@@ -94,6 +103,7 @@ public class FoodDetailActivity extends AppCompatActivity {
         }
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         initViews();
         setupReviewAndRecommendationLists();
@@ -103,6 +113,13 @@ public class FoodDetailActivity extends AppCompatActivity {
         loadCurrentUserName();
         loadReviews();
         loadRecommendations();
+        updateDistanceFromLiveLocation();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateDistanceFromLiveLocation();
     }
 
     private void initViews() {
@@ -761,5 +778,75 @@ public class FoodDetailActivity extends AppCompatActivity {
     private String getStringValue(DataSnapshot parent, String key) {
         Object value = parent.child(key).getValue();
         return value == null ? "" : String.valueOf(value).trim();
+    }
+
+    private void updateDistanceFromLiveLocation() {
+        if (foodItem == null || tvDistance == null || fusedLocationClient == null) {
+            return;
+        }
+
+        double targetLat = foodItem.getLatitudeValue();
+        double targetLng = foodItem.getLongitudeValue();
+        if (targetLat == 0 || targetLng == 0) {
+            return;
+        }
+
+        boolean hasFine = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
+        boolean hasCoarse = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
+        if (!hasFine && !hasCoarse) {
+            return;
+        }
+
+        CancellationTokenSource cts = new CancellationTokenSource();
+        fusedLocationClient.getCurrentLocation(Priority.PRIORITY_BALANCED_POWER_ACCURACY, cts.getToken())
+                .addOnSuccessListener(location -> {
+                    if (location != null) {
+                        bindDistanceText(location, targetLat, targetLng);
+                    } else {
+                        loadFallbackLastLocation(targetLat, targetLng);
+                    }
+                })
+                .addOnFailureListener(e -> loadFallbackLastLocation(targetLat, targetLng));
+    }
+
+    @SuppressLint("MissingPermission")
+    private void loadFallbackLastLocation(double targetLat, double targetLng) {
+        if (fusedLocationClient == null) return;
+
+        boolean hasFine = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
+        boolean hasCoarse = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
+        if (!hasFine && !hasCoarse) {
+            return;
+        }
+
+        try {
+            fusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(location -> {
+                        if (location != null) {
+                            bindDistanceText(location, targetLat, targetLng);
+                        }
+                    });
+        } catch (SecurityException ignored) {
+        }
+    }
+
+    private void bindDistanceText(Location location, double targetLat, double targetLng) {
+        if (location == null || tvDistance == null) return;
+        double distanceKm = LocationUtils.calculateDistance(
+                location.getLatitude(),
+                location.getLongitude(),
+                targetLat,
+                targetLng
+        );
+        if (distanceKm > 0) {
+            String label = distanceKm < 1
+                    ? String.format(Locale.getDefault(), "%.0f m away", distanceKm * 1000)
+                    : String.format(Locale.getDefault(), "%.1f km away", distanceKm);
+            tvDistance.setText(label);
+        }
     }
 }

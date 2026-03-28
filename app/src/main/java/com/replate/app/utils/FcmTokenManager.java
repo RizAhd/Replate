@@ -40,11 +40,16 @@ public final class FcmTokenManager {
         FirebaseMessaging.getInstance().getToken()
                 .addOnSuccessListener(token -> {
                     if (token == null || token.trim().isEmpty()) return;
-                    saveTokenInPrefs(context, token);
+                    persistLatestToken(context, token);
                     writeTokenToDatabase(user.getUid(), token, normalizedRole);
                     subscribeTopics(normalizedRole);
                 })
                 .addOnFailureListener(e -> Log.w(TAG, "Unable to fetch FCM token", e));
+    }
+
+    public static void persistLatestToken(@NonNull Context context, @NonNull String token) {
+        if (token.trim().isEmpty()) return;
+        saveTokenInPrefs(context.getApplicationContext(), token.trim());
     }
 
     public static void clearTokenForCurrentUser() {

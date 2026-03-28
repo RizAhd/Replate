@@ -15,7 +15,6 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -110,6 +109,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private String pendingFocusHotelId;
     private LocationCallback liveLocationCallback;
     private boolean hasCenteredOnUser;
+    private long lastRouteInfoUpdateAt;
+    private LatLng lastRouteInfoOrigin;
 
     private final ActivityResultLauncher<String[]> locationPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
@@ -477,20 +478,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
                     // Keep route info fresh while user is moving.
                     if (selectedDestinationLatLng != null && tvRouteInfo != null) {
-                        double distance = LocationUtils.calculateDistance(
-                                currentUserLatLng.latitude,
-                                currentUserLatLng.longitude,
-                                selectedDestinationLatLng.latitude,
-                                selectedDestinationLatLng.longitude
-                        );
-                        tvRouteInfo.setText(String.format(Locale.getDefault(), "Distance: %.2f km • Updating…", distance));
+                        maybeUpdateRouteInfo(currentUserLatLng, selectedDestinationLatLng);
                     }
                 }
             };
         }
 
-        LocationRequest request = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 3000)
-                .setMinUpdateIntervalMillis(1500)
+        LocationRequest request = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000)
+                .setMinUpdateIntervalMillis(2500)
                 .build();
 
         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
@@ -650,24 +645,64 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             return;
         }
 
-        loadingOverlay.setVisibility(View.VISIBLE);
-        tvRouteInfo.setText(getString(R.string.map_calculating_route));
+        if (loadingOverlay != null) {
+            loadingOverlay.setVisibility(View.VISIBLE);
+        }
+        if (tvRouteInfo != null) {
+            tvRouteInfo.setText(getString(R.string.map_calculating_route));
+        }
         directionsApiClient.fetchRoute(currentUserLatLng, selectedDestinationLatLng, new DirectionsApiClient.Callback() {
             @Override
             public void onSuccess(RouteResult result) {
                 if (!isAdded()) return;
-                loadingOverlay.setVisibility(View.GONE);
+                if (loadingOverlay != null) {
+                    loadingOverlay.setVisibility(View.GONE);
+                }
                 drawPolyline(result);
             }
 
             @Override
             public void onError(String message) {
                 if (!isAdded()) return;
-                loadingOverlay.setVisibility(View.GONE);
-                tvRouteInfo.setText(getString(R.string.map_route_unavailable));
+                if (loadingOverlay != null) {
+                    loadingOverlay.setVisibility(View.GONE);
+                }
+                if (tvRouteInfo != null) {
+                    tvRouteInfo.setText(getString(R.string.map_route_unavailable));
+                }
                 ToastUtils.showCustomToast(getContext(), message);
             }
         });
+    }
+
+    private void maybeUpdateRouteInfo(@NonNull LatLng origin, @NonNull LatLng destination) {
+        long now = System.currentTimeMillis();
+        boolean enoughTimePassed = now - lastRouteInfoUpdateAt >= 1500;
+        boolean movedEnough = true;
+
+        if (lastRouteInfoOrigin != null) {
+            double movedKm = LocationUtils.calculateDistance(
+                    lastRouteInfoOrigin.latitude,
+                    lastRouteInfoOrigin.longitude,
+                    origin.latitude,
+                    origin.longitude
+            );
+            movedEnough = movedKm >= 0.025; // 25m movement threshold
+        }
+
+        if (!enoughTimePassed || !movedEnough) {
+            return;
+        }
+
+        double distance = LocationUtils.calculateDistance(
+                origin.latitude,
+                origin.longitude,
+                destination.latitude,
+                destination.longitude
+        );
+        tvRouteInfo.setText(String.format(Locale.getDefault(), "Distance: %.2f km • Updating...", distance));
+        lastRouteInfoUpdateAt = now;
+        lastRouteInfoOrigin = origin;
     }
 
     private void drawPolyline(@NonNull RouteResult routeResult) {
@@ -843,5 +878,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     public void onPause() {
         super.onPause();
         stopLiveLocationUpdates();
+    }
+
+    @Override
+    public void onDestroyView() {
+        stopLiveLocationUpdates();
+        mMap = null;
+        currentRoutePolyline = null;
+        liveLocationCallback = null;
+        super.onDestroyView();
     }
 }

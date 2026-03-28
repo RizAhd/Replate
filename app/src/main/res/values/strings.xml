@@ -106,6 +106,8 @@
     <string name="food_name_placeholder">Chicken Biryani</string>
     <string name="food_hotel_placeholder">Hotel Paradise</string>
     <string name="food_pickup_placeholder">Pickup: 6:00 PM - 8:00 PM</string>
+    <string name="food_distance_nearby">Nearby</string>
+    <string name="food_pickup_template">Pickup: %1$s</string>
 
     <!-- Food detail defaults -->
     <string name="food_detail_default_discount">-30%</string>
