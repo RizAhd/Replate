@@ -47,12 +47,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_0_5"
-            android:background="@drawable/badge_distance"
+            android:background="@drawable/badge_status_active"
             android:fontFamily="@font/poppins_medium"
             android:paddingHorizontal="@dimen/space_1_5"
             android:paddingVertical="@dimen/space_0_5"
-            android:text="Verified pickup"
-            android:textColor="@color/white"
+            android:text="✓ Verified pickup"
+            android:textColor="@color/green_primary"
             android:textSize="@dimen/text_caption"
             android:visibility="gone" />
 

@@ -43,13 +43,13 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
-                    android:background="@drawable/badge_distance"
-                    android:paddingHorizontal="10dp"
+                    android:background="@drawable/badge_status_active"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:paddingHorizontal="12dp"
                     android:paddingVertical="6dp"
                     android:text="Confirmed"
                     android:textColor="@color/primary"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
+                    android:textSize="@dimen/text_xs" />
             </RelativeLayout>
 
             <TextView
@@ -97,22 +97,24 @@
                 android:id="@+id/tvOrderDate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="@dimen/space_1"
+                android:fontFamily="@font/poppins_regular"
                 android:text="Mar 10 2026"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp" />
+                android:textColor="@color/text_hint"
+                android:textSize="@dimen/text_xs" />
 
             <TextView
                 android:id="@+id/tvPickupTime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:background="@drawable/badge_distance"
-                android:paddingHorizontal="10dp"
+                android:layout_marginTop="@dimen/space_1"
+                android:background="@drawable/badge_status_pending"
+                android:fontFamily="@font/poppins_medium"
+                android:paddingHorizontal="12dp"
                 android:paddingVertical="6dp"
                 android:text="Pickup 6PM"
-                android:textColor="@color/accent"
-                android:textSize="12sp"
+                android:textColor="@color/ember2"
+                android:textSize="@dimen/text_xs"
                 android:visibility="gone" />
 
             <LinearLayout
