@@ -71,7 +71,6 @@ public class SettingsActivity extends AppCompatActivity {
     private static final int CAMERA_PERMISSION_REQUEST = 2001;
     private static final String FUNCTIONS_BASE_URL = "https://us-central1-replate-food-rescue.cloudfunctions.net";
     private static final String SELF_TEST_FUNCTION_PATH = "/sendSelfTestPush";
-    private static final String LEGACY_FUNCTIONS_BASE_URL = "https://asia-southeast1-replate-food-rescue.cloudfunctions.net";
     private static final String TAG = "SettingsActivity";
 
     private CircleImageView ivProfileImage;
@@ -324,6 +323,7 @@ public class SettingsActivity extends AppCompatActivity {
         ToastUtils.showCustomToast(this, getString(R.string.settings_test_push_sending));
 
         networkExecutor.execute(() -> {
+            HttpURLConnection connection = null;
             try {
                 String idToken = Tasks.await(user.getIdToken(true), 20, TimeUnit.SECONDS).getToken();
                 if (idToken == null || idToken.trim().isEmpty()) {
@@ -336,64 +336,44 @@ public class SettingsActivity extends AppCompatActivity {
                 payload.put("category", "admin_announcement");
                 payload.put("route", "notifications");
                 payload.put("data", new JSONObject().put("debug", "true").put("source", "settings_self_test"));
-                String payloadBody = payload.toString();
 
-                String[] endpointUrls = new String[]{
-                        FUNCTIONS_BASE_URL + SELF_TEST_FUNCTION_PATH,
-                        LEGACY_FUNCTIONS_BASE_URL + "/sendSelfTestPush",
-                        LEGACY_FUNCTIONS_BASE_URL + "/sendSelfTestNotification"
-                };
+                String requestUrl = FUNCTIONS_BASE_URL + SELF_TEST_FUNCTION_PATH;
+                Log.d(TAG, "sendSelfTestPush request URL: " + requestUrl);
+                URL url = new URL(requestUrl);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("POST");
+                connection.setConnectTimeout(15000);
+                connection.setReadTimeout(15000);
+                connection.setDoOutput(true);
+                connection.setRequestProperty("Content-Type", "application/json");
+                connection.setRequestProperty("Authorization", "Bearer " + idToken);
 
-                String lastFailure = null;
-                for (String requestUrl : endpointUrls) {
-                    HttpURLConnection connection = null;
-                    try {
-                        Log.d(TAG, "sendSelfTestPush request URL: " + requestUrl);
-                        URL url = new URL(requestUrl);
-                        connection = (HttpURLConnection) url.openConnection();
-                        connection.setRequestMethod("POST");
-                        connection.setConnectTimeout(15000);
-                        connection.setReadTimeout(15000);
-                        connection.setDoOutput(true);
-                        connection.setRequestProperty("Content-Type", "application/json");
-                        connection.setRequestProperty("Authorization", "Bearer " + idToken);
+                byte[] out = payload.toString().getBytes(StandardCharsets.UTF_8);
+                connection.getOutputStream().write(out);
 
-                        byte[] out = payloadBody.getBytes(StandardCharsets.UTF_8);
-                        connection.getOutputStream().write(out);
+                int code = connection.getResponseCode();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(
+                        code >= 200 && code < 300 ? connection.getInputStream() : connection.getErrorStream(),
+                        StandardCharsets.UTF_8
+                ));
+                StringBuilder response = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) response.append(line);
+                reader.close();
 
-                        int code = connection.getResponseCode();
-                        BufferedReader reader = new BufferedReader(new InputStreamReader(
-                                code >= 200 && code < 300 ? connection.getInputStream() : connection.getErrorStream(),
-                                StandardCharsets.UTF_8
-                        ));
-                        StringBuilder response = new StringBuilder();
-                        String line;
-                        while ((line = reader.readLine()) != null) response.append(line);
-                        reader.close();
-
-                        Log.d(TAG, "sendSelfTestPush HTTP " + code + " response from " + requestUrl + ": " + response);
-                        if (code >= 200 && code < 300) {
-                            runOnUiThread(() -> ToastUtils.showCustomToast(SettingsActivity.this,
-                                    getString(R.string.settings_test_push_sent)));
-                            return;
-                        }
-
-                        lastFailure = "HTTP " + code + " from " + requestUrl + ": " + response;
-                    } catch (Exception attemptError) {
-                        Log.w(TAG, "sendSelfTestPush endpoint failed: " + requestUrl, attemptError);
-                        lastFailure = attemptError.getMessage() + " @ " + requestUrl;
-                    } finally {
-                        if (connection != null) connection.disconnect();
-                    }
+                Log.d(TAG, "sendSelfTestPush HTTP " + code + " response from " + requestUrl + ": " + response);
+                if (code >= 200 && code < 300) {
+                    runOnUiThread(() -> ToastUtils.showCustomToast(SettingsActivity.this,
+                            getString(R.string.settings_test_push_sent)));
+                } else {
+                    throw new IllegalStateException("HTTP " + code + " from " + requestUrl + ": " + response);
                 }
-
-                throw new IllegalStateException(lastFailure == null
-                        ? "No self-test endpoint responded"
-                        : lastFailure);
             } catch (Exception e) {
                 Log.e(TAG, "sendSelfTestPush failed", e);
                 runOnUiThread(() -> ToastUtils.showCustomToast(SettingsActivity.this,
                         getString(R.string.settings_test_push_failed) + " " + e.getMessage()));
+            } finally {
+                if (connection != null) connection.disconnect();
             }
         });
     }
