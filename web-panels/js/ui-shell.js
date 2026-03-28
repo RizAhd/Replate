@@ -1,16 +1,12 @@
 /**
- * REPLATE UI Shell - Sidebar renderer and common UI utilities
+ * REPLATE UI Shell - Modern sidebar renderer and common UI utilities
  */
 
 const ReplateUI = (() => {
 
     /**
      * Render the sidebar nav into the element with the given selector/id.
-     * @param {string} containerId  - id of the <nav> element (without #)
-     * @param {object} opts
-     *   opts.title    {string}  - HTML for the brand / title link
-     *   opts.activeKey {string} - key that should be highlighted
-     *   opts.links    {Array}   - [{key, href, icon, label, logout}]
+     * Also injects the mobile toggle button and overlay.
      */
     function renderSidebar(containerId, opts) {
         const container = document.getElementById(containerId);
@@ -24,20 +20,53 @@ const ReplateUI = (() => {
             const onclick = link.logout ? ` onclick="logout(); return false;"` : '';
             return `<li class="nav-item">
                 <a class="nav-link${active}" href="${link.href}"${onclick}>
-                    <i class="${link.icon} me-2"></i>${link.label}
+                    <i class="${link.icon}"></i><span>${link.label}</span>
                 </a>
             </li>`;
         }).join('');
 
         container.innerHTML = `
-            <div class="position-sticky pt-3">
-                <a class="navbar-brand d-block px-3 py-3 mb-2 text-center fw-bold" href="#">
+            <div class="position-sticky">
+                <a class="navbar-brand" href="#">
                     ${title}
                 </a>
                 <ul class="nav flex-column">
                     ${items}
                 </ul>
             </div>`;
+
+        // Inject mobile toggle & overlay if not already present
+        if (!document.querySelector('.sidebar-toggle')) {
+            const toggle = document.createElement('button');
+            toggle.className = 'sidebar-toggle';
+            toggle.setAttribute('aria-label', 'Toggle menu');
+            toggle.innerHTML = '<i class="fas fa-bars"></i>';
+            document.body.appendChild(toggle);
+
+            const overlay = document.createElement('div');
+            overlay.className = 'sidebar-overlay';
+            document.body.appendChild(overlay);
+
+            toggle.addEventListener('click', () => {
+                container.classList.toggle('show');
+                overlay.classList.toggle('show');
+            });
+
+            overlay.addEventListener('click', () => {
+                container.classList.remove('show');
+                overlay.classList.remove('show');
+            });
+
+            // Close sidebar on nav link click (mobile)
+            container.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', () => {
+                    if (window.innerWidth <= 991) {
+                        container.classList.remove('show');
+                        overlay.classList.remove('show');
+                    }
+                });
+            });
+        }
     }
 
     /**

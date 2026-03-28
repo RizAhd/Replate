@@ -8,117 +8,269 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/style.css">
     <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+    <style>
+        @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+        @keyframes slideIn { from{opacity:0;transform:translateY(-8px);} to{opacity:1;transform:translateY(0);} }
+        .activity-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border-light);
+            animation: slideIn 0.25s ease;
+            transition: background 0.15s ease;
+        }
+        .activity-item:hover { background: var(--primary-50); }
+        .activity-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .activity-icon.icon-order   { background: #eff6ff; color: #2563eb; }
+        .activity-icon.icon-hotel   { background: #ecfdf5; color: #059669; }
+        .activity-icon.icon-food    { background: #fff4ed; color: #e8521a; }
+        .activity-icon.icon-status  { background: #fffbeb; color: #d97706; }
+        .activity-icon.icon-user    { background: #f5f3ff; color: #7c3aed; }
+        .activity-icon.icon-notif   { background: #fef2f2; color: #dc2626; }
+        .activity-body { flex:1; min-width:0; }
+        .activity-body strong { font-weight: 700; font-size: 0.875rem; }
+        .activity-body p { margin:2px 0 0; font-size:0.82rem; color:var(--text-secondary); line-height:1.4; }
+        .activity-time { font-size:0.75rem; color:var(--text-tertiary); white-space:nowrap; flex-shrink:0; margin-top:2px; }
+        .history-action-badge {
+            display:inline-flex; align-items:center; padding:3px 10px;
+            border-radius:999px; font-size:0.72rem; font-weight:700; text-transform:uppercase;
+        }
+        .history-action-badge.broadcast { background:#eff6ff; color:#2563eb; }
+        .history-action-badge.targeted { background:#ecfdf5; color:#059669; }
+        .history-action-badge.self_test { background:#f5f3ff; color:#7c3aed; }
+        .history-action-badge.deal { background:#fff4ed; color:#e8521a; }
+    </style>
 </head>
 <body>
 <div class="container-fluid">
     <div class="row">
-        <nav id="appShellSidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse"></nav>
+        <nav id="appShellSidebar" class="sidebar"></nav>
 
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
-            <div class="mb-4">
-                <h2 class="panel-title mb-1">Notification Center</h2>
-                <p class="panel-subtitle mb-0">Send broadcast, targeted, and deal notifications to app users and hotels.</p>
+        <main>
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <div>
+                    <h1 class="panel-title">Notification Center</h1>
+                    <p class="panel-subtitle mb-0">Monitor platform activity, send notifications, and review delivery history.</p>
+                </div>
+                <span id="liveIndicator" style="display:inline-flex;align-items:center;gap:6px;font-size:0.8rem;font-weight:600;color:var(--success);">
+                    <span style="width:8px;height:8px;border-radius:50%;background:var(--success);display:inline-block;animation:pulse 2s infinite;"></span> Live
+                </span>
             </div>
 
-            <div class="row g-4">
-                <div class="col-lg-6">
-                    <div class="card data-panel p-4 h-100">
-                        <h5 class="mb-3">Broadcast Notification</h5>
-                        <form id="broadcastForm">
-                            <div class="mb-3">
-                                <label class="form-label">Audience</label>
-                                <select id="broadcastTarget" class="form-select">
-                                    <option value="all_users">All Users</option>
-                                    <option value="customers">Customers</option>
-                                    <option value="hotels">Hotels</option>
-                                    <option value="admins">Admins</option>
-                                    <option value="topic:deals_customers">Deals Topic (Customers)</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Title</label>
-                                <input id="broadcastTitle" type="text" class="form-control" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Message</label>
-                                <textarea id="broadcastBody" rows="3" class="form-control" required></textarea>
-                            </div>
-                            <div class="row g-2">
-                                <div class="col-md-6">
-                                    <label class="form-label">Type</label>
-                                    <input id="broadcastType" type="text" class="form-control" value="announcement">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Route</label>
-                                    <input id="broadcastRoute" type="text" class="form-control" value="notifications">
-                                </div>
-                            </div>
-                            <button id="btnBroadcastSend" class="btn btn-primary mt-3 w-100" type="submit">
-                                <i class="fas fa-bullhorn me-2"></i>Send Broadcast
-                            </button>
-                        </form>
+            <!-- Quick Stats -->
+            <div class="row mb-4 g-3">
+                <div class="col-md-3 col-6">
+                    <div class="card stat-card">
+                        <h6><i class="fas fa-bell me-1"></i>Sent Today</h6>
+                        <h3 id="statSentToday">0</h3>
                     </div>
                 </div>
-
-                <div class="col-lg-6">
-                    <div class="card data-panel p-4 h-100">
-                        <h5 class="mb-3">Targeted Notification</h5>
-                        <form id="targetedForm">
-                            <div class="mb-3">
-                                <label class="form-label">User IDs (comma separated)</label>
-                                <textarea id="targetUserIds" rows="2" class="form-control" placeholder="uid1, uid2" required></textarea>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Order ID (optional)</label>
-                                <input id="targetOrderId" type="text" class="form-control" placeholder="-Nx123abc">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Title</label>
-                                <input id="targetTitle" type="text" class="form-control" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Message</label>
-                                <textarea id="targetBody" rows="3" class="form-control" required></textarea>
-                            </div>
-                            <button id="btnTargetSend" class="btn btn-success w-100" type="submit">
-                                <i class="fas fa-paper-plane me-2"></i>Send Targeted
-                            </button>
-                        </form>
+                <div class="col-md-3 col-6">
+                    <div class="card stat-card">
+                        <h6><i class="fas fa-hotel me-1"></i>Pending Hotels</h6>
+                        <h3 id="statPendingHotels">0</h3>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="card stat-card">
+                        <h6><i class="fas fa-receipt me-1"></i>New Orders</h6>
+                        <h3 id="statNewOrders">0</h3>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="card stat-card">
+                        <h6><i class="fas fa-users me-1"></i>Total Users</h6>
+                        <h3 id="statTotalUsers">0</h3>
                     </div>
                 </div>
             </div>
 
-            <div class="card data-panel p-4 mt-4">
-                <h5 class="mb-3">Deal Campaign</h5>
-                <form id="dealForm" class="row g-3">
-                    <div class="col-md-4">
-                        <label class="form-label">Hotel Name</label>
-                        <input id="dealHotelName" type="text" class="form-control" placeholder="Grand Hotel">
+            <!-- Tabs: Activity / Send / History -->
+            <ul class="nav nav-pills mb-4" id="notifTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="tab-activity" data-bs-toggle="pill" data-bs-target="#pane-activity" type="button" role="tab">
+                        <i class="fas fa-stream me-1"></i> Live Activity
+                        <span class="badge bg-danger ms-1" id="activityBadge" style="display:none;">0</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="tab-send" data-bs-toggle="pill" data-bs-target="#pane-send" type="button" role="tab">
+                        <i class="fas fa-paper-plane me-1"></i> Send Notifications
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="tab-history" data-bs-toggle="pill" data-bs-target="#pane-history" type="button" role="tab">
+                        <i class="fas fa-history me-1"></i> Send History
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content">
+
+                <!-- ═══ LIVE ACTIVITY PANE ═══ -->
+                <div class="tab-pane fade show active" id="pane-activity" role="tabpanel">
+                    <div class="card data-panel">
+                        <div class="card-header">
+                            <span><i class="fas fa-stream me-2"></i>Real-Time Platform Events</span>
+                            <button class="btn btn-sm btn-outline-primary" onclick="clearActivityFeed()">Clear</button>
+                        </div>
+                        <div class="card-body p-0">
+                            <div id="activityFeed" style="max-height:520px;overflow-y:auto;">
+                                <div class="text-center py-5" style="color:var(--text-tertiary);">
+                                    <i class="fas fa-satellite-dish fa-2x mb-2 d-block" style="opacity:0.3;"></i>
+                                    Listening for events...
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Food Name</label>
-                        <input id="dealFoodName" type="text" class="form-control" placeholder="Chicken Fried Rice">
+                </div>
+
+                <!-- ═══ SEND NOTIFICATIONS PANE ═══ -->
+                <div class="tab-pane fade" id="pane-send" role="tabpanel">
+                    <div class="row g-4">
+                        <div class="col-lg-6">
+                            <div class="card data-panel p-4 h-100">
+                                <h5 class="mb-3"><i class="fas fa-bullhorn me-2"></i>Broadcast Notification</h5>
+                                <form id="broadcastForm">
+                                    <div class="mb-3">
+                                        <label class="form-label" for="broadcastTarget">Audience</label>
+                                        <select id="broadcastTarget" class="form-select">
+                                            <option value="all_users">All Users</option>
+                                            <option value="customers">Customers</option>
+                                            <option value="hotels">Hotels</option>
+                                            <option value="admins">Admins</option>
+                                            <option value="topic:deals_customers">Deals Topic (Customers)</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label" for="broadcastTitle">Title</label>
+                                        <input id="broadcastTitle" type="text" class="form-control" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label" for="broadcastBody">Message</label>
+                                        <textarea id="broadcastBody" rows="3" class="form-control" required></textarea>
+                                    </div>
+                                    <div class="row g-2">
+                                        <div class="col-md-6">
+                                            <label class="form-label" for="broadcastType">Type</label>
+                                            <input id="broadcastType" type="text" class="form-control" value="announcement">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label" for="broadcastRoute">Route</label>
+                                            <input id="broadcastRoute" type="text" class="form-control" value="notifications">
+                                        </div>
+                                    </div>
+                                    <button id="btnBroadcastSend" class="btn btn-primary mt-3 w-100" type="submit">
+                                        <i class="fas fa-bullhorn me-2"></i>Send Broadcast
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-6">
+                            <div class="card data-panel p-4 h-100">
+                                <h5 class="mb-3"><i class="fas fa-paper-plane me-2"></i>Targeted Notification</h5>
+                                <form id="targetedForm">
+                                    <div class="mb-3">
+                                        <label class="form-label" for="targetUserIds">User IDs (comma separated)</label>
+                                        <textarea id="targetUserIds" rows="2" class="form-control" placeholder="uid1, uid2" required></textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label" for="targetOrderId">Order ID (optional)</label>
+                                        <input id="targetOrderId" type="text" class="form-control" placeholder="-Nx123abc">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label" for="targetTitle">Title</label>
+                                        <input id="targetTitle" type="text" class="form-control" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label" for="targetBody">Message</label>
+                                        <textarea id="targetBody" rows="3" class="form-control" required></textarea>
+                                    </div>
+                                    <button id="btnTargetSend" class="btn btn-success w-100" type="submit">
+                                        <i class="fas fa-paper-plane me-2"></i>Send Targeted
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Discount %</label>
-                        <input id="dealDiscount" type="number" min="1" max="95" class="form-control" placeholder="50">
+
+                    <div class="card data-panel p-4 mt-4">
+                        <h5 class="mb-3"><i class="fas fa-fire me-2 text-warning"></i>Deal Campaign</h5>
+                        <form id="dealForm" class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label" for="dealHotelName">Hotel Name</label>
+                                <input id="dealHotelName" type="text" class="form-control" placeholder="Grand Hotel">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" for="dealFoodName">Food Name</label>
+                                <input id="dealFoodName" type="text" class="form-control" placeholder="Chicken Fried Rice">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" for="dealDiscount">Discount %</label>
+                                <input id="dealDiscount" type="number" min="1" max="95" class="form-control" placeholder="50">
+                            </div>
+                            <div class="col-12">
+                                <button id="btnDealSend" class="btn btn-warning" type="submit">
+                                    <i class="fas fa-fire me-2"></i>Send Deal Notification
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                    <div class="col-12">
-                        <button id="btnDealSend" class="btn btn-warning" type="submit">
-                            <i class="fas fa-fire me-2"></i>Send Deal Notification
-                        </button>
+                </div>
+
+                <!-- ═══ SEND HISTORY PANE ═══ -->
+                <div class="tab-pane fade" id="pane-history" role="tabpanel">
+                    <div class="card data-panel">
+                        <div class="card-header">
+                            <span><i class="fas fa-history me-2"></i>Notification Delivery Log</span>
+                            <span id="historyCount" style="font-weight:500;font-size:0.85rem;color:var(--text-secondary);">Loading...</span>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Time</th>
+                                            <th>Type</th>
+                                            <th>Title</th>
+                                            <th>Target</th>
+                                            <th>Result</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="historyTable">
+                                        <tr><td colspan="5" class="text-center py-4" style="color:var(--text-tertiary);">Loading notification history...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
-                </form>
-            </div>
+                </div>
+
+            </div><!-- /tab-content -->
         </main>
     </div>
 </div>
 
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="../js/env-config.js"></script>
 <script src="../js/firebase-config.js"></script>
+<script src="../js/data-schema.js"></script>
 <script src="../js/ui-shell.js"></script>
 <script src="../js/notifications-api.js"></script>
 
@@ -132,15 +284,324 @@
         { key: 'logout', href: '#', icon: 'fas fa-sign-out-alt', label: 'Logout', logout: true }
     ];
 
+    // ── State ──────────────────────────────────────────────
+    const MAX_ACTIVITY_ITEMS = 50;
+    let activityCount = 0;
+    let initialLoadDone = { orders: false, hotels: false, foodItems: false, users: false };
+    let listenersAttached = false;
+
+    // ── Helpers ────────────────────────────────────────────
+    function timeAgo(ts) {
+        if (!ts) return '';
+        const diff = Math.floor((Date.now() - ts) / 1000);
+        if (diff < 5) return 'just now';
+        if (diff < 60) return diff + 's ago';
+        if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+        if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+        return new Date(ts).toLocaleDateString();
+    }
+
+    function formatDateTime(ts) {
+        if (!ts) return 'N/A';
+        const d = new Date(ts);
+        return d.toLocaleDateString('en-LK', { day: '2-digit', month: 'short' }) + ' ' +
+               d.toLocaleTimeString('en-LK', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function isToday(ts) {
+        if (!ts) return false;
+        const d = new Date(ts);
+        const now = new Date();
+        return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+    }
+
+    // ── Activity Feed ──────────────────────────────────────
+    function clearActivityPlaceholder() {
+        const feed = document.getElementById('activityFeed');
+        if (feed && feed.children.length === 1 && feed.children[0].tagName === 'DIV' && feed.children[0].classList.contains('text-center')) {
+            feed.innerHTML = '';
+        }
+    }
+
+    function addActivityItem(iconClass, title, description, timestamp) {
+        clearActivityPlaceholder();
+        const feed = document.getElementById('activityFeed');
+        if (!feed) return;
+
+        const div = document.createElement('div');
+        div.className = 'activity-item';
+        div.innerHTML = `
+            <div class="activity-icon ${iconClass}"><i class="fas ${getIconForClass(iconClass)}"></i></div>
+            <div class="activity-body">
+                <strong>${escapeHtml(title)}</strong>
+                <p>${escapeHtml(description)}</p>
+            </div>
+            <span class="activity-time">${timeAgo(timestamp)}</span>
+        `;
+        feed.prepend(div);
+
+        // Limit feed size
+        while (feed.children.length > MAX_ACTIVITY_ITEMS) {
+            feed.removeChild(feed.lastChild);
+        }
+
+        // Update badge count if tab is not active
+        const activityTab = document.getElementById('tab-activity');
+        if (activityTab && !activityTab.classList.contains('active')) {
+            activityCount++;
+            const badge = document.getElementById('activityBadge');
+            if (badge) {
+                badge.textContent = activityCount > 99 ? '99+' : activityCount;
+                badge.style.display = 'inline';
+            }
+        }
+    }
+
+    function getIconForClass(cls) {
+        const map = {
+            'icon-order': 'fa-receipt',
+            'icon-hotel': 'fa-hotel',
+            'icon-food': 'fa-utensils',
+            'icon-status': 'fa-exchange-alt',
+            'icon-user': 'fa-user-plus',
+            'icon-notif': 'fa-bell'
+        };
+        return map[cls] || 'fa-circle';
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    window.clearActivityFeed = function() {
+        const feed = document.getElementById('activityFeed');
+        if (feed) feed.innerHTML = '<div class="text-center py-5" style="color:var(--text-tertiary);"><i class="fas fa-satellite-dish fa-2x mb-2 d-block" style="opacity:0.3;"></i>Listening for events...</div>';
+        activityCount = 0;
+        const badge = document.getElementById('activityBadge');
+        if (badge) badge.style.display = 'none';
+    };
+
+    // Reset badge when activity tab is clicked
+    document.getElementById('tab-activity').addEventListener('shown.bs.tab', () => {
+        activityCount = 0;
+        const badge = document.getElementById('activityBadge');
+        if (badge) badge.style.display = 'none';
+    });
+
+    // ── Real-Time Listeners ────────────────────────────────
+    function attachRealtimeListeners() {
+        if (listenersAttached) return;
+        listenersAttached = true;
+
+        // 1) NEW ORDERS — child_added on orders
+        database.ref('orders').orderByChild('createdAt').startAt(Date.now() - 86400000).on('child_added', (snap) => {
+            if (!initialLoadDone.orders) return; // skip initial batch
+            const order = snap.val() || {};
+            const customerName = order.customerName || order.userName || 'Customer';
+            const hotelName = order.hotelName || 'Unknown Hotel';
+            const amount = ReplateSchema.formatAmount(order.totalAmount || order.totalPrice);
+            addActivityItem('icon-order',
+                `New order from ${customerName}`,
+                `${hotelName} — LKR ${amount}`,
+                order.createdAt || Date.now()
+            );
+        });
+
+        // Mark initial load done after first value event
+        database.ref('orders').orderByChild('createdAt').startAt(Date.now() - 86400000).once('value', () => {
+            initialLoadDone.orders = true;
+        });
+
+        // 2) ORDER STATUS CHANGES — child_changed on orders
+        database.ref('orders').on('child_changed', (snap) => {
+            if (!initialLoadDone.orders) return;
+            const order = snap.val() || {};
+            const status = ReplateSchema.normalizeOrderStatus(order.orderStatus);
+            const label = ReplateSchema.statusLabel(status);
+            const customerName = order.customerName || order.userName || 'Customer';
+            addActivityItem('icon-status',
+                `Order status updated: ${label}`,
+                `${customerName} — #${ReplateSchema.shortOrderId(order, snap.key)}`,
+                order.updatedAt || order.completedAt || Date.now()
+            );
+        });
+
+        // 3) NEW HOTEL REGISTRATIONS — child_added on hotels
+        database.ref('hotels').orderByChild('createdAt').startAt(Date.now() - 86400000 * 7).on('child_added', (snap) => {
+            if (!initialLoadDone.hotels) return;
+            const hotel = snap.val() || {};
+            const statusText = (hotel.status || 'pending').toLowerCase();
+            addActivityItem('icon-hotel',
+                `New hotel registered: ${hotel.hotelName || 'Unknown'}`,
+                `Owner: ${hotel.ownerName || '—'} • Status: ${statusText}`,
+                hotel.createdAt || Date.now()
+            );
+        });
+        database.ref('hotels').orderByChild('createdAt').startAt(Date.now() - 86400000 * 7).once('value', () => {
+            initialLoadDone.hotels = true;
+        });
+
+        // 4) HOTEL STATUS CHANGES (approved/rejected)
+        database.ref('hotels').on('child_changed', (snap) => {
+            if (!initialLoadDone.hotels) return;
+            const hotel = snap.val() || {};
+            const status = (hotel.status || '').toLowerCase();
+            if (status === 'approved' || status === 'rejected') {
+                addActivityItem('icon-hotel',
+                    `Hotel ${status}: ${hotel.hotelName || 'Unknown'}`,
+                    `${hotel.email || hotel.ownerName || '—'}`,
+                    Date.now()
+                );
+            }
+        });
+
+        // 5) NEW FOOD LISTINGS — child_added on foodItems
+        database.ref('foodItems').orderByChild('createdAt').startAt(Date.now() - 86400000).on('child_added', (snap) => {
+            if (!initialLoadDone.foodItems) return;
+            const item = snap.val() || {};
+            const discount = item.discountPercent || item.discountPercentage || 0;
+            addActivityItem('icon-food',
+                `New listing: ${item.foodName || 'Unknown'}`,
+                `${item.hotelName || 'Hotel'} — ${discount}% off`,
+                item.createdAt || Date.now()
+            );
+        });
+        database.ref('foodItems').orderByChild('createdAt').startAt(Date.now() - 86400000).once('value', () => {
+            initialLoadDone.foodItems = true;
+        });
+
+        // 6) NEW USER REGISTRATIONS — child_added on users
+        database.ref('users').orderByChild('createdAt').startAt(Date.now() - 86400000).on('child_added', (snap) => {
+            if (!initialLoadDone.users) return;
+            const user = snap.val() || {};
+            const role = ReplateSchema.normalizeUserRole(user);
+            addActivityItem('icon-user',
+                `New ${role} registered`,
+                `${user.name || user.email || snap.key}`,
+                user.createdAt || Date.now()
+            );
+        });
+        database.ref('users').orderByChild('createdAt').startAt(Date.now() - 86400000).once('value', () => {
+            initialLoadDone.users = true;
+        });
+    }
+
+    // ── Quick Stats (real-time) ────────────────────────────
+    function loadQuickStats() {
+        // Pending hotels
+        database.ref('hotels').on('value', (snap) => {
+            let pending = 0;
+            snap.forEach(child => {
+                if ((child.val().status || '').toLowerCase() === 'pending') pending++;
+            });
+            document.getElementById('statPendingHotels').textContent = pending;
+        });
+
+        // New orders today (pending)
+        database.ref('orders').on('value', (snap) => {
+            let newOrders = 0;
+            snap.forEach(child => {
+                const o = child.val() || {};
+                const status = ReplateSchema.normalizeOrderStatus(o.orderStatus);
+                if (status === 'pending_pickup') newOrders++;
+            });
+            document.getElementById('statNewOrders').textContent = newOrders;
+        });
+
+        // Total users
+        database.ref('users').on('value', (snap) => {
+            let count = 0;
+            if (snap.exists()) snap.forEach(() => count++);
+            document.getElementById('statTotalUsers').textContent = count;
+        });
+
+        // Sent today from notificationLogs
+        database.ref('notificationLogs').orderByChild('createdAt').startAt(todayStart()).on('value', (snap) => {
+            let count = 0;
+            if (snap.exists()) snap.forEach(() => count++);
+            document.getElementById('statSentToday').textContent = count;
+        });
+    }
+
+    function todayStart() {
+        const d = new Date();
+        d.setHours(0, 0, 0, 0);
+        return d.getTime();
+    }
+
+    // ── Notification History (from notificationLogs) ───────
+    function loadNotificationHistory() {
+        database.ref('notificationLogs').orderByChild('createdAt').limitToLast(50).on('value', (snap) => {
+            const tbody = document.getElementById('historyTable');
+            const rows = [];
+
+            snap.forEach(child => {
+                const log = child.val() || {};
+                rows.push(log);
+            });
+
+            rows.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+            document.getElementById('historyCount').textContent = rows.length + ' records';
+
+            if (rows.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4" style="color:var(--text-tertiary);">No notification logs yet. Logs appear when notifications are sent via Cloud Functions.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = rows.map(log => {
+                const time = formatDateTime(log.createdAt);
+                const action = log.action || 'unknown';
+                const actionClass = action.includes('broadcast') ? 'broadcast' :
+                                    action.includes('targeted') ? 'targeted' :
+                                    action.includes('deal') ? 'deal' :
+                                    action.includes('self_test') ? 'self_test' : 'broadcast';
+                const title = log.payload?.title || '—';
+                const body = log.payload?.body || '';
+                const target = log.target || (log.userIds ? log.userIds.length + ' users' : '—');
+                const result = log.result || {};
+                const successCount = result.successCount ?? result.messageId ? 1 : 0;
+                const failureCount = result.failureCount ?? 0;
+                const resultHtml = successCount > 0
+                    ? `<span style="color:var(--success);font-weight:600;">✓ ${successCount}</span>${failureCount > 0 ? ` <span style="color:var(--danger);font-size:0.8rem;">/ ${failureCount} failed</span>` : ''}`
+                    : (result.messageId ? `<span style="color:var(--success);font-weight:600;">✓ Topic</span>` : `<span style="color:var(--text-tertiary);">—</span>`);
+
+                return `
+                    <tr>
+                        <td style="white-space:nowrap;font-size:0.82rem;">${time}</td>
+                        <td><span class="history-action-badge ${actionClass}">${action}</span></td>
+                        <td>
+                            <div style="font-weight:600;font-size:0.85rem;">${escapeHtml(title)}</div>
+                            <div style="font-size:0.78rem;color:var(--text-secondary);max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(body)}</div>
+                        </td>
+                        <td style="font-size:0.82rem;">${escapeHtml(String(target))}</td>
+                        <td>${resultHtml}</td>
+                    </tr>`;
+            }).join('');
+        });
+    }
+
+    // ── Init ───────────────────────────────────────────────
     auth.onAuthStateChanged((user) => {
         ReplateUI.renderSidebar('appShellSidebar', {
             title: '<img src="../assets/replate-icon.svg" alt="REPLATE" class="brand-logo-sm">ADMIN',
             activeKey: 'notifications',
             links: adminShellLinks,
         });
-        if (!user) window.location.href = 'login.html';
+        if (!user) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        loadQuickStats();
+        loadNotificationHistory();
+        attachRealtimeListeners();
     });
 
+    // ── Send Form Handlers (existing workflow, unchanged) ──
     document.getElementById('broadcastForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         ReplateUI.setButtonLoading('btnBroadcastSend', true, 'Sending...');
@@ -152,10 +613,14 @@
                 type: document.getElementById('broadcastType').value.trim() || 'announcement',
                 route: document.getElementById('broadcastRoute').value.trim() || 'notifications'
             };
+            if (!payload.title || !payload.body) throw new Error('Title and message are required.');
             await NotificationApi.sendBroadcast(payload);
-            ReplateUI.showAlert('Broadcast sent successfully', 'success');
+            ReplateUI.showAlert('✅ Broadcast sent successfully to <strong>' + escapeHtml(payload.target) + '</strong>', 'success');
+            document.getElementById('broadcastForm').reset();
+            document.getElementById('broadcastType').value = 'announcement';
+            document.getElementById('broadcastRoute').value = 'notifications';
         } catch (err) {
-            ReplateUI.showAlert('Failed: ' + err.message, 'danger');
+            ReplateUI.showAlert('❌ Broadcast failed: ' + escapeHtml(err.message), 'danger');
         } finally {
             ReplateUI.setButtonLoading('btnBroadcastSend', false);
         }
@@ -169,6 +634,7 @@
                 .split(',')
                 .map(v => v.trim())
                 .filter(Boolean);
+            if (userIds.length === 0) throw new Error('Enter at least one User ID.');
 
             const payload = {
                 userIds,
@@ -178,10 +644,12 @@
                 route: 'notifications',
                 orderId: document.getElementById('targetOrderId').value.trim()
             };
+            if (!payload.title || !payload.body) throw new Error('Title and message are required.');
             await NotificationApi.sendTargeted(payload);
-            ReplateUI.showAlert('Targeted notification sent', 'success');
+            ReplateUI.showAlert('✅ Targeted notification sent to <strong>' + userIds.length + ' user(s)</strong>', 'success');
+            document.getElementById('targetedForm').reset();
         } catch (err) {
-            ReplateUI.showAlert('Failed: ' + err.message, 'danger');
+            ReplateUI.showAlert('❌ Targeted send failed: ' + escapeHtml(err.message), 'danger');
         } finally {
             ReplateUI.setButtonLoading('btnTargetSend', false);
         }
@@ -202,9 +670,10 @@
                 route: 'deals',
                 data: { hotelName, foodName, discount }
             });
-            ReplateUI.showAlert('Deal notification sent', 'success');
+            ReplateUI.showAlert('✅ Deal notification sent successfully', 'success');
+            document.getElementById('dealForm').reset();
         } catch (err) {
-            ReplateUI.showAlert('Failed: ' + err.message, 'danger');
+            ReplateUI.showAlert('❌ Deal send failed: ' + escapeHtml(err.message), 'danger');
         } finally {
             ReplateUI.setButtonLoading('btnDealSend', false);
         }
