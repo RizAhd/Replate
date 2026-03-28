@@ -142,7 +142,21 @@
     <string name="profile_settings">Settings</string>
     <string name="profile_help_support">Help &amp; Support</string>
     <string name="profile_logout">Logout</string>
+    <string name="profile_delete_account">Delete Account</string>
     <string name="profile_version">REPLATE v1.0.0</string>
+
+    <!-- Delete Account -->
+    <string name="delete_account_title">Delete Account</string>
+    <string name="delete_account_confirm_title">Are you sure?</string>
+    <string name="delete_account_confirm_message">This will permanently delete your account and all associated data. This action cannot be undone.</string>
+    <string name="delete_account_password_title">Confirm your password</string>
+    <string name="delete_account_password_hint">Enter your password to confirm</string>
+    <string name="delete_account_deleting">Deleting account…</string>
+    <string name="delete_account_success">Account deleted successfully.</string>
+    <string name="delete_account_wrong_password">Incorrect password. Please try again.</string>
+    <string name="delete_account_failed">Failed to delete account. Please try again.</string>
+    <string name="delete_account_reauth_failed">Re-authentication failed. Please try again.</string>
+    <string name="delete_account_confirm_btn">Delete</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>

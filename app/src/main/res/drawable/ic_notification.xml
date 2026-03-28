@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Branded REPLATE notification icon — references density-specific PNGs
-     derived from the app logo (replate.png) used on splash screen.
-     White silhouette on transparent background as required by Android. -->
+<!-- REPLATE notification small icon.
+     References density-specific white-silhouette PNGs generated from
+     the splash-screen logo (replate.png). Android requires small icons
+     to be white-on-transparent for the status bar. -->
 <bitmap xmlns:android="http://schemas.android.com/apk/res/android"
     android:gravity="center"
-    android:src="@drawable/ic_stat_replate" />
+    android:src="@drawable/ic_notif_replate" />

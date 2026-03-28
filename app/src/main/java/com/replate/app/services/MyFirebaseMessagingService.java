@@ -43,7 +43,7 @@ import java.util.Map;
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     private static final String TAG = "FCMService";
-    private static final String CHANNEL_ID = "replate_notifications_v3";
+    private static final String CHANNEL_ID = "replate_notifications_v4";
     private static final String CHANNEL_NAME = "REPLATE Alerts";
 
     @Override
@@ -188,14 +188,18 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         );
 
         Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-        Bitmap largeIcon = BitmapFactory.decodeResource(getResources(), R.drawable.ic_replate_large);
+        Bitmap largeIcon = BitmapFactory.decodeResource(getResources(), R.drawable.replate);
+
+        // Strip emoji characters so they don't appear in the popup title/body
+        String cleanTitle = stripEmoji(title);
+        String cleanBody  = stripEmoji(body);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_notification)
+                .setSmallIcon(R.drawable.replate)
                 .setLargeIcon(largeIcon)
-                .setContentTitle(title)
-                .setContentText(body)
-                .setStyle(new NotificationCompat.BigTextStyle().bigText(body))
+                .setContentTitle(cleanTitle)
+                .setContentText(cleanBody)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(cleanBody))
                 .setAutoCancel(true)
                 .setSound(defaultSoundUri)
                 .setContentIntent(pendingIntent)
@@ -267,5 +271,21 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         if (map == null) return fallback;
         String value = map.get(key);
         return value == null || value.trim().isEmpty() ? fallback : value;
+    }
+
+    /**
+     * Removes emoji and other non-BMP Unicode characters from notification text.
+     * Keeps only standard printable ASCII + Latin characters so the popup is clean.
+     */
+    private String stripEmoji(String input) {
+        if (input == null) return "";
+        // Remove supplementary (emoji) code points (U+1F000 and above) and common symbol ranges
+        return input.codePoints()
+                .filter(cp -> cp <= 0xFFFF && !Character.isSurrogate((char) cp))
+                .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
+                .toString()
+                .replaceAll("[\\x{2000}-\\x{2BFF}]", "")  // misc symbols & arrows
+                .replaceAll("\\s{2,}", " ")                // collapse multiple spaces
+                .trim();
     }
 }
