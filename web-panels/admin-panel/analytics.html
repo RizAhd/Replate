@@ -9,81 +9,139 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/style.css">
     <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+    <style>
+        .delta { font-size: 0.78rem; font-weight: 600; display: inline-flex; align-items: center; gap: 3px; margin-left: 6px; }
+        .delta.up { color: var(--success); }
+        .delta.down { color: var(--danger); }
+        .delta.flat { color: var(--text-tertiary); }
+        .chart-card h5 { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .chart-card h5 i { font-size: 0.85rem; opacity: 0.5; }
+        .leaderboard-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--border-light); }
+        .leaderboard-row:last-child { border-bottom:0; }
+        .leaderboard-rank { width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:800; flex-shrink:0; }
+        .leaderboard-rank.r1 { background:#fef3c7; color:#d97706; }
+        .leaderboard-rank.r2 { background:#e5e7eb; color:#6b7280; }
+        .leaderboard-rank.r3 { background:#fce7d4; color:#e8521a; }
+        .leaderboard-rank.r4, .leaderboard-rank.r5 { background:var(--bg); color:var(--text-secondary); }
+        .leaderboard-name { flex:1; font-weight:600; font-size:0.85rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .leaderboard-value { font-weight:700; font-size:0.85rem; color:var(--primary); }
+    </style>
 </head>
 <body>
 
 <div class="container-fluid">
     <div class="row">
-        <!-- Sidebar rendered by ui-shell.js -->
         <nav id="appShellSidebar" class="sidebar"></nav>
 
         <main>
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                 <div>
                     <h1 class="panel-title">Platform Analytics</h1>
-                    <p class="panel-subtitle mb-0">Real-time insights from your platform data.</p>
+                    <p class="panel-subtitle mb-0">Real-time insights across all hotels, orders, and users.</p>
                 </div>
+                <span style="font-size:0.82rem;font-weight:600;color:var(--text-secondary);"><i class="fas fa-sync-alt me-1"></i>Real-time</span>
             </div>
 
-            <div class="row mb-4">
-                <div class="col-md-3">
-                    <div class="stat-card card p-3">
-                        <h6><i class="fas fa-dollar-sign me-1 text-success"></i>Total Revenue</h6>
+            <!-- Stat Cards -->
+            <div class="row mb-4 g-3">
+                <div class="col-md-3 col-6">
+                    <div class="stat-card card">
+                        <h6><i class="fas fa-dollar-sign me-1"></i>Total Revenue</h6>
                         <h3 id="totalRevenue">LKR 0</h3>
+                        <span class="delta flat" id="deltaRevenue"></span>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="stat-card card p-3">
-                        <h6><i class="fas fa-receipt me-1 text-primary"></i>Total Orders</h6>
+                <div class="col-md-3 col-6">
+                    <div class="stat-card card">
+                        <h6><i class="fas fa-receipt me-1"></i>Total Orders</h6>
                         <h3 id="totalOrders">0</h3>
+                        <span class="delta flat" id="deltaOrders"></span>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="stat-card card p-3">
-                        <h6><i class="fas fa-users me-1 text-info"></i>Total Customers</h6>
+                <div class="col-md-3 col-6">
+                    <div class="stat-card card">
+                        <h6><i class="fas fa-users me-1"></i>Total Customers</h6>
                         <h3 id="totalCustomers">0</h3>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="stat-card card p-3">
-                        <h6><i class="fas fa-leaf me-1 text-warning"></i>Food Saved (kg)</h6>
-                        <h3 id="foodSaved">0 kg</h3>
+                <div class="col-md-3 col-6">
+                    <div class="stat-card card">
+                        <h6><i class="fas fa-leaf me-1"></i>Food Rescued</h6>
+                        <h3 id="foodSaved">0 items</h3>
                     </div>
                 </div>
             </div>
 
+            <!-- Charts Row 1 -->
             <div class="row">
-                <div class="col-md-6">
-                    <div class="card p-3 mb-4">
-                        <h5>Platform Growth (Orders per Week)</h5>
+                <div class="col-lg-8">
+                    <div class="card p-4 mb-4 chart-card">
+                        <h5><i class="fas fa-chart-area"></i> Platform Growth (Orders per Week)</h5>
                         <canvas id="growthChart"></canvas>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card p-3 mb-4">
-                        <h5>Order Status</h5>
+                <div class="col-lg-4">
+                    <div class="card p-4 mb-4 chart-card">
+                        <h5><i class="fas fa-chart-pie"></i> Order Status</h5>
                         <canvas id="statusChart"></canvas>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card p-3 mb-4">
-                        <h5>Payment Methods</h5>
-                        <canvas id="paymentChart"></canvas>
                     </div>
                 </div>
             </div>
 
+            <!-- Charts Row 2 -->
             <div class="row">
-                <div class="col-md-6">
-                    <div class="card p-3 mb-4">
-                        <h5>Revenue Trend (Weekly)</h5>
+                <div class="col-lg-6">
+                    <div class="card p-4 mb-4 chart-card">
+                        <h5><i class="fas fa-chart-bar"></i> Revenue Trend (Weekly)</h5>
                         <canvas id="revenueChart"></canvas>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="card p-3 mb-4">
-                        <h5>Top Hotels by Orders</h5>
-                        <canvas id="topHotelsChart"></canvas>
+                <div class="col-lg-6">
+                    <div class="card p-4 mb-4 chart-card">
+                        <h5><i class="fas fa-tags"></i> Orders by Category</h5>
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 3: Top Hotels + User Growth -->
+            <div class="row">
+                <div class="col-lg-5">
+                    <div class="card p-4 mb-4 chart-card">
+                        <h5><i class="fas fa-trophy"></i> Top Hotels by Orders</h5>
+                        <div id="topHotelsLeaderboard">
+                            <p class="text-center py-3" style="color:var(--text-tertiary);font-size:0.85rem;">Loading...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card p-4 mb-4 chart-card">
+                        <h5><i class="fas fa-credit-card"></i> Payment Methods</h5>
+                        <canvas id="paymentChart"></canvas>
+                    </div>
+                </div>
+                <div class="col-lg-3">
+                    <div class="card p-4 mb-4 chart-card">
+                        <h5><i class="fas fa-hotel"></i> Hotels</h5>
+                        <div id="hotelStats" class="text-center py-2">
+                            <div style="font-size:2.2rem;font-weight:800;color:var(--primary);line-height:1;" id="hotelCountBig">0</div>
+                            <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:4px;">registered hotels</div>
+                            <hr style="border-color:var(--border-light);margin:14px 0;">
+                            <div class="d-flex justify-content-around">
+                                <div class="text-center">
+                                    <div style="font-size:1.2rem;font-weight:800;color:var(--success);" id="hotelApproved">0</div>
+                                    <div style="font-size:0.7rem;color:var(--text-tertiary);text-transform:uppercase;font-weight:600;">Approved</div>
+                                </div>
+                                <div class="text-center">
+                                    <div style="font-size:1.2rem;font-weight:800;color:var(--warning);" id="hotelPending">0</div>
+                                    <div style="font-size:0.7rem;color:var(--text-tertiary);text-transform:uppercase;font-weight:600;">Pending</div>
+                                </div>
+                                <div class="text-center">
+                                    <div style="font-size:1.2rem;font-weight:800;color:var(--danger);" id="hotelRejected">0</div>
+                                    <div style="font-size:0.7rem;color:var(--text-tertiary);text-transform:uppercase;font-weight:600;">Rejected</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -97,6 +155,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="../js/env-config.js"></script>
 <script src="../js/firebase-config.js"></script>
+<script src="../js/data-schema.js"></script>
 <script src="../js/ui-shell.js"></script>
 
 <script>
@@ -113,7 +172,7 @@
     let statusChartInstance = null;
     let paymentChartInstance = null;
     let revenueChartInstance = null;
-    let topHotelsChartInstance = null;
+    let categoryChartInstance = null;
 
     auth.onAuthStateChanged((user) => {
         ReplateUI.renderSidebar('appShellSidebar', {
@@ -121,14 +180,13 @@
             activeKey: 'analytics',
             links: adminShellLinks,
         });
-        if (!user) {
-            window.location.href = 'login.html';
-            return;
-        }
+        if (!user) { window.location.href = 'login.html'; return; }
         loadAdminAnalytics();
         loadCustomerCount();
+        loadHotelStats();
     });
 
+    // ── Helpers ─────────────────────────────────────────────
     function getWeekKey(timestamp) {
         const d = new Date(timestamp);
         const oneJan = new Date(d.getFullYear(), 0, 1);
@@ -138,128 +196,286 @@
 
     function getWeekLabel(weekKey) {
         const [year, week] = weekKey.split('-W');
-        return 'W' + parseInt(week) + ' ' + year;
+        return 'W' + parseInt(week);
     }
 
+    function setDelta(elId, current, previous) {
+        const el = document.getElementById(elId);
+        if (!el) return;
+        if (previous === 0 && current === 0) { el.textContent = ''; el.className = 'delta flat'; return; }
+        if (previous === 0) { el.innerHTML = '<i class="fas fa-arrow-up"></i> New'; el.className = 'delta up'; return; }
+        const pct = Math.round(((current - previous) / previous) * 100);
+        if (pct > 0) { el.innerHTML = `<i class="fas fa-arrow-up"></i> ${pct}%`; el.className = 'delta up'; }
+        else if (pct < 0) { el.innerHTML = `<i class="fas fa-arrow-down"></i> ${Math.abs(pct)}%`; el.className = 'delta down'; }
+        else { el.innerHTML = '— flat'; el.className = 'delta flat'; }
+    }
+
+    function escapeHtml(text) {
+        const d = document.createElement('div'); d.textContent = text || ''; return d.innerHTML;
+    }
+
+    // ── Customer count (real-time) ──────────────────────────
     function loadCustomerCount() {
-        database.ref('users').once('value', (snapshot) => {
+        database.ref('users').on('value', (snapshot) => {
             let count = 0;
             if (snapshot.exists()) {
                 snapshot.forEach(child => {
                     const u = child.val() || {};
-                    const role = (u.role || u.userType || 'customer').toLowerCase();
+                    const role = ReplateSchema.normalizeUserRole(u);
                     if (role === 'customer') count++;
                 });
             }
-            document.getElementById('totalCustomers').innerText = count;
+            document.getElementById('totalCustomers').textContent = count;
         });
     }
 
+    // ── Hotel stats (real-time) ─────────────────────────────
+    function loadHotelStats() {
+        database.ref('hotels').on('value', (snap) => {
+            let total = 0, approved = 0, pending = 0, rejected = 0;
+            snap.forEach(child => {
+                total++;
+                const status = ReplateSchema.normalizeHotelStatus(child.val().status);
+                if (status === 'approved') approved++;
+                else if (status === 'rejected') rejected++;
+                else pending++;
+            });
+            document.getElementById('hotelCountBig').textContent = total;
+            document.getElementById('hotelApproved').textContent = approved;
+            document.getElementById('hotelPending').textContent = pending;
+            document.getElementById('hotelRejected').textContent = rejected;
+        });
+    }
+
+    // ── Main analytics (real-time) ──────────────────────────
     function loadAdminAnalytics() {
         database.ref('orders').on('value', (snapshot) => {
+            const now = Date.now();
+            const DAY = 86400000;
+            const currentWeekKey = getWeekKey(now);
+            const lastWeekKey = getWeekKey(now - 7 * DAY);
+
             let revenue = 0, total = 0;
             let completed = 0, pending = 0, cancelled = 0, other = 0;
             let cash = 0, online = 0;
+            let thisWeekRevenue = 0, lastWeekRevenue = 0;
+            let thisWeekOrders = 0, lastWeekOrders = 0;
+            let totalItemsRescued = 0;
             const weeklyOrders = {};
             const weeklyRevenue = {};
             const hotelOrders = {};
+            const categoryOrders = {};
 
             if (snapshot.exists()) {
                 snapshot.forEach(child => {
                     const order = child.val();
                     total++;
 
-                    const ts = order.createdAt || order.timestamp || Date.now();
+                    const ts = order.createdAt || order.timestamp || now;
                     const wk = getWeekKey(ts);
+                    const amount = parseFloat(order.totalAmount || order.totalPrice || 0);
                     weeklyOrders[wk] = (weeklyOrders[wk] || 0) + 1;
 
                     const hName = order.hotelName || 'Unknown';
                     hotelOrders[hName] = (hotelOrders[hName] || 0) + 1;
 
-                    const status = (order.orderStatus || '').toLowerCase();
-                    if (status === 'completed' || status === 'delivered') {
-                        revenue += parseFloat(order.totalAmount || 0);
+                    // Category breakdown from items
+                    const items = ReplateSchema.extractItemsArray(order);
+                    items.forEach(item => {
+                        const cat = item.category || 'Other';
+                        const qty = parseInt(item.quantity) || 1;
+                        categoryOrders[cat] = (categoryOrders[cat] || 0) + qty;
+                    });
+
+                    const status = ReplateSchema.normalizeOrderStatus(order.orderStatus);
+                    if (status === 'completed') {
+                        revenue += amount;
                         completed++;
-                        weeklyRevenue[wk] = (weeklyRevenue[wk] || 0) + parseFloat(order.totalAmount || 0);
-                    } else if (status.includes('pending')) {
-                        pending++;
+                        weeklyRevenue[wk] = (weeklyRevenue[wk] || 0) + amount;
+                        totalItemsRescued += items.reduce((sum, i) => sum + (parseInt(i.quantity) || 1), 0) || 1;
                     } else if (status === 'cancelled') {
                         cancelled++;
                     } else {
-                        other++;
-                        if (status === 'confirmed' || status === 'ready') {
-                            revenue += parseFloat(order.totalAmount || 0);
-                            weeklyRevenue[wk] = (weeklyRevenue[wk] || 0) + parseFloat(order.totalAmount || 0);
+                        pending++;
+                        // Also count confirmed/ready/pending_pickup as revenue
+                        const raw = (order.orderStatus || '').toLowerCase();
+                        if (raw === 'confirmed' || raw === 'ready' || raw === 'pending_pickup') {
+                            revenue += amount;
+                            weeklyRevenue[wk] = (weeklyRevenue[wk] || 0) + amount;
                         }
                     }
 
-                    const method = order.paymentMethod || "Cash";
-                    if (method.toLowerCase().includes("cash")) cash++;
+                    if (wk === currentWeekKey) { thisWeekRevenue += amount; thisWeekOrders++; }
+                    else if (wk === lastWeekKey) { lastWeekRevenue += amount; lastWeekOrders++; }
+
+                    const method = (order.paymentMethod || 'Cash').toLowerCase();
+                    if (method.includes('cash')) cash++;
                     else online++;
                 });
             }
 
-            document.getElementById('totalRevenue').innerText = 'LKR ' + revenue.toLocaleString();
-            document.getElementById('totalOrders').innerText = total;
-            document.getElementById('foodSaved').innerText = (completed * 0.5).toFixed(1) + ' kg';
+            // ── Update stat cards ──
+            document.getElementById('totalRevenue').textContent = 'LKR ' + revenue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+            document.getElementById('totalOrders').textContent = total;
+            document.getElementById('foodSaved').textContent = totalItemsRescued + ' items';
+            setDelta('deltaRevenue', thisWeekRevenue, lastWeekRevenue);
+            setDelta('deltaOrders', thisWeekOrders, lastWeekOrders);
 
+            // ── Sort weeks ──
             const sortedWeeks = Object.keys(weeklyOrders).sort();
             const recentWeeks = sortedWeeks.slice(-8);
             const weekLabels = recentWeeks.map(getWeekLabel);
             const weekData = recentWeeks.map(w => weeklyOrders[w] || 0);
             const weekRevenueData = recentWeeks.map(w => weeklyRevenue[w] || 0);
 
+            // Destroy old charts
             if (statusChartInstance) statusChartInstance.destroy();
             if (paymentChartInstance) paymentChartInstance.destroy();
             if (growthChartInstance) growthChartInstance.destroy();
             if (revenueChartInstance) revenueChartInstance.destroy();
-            if (topHotelsChartInstance) topHotelsChartInstance.destroy();
+            if (categoryChartInstance) categoryChartInstance.destroy();
 
+            // ── Order status doughnut ──
+            const hasStatusData = completed + pending + cancelled + other > 0;
             statusChartInstance = new Chart(document.getElementById('statusChart'), {
                 type: 'doughnut',
                 data: {
-                    labels: ['Completed', 'Pending', 'Cancelled', 'Other'],
-                    datasets: [{ data: [completed, pending, cancelled, other], backgroundColor: ['#1a6b3c', '#FFC107', '#C62828', '#9E9E9E'] }]
+                    labels: ['Completed', 'Pending', 'Cancelled'],
+                    datasets: [{
+                        data: hasStatusData ? [completed, pending, cancelled] : [1],
+                        backgroundColor: hasStatusData ? ['#059669', '#d97706', '#dc2626'] : ['#e5e7eb'],
+                        borderWidth: 0,
+                        hoverOffset: 6
+                    }]
                 },
-                options: { plugins: { legend: { position: 'bottom' } } }
+                options: {
+                    responsive: true,
+                    cutout: '65%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { padding: 14, usePointStyle: true, pointStyle: 'circle', font: { size: 12, weight: 600 } } },
+                        tooltip: { enabled: hasStatusData }
+                    }
+                }
             });
 
+            // ── Payment pie ──
+            const hasPayData = cash + online > 0;
             paymentChartInstance = new Chart(document.getElementById('paymentChart'), {
-                type: 'pie',
+                type: 'doughnut',
                 data: {
-                    labels: ['Cash', 'Online (PayHere)'],
-                    datasets: [{ data: [cash, online], backgroundColor: ['#1a6b3c', '#2196F3'] }]
+                    labels: ['Cash', 'Online'],
+                    datasets: [{
+                        data: hasPayData ? [cash, online] : [1],
+                        backgroundColor: hasPayData ? ['#1a6b3c', '#2563eb'] : ['#e5e7eb'],
+                        borderWidth: 0,
+                        hoverOffset: 6
+                    }]
                 },
-                options: { plugins: { legend: { position: 'bottom' } } }
+                options: {
+                    responsive: true,
+                    cutout: '60%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { padding: 14, usePointStyle: true, pointStyle: 'circle', font: { size: 12, weight: 600 } } },
+                        tooltip: { enabled: hasPayData }
+                    }
+                }
             });
 
+            // ── Growth line chart ──
             growthChartInstance = new Chart(document.getElementById('growthChart'), {
                 type: 'line',
                 data: {
                     labels: weekLabels.length > 0 ? weekLabels : ['No data'],
-                    datasets: [{ label: 'Orders', data: weekData.length > 0 ? weekData : [0], borderColor: '#1a6b3c', backgroundColor: 'rgba(26, 107, 60, 0.1)', fill: true, tension: 0.3 }]
+                    datasets: [{
+                        label: 'Orders',
+                        data: weekData.length > 0 ? weekData : [0],
+                        borderColor: '#1a6b3c',
+                        backgroundColor: 'rgba(26, 107, 60, 0.08)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#1a6b3c',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                    }]
                 },
-                options: { scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }, plugins: { legend: { display: false } } }
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,0.04)' } }, x: { grid: { display: false } } }
+                }
             });
 
+            // ── Revenue bar chart ──
             revenueChartInstance = new Chart(document.getElementById('revenueChart'), {
                 type: 'bar',
                 data: {
                     labels: weekLabels.length > 0 ? weekLabels : ['No data'],
-                    datasets: [{ label: 'Revenue (LKR)', data: weekRevenueData.length > 0 ? weekRevenueData : [0], backgroundColor: 'rgba(26, 107, 60, 0.6)', borderColor: '#1a6b3c', borderWidth: 1, borderRadius: 6 }]
+                    datasets: [{
+                        label: 'Revenue (LKR)',
+                        data: weekRevenueData.length > 0 ? weekRevenueData : [0],
+                        backgroundColor: 'rgba(26, 107, 60, 0.15)',
+                        borderColor: '#1a6b3c',
+                        borderWidth: 2,
+                        borderRadius: 8,
+                        hoverBackgroundColor: 'rgba(26, 107, 60, 0.35)',
+                    }]
                 },
-                options: { scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } }
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => 'LKR ' + ctx.parsed.y.toLocaleString() } } },
+                    scales: { y: { beginAtZero: true, ticks: { callback: v => 'LKR ' + (v >= 1000 ? (v/1000).toFixed(0) + 'k' : v) }, grid: { color: 'rgba(0,0,0,0.04)' } }, x: { grid: { display: false } } }
+                }
             });
 
+            // ── Category bar chart ──
+            const sortedCats = Object.entries(categoryOrders).sort((a, b) => b[1] - a[1]).slice(0, 8);
+            const catColors = ['#1a6b3c', '#059669', '#2563eb', '#d97706', '#e8521a', '#7c3aed', '#dc2626', '#0891b2'];
+            if (sortedCats.length > 0) {
+                categoryChartInstance = new Chart(document.getElementById('categoryChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: sortedCats.map(c => c[0]),
+                        datasets: [{
+                            label: 'Items Ordered',
+                            data: sortedCats.map(c => c[1]),
+                            backgroundColor: sortedCats.map((_, i) => catColors[i % catColors.length] + '22'),
+                            borderColor: sortedCats.map((_, i) => catColors[i % catColors.length]),
+                            borderWidth: 2,
+                            borderRadius: 6,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,0.04)' } }, x: { grid: { display: false } } }
+                    }
+                });
+            } else {
+                const ctx = document.getElementById('categoryChart');
+                categoryChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: { labels: ['No data'], datasets: [{ data: [0], backgroundColor: '#e5e7eb' }] },
+                    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+                });
+            }
+
+            // ── Top Hotels Leaderboard ──
             const sortedHotels = Object.entries(hotelOrders).sort((a, b) => b[1] - a[1]).slice(0, 5);
-            topHotelsChartInstance = new Chart(document.getElementById('topHotelsChart'), {
-                type: 'bar',
-                data: {
-                    labels: sortedHotels.map(h => h[0]),
-                    datasets: [{ label: 'Orders', data: sortedHotels.map(h => h[1]), backgroundColor: ['#1a6b3c', '#25a55a', '#e8521a', '#FFC107', '#2196F3'], borderRadius: 6 }]
-                },
-                options: { indexAxis: 'y', scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }, plugins: { legend: { display: false } } }
-            });
+            const leaderboard = document.getElementById('topHotelsLeaderboard');
+            if (sortedHotels.length === 0) {
+                leaderboard.innerHTML = '<p class="text-center py-3" style="color:var(--text-tertiary);font-size:0.85rem;">No order data yet.</p>';
+            } else {
+                leaderboard.innerHTML = sortedHotels.map(([name, count], i) => {
+                    const rankClass = i < 3 ? `r${i+1}` : `r${Math.min(i+1, 5)}`;
+                    return `<div class="leaderboard-row">
+                        <div class="leaderboard-rank ${rankClass}">${i+1}</div>
+                        <div class="leaderboard-name" title="${escapeHtml(name)}">${escapeHtml(name)}</div>
+                        <div class="leaderboard-value">${count} orders</div>
+                    </div>`;
+                }).join('');
+            }
         });
     }
 </script>
