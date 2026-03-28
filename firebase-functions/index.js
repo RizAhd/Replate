@@ -286,7 +286,9 @@ async function cleanupInvalidTokens(records, failures) {
 
 async function sendToUserRecords(userRecords, payload) {
   const valid = userRecords.filter((u) => u && u.token);
+  console.log(`[sendToUserRecords] Total records=${userRecords.length}, valid (with token)=${valid.length}`);
   if (valid.length === 0) {
+    console.warn("[sendToUserRecords] No valid tokens found, skipping send");
     return { successCount: 0, failureCount: 0 };
   }
 
@@ -317,12 +319,16 @@ async function sendToUserRecords(userRecords, payload) {
 
     successCount += response.successCount;
     failureCount += response.failureCount;
+    console.log(`[sendToUserRecords] Batch: success=${response.successCount}, failure=${response.failureCount}`);
 
     const failures = response.responses
       .map((r, index) => ({ ...r, index }))
       .filter((r) => !r.success);
 
     if (failures.length > 0) {
+      failures.forEach((f) => {
+        console.error(`[sendToUserRecords] Token failed: index=${f.index}, error=${f.error?.code || f.error?.message || "unknown"}`);
+      });
       await cleanupInvalidTokens(group, failures);
     }
   }
@@ -620,14 +626,17 @@ exports.onOrderCreatedNotify = functions
   .onCreate(async (snapshot, context) => {
     const order = snapshot.val() || {};
     const orderId = context.params.orderId;
+    console.log(`[onOrderCreatedNotify] TRIGGER FIRED for orderId=${orderId}`);
 
     const customerId = String(order.userId || "").trim();
     const hotelId = String(order.hotelId || "").trim();
     const customerName = String(order.customerName || order.userName || "Customer");
     const hotelName = String(order.hotelName || "Hotel");
+    console.log(`[onOrderCreatedNotify] customerId=${customerId}, hotelId=${hotelId}, customerName=${customerName}, hotelName=${hotelName}`);
 
     if (customerId) {
       const customerRecord = await loadUserNotificationRecord(customerId);
+      console.log(`[onOrderCreatedNotify] Customer record: uid=${customerRecord?.uid}, hasToken=${!!customerRecord?.token}`);
       if (customerRecord) {
         const payload = buildPayload({
           title: "Order placed successfully",
@@ -640,14 +649,20 @@ exports.onOrderCreatedNotify = functions
         });
 
         if (customerRecord.token) {
-          await sendToUserRecords([customerRecord], payload);
+          const result = await sendToUserRecords([customerRecord], payload);
+          console.log(`[onOrderCreatedNotify] FCM send to customer result: ${JSON.stringify(result)}`);
+        } else {
+          console.warn(`[onOrderCreatedNotify] Customer ${customerId} has no FCM token, skipping push`);
         }
-        await persistNotificationForUsers([customerRecord.uid], payload, "order_created");
+        // Note: Android app already persists in-app notification for customer, so skip here to avoid duplicates
       }
+    } else {
+      console.warn("[onOrderCreatedNotify] No customerId in order, skipping customer notification");
     }
 
     if (hotelId) {
       const hotelRecord = await loadHotelNotificationRecord(hotelId);
+      console.log(`[onOrderCreatedNotify] Hotel record: uid=${hotelRecord?.uid}, hasToken=${!!hotelRecord?.token}`);
       if (hotelRecord && hotelRecord.uid) {
         const payload = buildPayload({
           title: "New order received",
@@ -660,12 +675,20 @@ exports.onOrderCreatedNotify = functions
         });
 
         if (hotelRecord.token) {
-          await sendToUserRecords([hotelRecord], payload);
+          const result = await sendToUserRecords([hotelRecord], payload);
+          console.log(`[onOrderCreatedNotify] FCM send to hotel result: ${JSON.stringify(result)}`);
+        } else {
+          console.warn(`[onOrderCreatedNotify] Hotel ${hotelId} owner has no FCM token, skipping push`);
         }
-        await persistNotificationForUsers([hotelRecord.uid], payload, "order_created");
+        // Note: Android app already persists in-app notification for hotel, so skip here to avoid duplicates
+      } else {
+        console.warn(`[onOrderCreatedNotify] Could not resolve hotel record for hotelId=${hotelId}`);
       }
+    } else {
+      console.warn("[onOrderCreatedNotify] No hotelId in order, skipping hotel notification");
     }
 
+    console.log(`[onOrderCreatedNotify] COMPLETED for orderId=${orderId}`);
     return null;
   });
 
@@ -675,13 +698,18 @@ exports.onOrderStatusChangedNotify = functions
   .onUpdate(async (change, context) => {
     const before = change.before.val() || {};
     const after = change.after.val() || {};
-
-    if (before.orderStatus === after.orderStatus) return null;
-
     const orderId = context.params.orderId;
+    console.log(`[onOrderStatusChangedNotify] TRIGGER FIRED for orderId=${orderId}, before.orderStatus=${before.orderStatus}, after.orderStatus=${after.orderStatus}`);
+
+    if (before.orderStatus === after.orderStatus) {
+      console.log(`[onOrderStatusChangedNotify] No status change, skipping`);
+      return null;
+    }
+
     const userId = String(after.userId || "").trim();
     const hotelId = String(after.hotelId || "").trim();
     const status = String(after.orderStatus || "updated").toLowerCase();
+    console.log(`[onOrderStatusChangedNotify] userId=${userId}, hotelId=${hotelId}, newStatus=${status}`);
 
     const statusMap = {
       pending_pickup: {
@@ -709,6 +737,16 @@ exports.onOrderStatusChangedNotify = functions
         body: "Your meal is ready for pickup.",
         category: "pickup_ready",
       },
+      ready_for_pickup: {
+        title: "Pickup ready",
+        body: "Your meal is ready for pickup.",
+        category: "pickup_ready",
+      },
+      pending_delivery: {
+        title: "Order accepted",
+        body: "Your order is accepted and out for delivery.",
+        category: "order_accepted",
+      },
       completed: {
         title: "Order completed",
         body: "Order marked completed. Enjoy your meal!",
@@ -721,6 +759,7 @@ exports.onOrderStatusChangedNotify = functions
       body: `Your order status is now ${status.replace(/_/g, " ")}.`,
       category: "order_accepted",
     };
+    console.log(`[onOrderStatusChangedNotify] Resolved content: ${JSON.stringify(content)}`);
 
     const customerPayload = buildPayload({
       ...content,
@@ -733,9 +772,13 @@ exports.onOrderStatusChangedNotify = functions
 
     if (userId) {
       const customerRecord = await loadUserNotificationRecord(userId);
+      console.log(`[onOrderStatusChangedNotify] Customer record: uid=${customerRecord?.uid}, hasToken=${!!customerRecord?.token}`);
       if (customerRecord) {
         if (customerRecord.token) {
-          await sendToUserRecords([customerRecord], customerPayload);
+          const result = await sendToUserRecords([customerRecord], customerPayload);
+          console.log(`[onOrderStatusChangedNotify] FCM send to customer result: ${JSON.stringify(result)}`);
+        } else {
+          console.warn(`[onOrderStatusChangedNotify] Customer ${userId} has no FCM token`);
         }
         await persistNotificationForUsers([customerRecord.uid], customerPayload, "order_status_update");
       }
@@ -743,6 +786,7 @@ exports.onOrderStatusChangedNotify = functions
 
     if (status === "cancelled" && hotelId) {
       const hotelRecord = await loadHotelNotificationRecord(hotelId);
+      console.log(`[onOrderStatusChangedNotify] Hotel record for cancellation: uid=${hotelRecord?.uid}, hasToken=${!!hotelRecord?.token}`);
       if (hotelRecord && hotelRecord.uid) {
         const hotelPayload = buildPayload({
           title: "Order cancelled",
@@ -756,12 +800,14 @@ exports.onOrderStatusChangedNotify = functions
         });
 
         if (hotelRecord.token) {
-          await sendToUserRecords([hotelRecord], hotelPayload);
+          const result = await sendToUserRecords([hotelRecord], hotelPayload);
+          console.log(`[onOrderStatusChangedNotify] FCM send to hotel result: ${JSON.stringify(result)}`);
         }
         await persistNotificationForUsers([hotelRecord.uid], hotelPayload, "order_status_update");
       }
     }
 
+    console.log(`[onOrderStatusChangedNotify] COMPLETED for orderId=${orderId}`);
     return null;
   });
 
@@ -773,11 +819,16 @@ exports.onHotelStatusChangedNotify = functions
     const after = change.after.val() || {};
     const beforeStatus = String(before.status || "").trim().toLowerCase();
     const afterStatus = String(after.status || "").trim().toLowerCase();
-
-    if (!afterStatus || beforeStatus === afterStatus) return null;
-
     const hotelId = context.params.hotelId;
+    console.log(`[onHotelStatusChangedNotify] TRIGGER FIRED for hotelId=${hotelId}, before=${beforeStatus}, after=${afterStatus}`);
+
+    if (!afterStatus || beforeStatus === afterStatus) {
+      console.log(`[onHotelStatusChangedNotify] No status change, skipping`);
+      return null;
+    }
+
     const hotelRecord = await loadHotelNotificationRecord(hotelId);
+    console.log(`[onHotelStatusChangedNotify] Hotel record: uid=${hotelRecord?.uid}, hasToken=${!!hotelRecord?.token}`);
     if (!hotelRecord || !hotelRecord.uid) return null;
 
     let payload = null;
@@ -803,12 +854,19 @@ exports.onHotelStatusChangedNotify = functions
       });
     }
 
-    if (!payload) return null;
+    if (!payload) {
+      console.log(`[onHotelStatusChangedNotify] No payload for status=${afterStatus}, skipping`);
+      return null;
+    }
 
     if (hotelRecord.token) {
-      await sendToUserRecords([hotelRecord], payload);
+      const result = await sendToUserRecords([hotelRecord], payload);
+      console.log(`[onHotelStatusChangedNotify] FCM send result: ${JSON.stringify(result)}`);
+    } else {
+      console.warn(`[onHotelStatusChangedNotify] Hotel ${hotelId} owner has no FCM token`);
     }
     await persistNotificationForUsers([hotelRecord.uid], payload, "hotel_status_update");
+    console.log(`[onHotelStatusChangedNotify] COMPLETED for hotelId=${hotelId}`);
     return null;
   });
 
