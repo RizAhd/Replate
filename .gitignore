@@ -17,3 +17,10 @@ local.properties
 # ── Secret / credential files — NEVER commit these ──────────
 .env
 web-panels/js/env-config.js
+
+# ── Build logs, status files, and temp output files ──────────
+build_*.txt
+build_*.log
+build_*.status
+live_logcat.txt
+check_build.bat
