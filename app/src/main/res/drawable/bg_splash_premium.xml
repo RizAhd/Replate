@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Deep base -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#0D3B1E" />
+        </shape>
+    </item>
+    <!-- Radial glow from logo center area -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="radial"
+                android:centerX="0.5"
+                android:centerY="0.38"
+                android:gradientRadius="520dp"
+                android:startColor="#3D1B7A3A"
+                android:endColor="#000D3B1E" />
+        </shape>
+    </item>
+    <!-- Very subtle vignette at edges -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="radial"
+                android:centerX="0.5"
+                android:centerY="0.5"
+                android:gradientRadius="700dp"
+                android:startColor="#00000000"
+                android:endColor="#33000000" />
+        </shape>
+    </item>
+    <!-- Ultra-subtle top highlight for depth -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="linear"
+                android:angle="180"
+                android:startColor="#08FFFFFF"
+                android:endColor="#00000000" />
+        </shape>
+    </item>
+</layer-list>
+

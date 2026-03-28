@@ -3,50 +3,66 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/green_primary">
+    android:background="@drawable/bg_splash_premium">
 
+    <!-- Soft radial glow behind logo -->
+    <View
+        android:id="@+id/glowRing"
+        android:layout_width="340dp"
+        android:layout_height="340dp"
+        android:alpha="0.18"
+        android:background="@drawable/bg_splash_glow"
+        app:layout_constraintBottom_toBottomOf="@id/ivEmoji"
+        app:layout_constraintEnd_toEndOf="@id/ivEmoji"
+        app:layout_constraintStart_toStartOf="@id/ivEmoji"
+        app:layout_constraintTop_toTopOf="@id/ivEmoji" />
+
+    <!-- Logo — 240dp for premium presence -->
     <ImageView
         android:id="@+id/ivEmoji"
-        android:layout_width="160dp"
-        android:layout_height="160dp"
+        android:layout_width="240dp"
+        android:layout_height="240dp"
         android:contentDescription="@string/app_name"
         android:src="@drawable/ic_replate_logo"
         app:layout_constraintBottom_toTopOf="@id/appName"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_chainStyle="packed"
-        app:layout_constraintVertical_bias="0.4" />
+        app:layout_constraintVertical_bias="0.38"
+        app:layout_constraintVertical_chainStyle="packed" />
 
+    <!-- App name — bold, centered, tighter spacing to logo -->
     <TextView
         android:id="@+id/appName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/space_2"
+        android:layout_marginTop="24dp"
         android:fontFamily="@font/poppins_bold"
-        android:letterSpacing="0.06"
+        android:letterSpacing="0.14"
         android:text="@string/app_name"
         android:textColor="@color/white"
-        android:textSize="@dimen/text_display"
+        android:textSize="38sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/ivEmoji" />
 
+    <!-- Tagline — subtle, elegant -->
     <TextView
         android:id="@+id/tagline"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/space_1"
+        android:layout_marginTop="10dp"
         android:fontFamily="@font/poppins_regular"
         android:gravity="center"
         android:letterSpacing="0.04"
         android:text="@string/splash_tagline"
-        android:textColor="@color/white_85"
-        android:textSize="@dimen/text_sm"
+        android:textColor="#99FFFFFF"
+        android:textSize="15sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/appName" />
 
+    <!-- Minimal progress indicator pinned to bottom -->
     <com.google.android.material.progressindicator.LinearProgressIndicator
         android:id="@+id/progressBar"
         android:layout_width="0dp"
@@ -54,12 +70,12 @@
         android:layout_marginBottom="56dp"
         android:indeterminate="true"
         app:indicatorColor="@color/white"
-        app:trackColor="#33FFFFFF"
+        app:trackColor="#14FFFFFF"
         app:trackCornerRadius="2dp"
-        app:trackThickness="3dp"
+        app:trackThickness="2dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintWidth_percent="0.6" />
+        app:layout_constraintWidth_percent="0.35" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -22,15 +22,25 @@ public class SplashActivity extends AppCompatActivity {
         View ivEmoji = findViewById(R.id.ivEmoji);
         View appNameView = findViewById(R.id.appName);
         View taglineView = findViewById(R.id.tagline);
+        View glowRing = findViewById(R.id.glowRing);
+
+        // Fade-in glow ring
+        if (glowRing != null) {
+            glowRing.setAlpha(0f);
+            glowRing.setScaleX(0.6f);
+            glowRing.setScaleY(0.6f);
+            glowRing.animate().alpha(0.18f).scaleX(1f).scaleY(1f)
+                    .setStartDelay(200).setDuration(800).start();
+        }
 
         // Fade-in title and tagline
         if (appNameView != null) {
             appNameView.setAlpha(0f);
-            appNameView.animate().alpha(1f).setStartDelay(300).setDuration(500).start();
+            appNameView.animate().alpha(1f).setStartDelay(350).setDuration(500).start();
         }
         if (taglineView != null) {
             taglineView.setAlpha(0f);
-            taglineView.animate().alpha(1f).setStartDelay(500).setDuration(500).start();
+            taglineView.animate().alpha(1f).setStartDelay(550).setDuration(500).start();
         }
 
         if (ivEmoji != null) {
