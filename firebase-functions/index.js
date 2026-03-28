@@ -301,16 +301,15 @@ async function sendToUserRecords(userRecords, payload) {
 
     const response = await admin.messaging().sendEachForMulticast({
       tokens,
-      notification: {
-        title: payload.title,
-        body: payload.body,
-      },
       data: payload.data,
       android: {
         priority: "high",
         notification: {
-          channelId: "replate_notifications_v3",
-          priority: "high",
+          title: payload.title || "",
+          body: payload.body || "",
+          channelId: "replate_notifications_v4",
+          icon: "replate",
+          color: "#1A6B3C",
           defaultSound: true,
           defaultVibrateTimings: true,
         },
@@ -339,16 +338,15 @@ async function sendToUserRecords(userRecords, payload) {
 async function sendToTopic(topic, payload) {
   const message = {
     topic,
-    notification: {
-      title: payload.title,
-      body: payload.body,
-    },
     data: payload.data,
     android: {
       priority: "high",
       notification: {
-        channelId: "replate_notifications_v3",
-        priority: "high",
+        title: payload.title || "",
+        body: payload.body || "",
+        channelId: "replate_notifications_v4",
+        icon: "replate",
+        color: "#1A6B3C",
         defaultSound: true,
         defaultVibrateTimings: true,
       },

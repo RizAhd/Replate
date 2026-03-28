@@ -389,7 +389,7 @@ public class SettingsActivity extends AppCompatActivity {
      */
     private void showLocalTestNotification() {
         try {
-            String channelId = "replate_notifications_v3";
+            String channelId = "replate_notifications_v4";
 
             // Create channel if needed (Android 8+)
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
@@ -414,11 +414,11 @@ public class SettingsActivity extends AppCompatActivity {
                     android.app.PendingIntent.FLAG_UPDATE_CURRENT | android.app.PendingIntent.FLAG_IMMUTABLE);
 
             android.graphics.Bitmap largeIcon =
-                    android.graphics.BitmapFactory.decodeResource(getResources(), R.drawable.ic_replate_large);
+                    android.graphics.BitmapFactory.decodeResource(getResources(), R.drawable.replate);
 
             androidx.core.app.NotificationCompat.Builder builder =
                     new androidx.core.app.NotificationCompat.Builder(this, channelId)
-                            .setSmallIcon(R.drawable.ic_notification)
+                            .setSmallIcon(R.drawable.replate)
                             .setLargeIcon(largeIcon)
                             .setContentTitle("REPLATE Test Push")
                             .setContentText("Push notifications are working! (local test)")
