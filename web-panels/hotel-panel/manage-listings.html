@@ -14,10 +14,16 @@
 <div class="container-fluid">
     <div class="row">
         <!-- Sidebar rendered by ui-shell.js -->
-        <nav id="appShellSidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse"></nav>
+        <nav id="appShellSidebar" class="sidebar"></nav>
 
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
-            <h2 class="mb-4">My Food Listings</h2>
+        <main>
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <div>
+                    <h1 class="panel-title">My Food Listings</h1>
+                    <p class="panel-subtitle mb-0">Manage active and sold out food items.</p>
+                </div>
+                <a href="add-food.html" class="btn btn-primary btn-sm"><i class="fas fa-plus me-2"></i>Add Food</a>
+            </div>
 
             <div class="card p-3">
                 <div class="table-responsive">
@@ -48,11 +54,28 @@
 <script src="../js/env-config.js"></script>
 <script src="../js/firebase-config.js"></script>
 <script src="../js/data-schema.js"></script>
+<script src="../js/ui-shell.js"></script>
 
 <script>
     let hotelIds = new Set();
 
+    const hotelShellLinks = [
+        { key: 'dashboard',  href: 'dashboard.html',       icon: 'fas fa-home',         label: 'Dashboard' },
+        { key: 'add-food',   href: 'add-food.html',         icon: 'fas fa-plus-circle',  label: 'Add Food' },
+        { key: 'listings',   href: 'manage-listings.html',  icon: 'fas fa-list',         label: 'My Listings' },
+        { key: 'orders',     href: 'orders.html',           icon: 'fas fa-receipt',      label: 'Orders' },
+        { key: 'analytics',  href: 'analytics.html',        icon: 'fas fa-chart-line',   label: 'Analytics' },
+        { key: 'settings',   href: 'settings.html',         icon: 'fas fa-cog',          label: 'Settings' },
+        { key: 'logout',     href: '#',                     icon: 'fas fa-sign-out-alt', label: 'Logout', logout: true }
+    ];
+
     auth.onAuthStateChanged(async (user) => {
+        ReplateUI.renderSidebar('appShellSidebar', {
+            title: '<img src="../assets/replate-icon.svg" alt="REPLATE" class="brand-logo-sm">REPLATE',
+            activeKey: 'listings',
+            links: hotelShellLinks,
+        });
+
         if (!user) {
             window.location.href = 'login.html';
             return;

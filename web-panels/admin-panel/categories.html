@@ -14,30 +14,37 @@
 <div class="container-fluid">
     <div class="row">
         <!-- Sidebar rendered by ui-shell.js -->
-        <nav id="appShellSidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse"></nav>
+        <nav id="appShellSidebar" class="sidebar"></nav>
 
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
-            <h2 class="mb-4">Manage Food Categories</h2>
+        <main>
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <div>
+                    <h1 class="panel-title">Manage Food Categories</h1>
+                    <p class="panel-subtitle mb-0">Add, edit, and organize food categories for your platform.</p>
+                </div>
+            </div>
 
             <div class="row">
-                <div class="col-md-4">
+                <div class="col-lg-4">
                     <div class="card p-4">
-                        <h5>Add New Category</h5>
+                        <h5 class="mb-3"><i class="fas fa-plus-circle me-2"></i>Add New Category</h5>
                         <form id="addCategoryForm">
                             <div class="mb-3">
-                                <label for="catName">Category Name</label>
-                                <input type="text" class="form-control" id="catName" required>
+                                <label class="form-label" for="catName">Category Name</label>
+                                <input type="text" class="form-control" id="catName" placeholder="e.g. Rice & Curry" required>
                             </div>
-                            <div class="mb-3">
-                                <label for="catOrder">Display Order</label>
+                            <div class="mb-4">
+                                <label class="form-label" for="catOrder">Display Order</label>
                                 <input type="number" class="form-control" id="catOrder" value="1" required>
                             </div>
-                            <button type="submit" class="btn btn-dark w-100">Add Category</button>
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-plus me-2"></i>Add Category
+                            </button>
                         </form>
                     </div>
                 </div>
 
-                <div class="col-md-8">
+                <div class="col-lg-8">
                     <div class="card p-3">
                         <table class="table table-hover">
                             <thead>

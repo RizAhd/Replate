@@ -13,46 +13,50 @@
 
 <div class="container-fluid">
     <div class="row">
-        <!-- Sidebar -->
-        <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
-            <div class="position-sticky">
-                <a class="navbar-brand d-block px-3 py-3 mb-3 text-center" href="#">
-                    <img src="../assets/replate-icon.svg" alt="REPLATE" class="brand-logo-inline">REPLATE
-                </a>
-                <ul class="nav flex-column">
-                    <li class="nav-item"><a class="nav-link" href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a></li>
-                    <li class="nav-item"><a class="nav-link" href="add-food.html"><i class="fas fa-plus-circle"></i> Add Food</a></li>
-                    <li class="nav-item"><a class="nav-link" href="manage-listings.html"><i class="fas fa-list"></i> My Listings</a></li>
-                    <li class="nav-item"><a class="nav-link" href="orders.html"><i class="fas fa-receipt"></i> Orders</a></li>
-                    <li class="nav-item"><a class="nav-link" href="analytics.html"><i class="fas fa-chart-line"></i> Analytics</a></li>
-                    <li class="nav-item"><a class="nav-link active" href="settings.html"><i class="fas fa-cog"></i> Settings</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-                </ul>
-            </div>
-        </nav>
+        <!-- Sidebar rendered by ui-shell.js -->
+        <nav id="appShellSidebar" class="sidebar"></nav>
 
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
-            <h2 class="mb-4">Settings</h2>
+        <main>
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <div>
+                    <h1 class="panel-title">Settings</h1>
+                    <p class="panel-subtitle mb-0">Manage your hotel profile and preferences.</p>
+                </div>
+            </div>
 
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-lg-6">
                     <div class="card p-4">
-                        <h5>Profile Information</h5>
+                        <h5 class="mb-4"><i class="fas fa-building me-2"></i>Profile Information</h5>
                         <form id="profileForm">
                             <div class="mb-3">
-                                <label>Hotel Name</label>
+                                <label class="form-label" for="hotelName">Hotel Name</label>
                                 <input type="text" class="form-control" id="hotelName">
                             </div>
                             <div class="mb-3">
-                                <label>Owner Name</label>
+                                <label class="form-label" for="ownerName">Owner Name</label>
                                 <input type="text" class="form-control" id="ownerName">
                             </div>
-                            <div class="mb-3">
-                                <label>Phone</label>
+                            <div class="mb-4">
+                                <label class="form-label" for="phone">Phone</label>
                                 <input type="text" class="form-control" id="phone">
                             </div>
-                            <button type="submit" class="btn btn-primary">Update Profile</button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Update Profile
+                            </button>
                         </form>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card p-4">
+                        <h5 class="mb-4"><i class="fas fa-shield-alt me-2"></i>Account Security</h5>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem;">
+                            To change your password or email, use the password reset option on the login page.
+                            Your account is secured with Firebase Authentication.
+                        </p>
+                        <button class="btn btn-outline-primary" onclick="logout()">
+                            <i class="fas fa-sign-out-alt me-2"></i>Sign Out
+                        </button>
                     </div>
                 </div>
             </div>
@@ -66,11 +70,28 @@
 <script src="../js/env-config.js"></script>
 <script src="../js/firebase-config.js"></script>
 <script src="../js/data-schema.js"></script>
+<script src="../js/ui-shell.js"></script>
 
 <script>
+    const hotelShellLinks = [
+        { key: 'dashboard',  href: 'dashboard.html',       icon: 'fas fa-home',         label: 'Dashboard' },
+        { key: 'add-food',   href: 'add-food.html',         icon: 'fas fa-plus-circle',  label: 'Add Food' },
+        { key: 'listings',   href: 'manage-listings.html',  icon: 'fas fa-list',         label: 'My Listings' },
+        { key: 'orders',     href: 'orders.html',           icon: 'fas fa-receipt',      label: 'Orders' },
+        { key: 'analytics',  href: 'analytics.html',        icon: 'fas fa-chart-line',   label: 'Analytics' },
+        { key: 'settings',   href: 'settings.html',         icon: 'fas fa-cog',          label: 'Settings' },
+        { key: 'logout',     href: '#',                     icon: 'fas fa-sign-out-alt', label: 'Logout', logout: true }
+    ];
+
     let currentHotelId = null;
 
     auth.onAuthStateChanged(async (user) => {
+        ReplateUI.renderSidebar('appShellSidebar', {
+            title: '<img src="../assets/replate-icon.svg" alt="REPLATE" class="brand-logo-sm">REPLATE',
+            activeKey: 'settings',
+            links: hotelShellLinks,
+        });
+
         if (!user) return;
 
         const hotelRecord = await ReplateSchema.findHotelByUserId(database, user.uid);
@@ -97,7 +118,7 @@
             phone: document.getElementById('phone').value
         });
 
-        alert('Profile Updated!');
+        ReplateUI.showAlert('Profile updated successfully!', 'success');
     });
 </script>
 </body>
