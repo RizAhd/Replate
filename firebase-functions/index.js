@@ -590,8 +590,6 @@ const sendSelfTestPushHandler = async (req, res) => {
 // https://us-central1-replate-food-rescue.cloudfunctions.net/sendSelfTestPush
 exports.sendSelfTestPush = functions.region("us-central1").https.onRequest(sendSelfTestPushHandler);
 
-// Backward-compatible alias for older app versions.
-exports.sendSelfTestNotification = functions.region(REGION).https.onRequest(sendSelfTestPushHandler);
 
 exports.onUserProfileCreatedNotify = functions
   .region(REGION)
