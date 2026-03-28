@@ -15,6 +15,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.replate.app.utils.ToastUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -91,7 +92,7 @@ public class EditProfileActivity extends AppCompatActivity {
                         // Handle profile image if implementing storage
                     }
                 })
-                .addOnFailureListener(e -> Toast.makeText(this, "Failed to load profile", Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> ToastUtils.showCustomToast(this, "Failed to load profile"));
         }
     }
 
@@ -154,10 +155,10 @@ public class EditProfileActivity extends AppCompatActivity {
                             )
                     );
 
-                    Toast.makeText(this, "Profile Updated", Toast.LENGTH_SHORT).show();
+                    ToastUtils.showCustomToast(this, "Profile Updated");
                     finish();
                 })
-                .addOnFailureListener(e -> Toast.makeText(this, "Update failed", Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> ToastUtils.showCustomToast(this, "Update failed"));
         }
     }
 

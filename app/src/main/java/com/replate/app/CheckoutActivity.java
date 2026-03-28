@@ -34,6 +34,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.replate.app.helpers.CartDatabaseHelper;
 import com.replate.app.models.CartItem;
+import com.replate.app.utils.ToastUtils;
 
 import java.io.FileOutputStream;
 import java.io.Serializable;
@@ -191,7 +192,7 @@ public class CheckoutActivity extends AppCompatActivity {
         cartItems = cartDb.getAllItems();
 
         if (cartItems.isEmpty()) {
-            Toast.makeText(this, "Cart is empty", Toast.LENGTH_SHORT).show();
+            ToastUtils.showCustomToast(this, "Cart is empty");
             finish();
             return;
         }
@@ -297,7 +298,7 @@ public class CheckoutActivity extends AppCompatActivity {
         }
 
         if (!isDelivery && pickupTime.isEmpty()) {
-            Toast.makeText(this, "Please select pickup time", Toast.LENGTH_SHORT).show();
+            ToastUtils.showCustomToast(this, "Please select pickup time");
             return;
         }
 
@@ -371,7 +372,7 @@ public class CheckoutActivity extends AppCompatActivity {
     private void handlePayHereResult(int resultCode, @Nullable Intent data) {
         if (data == null || !data.hasExtra(PHConstants.INTENT_EXTRA_RESULT)) {
             if (resultCode == Activity.RESULT_CANCELED) {
-                Toast.makeText(this, "Payment canceled", Toast.LENGTH_SHORT).show();
+                ToastUtils.showCustomToast(this, "Payment canceled");
             }
             return;
         }
@@ -381,9 +382,8 @@ public class CheckoutActivity extends AppCompatActivity {
         String lower = responseText.toLowerCase(Locale.US);
 
         if (lower.contains("unauthorized domain") || lower.contains("unauthorized")) {
-            Toast.makeText(this,
-                    "PayHere blocked this request (unauthorized domain). Use sandbox merchant + approved URLs.",
-                    Toast.LENGTH_LONG).show();
+            ToastUtils.showCustomToast(this,
+                    "PayHere blocked this request (unauthorized domain). Use sandbox merchant + approved URLs.");
             Log.e(TAG, "PayHere unauthorized response: " + responseText);
             return;
         }
@@ -405,9 +405,9 @@ public class CheckoutActivity extends AppCompatActivity {
             Log.d(TAG, "Payment success: " + responseText);
             submitOrder("PayHere Online", "paid");
         } else if (resultCode == Activity.RESULT_CANCELED) {
-            Toast.makeText(this, "Payment canceled: " + responseText, Toast.LENGTH_SHORT).show();
+            ToastUtils.showCustomToast(this, "Payment canceled: " + responseText);
         } else {
-            Toast.makeText(this, "Payment failed: " + responseText, Toast.LENGTH_LONG).show();
+            ToastUtils.showCustomToast(this, "Payment failed: " + responseText);
         }
     }
 
@@ -508,11 +508,11 @@ public class CheckoutActivity extends AppCompatActivity {
                     startActivity(intent);
                     finish();
 
-                    Toast.makeText(this, "Order placed successfully", Toast.LENGTH_LONG).show();
+                    ToastUtils.showCustomToast(this, "Order placed successfully");
                 })
                 .addOnFailureListener(e -> {
                     showLoading(false);
-                    Toast.makeText(this, "Failed to place order: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    ToastUtils.showCustomToast(this, "Failed to place order: " + e.getMessage());
                 });
     }
 

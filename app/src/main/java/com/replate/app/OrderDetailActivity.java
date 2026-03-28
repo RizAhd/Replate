@@ -38,6 +38,7 @@ import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.common.BitMatrix;
 import com.replate.app.models.Order;
 import com.replate.app.utils.TelephonyUtils;
+import com.replate.app.utils.ToastUtils;
 
 import java.util.Locale;
 import java.util.Map;
@@ -76,7 +77,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
                 if (granted && pendingCallNumber != null && !pendingCallNumber.isEmpty()) {
                     TelephonyUtils.callNow(this, pendingCallNumber);
                 } else if (!granted) {
-                    Toast.makeText(this, "Call permission denied. Opening dialer instead.", Toast.LENGTH_SHORT).show();
+                    ToastUtils.showCustomToast(this, "Call permission denied. Opening dialer instead.");
                     if (pendingCallNumber != null && !pendingCallNumber.isEmpty()) {
                         TelephonyUtils.openDialer(this, pendingCallNumber);
                     }
@@ -150,7 +151,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
 
     private void openPickupRoute() {
         if (order == null || order.getHotelId() == null || order.getHotelId().trim().isEmpty()) {
-            Toast.makeText(this, "Hotel route not available", Toast.LENGTH_SHORT).show();
+            ToastUtils.showCustomToast(this, "Hotel route not available");
             return;
         }
 
@@ -174,8 +175,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
-                        Toast.makeText(OrderDetailActivity.this, "Failed to load order",
-                                Toast.LENGTH_SHORT).show();
+                        ToastUtils.showCustomToast(OrderDetailActivity.this, "Failed to load order");
                     }
                 });
     }
@@ -285,7 +285,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
             ivQRCode.setImageBitmap(bitmap);
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(this, "QR Code generation failed", Toast.LENGTH_SHORT).show();
+            ToastUtils.showCustomToast(this, "QR Code generation failed");
         }
     }
 
@@ -322,7 +322,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
             try {
                 TelephonyUtils.openSms(this, phone, message);
             } catch (Exception e) {
-                Toast.makeText(this, "No SMS app available", Toast.LENGTH_SHORT).show();
+                ToastUtils.showCustomToast(this, "No SMS app available");
             }
         });
     }
@@ -396,13 +396,13 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
     private void submitReview() {
         if (order == null || order.getOrderId() == null) return;
         if (!order.isCompleted()) {
-            Toast.makeText(this, "You can review only completed orders", Toast.LENGTH_SHORT).show();
+            ToastUtils.showCustomToast(this, "You can review only completed orders");
             return;
         }
 
         float rating = ratingReview.getRating();
         if (rating <= 0f) {
-            Toast.makeText(this, "Please add a rating", Toast.LENGTH_SHORT).show();
+            ToastUtils.showCustomToast(this, "Please add a rating");
             return;
         }
 
@@ -441,11 +441,11 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
                     order.setHasReview(true);
                     updateReviewSection();
 
-                    Toast.makeText(this, "Review submitted successfully", Toast.LENGTH_SHORT).show();
+                    ToastUtils.showCustomToast(this, "Review submitted successfully");
                 })
                 .addOnFailureListener(e -> {
                     btnSubmitReview.setEnabled(true);
-                    Toast.makeText(this, "Failed to save review: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    ToastUtils.showCustomToast(this, "Failed to save review: " + e.getMessage());
                 });
     }
 

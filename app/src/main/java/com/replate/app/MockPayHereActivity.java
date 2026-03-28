@@ -14,6 +14,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.textfield.TextInputEditText;
+import com.replate.app.utils.ToastUtils;
 
 import java.util.Locale;
 
@@ -96,7 +97,7 @@ public class MockPayHereActivity extends AppCompatActivity {
         btnPayNow.setEnabled(false);
 
         new Handler().postDelayed(() -> {
-            Toast.makeText(MockPayHereActivity.this, "Payment Approved", Toast.LENGTH_SHORT).show();
+            ToastUtils.showCustomToast(MockPayHereActivity.this, "Payment Approved");
             setResult(RESULT_OK);
             finish();
         }, 2000);

@@ -12,7 +12,6 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -34,6 +33,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.replate.app.utils.FcmTokenManager;
+import com.replate.app.utils.ToastUtils;
 
 import org.json.JSONObject;
 
@@ -234,24 +234,23 @@ public class LoginActivity extends AppCompatActivity {
                         if (task.getException() != null) {
                             errorMessage = task.getException().getMessage();
                         }
-                        Toast.makeText(LoginActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+                        ToastUtils.showCustomToast(LoginActivity.this, errorMessage);
                         return;
                     }
 
                     FirebaseUser user = mAuth.getCurrentUser();
                     if (user == null) {
                         showLoading(false);
-                        Toast.makeText(LoginActivity.this,
-                            "Login failed. Please try again.", Toast.LENGTH_LONG).show();
+                        ToastUtils.showCustomToast(LoginActivity.this,
+                            "Login failed. Please try again.");
                         return;
                     }
 
                     // Enforce verified email before allowing app access.
                     if (!user.isEmailVerified()) {
                         showLoading(false);
-                        Toast.makeText(LoginActivity.this,
-                            "Please verify your email first. Verification mail sent.",
-                            Toast.LENGTH_LONG).show();
+                        ToastUtils.showCustomToast(LoginActivity.this,
+                            "Please verify your email first. Verification mail sent.");
                         user.sendEmailVerification();
                         mAuth.signOut();
                         return;
@@ -305,7 +304,7 @@ public class LoginActivity extends AppCompatActivity {
                                     null
                             )
                     );
-                    Toast.makeText(LoginActivity.this, "Welcome back!", Toast.LENGTH_SHORT).show();
+                    ToastUtils.showCustomToast(LoginActivity.this, "Welcome back!");
                     goToHomeByRole(role, user.getUid());
                 }
 
@@ -367,15 +366,15 @@ public class LoginActivity extends AppCompatActivity {
                         if (task.getException() != null) {
                             errorMessage = task.getException().getMessage();
                         }
-                        Toast.makeText(LoginActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+                        ToastUtils.showCustomToast(LoginActivity.this, errorMessage);
                         return;
                     }
 
                     FirebaseUser user = mAuth.getCurrentUser();
                     if (user == null) {
                         showLoading(false);
-                        Toast.makeText(LoginActivity.this,
-                            "Registration failed. User not available.", Toast.LENGTH_LONG).show();
+                        ToastUtils.showCustomToast(LoginActivity.this,
+                            "Registration failed. User not available.");
                         return;
                     }
 
@@ -406,24 +405,24 @@ public class LoginActivity extends AppCompatActivity {
                 public void onComplete(@NonNull Task<Void> task) {
                     if (!task.isSuccessful()) {
                         showLoading(false);
-                        Toast.makeText(LoginActivity.this,
-                            "Failed to save user data.", Toast.LENGTH_SHORT).show();
+                        ToastUtils.showCustomToast(LoginActivity.this,
+                            "Failed to save user data.");
                         return;
                     }
 
                     FirebaseUser firebaseUser = mAuth.getCurrentUser();
                     if (firebaseUser == null) {
                         showLoading(false);
-                        Toast.makeText(LoginActivity.this,
-                            "Verification mail could not be sent.", Toast.LENGTH_SHORT).show();
+                        ToastUtils.showCustomToast(LoginActivity.this,
+                            "Verification mail could not be sent.");
                         return;
                     }
 
                     if (!sendVerificationEmail) {
                         showLoading(false);
                         saveUserSession(firebaseUser, "customer");
-                        Toast.makeText(LoginActivity.this,
-                            "Account created successfully!", Toast.LENGTH_SHORT).show();
+                        ToastUtils.showCustomToast(LoginActivity.this,
+                            "Account created successfully!");
                         goToHomeByRole("customer", firebaseUser.getUid());
                         return;
                     }
@@ -431,13 +430,11 @@ public class LoginActivity extends AppCompatActivity {
                     firebaseUser.sendEmailVerification().addOnCompleteListener(mailTask -> {
                         showLoading(false);
                         if (mailTask.isSuccessful()) {
-                            Toast.makeText(LoginActivity.this,
-                                "Verification email sent. Please check your inbox before login.",
-                                Toast.LENGTH_LONG).show();
+                            ToastUtils.showCustomToast(LoginActivity.this,
+                                "Verification email sent. Please check your inbox before login.");
                         } else {
-                            Toast.makeText(LoginActivity.this,
-                                "Account created, but email send failed. You can retry from login.",
-                                Toast.LENGTH_LONG).show();
+                            ToastUtils.showCustomToast(LoginActivity.this,
+                                "Account created, but email send failed. You can retry from login.");
                         }
                         mAuth.signOut();
                         tabLayout.selectTab(tabLayout.getTabAt(0));
@@ -562,7 +559,7 @@ public class LoginActivity extends AppCompatActivity {
                 if (!TextUtils.isEmpty(email) && Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                     sendPasswordResetEmail(email);
                 } else {
-                    Toast.makeText(this, "Please enter a valid email", Toast.LENGTH_SHORT).show();
+                    ToastUtils.showCustomToast(this, "Please enter a valid email");
                 }
             })
             .setNegativeButton("Cancel", null)
@@ -578,13 +575,11 @@ public class LoginActivity extends AppCompatActivity {
             .addOnCompleteListener(task -> {
                 showLoading(false);
                 if (task.isSuccessful()) {
-                    Toast.makeText(this,
-                        "Password reset email sent. Check your inbox.",
-                        Toast.LENGTH_LONG).show();
+                    ToastUtils.showCustomToast(this,
+                        "Password reset email sent. Check your inbox.");
                 } else {
-                    Toast.makeText(this,
-                        "Failed to send reset email. Please try again.",
-                        Toast.LENGTH_SHORT).show();
+                    ToastUtils.showCustomToast(this,
+                        "Failed to send reset email. Please try again.");
                 }
             });
     }

@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.replate.app.adapters.CartAdapter;
 import com.replate.app.helpers.CartDatabaseHelper;
 import com.replate.app.models.CartItem;
+import com.replate.app.utils.ToastUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -89,7 +90,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
                                         cartDb.clearCart();
                                     }
                                     loadCartItems();
-                                    Toast.makeText(this, getString(R.string.cart_cleared), Toast.LENGTH_SHORT).show();
+                                    ToastUtils.showCustomToast(this, getString(R.string.cart_cleared));
                                 })
                                 .setNegativeButton(android.R.string.cancel, null)
                                 .show();
@@ -188,6 +189,6 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
         cartDb.removeItem(item.getFoodId());
         loadCartItems();
         String label = item.getFoodName() == null ? getString(R.string.cart_item_fallback) : item.getFoodName();
-        Toast.makeText(this, getString(R.string.cart_removed, label), Toast.LENGTH_SHORT).show();
+        ToastUtils.showCustomToast(this, getString(R.string.cart_removed, label));
     }
 }

@@ -41,6 +41,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageException;
 import com.google.firebase.storage.StorageReference;
+import com.replate.app.utils.ToastUtils;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -130,7 +131,7 @@ public class SettingsActivity extends AppCompatActivity {
                     uploadProfilePhoto(bitmap);
                 }
             } catch (Exception e) {
-                Toast.makeText(this, "Failed to read selected image", Toast.LENGTH_SHORT).show();
+                ToastUtils.showCustomToast(this, "Failed to read selected image");
             }
         });
 
@@ -222,11 +223,11 @@ public class SettingsActivity extends AppCompatActivity {
     private void sendSelfTestPush() {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user == null) {
-            Toast.makeText(this, getString(R.string.settings_test_push_failed), Toast.LENGTH_SHORT).show();
+            ToastUtils.showCustomToast(this, getString(R.string.settings_test_push_failed));
             return;
         }
 
-        Toast.makeText(this, getString(R.string.settings_test_push_sending), Toast.LENGTH_SHORT).show();
+        ToastUtils.showCustomToast(this, getString(R.string.settings_test_push_sending));
 
         networkExecutor.execute(() -> {
             HttpURLConnection connection = null;
@@ -268,15 +269,14 @@ public class SettingsActivity extends AppCompatActivity {
                 reader.close();
 
                 if (code >= 200 && code < 300) {
-                    runOnUiThread(() -> Toast.makeText(SettingsActivity.this,
-                            getString(R.string.settings_test_push_sent), Toast.LENGTH_LONG).show());
+                    runOnUiThread(() -> ToastUtils.showCustomToast(SettingsActivity.this,
+                            getString(R.string.settings_test_push_sent)));
                 } else {
                     throw new IllegalStateException("HTTP " + code + ": " + response);
                 }
             } catch (Exception e) {
-                runOnUiThread(() -> Toast.makeText(SettingsActivity.this,
-                        getString(R.string.settings_test_push_failed) + " " + e.getMessage(),
-                        Toast.LENGTH_LONG).show());
+                runOnUiThread(() -> ToastUtils.showCustomToast(SettingsActivity.this,
+                        getString(R.string.settings_test_push_failed) + " " + e.getMessage()));
             } finally {
                 if (connection != null) connection.disconnect();
             }
@@ -322,8 +322,8 @@ public class SettingsActivity extends AppCompatActivity {
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
                         if (canUseUi()) {
-                            Toast.makeText(SettingsActivity.this,
-                                    "Failed to load profile", Toast.LENGTH_SHORT).show();
+                            ToastUtils.showCustomToast(SettingsActivity.this,
+                                    "Failed to load profile");
                         }
                     }
                 });
@@ -374,7 +374,7 @@ public class SettingsActivity extends AppCompatActivity {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 openCamera();
             } else {
-                Toast.makeText(this, "Camera permission required", Toast.LENGTH_SHORT).show();
+                ToastUtils.showCustomToast(this, "Camera permission required");
             }
         }
     }
@@ -400,18 +400,7 @@ public class SettingsActivity extends AppCompatActivity {
 
     private void showBrandedToast(String message) {
         if (!canUseUi()) return;
-        try {
-            View toastView = LayoutInflater.from(this).inflate(R.layout.view_branded_toast, null, false);
-            TextView tvMessage = toastView.findViewById(R.id.tvToastMessage);
-            tvMessage.setText(message);
-
-            Toast toast = new Toast(this);
-            toast.setDuration(Toast.LENGTH_SHORT);
-            toast.setView(toastView);
-            toast.show();
-        } catch (Exception ignored) {
-            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-        }
+        ToastUtils.showCustomToast(this, message);
     }
 
     private boolean isPermissionDenied(Throwable error) {
@@ -551,7 +540,7 @@ public class SettingsActivity extends AppCompatActivity {
         String address = etAddress.getText() != null ? etAddress.getText().toString().trim() : "";
 
         if (name.isEmpty() || phone.isEmpty()) {
-            Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+            ToastUtils.showCustomToast(this, "Please fill all fields");
             return;
         }
 
@@ -568,11 +557,11 @@ public class SettingsActivity extends AppCompatActivity {
 
             mDatabase.child("users").child(user.getUid()).updateChildren(updates)
                     .addOnSuccessListener(aVoid ->
-                            Toast.makeText(SettingsActivity.this,
-                                    "Profile Updated ✅", Toast.LENGTH_SHORT).show())
+                            ToastUtils.showCustomToast(SettingsActivity.this,
+                                    "Profile Updated ✅"))
                     .addOnFailureListener(e ->
-                            Toast.makeText(SettingsActivity.this,
-                                    "Update Failed ❌", Toast.LENGTH_SHORT).show());
+                            ToastUtils.showCustomToast(SettingsActivity.this,
+                                    "Update Failed ❌"));
         }
     }
 

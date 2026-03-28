@@ -42,6 +42,7 @@ import com.replate.app.adapters.FoodItemAdapter;
 import com.replate.app.helpers.FoodItemCacheManager;
 import com.replate.app.models.FoodItem;
 import com.replate.app.utils.LocationUtils;
+import com.replate.app.utils.ToastUtils;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -417,7 +418,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
             public void onCancelled(@NonNull DatabaseError error) {
                 setLoadingState(false);
                 if (allFoodItems.isEmpty()) {
-                    Toast.makeText(getContext(), "Error loading data", Toast.LENGTH_SHORT).show();
+                    ToastUtils.showCustomToast(getContext(), "Error loading data");
                 }
             }
         });
@@ -566,7 +567,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
 
     @Override
     public void onAddToCartClick(FoodItem foodItem) {
-        Toast.makeText(getContext(), foodItem.getFoodName() + " added to cart!", Toast.LENGTH_SHORT).show();
+        ToastUtils.showCustomToast(getContext(), foodItem.getFoodName() + " added to cart!");
     }
 
     @Override
