@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -29,6 +28,7 @@ import com.replate.app.MainActivity;
 import com.replate.app.NotificationsActivity;
 import com.replate.app.R;
 import com.replate.app.SettingsActivity;
+import com.replate.app.utils.ToastUtils;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -170,7 +170,7 @@ public class ProfileFragment extends Fragment {
         });
 
         menuFavorites.setOnClickListener(v -> {
-            Toast.makeText(getContext(), "Favorites coming soon!", Toast.LENGTH_SHORT).show();
+            ToastUtils.showCustomToast(getContext(), "Favorites coming soon!");
         });
 
         menuNotifications.setOnClickListener(v -> {
@@ -182,7 +182,7 @@ public class ProfileFragment extends Fragment {
         });
 
         menuHelp.setOnClickListener(v -> {
-            Toast.makeText(getContext(), "Help & Support coming soon!", Toast.LENGTH_SHORT).show();
+            ToastUtils.showCustomToast(getContext(), "Help & Support coming soon!");
         });
 
         btnLogout.setOnClickListener(v -> showLogoutDialog());
@@ -211,7 +211,7 @@ public class ProfileFragment extends Fragment {
                             requireActivity().finish();
                         } catch (Exception e) {
                             Log.e("Logout", "Logout fallback error", e);
-                            Toast.makeText(getContext(), "Logout failed", Toast.LENGTH_SHORT).show();
+                            ToastUtils.showCustomToast(getContext(), "Logout failed");
                         }
                     }
                 })

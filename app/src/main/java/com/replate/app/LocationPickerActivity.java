@@ -25,6 +25,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.replate.app.utils.ToastUtils;
 
 import java.io.IOException;
 import java.util.List;
@@ -51,7 +52,7 @@ public class LocationPickerActivity extends AppCompatActivity implements OnMapRe
                 if (fineGranted || coarseGranted) {
                     moveToLiveLocation(true);
                 } else {
-                    Toast.makeText(this, getString(R.string.location_picker_select_prompt), Toast.LENGTH_SHORT).show();
+                    ToastUtils.showCustomToast(this, getString(R.string.location_picker_select_prompt));
                 }
             });
 
@@ -85,7 +86,7 @@ public class LocationPickerActivity extends AppCompatActivity implements OnMapRe
                 setResult(RESULT_OK, resultIntent);
                 finish();
             } else {
-                Toast.makeText(this, getString(R.string.location_picker_select_prompt), Toast.LENGTH_SHORT).show();
+                ToastUtils.showCustomToast(this, getString(R.string.location_picker_select_prompt));
             }
         });
     }
@@ -112,7 +113,7 @@ public class LocationPickerActivity extends AppCompatActivity implements OnMapRe
 
     private void searchAndMove(@NonNull String query) {
         if (!Geocoder.isPresent()) {
-            Toast.makeText(this, getString(R.string.location_picker_search_failed), Toast.LENGTH_SHORT).show();
+            ToastUtils.showCustomToast(this, getString(R.string.location_picker_search_failed));
             return;
         }
 
@@ -130,11 +131,11 @@ public class LocationPickerActivity extends AppCompatActivity implements OnMapRe
                         selectedLatLng = target;
                         getAddress(target);
                     } else {
-                        Toast.makeText(this, getString(R.string.location_picker_not_found), Toast.LENGTH_SHORT).show();
+                        ToastUtils.showCustomToast(this, getString(R.string.location_picker_not_found));
                     }
                 });
             } catch (IOException e) {
-                runOnUiThread(() -> Toast.makeText(this, getString(R.string.location_picker_search_failed), Toast.LENGTH_SHORT).show());
+                runOnUiThread(() -> ToastUtils.showCustomToast(this, getString(R.string.location_picker_search_failed)));
             }
         });
     }
@@ -177,7 +178,7 @@ public class LocationPickerActivity extends AppCompatActivity implements OnMapRe
 
         fusedLocationClient.getLastLocation().addOnSuccessListener(this::handleLocationResult);
         if (!silent) {
-            Toast.makeText(this, getString(R.string.location_picker_use_live), Toast.LENGTH_SHORT).show();
+            ToastUtils.showCustomToast(this, getString(R.string.location_picker_use_live));
         }
     }
 

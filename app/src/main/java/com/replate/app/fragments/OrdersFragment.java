@@ -32,6 +32,7 @@ import com.replate.app.OrderDetailActivity;
 import com.replate.app.R;
 import com.replate.app.adapters.OrderAdapter;
 import com.replate.app.models.Order;
+import com.replate.app.utils.ToastUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -162,7 +163,7 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
                 if (!isAdded()) return;
                 Context ctx = getContext();
                 if (ctx != null) {
-                    Toast.makeText(ctx, "Failed to load orders", Toast.LENGTH_SHORT).show();
+                    ToastUtils.showCustomToast(ctx, "Failed to load orders");
                 }
             }
         });
@@ -226,7 +227,7 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
             if (isAdded()) {
                 Context ctx = getContext();
                 if (ctx != null) {
-                    Toast.makeText(ctx, "This order cannot be cancelled", Toast.LENGTH_SHORT).show();
+                    ToastUtils.showCustomToast(ctx, "This order cannot be cancelled");
                 }
             }
             return;
@@ -256,7 +257,7 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
                     if (!isAdded()) return;
                     Context ctx = getContext();
                     if (ctx != null) {
-                        Toast.makeText(ctx, "Order cancelled", Toast.LENGTH_SHORT).show();
+                        ToastUtils.showCustomToast(ctx, "Order cancelled");
                     }
                 })
                 .addOnFailureListener(e -> {
@@ -264,7 +265,7 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
                     if (!isAdded()) return;
                     Context ctx = getContext();
                     if (ctx != null) {
-                        Toast.makeText(ctx, "Failed to cancel order", Toast.LENGTH_SHORT).show();
+                        ToastUtils.showCustomToast(ctx, "Failed to cancel order");
                     }
                 });
     }

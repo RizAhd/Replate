@@ -7,7 +7,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -22,6 +21,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.replate.app.adapters.NotificationAdapter;
 import com.replate.app.models.AppNotification;
+import com.replate.app.utils.ToastUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -196,6 +196,6 @@ public class NotificationsActivity extends AppCompatActivity
                         .child("read").setValue(true);
             }
         }
-        Toast.makeText(this, "All notifications marked as read", Toast.LENGTH_SHORT).show();
+        ToastUtils.showCustomToast(this, "All notifications marked as read");
     }
 }

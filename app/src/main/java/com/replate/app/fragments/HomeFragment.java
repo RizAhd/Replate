@@ -47,10 +47,11 @@ import com.replate.app.adapters.BannerAdapter;
 import com.replate.app.adapters.CategoryAdapter;
 import com.replate.app.adapters.FoodItemAdapter;
 import com.replate.app.helpers.CartDatabaseHelper;
+import com.replate.app.helpers.FoodItemCacheManager;
 import com.replate.app.models.Category;
 import com.replate.app.models.FoodItem;
 import com.replate.app.utils.ShakeDetector;
-import com.replate.app.helpers.FoodItemCacheManager;
+import com.replate.app.utils.ToastUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -221,7 +222,7 @@ public class HomeFragment extends Fragment implements
         shakeDetector.setOnShakeListener(count -> {
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
-                    Toast.makeText(getContext(), "🔄 Refreshing nearby deals...", Toast.LENGTH_SHORT).show();
+                    ToastUtils.showCustomToast(getContext(), "🔄 Refreshing nearby deals...");
                     getUserLocation();
                 });
             }
@@ -531,7 +532,7 @@ public class HomeFragment extends Fragment implements
                 if (!isAdded()) return;
                 Context ctx = getContext();
                 if (ctx != null && (allFoodItems == null || allFoodItems.isEmpty())) {
-                    Toast.makeText(ctx, "Failed to load food items", Toast.LENGTH_SHORT).show();
+                    ToastUtils.showCustomToast(ctx, "Failed to load food items");
                 }
             }
         });
@@ -730,8 +731,7 @@ public class HomeFragment extends Fragment implements
     public void onAddToCartClick(FoodItem foodItem) {
         // Add to cart using SQLite
         addToCart(foodItem);
-        Toast.makeText(getContext(), foodItem.getFoodName() + " added to cart!",
-            Toast.LENGTH_SHORT).show();
+        ToastUtils.showCustomToast(getContext(), foodItem.getFoodName() + " added to cart!");
     }
 
     private void addToCart(FoodItem foodItem) {

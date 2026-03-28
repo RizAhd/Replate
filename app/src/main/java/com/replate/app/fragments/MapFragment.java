@@ -59,6 +59,7 @@ import com.replate.app.map.model.FoodPlace;
 import com.replate.app.map.routing.DirectionsApiClient;
 import com.replate.app.map.routing.RouteResult;
 import com.replate.app.utils.LocationUtils;
+import com.replate.app.utils.ToastUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -117,7 +118,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 if (fineGranted || coarseGranted) {
                     enableMyLocationAndCenter();
                 } else {
-                    Toast.makeText(getContext(), "Location permission denied. Enable location for live map updates.", Toast.LENGTH_LONG).show();
+                    ToastUtils.showCustomToast(getContext(), "Location permission denied. Enable location for live map updates.");
                 }
             });
 
@@ -211,7 +212,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         if (btnViewDeals != null) {
             btnViewDeals.setOnClickListener(v -> {
                 if (selectedPlace == null) {
-                    Toast.makeText(getContext(), "Select a place marker first", Toast.LENGTH_SHORT).show();
+                    ToastUtils.showCustomToast(getContext(), "Select a place marker first");
                     return;
                 }
                 drawRouteToSelectedPlace();
@@ -242,7 +243,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     private void searchLocation(@NonNull String locationName) {
         if (!Geocoder.isPresent()) {
-            Toast.makeText(getContext(), "Geocoder not available on this device", Toast.LENGTH_SHORT).show();
+            ToastUtils.showCustomToast(getContext(), "Geocoder not available on this device");
             return;
         }
 
@@ -280,7 +281,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                             renderSearchPin();
                         }
                     } else {
-                        Toast.makeText(getContext(), "Location not found", Toast.LENGTH_SHORT).show();
+                        ToastUtils.showCustomToast(getContext(), "Location not found");
                     }
                 });
             } catch (IOException ioException) {
@@ -294,7 +295,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                     if (loadingOverlay != null) {
                         loadingOverlay.setVisibility(View.GONE);
                     }
-                    Toast.makeText(getContext(), "Search failed. Check internet.", Toast.LENGTH_SHORT).show();
+                    ToastUtils.showCustomToast(getContext(), "Search failed. Check internet.");
                 });
             }
         }).start();
@@ -354,7 +355,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                     loadingOverlay.setVisibility(View.GONE);
                 }
                 showNoRegisteredHotelsState();
-                Toast.makeText(getContext(), "Could not load hotel locations: " + message, Toast.LENGTH_SHORT).show();
+                ToastUtils.showCustomToast(getContext(), "Could not load hotel locations: " + message);
             }
         });
     }
@@ -409,7 +410,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         try {
             mMap.setMyLocationEnabled(true);
         } catch (SecurityException e) {
-            Toast.makeText(getContext(), "Location permission denied", Toast.LENGTH_SHORT).show();
+            ToastUtils.showCustomToast(getContext(), "Location permission denied");
             return;
         }
 
@@ -441,7 +442,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 .addOnSuccessListener(this::handleLocation)
                 .addOnFailureListener(e -> {
                     if (!isAdded()) return;
-                    Toast.makeText(getContext(), "Unable to fetch live location", Toast.LENGTH_SHORT).show();
+                    ToastUtils.showCustomToast(getContext(), "Unable to fetch live location");
                 });
     }
 
@@ -515,7 +516,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
 
         if (location == null) {
-            Toast.makeText(getContext(), "Waiting for live location...", Toast.LENGTH_SHORT).show();
+            ToastUtils.showCustomToast(getContext(), "Waiting for live location...");
             return;
         }
 
@@ -528,7 +529,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     private void moveToCurrentLocation() {
         if (mMap == null || currentUserLatLng == null) {
-            Toast.makeText(getContext(), "Current location not available yet", Toast.LENGTH_SHORT).show();
+            ToastUtils.showCustomToast(getContext(), "Current location not available yet");
             requestOrLoadLocation();
             return;
         }
@@ -639,13 +640,13 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     private void drawRouteToSelectedPlace() {
         if (selectedDestinationLatLng == null || selectedPlace == null) {
-            Toast.makeText(getContext(), getString(R.string.map_select_destination_first), Toast.LENGTH_SHORT).show();
+            ToastUtils.showCustomToast(getContext(), getString(R.string.map_select_destination_first));
             return;
         }
 
         if (currentUserLatLng == null) {
             requestOrLoadLocation();
-            Toast.makeText(getContext(), getString(R.string.map_waiting_current_location), Toast.LENGTH_SHORT).show();
+            ToastUtils.showCustomToast(getContext(), getString(R.string.map_waiting_current_location));
             return;
         }
 
@@ -664,7 +665,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 if (!isAdded()) return;
                 loadingOverlay.setVisibility(View.GONE);
                 tvRouteInfo.setText(getString(R.string.map_route_unavailable));
-                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+                ToastUtils.showCustomToast(getContext(), message);
             }
         });
     }

@@ -5,7 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.widget.Toast;
+
+import com.replate.app.utils.ToastUtils;
 
 /**
  * BroadcastReceiver for network connectivity changes
@@ -32,8 +33,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
         }
 
         if (!isConnected) {
-            Toast.makeText(context, "📡 No internet connection. Some features may not work.",
-                    Toast.LENGTH_SHORT).show();
+            ToastUtils.showCustomToast(context, "📡 No internet connection. Some features may not work.");
         }
     }
 
@@ -47,4 +47,3 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
         return false;
     }
 }
-
