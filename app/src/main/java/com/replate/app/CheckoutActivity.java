@@ -483,6 +483,14 @@ public class CheckoutActivity extends AppCompatActivity {
         mDatabase.child("orders").child(orderId).setValue(orderData)
                 .addOnSuccessListener(unused -> {
                     showLoading(false);
+
+                    // Decrement food quantity & auto-deactivate if sold out
+                    for (CartItem ci : cartItems) {
+                        if (ci.getFoodId() != null && !ci.getFoodId().trim().isEmpty()) {
+                            decreaseFoodQuantity(ci.getFoodId(), ci.getQuantity());
+                        }
+                    }
+
                     cartDb.clearCart();
                     saveReceipt(orderId, otpCode, customerName, totalAmount);
                     playPaymentSound();
@@ -550,6 +558,40 @@ public class CheckoutActivity extends AppCompatActivity {
         progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
         btnPlaceOrder.setEnabled(!show);
         btnPlaceOrder.setAlpha(show ? 0.65f : 1f);
+    }
+
+    /**
+     * Decrease food item quantity in Firebase after successful order.
+     * Auto-marks item as sold_out when quantity reaches 0 to prevent overselling.
+     */
+    private void decreaseFoodQuantity(String foodId, int orderedQty) {
+        mDatabase.child("foodItems").child(foodId)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        Object qtyObj = snapshot.child("quantity").getValue();
+                        int currentQty = 0;
+                        if (qtyObj instanceof Number) {
+                            currentQty = ((Number) qtyObj).intValue();
+                        } else if (qtyObj != null) {
+                            try { currentQty = Integer.parseInt(String.valueOf(qtyObj)); } catch (Exception ignored) {}
+                        }
+                        int newQty = Math.max(0, currentQty - orderedQty);
+                        mDatabase.child("foodItems").child(foodId).child("quantity").setValue(newQty);
+                        if (newQty <= 0) {
+                            mDatabase.child("foodItems").child(foodId).child("status").setValue("sold_out");
+                            mDatabase.child("foodItems").child(foodId).child("isAvailable").setValue(false);
+                            Log.d(TAG, "Food sold out, auto-deactivated: " + foodId);
+                        } else {
+                            Log.d(TAG, "Food quantity updated: " + foodId + " -> " + newQty);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Log.w(TAG, "Failed to decrease food quantity for " + foodId, error.toException());
+                    }
+                });
     }
 
     private void createOrderNotifications(String orderId,
