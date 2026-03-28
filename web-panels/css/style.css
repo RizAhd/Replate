@@ -79,6 +79,9 @@ html {
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 body {
@@ -87,6 +90,9 @@ body {
     color: var(--text-primary);
     line-height: 1.6;
     min-height: 100vh;
+    min-height: 100dvh;
+    width: 100%;
+    max-width: 100%;
     overflow-x: hidden;
 }
 
@@ -115,7 +121,24 @@ a:hover {
 /* ── Layout Shell ────────────────────────────────────────── */
 .container-fluid > .row {
     min-height: 100vh;
-    flex-wrap: nowrap;
+    display: block;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.container-fluid {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+img,
+svg,
+video,
+iframe {
+    max-width: 100%;
 }
 
 /* ── Sidebar ─────────────────────────────────────────────── */
@@ -291,7 +314,24 @@ main {
     padding: 32px 40px 48px !important;
     max-width: none;
     min-height: 100vh;
-    width: calc(100% - var(--sidebar-width));
+    min-height: 100dvh;
+    width: auto !important;
+    min-width: 0;
+    overflow-x: hidden;
+}
+
+main > *,
+main .row,
+main [class*="col-"],
+.card,
+.card-header,
+.card-body,
+.tab-content,
+.tab-pane,
+form,
+.dataTables_wrapper,
+.chart-card {
+    min-width: 0;
 }
 
 /* ── Page header ─────────────────────────────────────────── */
@@ -654,6 +694,10 @@ main > h2 {
     min-width: 640px;
 }
 
+.table-stack {
+    width: 100%;
+}
+
 .table {
     margin-bottom: 0;
     font-size: 0.875rem;
@@ -1004,6 +1048,7 @@ main > h2 {
 /* ── Charts ───────────────────────────────────────────────── */
 .card canvas {
     max-height: 300px;
+    width: 100% !important;
 }
 
 /* ── OTP Input ────────────────────────────────────────────── */
@@ -1080,6 +1125,10 @@ main > h2 {
 /* Small tablet / Large phone */
 @media (max-width: 991.98px) {
     .sidebar {
+        width: min(86vw, 320px) !important;
+        min-width: min(86vw, 320px) !important;
+        max-width: min(86vw, 320px) !important;
+        flex: 0 0 min(86vw, 320px) !important;
         transform: translateX(-100%);
     }
 
@@ -1096,10 +1145,30 @@ main > h2 {
         margin-left: 0 !important;
         padding: 72px 18px 40px !important;
         width: 100% !important;
+        max-width: 100% !important;
     }
 
     .container-fluid > .row {
-        flex-wrap: wrap;
+        display: block;
+    }
+
+    .page-header,
+    .d-flex.justify-content-between.flex-wrap.flex-md-nowrap.align-items-center.pt-3.pb-2.mb-3.border-bottom {
+        flex-wrap: wrap !important;
+        align-items: flex-start !important;
+        gap: 12px;
+    }
+
+    .page-header > *,
+    .d-flex.justify-content-between.flex-wrap.flex-md-nowrap.align-items-center.pt-3.pb-2.mb-3.border-bottom > * {
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .nav-link,
+    .nav-tabs .nav-link,
+    .nav-pills .nav-link {
+        white-space: normal;
     }
 
     .auth-card-wide {
@@ -1114,16 +1183,20 @@ main > h2 {
     }
 
     main {
-        padding: 68px 16px 32px !important;
+        padding: calc(68px + env(safe-area-inset-top, 0px)) calc(16px + env(safe-area-inset-right, 0px)) calc(32px + env(safe-area-inset-bottom, 0px)) calc(16px + env(safe-area-inset-left, 0px)) !important;
     }
 
     .auth-page {
-        padding: 16px;
+        padding: calc(16px + env(safe-area-inset-top, 0px)) calc(16px + env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) calc(16px + env(safe-area-inset-left, 0px));
     }
 
     .auth-card {
         padding: 28px 22px;
         border-radius: var(--radius-lg);
+    }
+
+    .row {
+        --bs-gutter-x: 1rem;
     }
 
     .card {
@@ -1153,6 +1226,138 @@ main > h2 {
         min-width: 560px;
     }
 
+    .table-responsive:has(.table-stack) {
+        overflow: visible;
+        border: 0;
+        background: transparent;
+    }
+
+    .table-stack {
+        min-width: 0 !important;
+    }
+
+    .table-stack thead {
+        display: none;
+    }
+
+    .table-stack,
+    .table-stack tbody,
+    .table-stack tr,
+    .table-stack td {
+        display: block;
+        width: 100%;
+    }
+
+    .table-stack tbody tr {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        margin-bottom: 12px;
+        padding: 14px;
+        box-shadow: var(--shadow-xs);
+    }
+
+    .table-stack tbody tr:hover {
+        background: var(--surface);
+    }
+
+    .table-stack tbody td {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 8px 0;
+        border: 0;
+        text-align: right;
+    }
+
+    .table-stack tbody td::before {
+        content: attr(data-label);
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        text-align: left;
+        min-width: 92px;
+        flex-shrink: 0;
+    }
+
+    .table-stack tbody td > * {
+        max-width: calc(100% - 104px);
+    }
+
+    .table-stack tbody td:first-child {
+        padding-top: 0;
+    }
+
+    .table-stack tbody td:last-child {
+        padding-bottom: 0;
+    }
+
+    .table-stack tbody td[colspan] {
+        display: block;
+        text-align: center;
+        padding: 4px 0;
+    }
+
+    .table-stack tbody td[colspan]::before {
+        display: none;
+    }
+
+    .table-stack tbody td.actions-cell,
+    .table-stack tbody td.title-cell {
+        display: block;
+        text-align: left;
+    }
+
+    .table-stack tbody td.actions-cell::before,
+    .table-stack tbody td.title-cell::before {
+        display: block;
+        margin-bottom: 8px;
+    }
+
+    .table-stack tbody td.actions-cell > *,
+    .table-stack tbody td.title-cell > * {
+        max-width: none;
+    }
+
+    .table-stack tbody td.actions-cell .btn {
+        margin-right: 8px;
+        margin-bottom: 8px;
+    }
+
+    .table-stack code,
+    .table-stack .badge,
+    .table-stack small {
+        white-space: normal;
+    }
+
+    .dataTables_wrapper .row {
+        row-gap: 12px;
+    }
+
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter,
+    .dataTables_wrapper .dataTables_info,
+    .dataTables_wrapper .dataTables_paginate {
+        width: 100%;
+        text-align: left !important;
+        margin: 0;
+    }
+
+    .dataTables_wrapper .dataTables_filter input {
+        width: 100%;
+        margin-left: 0 !important;
+        margin-top: 8px;
+    }
+
+    .dataTables_wrapper .dataTables_paginate {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
     .btn {
         width: 100%;
     }
@@ -1180,9 +1385,22 @@ main > h2 {
         gap: 8px;
     }
 
+    .card-body,
+    .card.p-4,
+    .card.p-5,
+    .card.data-panel.p-4 {
+        padding: 18px !important;
+    }
+
     .nav-pills,
     .nav-tabs {
         flex-wrap: wrap;
+    }
+
+    .nav-pills .nav-link,
+    .nav-tabs .nav-link {
+        width: 100%;
+        text-align: left;
     }
 
     .otp-digits {
@@ -1192,6 +1410,38 @@ main > h2 {
 
     #reader {
         min-height: 220px !important;
+    }
+
+    .sidebar-toggle {
+        top: calc(12px + env(safe-area-inset-top, 0px));
+        left: calc(12px + env(safe-area-inset-left, 0px));
+    }
+}
+
+@media (max-width: 575.98px) {
+    main {
+        padding: calc(64px + env(safe-area-inset-top, 0px)) calc(12px + env(safe-area-inset-right, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)) calc(12px + env(safe-area-inset-left, 0px)) !important;
+    }
+
+    .sidebar {
+        width: min(92vw, 320px) !important;
+        min-width: min(92vw, 320px) !important;
+        max-width: min(92vw, 320px) !important;
+        flex-basis: min(92vw, 320px) !important;
+    }
+
+    .panel-title,
+    main > h2 {
+        font-size: 1.35rem;
+    }
+
+    .panel-subtitle {
+        font-size: 0.85rem;
+    }
+
+    .btn-lg {
+        padding: 11px 18px;
+        font-size: 0.9rem;
     }
 }
 

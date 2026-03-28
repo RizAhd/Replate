@@ -47,24 +47,33 @@ const ReplateUI = (() => {
             overlay.className = 'sidebar-overlay';
             document.body.appendChild(overlay);
 
+            const setSidebarState = (open) => {
+                container.classList.toggle('show', open);
+                overlay.classList.toggle('show', open);
+                document.body.style.overflow = open ? 'hidden' : '';
+            };
+
             toggle.addEventListener('click', () => {
-                container.classList.toggle('show');
-                overlay.classList.toggle('show');
+                setSidebarState(!container.classList.contains('show'));
             });
 
             overlay.addEventListener('click', () => {
-                container.classList.remove('show');
-                overlay.classList.remove('show');
+                setSidebarState(false);
             });
 
             // Close sidebar on nav link click (mobile)
             container.querySelectorAll('.nav-link').forEach(link => {
                 link.addEventListener('click', () => {
                     if (window.innerWidth <= 991) {
-                        container.classList.remove('show');
-                        overlay.classList.remove('show');
+                        setSidebarState(false);
                     }
                 });
+            });
+
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 991) {
+                    setSidebarState(false);
+                }
             });
         }
     }
