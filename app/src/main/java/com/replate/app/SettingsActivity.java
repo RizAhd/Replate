@@ -414,7 +414,7 @@ public class SettingsActivity extends AppCompatActivity {
                     android.app.PendingIntent.FLAG_UPDATE_CURRENT | android.app.PendingIntent.FLAG_IMMUTABLE);
 
             android.graphics.Bitmap largeIcon =
-                    android.graphics.BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher_round);
+                    android.graphics.BitmapFactory.decodeResource(getResources(), R.drawable.ic_replate_large);
 
             androidx.core.app.NotificationCompat.Builder builder =
                     new androidx.core.app.NotificationCompat.Builder(this, channelId)
