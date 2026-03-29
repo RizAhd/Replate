@@ -169,7 +169,7 @@ public class NotificationsActivity extends AppCompatActivity
                     break;
                 }
             }
-            tvMarkAllRead.setVisibility(hasUnread ? View.VISIBLE : View.INVISIBLE);
+            tvMarkAllRead.setVisibility(hasUnread ? View.VISIBLE : View.GONE);
         }
     }
 

@@ -92,7 +92,7 @@ public class FavoritesActivity extends AppCompatActivity implements FoodItemAdap
 
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-                int position = viewHolder.getBindingAdapterPosition();
+                int position = viewHolder.getAdapterPosition();
                 removeFavoriteAt(position);
             }
         };
@@ -198,4 +198,3 @@ public class FavoritesActivity extends AppCompatActivity implements FoodItemAdap
         );
     }
 }
-
