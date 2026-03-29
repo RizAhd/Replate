@@ -138,6 +138,15 @@
     <string name="profile_account_subtitle">Everything you need in one place</string>
     <string name="profile_my_orders">My Orders</string>
     <string name="profile_favorites">Favorites</string>
+    <string name="favorites_title">Favorites</string>
+    <string name="favorites_saved_count">%1$d saved %2$s locally</string>
+    <string name="favorites_saved_count_default">0 saved items locally</string>
+    <string name="favorites_item_singular">item</string>
+    <string name="favorites_item_plural">items</string>
+    <string name="favorites_removed_message">Removed from favorites</string>
+    <string name="favorites_undo">Undo</string>
+    <string name="favorites_empty_title">No favorites saved yet</string>
+    <string name="favorites_empty_subtitle">Tap the favorite button on any food detail page and your saved items will appear here.</string>
     <string name="profile_notifications">Notifications</string>
     <string name="profile_settings">Settings</string>
     <string name="profile_help_support">Help &amp; Support</string>

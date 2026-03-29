@@ -458,6 +458,11 @@ public class HomeFragment extends Fragment implements
         }
 
         for (FoodItem item : allFoodItems) {
+            if (item == null || !item.hasValidCoordinates()) {
+                item.setDistance(0);
+                continue;
+            }
+
             double distance = calculateDistance(
                     currentLatitude,
                     currentLongitude,
@@ -575,12 +580,14 @@ public class HomeFragment extends Fragment implements
 
                         if (!item.isListable()) continue;
 
-                        if (currentLatitude != 0 && currentLongitude != 0) {
+                        if (currentLatitude != 0 && currentLongitude != 0 && item.hasValidCoordinates()) {
                             double distance = calculateDistance(
                                     currentLatitude, currentLongitude,
                                     item.getLatitudeValue(), item.getLongitudeValue()
                             );
                             item.setDistance(distance);
+                        } else {
+                            item.setDistance(0);
                         }
 
                         newItems.add(item);

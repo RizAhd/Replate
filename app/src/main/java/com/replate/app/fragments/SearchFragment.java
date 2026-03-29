@@ -157,9 +157,31 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
                 if (location != null) {
                     currentLat = location.getLatitude();
                     currentLng = location.getLongitude();
+                    refreshDistancesFromCurrentLocation();
                     filterItems(etSearch == null ? "" : etSearch.getText().toString());
                 }
             });
+        }
+    }
+
+    private void refreshDistancesFromCurrentLocation() {
+        if (currentLat == 0 || currentLng == 0 || allFoodItems.isEmpty()) {
+            return;
+        }
+
+        for (FoodItem item : allFoodItems) {
+            if (item == null || !item.hasValidCoordinates()) {
+                item.setDistance(0);
+                continue;
+            }
+
+            double dist = LocationUtils.calculateDistance(
+                    currentLat,
+                    currentLng,
+                    item.getLatitudeValue(),
+                    item.getLongitudeValue()
+            );
+            item.setDistance(dist);
         }
     }
 
@@ -520,12 +542,14 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
 
                     if (!item.isListable()) continue;
 
-                    if (currentLat != 0 && currentLng != 0) {
+                    if (currentLat != 0 && currentLng != 0 && item.hasValidCoordinates()) {
                         double dist = LocationUtils.calculateDistance(
                                 currentLat, currentLng,
                                 item.getLatitudeValue(), item.getLongitudeValue()
                         );
                         item.setDistance(dist);
+                    } else {
+                        item.setDistance(0);
                     }
 
                     allFoodItems.add(item);

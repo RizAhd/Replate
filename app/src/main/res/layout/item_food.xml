@@ -75,20 +75,6 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/tvPickupTime"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom|start"
-                android:layout_marginStart="@dimen/space_1_5"
-                android:layout_marginBottom="@dimen/space_1_5"
-                android:background="@drawable/badge_distance"
-                android:fontFamily="@font/poppins_medium"
-                android:paddingHorizontal="@dimen/space_1_5"
-                android:paddingVertical="@dimen/space_0_5"
-                android:text="@string/food_pickup_placeholder"
-                android:textColor="@color/white"
-                android:textSize="@dimen/text_caption" />
         </FrameLayout>
 
         <LinearLayout

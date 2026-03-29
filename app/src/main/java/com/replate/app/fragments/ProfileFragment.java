@@ -25,6 +25,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.replate.app.FavoritesActivity;
 import com.replate.app.LoginActivity;
 import com.replate.app.MainActivity;
 import com.replate.app.NotificationsActivity;
@@ -33,6 +34,8 @@ import com.replate.app.SettingsActivity;
 import com.replate.app.helpers.ReplateDatabaseHelper;
 import com.replate.app.utils.AccountDeletionManager;
 import com.replate.app.utils.ToastUtils;
+
+import java.util.Locale;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -198,7 +201,7 @@ public class ProfileFragment extends Fragment {
                         }
 
                         tvOrdersCount.setText(String.valueOf(orderCount));
-                        tvSavings.setText(String.format("LKR %.0f", totalSavings));
+                        tvSavings.setText(String.format(Locale.getDefault(), "LKR %.0f", totalSavings));
                     }
 
                     @Override
@@ -221,10 +224,7 @@ public class ProfileFragment extends Fragment {
         });
 
         menuFavorites.setOnClickListener(v -> {
-            if (getActivity() instanceof MainActivity) {
-                ((MainActivity) getActivity()).switchToTab(R.id.nav_home);
-                ToastUtils.showCustomToast(getContext(), "Check your favorites on the home screen");
-            }
+            startActivity(new Intent(getContext(), FavoritesActivity.class));
         });
 
         menuNotifications.setOnClickListener(v -> {

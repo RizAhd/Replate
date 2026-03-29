@@ -112,6 +112,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private boolean hasCenteredOnUser;
     private long lastRouteInfoUpdateAt;
     private LatLng lastRouteInfoOrigin;
+    private long placesLoadVersion;
+    private long searchRequestVersion;
+    private long routeRequestVersion;
+    private boolean isLocationUpdatesRunning;
 
     private final ActivityResultLauncher<String[]> locationPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
@@ -197,6 +201,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     private int dp(int value) {
         return Math.round(value * requireContext().getResources().getDisplayMetrics().density);
+    }
+
+    private boolean isViewActive() {
+        return isAdded() && getView() != null;
+    }
+
+    private boolean isMapUsable() {
+        return isViewActive() && mMap != null;
     }
 
     private void initMap() {
@@ -295,25 +307,27 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             return;
         }
 
-        if (!isAdded()) {
+        if (!isViewActive()) {
             return;
         }
+
+        final long requestId = ++searchRequestVersion;
 
         if (loadingOverlay != null) {
             loadingOverlay.setVisibility(View.VISIBLE);
         }
         new Thread(() -> {
-            if (!isAdded()) {
+            if (!isAdded() || requestId != searchRequestVersion) {
                 return;
             }
             Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
             try {
                 List<Address> result = geocoder.getFromLocationName(locationName, 1);
-                if (!isAdded()) {
+                if (!isAdded() || requestId != searchRequestVersion) {
                     return;
                 }
                 requireActivity().runOnUiThread(() -> {
-                    if (!isAdded()) {
+                    if (!isViewActive() || requestId != searchRequestVersion) {
                         return;
                     }
                     if (loadingOverlay != null) {
@@ -333,11 +347,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                     }
                 });
             } catch (IOException ioException) {
-                if (!isAdded()) {
+                if (!isAdded() || requestId != searchRequestVersion) {
                     return;
                 }
                 requireActivity().runOnUiThread(() -> {
-                    if (!isAdded()) {
+                    if (!isViewActive() || requestId != searchRequestVersion) {
                         return;
                     }
                     if (loadingOverlay != null) {
@@ -381,12 +395,16 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     }
 
     private void loadAndRenderPlaceMarkers() {
+        final long requestId = ++placesLoadVersion;
         if (loadingOverlay != null) {
             loadingOverlay.setVisibility(View.VISIBLE);
         }
         placesDataSource.fetchPlaces(new PlacesDataSource.Callback() {
             @Override
             public void onSuccess(@NonNull List<FoodPlace> places) {
+                if (!isViewActive() || requestId != placesLoadVersion) {
+                    return;
+                }
                 if (loadingOverlay != null) {
                     loadingOverlay.setVisibility(View.GONE);
                 }
@@ -401,6 +419,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
             @Override
             public void onError(@NonNull String message) {
+                if (!isViewActive() || requestId != placesLoadVersion) {
+                    return;
+                }
                 if (loadingOverlay != null) {
                     loadingOverlay.setVisibility(View.GONE);
                 }
@@ -499,7 +520,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     }
 
     private void startLiveLocationUpdates() {
-        if (!isAdded() || getContext() == null || getActivity() == null) {
+        if (!isAdded() || getContext() == null || getActivity() == null || isLocationUpdatesRunning) {
             return;
         }
 
@@ -546,13 +567,15 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
         try {
             fusedLocationClient.requestLocationUpdates(request, liveLocationCallback, getActivity().getMainLooper());
+            isLocationUpdatesRunning = true;
         } catch (SecurityException ignored) {
         }
     }
 
     private void stopLiveLocationUpdates() {
-        if (liveLocationCallback != null) {
+        if (liveLocationCallback != null && isLocationUpdatesRunning) {
             fusedLocationClient.removeLocationUpdates(liveLocationCallback);
+            isLocationUpdatesRunning = false;
         }
     }
 
@@ -701,6 +724,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             return;
         }
 
+        final LatLng expectedDestination = selectedDestinationLatLng;
+        final long requestId = ++routeRequestVersion;
+
         if (loadingOverlay != null) {
             loadingOverlay.setVisibility(View.VISIBLE);
         }
@@ -710,7 +736,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         directionsApiClient.fetchRoute(currentUserLatLng, selectedDestinationLatLng, new DirectionsApiClient.Callback() {
             @Override
             public void onSuccess(RouteResult result) {
-                if (!isAdded()) return;
+                if (!isMapUsable() || requestId != routeRequestVersion || !isSameLatLng(expectedDestination, selectedDestinationLatLng)) {
+                    return;
+                }
                 if (loadingOverlay != null) {
                     loadingOverlay.setVisibility(View.GONE);
                 }
@@ -719,7 +747,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
             @Override
             public void onError(String message) {
-                if (!isAdded()) return;
+                if (!isViewActive() || requestId != routeRequestVersion || !isSameLatLng(expectedDestination, selectedDestinationLatLng)) {
+                    return;
+                }
                 if (loadingOverlay != null) {
                     loadingOverlay.setVisibility(View.GONE);
                 }
@@ -729,6 +759,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 ToastUtils.showCustomToast(getContext(), message);
             }
         });
+    }
+
+    private boolean isSameLatLng(@Nullable LatLng a, @Nullable LatLng b) {
+        if (a == null || b == null) {
+            return false;
+        }
+        return Math.abs(a.latitude - b.latitude) < 0.00001
+                && Math.abs(a.longitude - b.longitude) < 0.00001;
     }
 
     private void maybeUpdateRouteInfo(@NonNull LatLng origin, @NonNull LatLng destination) {
@@ -930,14 +968,19 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     public void onPause() {
         super.onPause();
         stopLiveLocationUpdates();
+        routeRequestVersion++;
     }
 
     @Override
     public void onDestroyView() {
         stopLiveLocationUpdates();
+        placesLoadVersion++;
+        searchRequestVersion++;
+        routeRequestVersion++;
         mMap = null;
         currentRoutePolyline = null;
         liveLocationCallback = null;
+        isLocationUpdatesRunning = false;
         super.onDestroyView();
     }
 }
