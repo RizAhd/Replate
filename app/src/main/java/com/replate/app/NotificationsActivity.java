@@ -9,6 +9,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -20,6 +21,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.replate.app.adapters.NotificationAdapter;
+import com.replate.app.helpers.ReplateDatabaseHelper;
 import com.replate.app.models.AppNotification;
 import com.replate.app.utils.ToastUtils;
 
@@ -38,12 +40,13 @@ public class NotificationsActivity extends AppCompatActivity
     private RecyclerView rvNotifications;
     private LinearLayout emptyState;
     private ProgressBar progressBar;
-    private TextView tvMarkAllRead;
+    private TextView tvMarkAllRead, tvDeleteAll;
 
     private DatabaseReference mDatabase;
     private NotificationAdapter adapter;
     private List<AppNotification> notifications = new ArrayList<>();
     private String launchOrderId;
+    private ReplateDatabaseHelper localDb;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +55,7 @@ public class NotificationsActivity extends AppCompatActivity
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
         launchOrderId = getIntent().getStringExtra("orderId");
+        localDb = ReplateDatabaseHelper.getInstance(this);
 
         initViews();
         loadNotifications();
@@ -63,6 +67,7 @@ public class NotificationsActivity extends AppCompatActivity
         emptyState = findViewById(R.id.emptyState);
         progressBar = findViewById(R.id.progressBar);
         tvMarkAllRead = findViewById(R.id.tvMarkAllRead);
+        tvDeleteAll = findViewById(R.id.tvDeleteAll);
 
         rvNotifications.setLayoutManager(new LinearLayoutManager(this));
         adapter = new NotificationAdapter(this, notifications, this);
@@ -70,6 +75,9 @@ public class NotificationsActivity extends AppCompatActivity
 
         ivBack.setOnClickListener(v -> finish());
         tvMarkAllRead.setOnClickListener(v -> markAllAsRead());
+        if (tvDeleteAll != null) {
+            tvDeleteAll.setOnClickListener(v -> confirmDeleteAll());
+        }
     }
 
     private void loadNotifications() {
@@ -77,6 +85,17 @@ public class NotificationsActivity extends AppCompatActivity
         if (userId == null) return;
 
         progressBar.setVisibility(View.VISIBLE);
+
+        // Load cached notifications immediately for instant display
+        if (localDb != null) {
+            List<AppNotification> cached = localDb.getCachedNotifications();
+            if (!cached.isEmpty() && notifications.isEmpty()) {
+                notifications.clear();
+                notifications.addAll(cached);
+                adapter.notifyDataSetChanged();
+                updateUI();
+            }
+        }
 
         mDatabase.child("notifications").child(userId)
                 .addValueEventListener(new ValueEventListener() {
@@ -96,6 +115,11 @@ public class NotificationsActivity extends AppCompatActivity
                         Collections.sort(notifications, (a, b) ->
                                 Long.compare(b.getTimestampValue(), a.getTimestampValue()));
 
+                        // Cache to SQLite for offline access
+                        if (localDb != null && !notifications.isEmpty()) {
+                            localDb.cacheNotifications(notifications);
+                        }
+
                         adapter.notifyDataSetChanged();
                         progressBar.setVisibility(View.GONE);
                         updateUI();
@@ -109,6 +133,16 @@ public class NotificationsActivity extends AppCompatActivity
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
                         progressBar.setVisibility(View.GONE);
+                        // Fallback: load from SQLite cache if Firebase fails
+                        if (localDb != null && notifications.isEmpty()) {
+                            List<AppNotification> cached = localDb.getCachedNotifications();
+                            if (!cached.isEmpty()) {
+                                notifications.clear();
+                                notifications.addAll(cached);
+                                adapter.notifyDataSetChanged();
+                                updateUI();
+                            }
+                        }
                     }
                 });
     }
@@ -118,9 +152,11 @@ public class NotificationsActivity extends AppCompatActivity
             rvNotifications.setVisibility(View.GONE);
             emptyState.setVisibility(View.VISIBLE);
             tvMarkAllRead.setVisibility(View.GONE);
+            if (tvDeleteAll != null) tvDeleteAll.setVisibility(View.GONE);
         } else {
             rvNotifications.setVisibility(View.VISIBLE);
             emptyState.setVisibility(View.GONE);
+            if (tvDeleteAll != null) tvDeleteAll.setVisibility(View.VISIBLE);
 
             boolean hasUnread = false;
             for (AppNotification notif : notifications) {
@@ -197,5 +233,64 @@ public class NotificationsActivity extends AppCompatActivity
             }
         }
         ToastUtils.showCustomToast(this, "All notifications marked as read");
+    }
+
+    @Override
+    public void onNotificationDelete(AppNotification notification) {
+        if (notification == null || notification.getNotificationId() == null) return;
+
+        new AlertDialog.Builder(this)
+                .setTitle("Delete notification")
+                .setMessage("Remove this notification?")
+                .setPositiveButton("Delete", (d, w) -> deleteSingleNotification(notification))
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void deleteSingleNotification(AppNotification notification) {
+        String userId = FirebaseAuth.getInstance().getUid();
+        if (userId == null || notification.getNotificationId() == null) return;
+
+        mDatabase.child("notifications").child(userId)
+                .child(notification.getNotificationId())
+                .removeValue()
+                .addOnSuccessListener(unused -> {
+                    ToastUtils.showCustomToast(this, "Notification deleted");
+                })
+                .addOnFailureListener(e -> {
+                    ToastUtils.showCustomToast(this, "Failed to delete notification");
+                });
+    }
+
+    private void confirmDeleteAll() {
+        if (notifications.isEmpty()) {
+            ToastUtils.showCustomToast(this, "No notifications to delete");
+            return;
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle("Delete all notifications")
+                .setMessage("Are you sure you want to delete all " + notifications.size() + " notifications? This cannot be undone.")
+                .setPositiveButton("Delete All", (d, w) -> deleteAllNotifications())
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void deleteAllNotifications() {
+        String userId = FirebaseAuth.getInstance().getUid();
+        if (userId == null) return;
+
+        mDatabase.child("notifications").child(userId)
+                .removeValue()
+                .addOnSuccessListener(unused -> {
+                    // Also clear SQLite cache
+                    if (localDb != null) {
+                        localDb.clearNotificationCache();
+                    }
+                    ToastUtils.showCustomToast(this, "All notifications deleted");
+                })
+                .addOnFailureListener(e -> {
+                    ToastUtils.showCustomToast(this, "Failed to delete notifications");
+                });
     }
 }

@@ -28,6 +28,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 import com.replate.app.R;
+import com.replate.app.helpers.ReplateDatabaseHelper;
+import com.replate.app.models.AppNotification;
 import com.replate.app.notifications.InAppNotificationCenter;
 import com.replate.app.notifications.NotificationCategories;
 import com.replate.app.notifications.NotificationRouter;
@@ -131,23 +133,49 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             return;
         }
 
+        long timestamp = System.currentTimeMillis();
+        String category = NotificationCategories.normalize(value(data, "category", value(data, "type", "general")));
+
         Map<String, Object> notifData = new HashMap<>();
         notifData.put("title", title);
         notifData.put("body", body);
-        notifData.put("timestamp", System.currentTimeMillis());
+        notifData.put("timestamp", timestamp);
         notifData.put("read", false);
         notifData.put("type", value(data, "type", "general"));
-        notifData.put("category", NotificationCategories.normalize(value(data, "category", value(data, "type", "general"))));
+        notifData.put("category", category);
         notifData.put("route", value(data, "route", "notifications"));
         notifData.put("orderId", value(data, "orderId", ""));
         notifData.put("hotelId", value(data, "hotelId", ""));
         notifData.put("deepLink", value(data, "deepLink", ""));
 
+        // Save to Firebase
         FirebaseDatabase.getInstance().getReference()
                 .child("notifications")
                 .child(user.getUid())
                 .push()
                 .setValue(notifData);
+
+        // Also cache to SQLite for instant offline access
+        try {
+            AppNotification appNotif = new AppNotification();
+            appNotif.setNotificationId("push_" + timestamp);
+            appNotif.setTitle(title);
+            appNotif.setBody(body);
+            appNotif.setTimestamp(timestamp);
+            appNotif.setRead(false);
+            appNotif.setType(value(data, "type", "general"));
+            appNotif.setCategory(category);
+            appNotif.setRoute(value(data, "route", "notifications"));
+            appNotif.setOrderId(value(data, "orderId", ""));
+            appNotif.setHotelId(value(data, "hotelId", ""));
+            appNotif.setDeepLink(value(data, "deepLink", ""));
+
+            java.util.List<AppNotification> singleList = new java.util.ArrayList<>();
+            singleList.add(appNotif);
+            ReplateDatabaseHelper.getInstance(getApplicationContext()).cacheNotifications(singleList);
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to cache notification to SQLite", e);
+        }
     }
 
     private void showNotification(String title, String body, Map<String, String> data) {

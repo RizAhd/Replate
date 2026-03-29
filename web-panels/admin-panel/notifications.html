@@ -618,11 +618,19 @@
                 const body = log.payload?.body || '';
                 const target = log.target || (log.userIds ? log.userIds.length + ' users' : '—');
                 const result = log.result || {};
-                const successCount = result.successCount ?? result.messageId ? 1 : 0;
-                const failureCount = result.failureCount ?? 0;
-                const resultHtml = successCount > 0
-                    ? `<span style="color:var(--success);font-weight:600;">✓ ${successCount}</span>${failureCount > 0 ? ` <span style="color:var(--danger);font-size:0.8rem;">/ ${failureCount} failed</span>` : ''}`
-                    : (result.messageId ? `<span style="color:var(--success);font-weight:600;">✓ Topic</span>` : `<span style="color:var(--text-tertiary);">—</span>`);
+                const written = result.written || 0;
+                const successCount = result.successCount ?? (result.directSuccess != null ? result.directSuccess : (result.messageId ? 1 : 0));
+                const failureCount = result.failureCount ?? (result.directFailure || 0);
+                let resultHtml;
+                if (written > 0) {
+                    resultHtml = `<span style="color:var(--success);font-weight:600;">✓ ${written} users</span>`;
+                } else if (successCount > 0) {
+                    resultHtml = `<span style="color:var(--success);font-weight:600;">✓ ${successCount}</span>${failureCount > 0 ? ` <span style="color:var(--danger);font-size:0.8rem;">/ ${failureCount} failed</span>` : ''}`;
+                } else if (result.messageId || result.topicMessageId) {
+                    resultHtml = `<span style="color:var(--success);font-weight:600;">✓ Topic</span>`;
+                } else {
+                    resultHtml = `<span style="color:var(--text-tertiary);">—</span>`;
+                }
 
                 return `
                     <tr>

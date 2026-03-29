@@ -42,6 +42,20 @@
                 android:padding="@dimen/space_1_5"
                 android:src="@drawable/ic_back" />
 
+            <!-- Favorite Button -->
+            <ImageView
+                android:id="@+id/ivFavorite"
+                android:layout_width="@dimen/touch_target_min"
+                android:layout_height="@dimen/touch_target_min"
+                android:layout_gravity="bottom|end"
+                android:layout_marginBottom="@dimen/space_2"
+                android:layout_marginEnd="@dimen/space_2"
+                android:background="@drawable/circle_white"
+                android:elevation="@dimen/elevation_card_raised"
+                android:padding="@dimen/space_1_5"
+                android:src="@android:drawable/btn_star_big_off"
+                android:contentDescription="Add to favorites" />
+
             <!-- Discount Badge -->
             <TextView
                 android:id="@+id/tvDiscount"

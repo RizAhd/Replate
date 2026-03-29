@@ -39,6 +39,7 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageException;
 import com.google.firebase.storage.StorageReference;
+import com.replate.app.helpers.ReplateDatabaseHelper;
 import com.replate.app.utils.FcmTokenManager;
 import com.replate.app.utils.NotificationPermissionHelper;
 import com.replate.app.utils.ToastUtils;
@@ -86,6 +87,7 @@ public class SettingsActivity extends AppCompatActivity {
     private StorageReference mStorage;
     private SharedPreferences prefs;
     private ExecutorService networkExecutor;
+    private ReplateDatabaseHelper localDb;
 
     private Bitmap capturedPhoto;
     private ActivityResultLauncher<Intent> cameraLauncher;
@@ -115,6 +117,7 @@ public class SettingsActivity extends AppCompatActivity {
         mStorage = FirebaseStorage.getInstance().getReference();
         prefs = getSharedPreferences("REPLATE_PREFS", MODE_PRIVATE);
         networkExecutor = Executors.newSingleThreadExecutor();
+        localDb = ReplateDatabaseHelper.getInstance(this);
 
         cameraLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
@@ -418,7 +421,7 @@ public class SettingsActivity extends AppCompatActivity {
 
             androidx.core.app.NotificationCompat.Builder builder =
                     new androidx.core.app.NotificationCompat.Builder(this, channelId)
-                            .setSmallIcon(R.drawable.replate)
+                            .setSmallIcon(R.drawable.ic_notif_replate)
                             .setLargeIcon(largeIcon)
                             .setContentTitle("REPLATE Test Push")
                             .setContentText("Push notifications are working! (local test)")
@@ -458,6 +461,25 @@ public class SettingsActivity extends AppCompatActivity {
 
         etEmail.setText(user.getEmail());
 
+        // Load from SQLite cache first for instant display
+        if (localDb != null) {
+            java.util.Map<String, String> cached = localDb.getCachedUserProfile(user.getUid());
+            if (cached != null) {
+                if (cached.get("name") != null) etName.setText(cached.get("name"));
+                if (cached.get("phone") != null) etPhone.setText(cached.get("phone"));
+                if (cached.get("address") != null) etAddress.setText(cached.get("address"));
+                String cachedPhoto = cached.get("photoUrl");
+                if (cachedPhoto != null && !cachedPhoto.isEmpty() && canUseUi()) {
+                    try {
+                        Glide.with(SettingsActivity.this)
+                                .load(cachedPhoto)
+                                .placeholder(R.drawable.ic_profile_placeholder)
+                                .into(ivProfileImage);
+                    } catch (IllegalArgumentException ignored) {}
+                }
+            }
+        }
+
         mDatabase.child("users").child(user.getUid())
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
@@ -475,6 +497,12 @@ public class SettingsActivity extends AppCompatActivity {
                             if (name != null) etName.setText(name);
                             if (phone != null) etPhone.setText(phone);
                             if (address != null) etAddress.setText(address);
+
+                            // Cache to SQLite for offline access
+                            if (localDb != null) {
+                                localDb.cacheUserProfile(user.getUid(), name,
+                                        user.getEmail(), phone, profileImage, address);
+                            }
 
                             if (profileImage != null && !profileImage.isEmpty() && canUseUi()) {
                                 try {
@@ -729,9 +757,15 @@ public class SettingsActivity extends AppCompatActivity {
             }
 
             mDatabase.child("users").child(user.getUid()).updateChildren(updates)
-                    .addOnSuccessListener(aVoid ->
+                    .addOnSuccessListener(aVoid -> {
+                            // Cache updated profile to SQLite
+                            if (localDb != null) {
+                                localDb.cacheUserProfile(user.getUid(), name,
+                                        user.getEmail(), phone, null, address);
+                            }
                             ToastUtils.showCustomToast(SettingsActivity.this,
-                                    "Profile Updated ✅"))
+                                    "Profile Updated ✅");
+                    })
                     .addOnFailureListener(e ->
                             ToastUtils.showCustomToast(SettingsActivity.this,
                                     "Update Failed ❌"));

@@ -48,6 +48,7 @@ import com.replate.app.adapters.CategoryAdapter;
 import com.replate.app.adapters.FoodItemAdapter;
 import com.replate.app.helpers.CartDatabaseHelper;
 import com.replate.app.helpers.FoodItemCacheManager;
+import com.replate.app.helpers.ReplateDatabaseHelper;
 import com.replate.app.models.Category;
 import com.replate.app.models.FoodItem;
 import com.replate.app.utils.ShakeDetector;
@@ -69,6 +70,7 @@ public class HomeFragment extends Fragment implements
     private View ivMenu;
     private TextView tvCurrentLocation;
     private View ivNotification;
+    private TextView tvNotifBadge;
     private androidx.appcompat.widget.SearchView searchView;
     private ViewPager2 bannerViewPager;
     private RecyclerView rvCategories, rvHotDeals, rvFoodItems, rvFavorites;
@@ -100,8 +102,17 @@ public class HomeFragment extends Fragment implements
 
     // Caching
     private FoodItemCacheManager cacheManager;
+    private ReplateDatabaseHelper localDb;
     private java.util.Set<String> favoriteFoodIds = new java.util.HashSet<>();
     private String selectedCategory = "All";
+
+    // Notification badge
+    private ValueEventListener notifBadgeListener;
+    private DatabaseReference notifBadgeRef;
+
+    // Real-time food items listener
+    private ValueEventListener foodItemsListener;
+    private DatabaseReference foodItemsRef;
 
     // Shake to refresh (REQUIREMENT: Sensors)
     private SensorManager sensorManager;
@@ -149,11 +160,13 @@ public class HomeFragment extends Fragment implements
 
         // Initialize cache manager for faster startup
         cacheManager = new FoodItemCacheManager(requireContext());
+        localDb = ReplateDatabaseHelper.getInstance(requireContext());
 
         // Initialize views
         ivMenu = view.findViewById(R.id.ivMenu);
         tvCurrentLocation = view.findViewById(R.id.tvCurrentLocation);
         ivNotification = view.findViewById(R.id.ivNotification);
+        tvNotifBadge = view.findViewById(R.id.tvNotifBadge);
         searchView = view.findViewById(R.id.searchView);
         bannerViewPager = view.findViewById(R.id.bannerViewPager);
         bannerIndicator = view.findViewById(R.id.bannerIndicator);
@@ -218,6 +231,9 @@ public class HomeFragment extends Fragment implements
 
         // Setup click listeners
         setupClickListeners();
+
+        // Listen for unread notification count (bell badge)
+        observeUnreadNotifications();
 
         // Load cached food items immediately for faster perceived performance
         loadCachedFoodItems();
@@ -306,6 +322,42 @@ public class HomeFragment extends Fragment implements
                     startActivity(intent);
                 }
             });
+        }
+    }
+
+    /**
+     * Observe unread notification count and update bell badge.
+     */
+    private void observeUnreadNotifications() {
+        String uid = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
+        if (uid == null) return;
+
+        notifBadgeRef = mDatabase.child("notifications").child(uid);
+        notifBadgeListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (!isAdded()) return;
+                int unread = 0;
+                for (DataSnapshot child : snapshot.getChildren()) {
+                    Boolean read = child.child("read").getValue(Boolean.class);
+                    if (read == null || !read) unread++;
+                }
+                updateNotifBadge(unread);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        };
+        notifBadgeRef.addValueEventListener(notifBadgeListener);
+    }
+
+    private void updateNotifBadge(int count) {
+        if (tvNotifBadge == null) return;
+        if (count > 0) {
+            tvNotifBadge.setVisibility(View.VISIBLE);
+            tvNotifBadge.setText(count > 99 ? "99+" : String.valueOf(count));
+        } else {
+            tvNotifBadge.setVisibility(View.GONE);
         }
     }
 
@@ -432,11 +484,18 @@ public class HomeFragment extends Fragment implements
      */
     private void loadCachedFoodItems() {
         try {
-            if (cacheManager == null || !cacheManager.hasCachedData()) {
-                return;
+            // Try SQLite cache first (preferred), then SharedPreferences fallback
+            List<FoodItem> cachedItems = null;
+
+            if (localDb != null && localDb.isFoodCacheFresh(5 * 60 * 1000)) {
+                cachedItems = localDb.getCachedFoodItems();
             }
 
-            List<FoodItem> cachedItems = cacheManager.getCachedFoodItems();
+            // Fallback to SharedPreferences cache if SQLite is empty
+            if ((cachedItems == null || cachedItems.isEmpty()) && cacheManager != null && cacheManager.hasCachedData()) {
+                cachedItems = cacheManager.getCachedFoodItems();
+            }
+
             if (cachedItems == null || cachedItems.isEmpty()) {
                 return;
             }
@@ -461,15 +520,23 @@ public class HomeFragment extends Fragment implements
             showLoading(true);
         }
 
-        mDatabase.child("foodItems").addListenerForSingleValueEvent(new ValueEventListener() {
+        // Remove previous listener if any (prevents duplicates on re-calls)
+        if (foodItemsRef != null && foodItemsListener != null) {
+            foodItemsRef.removeEventListener(foodItemsListener);
+        }
+
+        foodItemsRef = mDatabase.child("foodItems");
+
+        // Use addValueEventListener for REAL-TIME updates — fires instantly
+        // when any food item is added, updated, or removed in Firebase
+        foodItemsListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 // Process Firebase data on background thread to prevent UI jank
-                final DataSnapshot snapshotCopy = snapshot;
                 new Thread(() -> {
                     List<FoodItem> newItems = new ArrayList<>();
 
-                    for (DataSnapshot itemSnapshot : snapshotCopy.getChildren()) {
+                    for (DataSnapshot itemSnapshot : snapshot.getChildren()) {
                         FoodItem item = itemSnapshot.getValue(FoodItem.class);
                         if (item == null) continue;
 
@@ -528,10 +595,15 @@ public class HomeFragment extends Fragment implements
                         Collections.sort(newItems, (a, b) -> Double.compare(a.getDistance(), b.getDistance()));
                     }
 
-                    // Cache on background thread
-                    if (cacheManager != null && !newItems.isEmpty()) {
+                    // Cache on background thread (SQLite primary, SharedPreferences secondary)
+                    if (!newItems.isEmpty()) {
                         try {
-                            cacheManager.saveFoodItems(new ArrayList<>(newItems));
+                            if (localDb != null) {
+                                localDb.cacheFoodItems(new ArrayList<>(newItems));
+                            }
+                            if (cacheManager != null) {
+                                cacheManager.saveFoodItems(new ArrayList<>(newItems));
+                            }
                         } catch (Exception e) {
                             android.util.Log.e("HomeFragment", "Error caching food items", e);
                         }
@@ -560,7 +632,9 @@ public class HomeFragment extends Fragment implements
                     ToastUtils.showCustomToast(ctx, "Failed to load food items");
                 }
             }
-        });
+        };
+
+        foodItemsRef.addValueEventListener(foodItemsListener);
     }
 
     private void observeFavorites() {
@@ -810,5 +884,13 @@ public class HomeFragment extends Fragment implements
         super.onDestroyView();
         bannerHandler.removeCallbacksAndMessages(null);
         uiHandler.removeCallbacksAndMessages(null);
+        // Remove notification badge listener
+        if (notifBadgeRef != null && notifBadgeListener != null) {
+            notifBadgeRef.removeEventListener(notifBadgeListener);
+        }
+        // Remove real-time food items listener
+        if (foodItemsRef != null && foodItemsListener != null) {
+            foodItemsRef.removeEventListener(foodItemsListener);
+        }
     }
 }

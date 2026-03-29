@@ -53,6 +53,21 @@
                     android:text="Mark all read"
                     android:textColor="@color/white"
                     android:textSize="@dimen/text_xs" />
+
+                <TextView
+                    android:id="@+id/tvDeleteAll"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toStartOf="@id/tvMarkAllRead"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/badge_outline_white"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:paddingHorizontal="@dimen/space_1_5"
+                    android:paddingVertical="@dimen/space_1"
+                    android:text="Delete all"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/text_xs" />
             </RelativeLayout>
 
             <TextView

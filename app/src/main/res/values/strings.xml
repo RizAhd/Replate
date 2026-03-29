@@ -341,4 +341,9 @@ Total: LKR %1$.2f</string>
     <string name="location_permission_settings_message">Location access is permanently denied. Open app settings to enable live location and nearby hotel routes.</string>
     <string name="location_permission_open_settings">Open settings</string>
 
+    <!-- Search History -->
+    <string name="search_recent_title">Recent Searches</string>
+    <string name="search_recent_clear">Clear</string>
+    <string name="search_empty_suggestion">Try adjusting your search or filters</string>
+
 </resources>

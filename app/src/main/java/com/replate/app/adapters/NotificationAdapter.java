@@ -29,6 +29,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
 
     public interface OnNotificationClickListener {
         void onNotificationClick(AppNotification notification);
+        void onNotificationDelete(AppNotification notification);
     }
 
     public NotificationAdapter(Context context, List<AppNotification> notifications,
@@ -57,13 +58,14 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
     }
 
     class NotifViewHolder extends RecyclerView.ViewHolder {
-        ImageView ivIcon;
+        ImageView ivIcon, ivDelete;
         TextView tvTitle, tvBody, tvTime;
         View unreadDot;
 
         NotifViewHolder(@NonNull View itemView) {
             super(itemView);
             ivIcon = itemView.findViewById(R.id.ivIcon);
+            ivDelete = itemView.findViewById(R.id.ivDelete);
             tvTitle = itemView.findViewById(R.id.tvTitle);
             tvBody = itemView.findViewById(R.id.tvBody);
             tvTime = itemView.findViewById(R.id.tvTime);
@@ -89,6 +91,14 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
                     listener.onNotificationClick(notif);
                 }
             });
+
+            if (ivDelete != null) {
+                ivDelete.setOnClickListener(v -> {
+                    if (listener != null) {
+                        listener.onNotificationDelete(notif);
+                    }
+                });
+            }
         }
 
         private String formatRelativeTime(long timestamp) {

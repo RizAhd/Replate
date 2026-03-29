@@ -14,6 +14,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.replate.app.helpers.CartDatabaseHelper;
+import com.replate.app.helpers.ChatDatabaseHelper;
+import com.replate.app.helpers.ReplateDatabaseHelper;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -163,18 +165,40 @@ public final class AccountDeletionManager {
                 });
     }
 
-    /** Step 6: Clear SQLite cart + SharedPreferences */
+    /** Step 6: Clear SQLite databases + SharedPreferences */
     private static void step6_clearLocal(@NonNull Context ctx,
                                          @NonNull FirebaseUser user,
                                          @NonNull DeletionCallback cb) {
+        // Clear Cart SQLite
         try {
             CartDatabaseHelper.getInstance(ctx).clearCart();
         } catch (Exception e) {
             Log.w(TAG, "Cart clear error (non-fatal)", e);
         }
 
+        // Clear main Replate SQLite (search history, favorites, notifications, orders, food cache)
         try {
-            for (String pref : new String[]{"REPLATE_PREFS", "REPLATE_SESSION", "FCM_PREFS"}) {
+            ReplateDatabaseHelper localDb = ReplateDatabaseHelper.getInstance(ctx);
+            localDb.clearSearchHistory();
+            localDb.clearNotificationCache();
+            localDb.clearOrderCache();
+            localDb.clearFoodCache();
+            localDb.clearUserProfileCache();
+        } catch (Exception e) {
+            Log.w(TAG, "ReplateDatabaseHelper clear error (non-fatal)", e);
+        }
+
+        // Clear Chat SQLite
+        try {
+            ChatDatabaseHelper chatDb = ChatDatabaseHelper.getInstance(ctx);
+            chatDb.clearAll();
+        } catch (Exception e) {
+            Log.w(TAG, "ChatDatabaseHelper clear error (non-fatal)", e);
+        }
+
+        // Clear SharedPreferences
+        try {
+            for (String pref : new String[]{"REPLATE_PREFS", "REPLATE_SESSION", "FCM_PREFS", "REPLATE_FOOD_CACHE"}) {
                 ctx.getSharedPreferences(pref, Context.MODE_PRIVATE).edit().clear().apply();
             }
         } catch (Exception e) {

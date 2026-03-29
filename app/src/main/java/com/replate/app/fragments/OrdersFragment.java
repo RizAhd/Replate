@@ -31,6 +31,7 @@ import com.replate.app.MainActivity;
 import com.replate.app.OrderDetailActivity;
 import com.replate.app.R;
 import com.replate.app.adapters.OrderAdapter;
+import com.replate.app.helpers.ReplateDatabaseHelper;
 import com.replate.app.models.Order;
 import com.replate.app.utils.ToastUtils;
 
@@ -54,6 +55,7 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
 
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
+    private ReplateDatabaseHelper localDb;
 
     private OrderAdapter adapter;
     private List<Order> allOrders = new ArrayList<>();
@@ -69,9 +71,13 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
 
         mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference();
+        localDb = ReplateDatabaseHelper.getInstance(requireContext());
 
         initViews(view);
         setupTabs();
+
+        // Load cached orders first for instant display
+        loadCachedOrders();
         loadOrders();
 
         return view;
@@ -126,6 +132,16 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
         });
     }
 
+    private void loadCachedOrders() {
+        if (localDb == null) return;
+        List<Order> cached = localDb.getCachedOrders();
+        if (!cached.isEmpty() && allOrders.isEmpty()) {
+            allOrders.clear();
+            allOrders.addAll(cached);
+            filterOrders();
+        }
+    }
+
     private void loadOrders() {
         if (mAuth.getCurrentUser() == null) return;
 
@@ -153,6 +169,11 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
                 Collections.sort(allOrders, (a, b) ->
                         Long.compare(b.getCreatedAtValue(), a.getCreatedAtValue()));
 
+                // Cache to SQLite for offline access
+                if (localDb != null && !allOrders.isEmpty()) {
+                    localDb.cacheOrders(allOrders);
+                }
+
                 progressBar.setVisibility(View.GONE);
                 filterOrders();
             }
@@ -160,6 +181,15 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 progressBar.setVisibility(View.GONE);
+                // Fallback: load from SQLite cache if Firebase fails
+                if (localDb != null && allOrders.isEmpty()) {
+                    List<Order> cached = localDb.getCachedOrders();
+                    if (!cached.isEmpty()) {
+                        allOrders.clear();
+                        allOrders.addAll(cached);
+                        filterOrders();
+                    }
+                }
                 if (!isAdded()) return;
                 Context ctx = getContext();
                 if (ctx != null) {

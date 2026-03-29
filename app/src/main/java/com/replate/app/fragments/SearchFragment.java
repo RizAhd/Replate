@@ -30,6 +30,8 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.checkbox.MaterialCheckBox;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -39,6 +41,7 @@ import com.replate.app.FoodDetailActivity;
 import com.replate.app.R;
 import com.replate.app.adapters.FoodItemAdapter;
 import com.replate.app.helpers.FoodItemCacheManager;
+import com.replate.app.helpers.ReplateDatabaseHelper;
 import com.replate.app.models.FoodItem;
 import com.replate.app.utils.LocationUtils;
 import com.replate.app.utils.ToastUtils;
@@ -70,12 +73,16 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
     private TextView tvActiveFilter;
     private View cardFilterAction;
     private View loadingOverlaySearch;
+    private View recentSearchesSection;
+    private ChipGroup chipGroupRecentSearches;
+    private TextView tvClearHistory;
 
     private DatabaseReference mDatabase;
     private FoodItemAdapter adapter;
     private FusedLocationProviderClient fusedLocationClient;
     private GridLayoutManager gridLayoutManager;
     private FoodItemCacheManager cacheManager;
+    private ReplateDatabaseHelper localDb;
 
     private final List<FoodItem> allFoodItems = new ArrayList<>();
     private final List<FoodItem> filteredItems = new ArrayList<>();
@@ -98,6 +105,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         mDatabase = FirebaseDatabase.getInstance().getReference();
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
         cacheManager = new FoodItemCacheManager(requireContext());
+        localDb = ReplateDatabaseHelper.getInstance(requireContext());
 
         initViews(view);
         loadSavedFilterPreference();
@@ -117,8 +125,17 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
     }
 
     private void loadCachedSearchItems() {
-        if (cacheManager == null) return;
-        List<FoodItem> cachedItems = cacheManager.getCachedFoodItems();
+        // Try SQLite cache first, then SharedPreferences fallback
+        List<FoodItem> cachedItems = null;
+
+        if (localDb != null && localDb.isFoodCacheFresh(5 * 60 * 1000)) {
+            cachedItems = localDb.getCachedFoodItems();
+        }
+
+        if ((cachedItems == null || cachedItems.isEmpty()) && cacheManager != null) {
+            cachedItems = cacheManager.getCachedFoodItems();
+        }
+
         if (cachedItems == null || cachedItems.isEmpty()) return;
 
         allFoodItems.clear();
@@ -155,6 +172,9 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         tvResultsCount = view.findViewById(R.id.tvResultsCount);
         tvActiveFilter = view.findViewById(R.id.tvActiveFilter);
         cardFilterAction = view.findViewById(R.id.cardFilterAction);
+        recentSearchesSection = view.findViewById(R.id.recentSearchesSection);
+        chipGroupRecentSearches = view.findViewById(R.id.chipGroupRecentSearches);
+        tvClearHistory = view.findViewById(R.id.tvClearHistory);
 
         // ...removed chip references...
 
@@ -188,18 +208,95 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
     }
 
     private void setupSearch() {
+        // Show recent searches when search field is focused and empty
+        etSearch.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus && etSearch.getText().toString().trim().isEmpty()) {
+                showRecentSearches();
+            }
+        });
+
+        // Clear history button
+        if (tvClearHistory != null) {
+            tvClearHistory.setOnClickListener(v -> {
+                if (localDb != null) {
+                    localDb.clearSearchHistory();
+                    hideRecentSearches();
+                }
+            });
+        }
+
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                scheduleFilter(s == null ? "" : s.toString());
+                String text = s == null ? "" : s.toString().trim();
+                if (text.isEmpty()) {
+                    showRecentSearches();
+                } else {
+                    hideRecentSearches();
+                }
+                scheduleFilter(text);
             }
 
             @Override
             public void afterTextChanged(Editable s) {}
         });
+
+        // Show history on initial load if search is empty
+        if (etSearch.getText().toString().trim().isEmpty()) {
+            showRecentSearches();
+        }
+    }
+
+    private void showRecentSearches() {
+        if (localDb == null || recentSearchesSection == null || chipGroupRecentSearches == null) return;
+
+        List<String> recent = localDb.getRecentSearches(8);
+        if (recent.isEmpty()) {
+            hideRecentSearches();
+            return;
+        }
+
+        chipGroupRecentSearches.removeAllViews();
+        for (String query : recent) {
+            Chip chip = new Chip(requireContext());
+            chip.setText(query);
+            chip.setChipBackgroundColorResource(R.color.green_pale);
+            chip.setTextColor(getResources().getColor(R.color.text_primary, null));
+            chip.setCloseIconVisible(true);
+            chip.setCloseIconResource(R.drawable.ic_close);
+            chip.setCloseIconTintResource(R.color.text_secondary);
+            chip.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+            chip.setChipCornerRadius(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 20, getResources().getDisplayMetrics()));
+
+            // Click to fill search
+            chip.setOnClickListener(v -> {
+                etSearch.setText(query);
+                etSearch.setSelection(query.length());
+                hideRecentSearches();
+            });
+
+            // Close to delete from history
+            chip.setOnCloseIconClickListener(v -> {
+                localDb.deleteSearchQuery(query);
+                chipGroupRecentSearches.removeView(chip);
+                if (chipGroupRecentSearches.getChildCount() == 0) {
+                    hideRecentSearches();
+                }
+            });
+
+            chipGroupRecentSearches.addView(chip);
+        }
+
+        recentSearchesSection.setVisibility(View.VISIBLE);
+    }
+
+    private void hideRecentSearches() {
+        if (recentSearchesSection != null) {
+            recentSearchesSection.setVisibility(View.GONE);
+        }
     }
 
     private void setupFilterChips() {
@@ -434,8 +531,13 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
                     allFoodItems.add(item);
                 }
 
-                if (cacheManager != null && !allFoodItems.isEmpty()) {
-                    cacheManager.saveFoodItems(new ArrayList<>(allFoodItems));
+                if (!allFoodItems.isEmpty()) {
+                    if (localDb != null) {
+                        localDb.cacheFoodItems(new ArrayList<>(allFoodItems));
+                    }
+                    if (cacheManager != null) {
+                        cacheManager.saveFoodItems(new ArrayList<>(allFoodItems));
+                    }
                 }
 
                 setLoadingState(false);
@@ -465,7 +567,13 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         if (searchRunnable != null) {
             searchDebounceHandler.removeCallbacks(searchRunnable);
         }
-        searchRunnable = () -> filterItems(query);
+        searchRunnable = () -> {
+            filterItems(query);
+            // Save meaningful queries (3+ chars) to SQLite search history
+            if (localDb != null && query != null && query.trim().length() >= 3) {
+                localDb.saveSearchQuery(query.trim());
+            }
+        };
         // Reduced debounce time for instant search results (80ms instead of 130ms)
         searchDebounceHandler.postDelayed(searchRunnable, 80);
     }

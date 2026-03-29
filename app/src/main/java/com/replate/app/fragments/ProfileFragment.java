@@ -30,6 +30,7 @@ import com.replate.app.MainActivity;
 import com.replate.app.NotificationsActivity;
 import com.replate.app.R;
 import com.replate.app.SettingsActivity;
+import com.replate.app.helpers.ReplateDatabaseHelper;
 import com.replate.app.utils.AccountDeletionManager;
 import com.replate.app.utils.ToastUtils;
 
@@ -47,6 +48,7 @@ public class ProfileFragment extends Fragment {
 
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
+    private ReplateDatabaseHelper localDb;
 
     private static double toDouble(Object val) {
         if (val == null) return 0.0;
@@ -62,9 +64,11 @@ public class ProfileFragment extends Fragment {
 
         mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference();
+        localDb = ReplateDatabaseHelper.getInstance(requireContext());
 
         initViews(view);
-        loadUserData();
+        loadCachedProfile(); // Instant display from SQLite
+        loadUserData();      // Fetch fresh from Firebase
         loadStats();
         setupClickListeners();
 
@@ -87,6 +91,34 @@ public class ProfileFragment extends Fragment {
         menuHelp = view.findViewById(R.id.menuHelp);
     }
 
+    /**
+     * Load cached user profile from SQLite for instant display.
+     */
+    private void loadCachedProfile() {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null || localDb == null) return;
+
+        java.util.Map<String, String> cached = localDb.getCachedUserProfile(user.getUid());
+        if (cached == null) return;
+
+        String name = cached.get("name");
+        String email = cached.get("email");
+        String photoUrl = cached.get("photoUrl");
+
+        if (name != null && !name.isEmpty()) {
+            tvUserName.setText(name);
+        }
+        if (email != null && !email.isEmpty()) {
+            tvUserEmail.setText(email);
+        }
+        if (photoUrl != null && !photoUrl.isEmpty() && getContext() != null) {
+            Glide.with(getContext())
+                    .load(photoUrl)
+                    .placeholder(R.drawable.ic_profile_placeholder)
+                    .into(ivProfileImage);
+        }
+    }
+
     private void loadUserData() {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user == null) return;
@@ -99,6 +131,9 @@ public class ProfileFragment extends Fragment {
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         if (snapshot.exists()) {
                             String name = snapshot.child("name").getValue(String.class);
+                            String email = snapshot.child("email").getValue(String.class);
+                            String phone = snapshot.child("phone").getValue(String.class);
+                            String address = snapshot.child("address").getValue(String.class);
                             String profileImage = snapshot.child("profileImage").getValue(String.class);
                             if (profileImage == null || profileImage.trim().isEmpty()) {
                                 profileImage = snapshot.child("profileImageUrl").getValue(String.class);
@@ -114,12 +149,24 @@ public class ProfileFragment extends Fragment {
                                         .placeholder(R.drawable.ic_profile_placeholder)
                                         .into(ivProfileImage);
                             }
+
+                            // Cache to SQLite for instant display next time
+                            if (localDb != null) {
+                                localDb.cacheUserProfile(
+                                        user.getUid(),
+                                        name,
+                                        email != null ? email : user.getEmail(),
+                                        phone,
+                                        profileImage,
+                                        address
+                                );
+                            }
                         }
                     }
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
-                        // Handle error
+                        // Cached data already shown, no action needed
                     }
                 });
     }

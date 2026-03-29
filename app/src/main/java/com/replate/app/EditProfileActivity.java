@@ -15,6 +15,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.replate.app.helpers.ReplateDatabaseHelper;
 import com.replate.app.utils.ToastUtils;
 
 import java.util.HashMap;
@@ -30,6 +31,7 @@ public class EditProfileActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
+    private ReplateDatabaseHelper localDb;
 
     private ActivityResultLauncher<Intent> locationPickerLauncher;
 
@@ -43,6 +45,7 @@ public class EditProfileActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference();
+        localDb = ReplateDatabaseHelper.getInstance(this);
 
         locationPickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
@@ -78,6 +81,16 @@ public class EditProfileActivity extends AppCompatActivity {
     private void loadUserData() {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
+            // Load from SQLite cache first for instant display
+            if (localDb != null) {
+                java.util.Map<String, String> cached = localDb.getCachedUserProfile(user.getUid());
+                if (cached != null) {
+                    if (cached.get("name") != null) etName.setText(cached.get("name"));
+                    if (cached.get("phone") != null) etPhone.setText(cached.get("phone"));
+                    if (cached.get("address") != null) etAddress.setText(cached.get("address"));
+                }
+            }
+
             mDatabase.child("users").child(user.getUid()).get()
                 .addOnSuccessListener(snapshot -> {
                     if (snapshot.exists()) {
@@ -89,7 +102,11 @@ public class EditProfileActivity extends AppCompatActivity {
                         if (phone != null) etPhone.setText(phone);
                         if (address != null) etAddress.setText(address);
 
-                        // Handle profile image if implementing storage
+                        // Cache to SQLite for offline access
+                        if (localDb != null) {
+                            localDb.cacheUserProfile(user.getUid(), name,
+                                    user.getEmail(), phone, null, address);
+                        }
                     }
                 })
                 .addOnFailureListener(e -> ToastUtils.showCustomToast(this, "Failed to load profile"));
@@ -132,6 +149,12 @@ public class EditProfileActivity extends AppCompatActivity {
         if (user != null) {
             mDatabase.child("users").child(user.getUid()).updateChildren(updates)
                 .addOnSuccessListener(aVoid -> {
+                    // Cache updated profile to SQLite
+                    if (localDb != null) {
+                        localDb.cacheUserProfile(user.getUid(), name,
+                                user.getEmail(), phone, null, address);
+                    }
+
                     Map<String, Object> notif = new HashMap<>();
                     notif.put("title", "Profile updated");
                     notif.put("body", "Your profile changes were saved successfully.");

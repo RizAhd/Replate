@@ -95,24 +95,45 @@
                             </LinearLayout>
                         </LinearLayout>
 
-                        <com.google.android.material.card.MaterialCardView
+                        <FrameLayout
                             android:id="@+id/ivNotification"
                             android:layout_width="48dp"
                             android:layout_height="48dp"
                             android:layout_alignParentEnd="true"
-                            android:layout_centerVertical="true"
-                            app:cardBackgroundColor="#1FFFFFFF"
-                            app:cardCornerRadius="16dp"
-                            app:cardElevation="0dp">
+                            android:layout_centerVertical="true">
 
-                            <ImageView
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
-                                android:layout_gravity="center"
-                                android:contentDescription="@string/cd_open_notifications"
-                                android:src="@drawable/ic_notification"
-                                app:tint="@color/white" />
-                        </com.google.android.material.card.MaterialCardView>
+                            <com.google.android.material.card.MaterialCardView
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
+                                app:cardBackgroundColor="#1FFFFFFF"
+                                app:cardCornerRadius="16dp"
+                                app:cardElevation="0dp">
+
+                                <ImageView
+                                    android:layout_width="24dp"
+                                    android:layout_height="24dp"
+                                    android:layout_gravity="center"
+                                    android:contentDescription="@string/cd_open_notifications"
+                                    android:src="@drawable/ic_bell"
+                                    app:tint="@color/white" />
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <!-- Unread notification badge -->
+                            <TextView
+                                android:id="@+id/tvNotifBadge"
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_gravity="top|end"
+                                android:layout_marginTop="2dp"
+                                android:layout_marginEnd="2dp"
+                                android:background="@drawable/circle_red"
+                                android:fontFamily="@font/poppins_bold"
+                                android:gravity="center"
+                                android:text="0"
+                                android:textColor="@color/white"
+                                android:textSize="9sp"
+                                android:visibility="gone" />
+                        </FrameLayout>
                     </RelativeLayout>
 
                     <TextView

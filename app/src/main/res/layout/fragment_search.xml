@@ -128,6 +128,61 @@
 
         </LinearLayout>
 
+        <!-- Recent Searches Section -->
+        <LinearLayout
+            android:id="@+id/recentSearchesSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="@dimen/space_2"
+            android:paddingTop="@dimen/space_1_5"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@drawable/ic_time"
+                    app:tint="@color/text_secondary"
+                    android:contentDescription="@string/cd_arrow_right" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/search_recent_title"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:textColor="@color/text_primary"
+                    android:textSize="@dimen/text_sm" />
+
+                <TextView
+                    android:id="@+id/tvClearHistory"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/search_recent_clear"
+                    android:fontFamily="@font/poppins_medium"
+                    android:textColor="@color/green_primary"
+                    android:textSize="@dimen/text_caption"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="4dp" />
+            </LinearLayout>
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupRecentSearches"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                app:chipSpacingHorizontal="8dp"
+                app:chipSpacingVertical="4dp" />
+
+        </LinearLayout>
+
         <TextView
             android:id="@+id/tvResultsCount"
             android:layout_width="wrap_content"
@@ -196,7 +251,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/space_1"
                 android:gravity="center"
-                android:text="Try adjusting your search or filters"
+                android:text="@string/search_empty_suggestion"
                 android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
         </LinearLayout>

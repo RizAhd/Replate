@@ -33,6 +33,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.replate.app.adapters.RelatedFoodAdapter;
 import com.replate.app.adapters.ReviewAdapter;
 import com.replate.app.helpers.CartDatabaseHelper;
+import com.replate.app.helpers.ReplateDatabaseHelper;
 import com.replate.app.models.CartItem;
 import com.replate.app.models.FoodItem;
 import com.replate.app.models.Review;
@@ -50,7 +51,7 @@ import java.util.Locale;
  */
 public class FoodDetailActivity extends AppCompatActivity {
 
-    private ImageView ivFoodImage, ivBack;
+    private ImageView ivFoodImage, ivBack, ivFavorite;
     private TextView tvFoodName, tvHotelName, tvDescription;
     private TextView tvOriginalPrice, tvDiscountedPrice, tvDiscount;
     private TextView tvPickupTime, tvDistance, tvQuantity;
@@ -75,6 +76,7 @@ public class FoodDetailActivity extends AppCompatActivity {
 
     private ReviewAdapter reviewAdapter;
     private RelatedFoodAdapter relatedFoodAdapter;
+    private ReplateDatabaseHelper localDb;
 
     private final ActivityResultLauncher<String> callPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
@@ -102,6 +104,7 @@ public class FoodDetailActivity extends AppCompatActivity {
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        localDb = ReplateDatabaseHelper.getInstance(this);
 
         initViews();
         setupReviewAndRecommendationLists();
@@ -125,6 +128,7 @@ public class FoodDetailActivity extends AppCompatActivity {
         try {
             ivFoodImage = findViewById(R.id.ivFoodImage);
             ivBack = findViewById(R.id.ivBack);
+            ivFavorite = findViewById(R.id.ivFavorite);
             tvFoodName = findViewById(R.id.tvFoodName);
             tvHotelName = findViewById(R.id.tvHotelName);
             tvDescription = findViewById(R.id.tvDescription);
@@ -247,6 +251,23 @@ public class FoodDetailActivity extends AppCompatActivity {
         try {
             if (ivBack != null) ivBack.setOnClickListener(v -> finish());
 
+            // ── Favorite toggle (SQLite) ──
+            if (ivFavorite != null && localDb != null && foodItem != null) {
+                updateFavoriteIcon(localDb.isFavorite(foodItem.getFoodId()));
+                ivFavorite.setOnClickListener(v -> {
+                    boolean isFav = localDb.isFavorite(foodItem.getFoodId());
+                    if (isFav) {
+                        localDb.removeFavorite(foodItem.getFoodId());
+                        updateFavoriteIcon(false);
+                        ToastUtils.showCustomToast(this, "Removed from favorites");
+                    } else {
+                        localDb.addFavorite(foodItem);
+                        updateFavoriteIcon(true);
+                        ToastUtils.showCustomToast(this, "Added to favorites ❤");
+                    }
+                });
+            }
+
             if (btnCallHotel != null) btnCallHotel.setOnClickListener(v -> callHotel());
             if (btnSmsHotel != null) btnSmsHotel.setOnClickListener(v -> openChat());
 
@@ -285,6 +306,14 @@ public class FoodDetailActivity extends AppCompatActivity {
         } catch (Exception e) {
             android.util.Log.e("FoodDetailActivity", "Error setting up click listeners", e);
         }
+    }
+
+    private void updateFavoriteIcon(boolean isFavorite) {
+        if (ivFavorite == null) return;
+        ivFavorite.setImageResource(isFavorite
+                ? android.R.drawable.btn_star_big_on
+                : android.R.drawable.btn_star_big_off);
+        ivFavorite.setContentDescription(isFavorite ? "Remove from favorites" : "Add to favorites");
     }
 
     private void updateQuantityDisplay() {
