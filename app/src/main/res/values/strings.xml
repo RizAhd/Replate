@@ -158,6 +158,17 @@
     <string name="delete_account_reauth_failed">Re-authentication failed. Please try again.</string>
     <string name="delete_account_confirm_btn">Delete</string>
 
+    <!-- Chat -->
+    <string name="chat_title">Chat</string>
+    <string name="chat_send_hint">Type a message…</string>
+    <string name="chat_empty_title">Start a conversation</string>
+    <string name="chat_empty_subtitle">Send a message to start chatting about your order</string>
+    <string name="chat_online">Online</string>
+    <string name="chat_offline">Offline</string>
+    <string name="chat_login_required">Please login to chat</string>
+    <string name="chat_invalid_session">Invalid chat session</string>
+    <string name="chat_send_failed">Failed to send message</string>
+
     <!-- Settings -->
     <string name="settings_title">Settings</string>
     <string name="settings_change_photo">Change photo</string>

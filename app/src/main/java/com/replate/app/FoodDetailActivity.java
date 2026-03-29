@@ -248,7 +248,7 @@ public class FoodDetailActivity extends AppCompatActivity {
             if (ivBack != null) ivBack.setOnClickListener(v -> finish());
 
             if (btnCallHotel != null) btnCallHotel.setOnClickListener(v -> callHotel());
-            if (btnSmsHotel != null) btnSmsHotel.setOnClickListener(v -> smsHotel());
+            if (btnSmsHotel != null) btnSmsHotel.setOnClickListener(v -> openChat());
 
             if (btnMinus != null) {
                 btnMinus.setOnClickListener(v -> {
@@ -727,6 +727,25 @@ public class FoodDetailActivity extends AppCompatActivity {
                     })
                     .show();
         });
+    }
+
+    /**
+     * Open chat activity to message the hotel
+     */
+    private void openChat() {
+        // Check if user is logged in
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            ToastUtils.showCustomToast(this, "Please login to chat with the hotel");
+            return;
+        }
+
+        Intent chatIntent = new Intent(this, ChatActivity.class);
+        chatIntent.putExtra(ChatActivity.EXTRA_HOTEL_ID, foodItem.getHotelId());
+        chatIntent.putExtra(ChatActivity.EXTRA_HOTEL_NAME, foodItem.getHotelName());
+        chatIntent.putExtra(ChatActivity.EXTRA_HOTEL_IMAGE, foodItem.getImageUrl());
+        chatIntent.putExtra(ChatActivity.EXTRA_HOTEL_PHONE, foodItem.getHotelPhone());
+        chatIntent.putExtra(ChatActivity.EXTRA_IS_HOTEL_VIEW, false);
+        startActivity(chatIntent);
     }
 
     private void smsHotel() {
