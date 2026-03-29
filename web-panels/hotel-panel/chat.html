@@ -268,9 +268,10 @@
                 const time = conv.lastTimestamp ? formatTime(conv.lastTimestamp) : '';
                 const isActive = conv.id === currentConversationId ? 'active' : '';
                 const initial = (conv.customerName || 'C')[0].toUpperCase();
+                const foodLabel = conv.foodName ? `<span style="font-size:11px;color:var(--primary);display:block;margin-top:2px;"><i class="fas fa-utensils" style="margin-right:4px;"></i>${escapeHtml(conv.foodName)}</span>` : '';
 
                 return `
-                    <div class="conversation-item ${isActive}" onclick="selectConversation('${conv.id}', '${escapeHtml(conv.customerName || 'Customer')}', '${conv.customerId || ''}')">
+                    <div class="conversation-item ${isActive}" onclick="selectConversation('${conv.id}', '${escapeHtml(conv.customerName || 'Customer')}', '${conv.customerId || ''}', '${escapeHtml(conv.customerEmail || '')}', '${escapeHtml(conv.foodName || '')}')">
                         <div class="d-flex align-items-center gap-3">
                             <div class="avatar" style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600;">
                                 ${initial}
@@ -281,6 +282,7 @@
                                     <span class="time">${time}</span>
                                 </div>
                                 <p>${escapeHtml(conv.lastMessage || 'No messages yet')}</p>
+                                ${foodLabel}
                             </div>
                         </div>
                     </div>
@@ -289,7 +291,7 @@
         });
     }
 
-    function selectConversation(conversationId, customerName, customerId) {
+    function selectConversation(conversationId, customerName, customerId, customerEmail, foodName) {
         currentConversationId = conversationId;
 
         // Update UI
@@ -297,14 +299,17 @@
         event.currentTarget?.classList.add('active');
 
         const initial = (customerName || 'C')[0].toUpperCase();
+        const emailLine = customerEmail ? `<p style="margin:0;font-size:12px;color:var(--text-secondary);"><i class="fas fa-envelope" style="margin-right:4px;font-size:10px;"></i>${escapeHtml(customerEmail)}</p>` : '<p style="margin:0;font-size:12px;color:var(--text-secondary);">Customer</p>';
+        const foodLine = foodName ? `<span style="font-size:11px;color:var(--primary);background:var(--primary-light);padding:2px 10px;border-radius:12px;margin-left:auto;"><i class="fas fa-utensils" style="margin-right:4px;"></i>${escapeHtml(foodName)}</span>` : '';
 
         document.getElementById('chatArea').innerHTML = `
             <div class="chat-header">
                 <div class="avatar">${initial}</div>
-                <div>
+                <div style="flex:1;">
                     <h5>${escapeHtml(customerName)}</h5>
-                    <p>Customer</p>
+                    ${emailLine}
                 </div>
+                ${foodLine}
             </div>
             <div class="messages-container" id="messagesContainer"></div>
             <div class="chat-input">

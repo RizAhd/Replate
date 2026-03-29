@@ -744,6 +744,8 @@ public class FoodDetailActivity extends AppCompatActivity {
         chatIntent.putExtra(ChatActivity.EXTRA_HOTEL_NAME, foodItem.getHotelName());
         chatIntent.putExtra(ChatActivity.EXTRA_HOTEL_IMAGE, foodItem.getImageUrl());
         chatIntent.putExtra(ChatActivity.EXTRA_HOTEL_PHONE, foodItem.getHotelPhone());
+        chatIntent.putExtra(ChatActivity.EXTRA_FOOD_ID, foodItem.getFoodId());
+        chatIntent.putExtra(ChatActivity.EXTRA_FOOD_NAME, foodItem.getFoodName());
         chatIntent.putExtra(ChatActivity.EXTRA_IS_HOTEL_VIEW, false);
         startActivity(chatIntent);
     }

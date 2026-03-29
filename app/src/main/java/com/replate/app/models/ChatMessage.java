@@ -20,6 +20,8 @@ public class ChatMessage implements Serializable {
     private String hotelName;
     private String customerId;
     private String customerName;
+    private String foodId;
+    private String foodName;
 
     public ChatMessage() {}
 
@@ -81,6 +83,12 @@ public class ChatMessage implements Serializable {
 
     public String getCustomerName() { return customerName; }
     public void setCustomerName(String customerName) { this.customerName = customerName; }
+
+    public String getFoodId() { return foodId; }
+    public void setFoodId(String foodId) { this.foodId = foodId; }
+
+    public String getFoodName() { return foodName; }
+    public void setFoodName(String foodName) { this.foodName = foodName; }
 
     /**
      * Generate conversation ID from hotel and customer IDs

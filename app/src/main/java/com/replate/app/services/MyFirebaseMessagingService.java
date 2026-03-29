@@ -195,7 +195,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         String cleanBody  = stripEmoji(body);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.replate)
+                .setSmallIcon(R.drawable.ic_notification)
                 .setLargeIcon(largeIcon)
                 .setContentTitle(cleanTitle)
                 .setContentText(cleanBody)

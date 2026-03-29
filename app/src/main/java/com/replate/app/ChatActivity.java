@@ -61,6 +61,8 @@ public class ChatActivity extends AppCompatActivity {
     public static final String EXTRA_CUSTOMER_ID = "customer_id";
     public static final String EXTRA_CUSTOMER_NAME = "customer_name";
     public static final String EXTRA_IS_HOTEL_VIEW = "is_hotel_view";
+    public static final String EXTRA_FOOD_ID = "food_id";
+    public static final String EXTRA_FOOD_NAME = "food_name";
 
     // Views
     private Toolbar toolbar;
@@ -76,6 +78,7 @@ public class ChatActivity extends AppCompatActivity {
     // Data
     private String hotelId, hotelName, hotelImage, hotelPhone;
     private String customerId, customerName;
+    private String foodId, foodName;
     private String conversationId;
     private String currentUserId;
     private String currentUserName;
@@ -114,6 +117,8 @@ public class ChatActivity extends AppCompatActivity {
         customerId = getIntent().getStringExtra(EXTRA_CUSTOMER_ID);
         customerName = getIntent().getStringExtra(EXTRA_CUSTOMER_NAME);
         isHotelView = getIntent().getBooleanExtra(EXTRA_IS_HOTEL_VIEW, false);
+        foodId = getIntent().getStringExtra(EXTRA_FOOD_ID);
+        foodName = getIntent().getStringExtra(EXTRA_FOOD_NAME);
 
         // Validate required data
         if (hotelId == null || hotelId.isEmpty()) {
@@ -190,11 +195,11 @@ public class ChatActivity extends AppCompatActivity {
         if (isHotelView) {
             // Hotel sees customer info
             tvChatName.setText(customerName != null ? customerName : "Customer");
-            tvChatStatus.setText("Customer");
+            tvChatStatus.setText(foodName != null && !foodName.isEmpty() ? "Re: " + foodName : "Customer");
         } else {
             // Customer sees hotel info
             tvChatName.setText(hotelName != null ? hotelName : "Hotel");
-            tvChatStatus.setText("Hotel");
+            tvChatStatus.setText(foodName != null && !foodName.isEmpty() ? "Re: " + foodName : "Hotel");
 
             if (hotelImage != null && !hotelImage.isEmpty()) {
                 Glide.with(this)
@@ -366,6 +371,8 @@ public class ChatActivity extends AppCompatActivity {
         message.setHotelName(hotelName);
         message.setCustomerId(customerId != null ? customerId : currentUserId);
         message.setCustomerName(customerName);
+        message.setFoodId(foodId);
+        message.setFoodName(foodName);
 
         // Save locally first (optimistic UI)
         chatDb.savePendingMessage(message);
@@ -387,6 +394,8 @@ public class ChatActivity extends AppCompatActivity {
         messageData.put("hotelName", hotelName);
         messageData.put("customerId", message.getCustomerId());
         messageData.put("customerName", customerName);
+        if (foodId != null) messageData.put("foodId", foodId);
+        if (foodName != null) messageData.put("foodName", foodName);
 
         messagesRef.child(messageId).setValue(messageData)
                 .addOnSuccessListener(v -> {
@@ -406,9 +415,16 @@ public class ChatActivity extends AppCompatActivity {
         convData.put("hotelName", hotelName);
         convData.put("customerId", customerId != null ? customerId : currentUserId);
         convData.put("customerName", customerName);
+        // Include customer email for hotel reference
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null && user.getEmail() != null && !isHotelView) {
+            convData.put("customerEmail", user.getEmail());
+        }
         convData.put("lastMessage", lastMessage);
         convData.put("lastTimestamp", timestamp);
         convData.put("lastSenderId", currentUserId);
+        if (foodId != null) convData.put("foodId", foodId);
+        if (foodName != null) convData.put("foodName", foodName);
 
         // Save under hotel's conversations
         conversationsRef.child(hotelId).child(conversationId).setValue(convData);
