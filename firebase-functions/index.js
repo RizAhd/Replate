@@ -481,9 +481,18 @@ exports.sendBroadcastNotification = functions.region(REGION).https.onRequest(asy
       if (!topic) return res.status(400).json({ success: false, message: "Invalid topic target" });
       result = await sendToTopic(topic, payload);
     } else {
-      const roleTarget = target === "all_users" ? null : normalizeRole(target);
+      // Normalize audience target: "customers" → "customer", "hotels" → "hotel", "admins" → "admin"
+      let roleTarget = null;
+      if (target !== "all_users") {
+        roleTarget = normalizeRole(target.replace(/s$/, "")); // strip trailing 's'
+      }
       const users = await loadUsersByRole(roleTarget);
-      const userRecords = users.map((u) => ({ uid: u.uid, token: u.fcmToken || "" }));
+      // Resolve tokens more thoroughly — check both fcmToken and notification.fcmToken
+      const userRecords = users.map((u) => ({
+        uid: u.uid,
+        token: String(u.fcmToken || (u.notification && u.notification.fcmToken) || "").trim(),
+        cleanupPaths: [`users/${u.uid}/fcmToken`, `users/${u.uid}/notification/fcmToken`],
+      }));
       targetUserIds = users.map((u) => u.uid);
       result = await sendToUserRecords(userRecords, payload);
       await persistNotificationForUsers(targetUserIds, payload, "admin_broadcast");
@@ -593,6 +602,71 @@ const sendSelfTestPushHandler = async (req, res) => {
 // Canonical endpoint used by Android app:
 // https://asia-southeast1-replate-food-rescue.cloudfunctions.net/sendSelfTestPush
 exports.sendSelfTestPush = functions.region(REGION).https.onRequest(sendSelfTestPushHandler);
+
+
+// ── DEAL NOTIFICATION ──────────────────────────────────────
+exports.sendDealNotification = functions.region(REGION).https.onRequest(async (req, res) => {
+  setCorsHeaders(res);
+  if (req.method === "OPTIONS") return res.status(204).send("");
+
+  try {
+    if (req.method !== "POST") {
+      return res.status(405).json({ success: false, message: "Method not allowed" });
+    }
+
+    const requester = await verifyRequestAuth(req, ["admin"]);
+    const body = req.body || {};
+
+    const payload = buildPayload({
+      title: body.title || "Hot Deal Nearby",
+      body: body.body || "Check out new food rescue deals!",
+      type: body.type || "new_deal",
+      category: body.category || "new_deals",
+      route: body.route || "deals",
+      data: body.data || {},
+    });
+
+    // Send to deals topic
+    let topicResult = null;
+    try {
+      topicResult = await sendToTopic("deals_customers", payload);
+    } catch (topicErr) {
+      console.warn("[sendDealNotification] Topic send failed:", topicErr.message);
+    }
+
+    // Also send to all customers directly for broader reach
+    const customers = await loadUsersByRole("customer");
+    const userRecords = customers.map((u) => ({
+      uid: u.uid,
+      token: String(u.fcmToken || (u.notification && u.notification.fcmToken) || "").trim(),
+      cleanupPaths: [`users/${u.uid}/fcmToken`, `users/${u.uid}/notification/fcmToken`],
+    }));
+    const directResult = await sendToUserRecords(userRecords, payload);
+    await persistNotificationForUsers(customers.map((u) => u.uid), payload, "deal_campaign");
+
+    const result = {
+      topicMessageId: topicResult?.messageId || null,
+      directSuccess: directResult.successCount,
+      directFailure: directResult.failureCount,
+      totalReach: customers.length,
+    };
+
+    await db.ref("notificationLogs").push({
+      senderUid: requester.uid,
+      senderRole: requester.role,
+      action: "deal",
+      target: "deals_customers + all customers",
+      payload,
+      result,
+      createdAt: Date.now(),
+    });
+
+    return res.status(200).json({ success: true, result });
+  } catch (err) {
+    console.error("sendDealNotification error", err);
+    return res.status(500).json({ success: false, message: err.message || "Failed to send deal notification" });
+  }
+});
 
 
 exports.onUserProfileCreatedNotify = functions

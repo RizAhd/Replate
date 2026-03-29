@@ -305,8 +305,10 @@
     // ── State ──────────────────────────────────────────────
     const MAX_ACTIVITY_ITEMS = 50;
     let activityCount = 0;
-    let initialLoadDone = { orders: false, hotels: false, foodItems: false, users: false };
+    let pageLoadTimestamp = Date.now();
     let listenersAttached = false;
+    // Track keys we've already shown so initial load doesn't double-fire
+    const shownKeys = new Set();
 
     // ── Helpers ────────────────────────────────────────────
     function timeAgo(ts) {
@@ -410,101 +412,135 @@
     });
 
     // ── Real-Time Listeners ────────────────────────────────
-    function attachRealtimeListeners() {
+    async function attachRealtimeListeners() {
         if (listenersAttached) return;
         listenersAttached = true;
 
-        // 1) NEW ORDERS — child_added on orders
-        database.ref('orders').orderByChild('createdAt').startAt(Date.now() - 86400000).on('child_added', (snap) => {
-            if (!initialLoadDone.orders) return; // skip initial batch
-            const order = snap.val() || {};
-            const customerName = order.customerName || order.userName || 'Customer';
-            const hotelName = order.hotelName || 'Unknown Hotel';
-            const amount = ReplateSchema.formatAmount(order.totalAmount || order.totalPrice);
-            addActivityItem('icon-order',
-                `New order from ${customerName}`,
-                `${hotelName} — LKR ${amount}`,
-                order.createdAt || Date.now()
-            );
-        });
+        const now = Date.now();
+        const oneDayAgo = now - 86400000;
+        const oneWeekAgo = now - 86400000 * 7;
 
-        // Mark initial load done after first value event
-        database.ref('orders').orderByChild('createdAt').startAt(Date.now() - 86400000).once('value', () => {
-            initialLoadDone.orders = true;
-        });
+        // ─── Step 1: Load recent events as history (shown in feed on page load) ───
+        try {
+            // Recent orders (last 24h)
+            const ordersSnap = await database.ref('orders').orderByChild('createdAt').startAt(oneDayAgo).once('value');
+            if (ordersSnap.exists()) {
+                const items = [];
+                ordersSnap.forEach(child => {
+                    const o = child.val() || {};
+                    shownKeys.add('order_' + child.key);
+                    items.push({
+                        ts: o.createdAt || now,
+                        icon: 'icon-order',
+                        title: `Order from ${o.customerName || o.userName || 'Customer'}`,
+                        desc: `${o.hotelName || 'Hotel'} — LKR ${ReplateSchema.formatAmount(o.totalAmount || o.totalPrice)}`
+                    });
+                });
+                // Show most recent 10
+                items.sort((a, b) => b.ts - a.ts);
+                items.slice(0, 10).reverse().forEach(i => addActivityItem(i.icon, i.title, i.desc, i.ts));
+            }
 
-        // 2) ORDER STATUS CHANGES — child_changed on orders
+            // Recent hotels (last 7 days)
+            const hotelsSnap = await database.ref('hotels').orderByChild('createdAt').startAt(oneWeekAgo).once('value');
+            if (hotelsSnap.exists()) {
+                hotelsSnap.forEach(child => {
+                    shownKeys.add('hotel_' + child.key);
+                    const h = child.val() || {};
+                    if (h.createdAt && h.createdAt > oneDayAgo) {
+                        addActivityItem('icon-hotel',
+                            `Hotel registered: ${h.hotelName || h.name || 'Unknown'}`,
+                            `Owner: ${h.ownerName || '—'} • Status: ${(h.status || 'pending').toLowerCase()}`,
+                            h.createdAt);
+                    }
+                });
+            }
+        } catch (e) {
+            console.warn('[Activity] Error loading history:', e);
+        }
+
+        // ─── Step 2: Attach live listeners for NEW events after page load ───
+
+        // New orders
+        database.ref('orders').orderByChild('createdAt').startAt(now)
+            .on('child_added', (snap) => {
+                if (shownKeys.has('order_' + snap.key)) return;
+                shownKeys.add('order_' + snap.key);
+                const order = snap.val() || {};
+                addActivityItem('icon-order',
+                    `New order from ${order.customerName || order.userName || 'Customer'}`,
+                    `${order.hotelName || 'Hotel'} — LKR ${ReplateSchema.formatAmount(order.totalAmount || order.totalPrice)}`,
+                    order.createdAt || Date.now());
+            });
+
+        // Order status changes
         database.ref('orders').on('child_changed', (snap) => {
-            if (!initialLoadDone.orders) return;
             const order = snap.val() || {};
             const status = ReplateSchema.normalizeOrderStatus(order.orderStatus);
             const label = ReplateSchema.statusLabel(status);
-            const customerName = order.customerName || order.userName || 'Customer';
             addActivityItem('icon-status',
-                `Order status updated: ${label}`,
-                `${customerName} — #${ReplateSchema.shortOrderId(order, snap.key)}`,
-                order.updatedAt || order.completedAt || Date.now()
-            );
+                `Order status: ${label}`,
+                `${order.customerName || order.userName || 'Customer'} — #${ReplateSchema.shortOrderId(order, snap.key)}`,
+                order.updatedAt || order.completedAt || Date.now());
         });
 
-        // 3) NEW HOTEL REGISTRATIONS — child_added on hotels
-        database.ref('hotels').orderByChild('createdAt').startAt(Date.now() - 86400000 * 7).on('child_added', (snap) => {
-            if (!initialLoadDone.hotels) return;
-            const hotel = snap.val() || {};
-            const statusText = (hotel.status || 'pending').toLowerCase();
-            addActivityItem('icon-hotel',
-                `New hotel registered: ${hotel.hotelName || 'Unknown'}`,
-                `Owner: ${hotel.ownerName || '—'} • Status: ${statusText}`,
-                hotel.createdAt || Date.now()
-            );
-        });
-        database.ref('hotels').orderByChild('createdAt').startAt(Date.now() - 86400000 * 7).once('value', () => {
-            initialLoadDone.hotels = true;
-        });
+        // New hotel registrations
+        database.ref('hotels').orderByChild('createdAt').startAt(now)
+            .on('child_added', (snap) => {
+                if (shownKeys.has('hotel_' + snap.key)) return;
+                shownKeys.add('hotel_' + snap.key);
+                const hotel = snap.val() || {};
+                addActivityItem('icon-hotel',
+                    `New hotel: ${hotel.hotelName || hotel.name || 'Unknown'}`,
+                    `Owner: ${hotel.ownerName || '—'} • Status: ${(hotel.status || 'pending').toLowerCase()}`,
+                    hotel.createdAt || Date.now());
+            });
 
-        // 4) HOTEL STATUS CHANGES (approved/rejected)
+        // Hotel status changes (approved/rejected)
         database.ref('hotels').on('child_changed', (snap) => {
-            if (!initialLoadDone.hotels) return;
             const hotel = snap.val() || {};
             const status = (hotel.status || '').toLowerCase();
             if (status === 'approved' || status === 'rejected') {
                 addActivityItem('icon-hotel',
-                    `Hotel ${status}: ${hotel.hotelName || 'Unknown'}`,
+                    `Hotel ${status}: ${hotel.hotelName || hotel.name || 'Unknown'}`,
                     `${hotel.email || hotel.ownerName || '—'}`,
-                    Date.now()
-                );
+                    Date.now());
             }
         });
 
-        // 5) NEW FOOD LISTINGS — child_added on foodItems
-        database.ref('foodItems').orderByChild('createdAt').startAt(Date.now() - 86400000).on('child_added', (snap) => {
-            if (!initialLoadDone.foodItems) return;
-            const item = snap.val() || {};
-            const discount = item.discountPercent || item.discountPercentage || 0;
-            addActivityItem('icon-food',
-                `New listing: ${item.foodName || 'Unknown'}`,
-                `${item.hotelName || 'Hotel'} — ${discount}% off`,
-                item.createdAt || Date.now()
-            );
-        });
-        database.ref('foodItems').orderByChild('createdAt').startAt(Date.now() - 86400000).once('value', () => {
-            initialLoadDone.foodItems = true;
-        });
+        // New food listings
+        database.ref('foodItems').orderByChild('createdAt').startAt(now)
+            .on('child_added', (snap) => {
+                const item = snap.val() || {};
+                const discount = item.discountPercent || item.discountPercentage || 0;
+                addActivityItem('icon-food',
+                    `New listing: ${item.foodName || 'Unknown'}`,
+                    `${item.hotelName || 'Hotel'}${discount > 0 ? ` — ${discount}% off` : ''}`,
+                    item.createdAt || Date.now());
+            });
 
-        // 6) NEW USER REGISTRATIONS — child_added on users
-        database.ref('users').orderByChild('createdAt').startAt(Date.now() - 86400000).on('child_added', (snap) => {
-            if (!initialLoadDone.users) return;
-            const user = snap.val() || {};
-            const role = ReplateSchema.normalizeUserRole(user);
-            addActivityItem('icon-user',
-                `New ${role} registered`,
-                `${user.name || user.email || snap.key}`,
-                user.createdAt || Date.now()
-            );
-        });
-        database.ref('users').orderByChild('createdAt').startAt(Date.now() - 86400000).once('value', () => {
-            initialLoadDone.users = true;
-        });
+        // New user registrations
+        database.ref('users').orderByChild('createdAt').startAt(now)
+            .on('child_added', (snap) => {
+                const user = snap.val() || {};
+                const role = ReplateSchema.normalizeUserRole(user);
+                addActivityItem('icon-user',
+                    `New ${role} registered`,
+                    `${user.name || user.email || snap.key}`,
+                    user.createdAt || Date.now());
+            });
+
+        // Notification logs (live)
+        database.ref('notificationLogs').orderByChild('createdAt').startAt(now)
+            .on('child_added', (snap) => {
+                const log = snap.val() || {};
+                addActivityItem('icon-notif',
+                    `Notification sent: ${log.action || 'unknown'}`,
+                    `${log.payload?.title || '—'} → ${log.target || log.userIds?.length + ' users' || '—'}`,
+                    log.createdAt || Date.now());
+            });
+
+        console.log('[Activity] Real-time listeners attached');
     }
 
     // ── Quick Stats (real-time) ────────────────────────────
@@ -512,35 +548,36 @@
         // Pending hotels
         database.ref('hotels').on('value', (snap) => {
             let pending = 0;
-            snap.forEach(child => {
-                if ((child.val().status || '').toLowerCase() === 'pending') pending++;
-            });
+            if (snap.exists()) {
+                snap.forEach(child => {
+                    const status = (child.val()?.status || '').toLowerCase();
+                    if (status === 'pending' || status === '') pending++;
+                });
+            }
             document.getElementById('statPendingHotels').textContent = pending;
         });
 
-        // New orders today (pending)
+        // New orders (pending status)
         database.ref('orders').on('value', (snap) => {
             let newOrders = 0;
-            snap.forEach(child => {
-                const o = child.val() || {};
-                const status = ReplateSchema.normalizeOrderStatus(o.orderStatus);
-                if (status === 'pending_pickup') newOrders++;
-            });
+            if (snap.exists()) {
+                snap.forEach(child => {
+                    const o = child.val() || {};
+                    const status = ReplateSchema.normalizeOrderStatus(o.orderStatus);
+                    if (status === 'pending_pickup' || status === 'pending' || status === 'placed') newOrders++;
+                });
+            }
             document.getElementById('statNewOrders').textContent = newOrders;
         });
 
         // Total users
         database.ref('users').on('value', (snap) => {
-            let count = 0;
-            if (snap.exists()) snap.forEach(() => count++);
-            document.getElementById('statTotalUsers').textContent = count;
+            document.getElementById('statTotalUsers').textContent = snap.exists() ? snap.numChildren() : 0;
         });
 
         // Sent today from notificationLogs
         database.ref('notificationLogs').orderByChild('createdAt').startAt(todayStart()).on('value', (snap) => {
-            let count = 0;
-            if (snap.exists()) snap.forEach(() => count++);
-            document.getElementById('statSentToday').textContent = count;
+            document.getElementById('statSentToday').textContent = snap.exists() ? snap.numChildren() : 0;
         });
     }
 
@@ -566,7 +603,7 @@
             document.getElementById('historyCount').textContent = rows.length + ' records';
 
             if (rows.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4" style="color:var(--text-tertiary);">No notification logs yet. Logs appear when notifications are sent via Cloud Functions.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4" style="color:var(--text-tertiary);">No notification logs yet. Send a notification from the Send tab to see logs here.</td></tr>';
                 return;
             }
 
@@ -603,6 +640,8 @@
     }
 
     // ── Init ───────────────────────────────────────────────
+    function logout() { auth.signOut().then(() => { window.location.href = 'login.html'; }); }
+
     auth.onAuthStateChanged((user) => {
         ReplateUI.renderSidebar('appShellSidebar', {
             title: '<img src="../assets/replate-icon.svg" alt="REPLATE" class="brand-logo-sm">ADMIN',
@@ -619,21 +658,92 @@
         attachRealtimeListeners();
     });
 
-    // ── Send Form Handlers (existing workflow, unchanged) ──
+    // ── Firebase Direct Fallback ─────────────────────────
+    // When Cloud Functions aren't deployed or fail, write notifications
+    // directly to Firebase so they at least appear in the app's notification center
+    async function writeNotificationsDirectly(title, body, type, category, route, targetRole) {
+        const usersSnap = await database.ref('users').once('value');
+        if (!usersSnap.exists()) return { written: 0 };
+
+        const updates = {};
+        let count = 0;
+        const now = Date.now();
+
+        usersSnap.forEach(child => {
+            const user = child.val() || {};
+            const role = ReplateSchema.normalizeUserRole(user);
+
+            // Filter by target role
+            if (targetRole && targetRole !== 'all_users') {
+                const normalizedTarget = targetRole.replace(/s$/, ''); // customers→customer
+                if (role !== normalizedTarget) return;
+            }
+
+            const key = database.ref(`notifications/${child.key}`).push().key;
+            updates[`notifications/${child.key}/${key}`] = {
+                title, body, type: type || 'announcement',
+                category: category || 'admin_broadcast',
+                route: route || 'notifications',
+                source: 'admin_broadcast',
+                read: false,
+                timestamp: now
+            };
+            count++;
+        });
+
+        if (count > 0) {
+            await database.ref().update(updates);
+        }
+        return { written: count };
+    }
+
+    async function logNotificationSend(action, target, payload, result) {
+        try {
+            await database.ref('notificationLogs').push({
+                senderUid: auth.currentUser?.uid || 'unknown',
+                senderRole: 'admin',
+                action,
+                target: String(target),
+                payload: {
+                    title: payload.title || '',
+                    body: payload.body || ''
+                },
+                result: result || {},
+                createdAt: Date.now()
+            });
+        } catch (e) {
+            console.warn('Failed to log notification:', e);
+        }
+    }
+
+    // ── Send Form Handlers ─────────────────────────────────
     document.getElementById('broadcastForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         ReplateUI.setButtonLoading('btnBroadcastSend', true, 'Sending...');
         try {
-            const payload = {
-                target: document.getElementById('broadcastTarget').value,
-                title: document.getElementById('broadcastTitle').value.trim(),
-                body: document.getElementById('broadcastBody').value.trim(),
-                type: document.getElementById('broadcastType').value.trim() || 'announcement',
-                route: document.getElementById('broadcastRoute').value.trim() || 'notifications'
-            };
-            if (!payload.title || !payload.body) throw new Error('Title and message are required.');
-            await NotificationApi.sendBroadcast(payload);
-            ReplateUI.showAlert('✅ Broadcast sent successfully to <strong>' + escapeHtml(payload.target) + '</strong>', 'success');
+            const target = document.getElementById('broadcastTarget').value;
+            const title = document.getElementById('broadcastTitle').value.trim();
+            const body = document.getElementById('broadcastBody').value.trim();
+            const type = document.getElementById('broadcastType').value.trim() || 'announcement';
+            const route = document.getElementById('broadcastRoute').value.trim() || 'notifications';
+
+            if (!title || !body) throw new Error('Title and message are required.');
+
+            let result;
+            let method = 'cloud_function';
+
+            try {
+                // Try Cloud Functions first
+                result = await NotificationApi.sendBroadcast({ target, title, body, type, route });
+            } catch (cfErr) {
+                console.warn('Cloud Function failed, using Firebase direct write:', cfErr.message);
+                method = 'firebase_direct';
+                // Fallback: write notifications directly to Firebase
+                result = await writeNotificationsDirectly(title, body, type, 'admin_broadcast', route, target);
+                await logNotificationSend('broadcast', target, { title, body }, result);
+            }
+
+            ReplateUI.showAlert(`✅ Broadcast sent (${method === 'firebase_direct' ? 'saved to ' + (result.written || 0) + ' users via Firebase' : 'via Cloud Function'}) to <strong>${escapeHtml(target)}</strong>`, 'success');
             document.getElementById('broadcastForm').reset();
             document.getElementById('broadcastType').value = 'announcement';
             document.getElementById('broadcastRoute').value = 'notifications';
@@ -654,17 +764,46 @@
                 .filter(Boolean);
             if (userIds.length === 0) throw new Error('Enter at least one User ID.');
 
-            const payload = {
-                userIds,
-                title: document.getElementById('targetTitle').value.trim(),
-                body: document.getElementById('targetBody').value.trim(),
-                type: 'targeted_message',
-                route: 'notifications',
-                orderId: document.getElementById('targetOrderId').value.trim()
-            };
-            if (!payload.title || !payload.body) throw new Error('Title and message are required.');
-            await NotificationApi.sendTargeted(payload);
-            ReplateUI.showAlert('✅ Targeted notification sent to <strong>' + userIds.length + ' user(s)</strong>', 'success');
+            const title = document.getElementById('targetTitle').value.trim();
+            const body = document.getElementById('targetBody').value.trim();
+            const orderId = document.getElementById('targetOrderId').value.trim();
+            if (!title || !body) throw new Error('Title and message are required.');
+
+            let result;
+            let method = 'cloud_function';
+
+            try {
+                result = await NotificationApi.sendTargeted({
+                    userIds, title, body,
+                    type: 'targeted_message',
+                    route: 'notifications',
+                    orderId
+                });
+            } catch (cfErr) {
+                console.warn('Cloud Function failed, using Firebase direct write:', cfErr.message);
+                method = 'firebase_direct';
+                // Fallback: write directly to each user's notifications
+                const updates = {};
+                const now = Date.now();
+                userIds.forEach(uid => {
+                    const key = database.ref(`notifications/${uid}`).push().key;
+                    updates[`notifications/${uid}/${key}`] = {
+                        title, body,
+                        type: 'targeted_message',
+                        category: 'admin_broadcast',
+                        route: 'notifications',
+                        orderId: orderId || '',
+                        source: 'admin_targeted',
+                        read: false,
+                        timestamp: now
+                    };
+                });
+                await database.ref().update(updates);
+                result = { written: userIds.length };
+                await logNotificationSend('targeted', userIds.length + ' users', { title, body }, result);
+            }
+
+            ReplateUI.showAlert(`✅ Targeted notification sent to <strong>${userIds.length} user(s)</strong> (${method === 'firebase_direct' ? 'via Firebase' : 'via Cloud Function'})`, 'success');
             document.getElementById('targetedForm').reset();
         } catch (err) {
             ReplateUI.showAlert('❌ Targeted send failed: ' + escapeHtml(err.message), 'danger');
@@ -681,14 +820,28 @@
             const foodName = document.getElementById('dealFoodName').value.trim() || 'Fresh meal';
             const discount = document.getElementById('dealDiscount').value.trim();
 
-            await NotificationApi.sendDeal({
-                title: 'Hot Deal Nearby',
-                body: `${hotelName} offers ${foodName}${discount ? ` at ${discount}% OFF` : ''}!`,
-                type: 'new_deal',
-                route: 'deals',
-                data: { hotelName, foodName, discount }
-            });
-            ReplateUI.showAlert('✅ Deal notification sent successfully', 'success');
+            const title = 'Hot Deal Nearby';
+            const body = `${hotelName} offers ${foodName}${discount ? ` at ${discount}% OFF` : ''}!`;
+
+            let result;
+            let method = 'cloud_function';
+
+            try {
+                result = await NotificationApi.sendDeal({
+                    title, body,
+                    type: 'new_deal',
+                    route: 'deals',
+                    data: { hotelName, foodName, discount }
+                });
+            } catch (cfErr) {
+                console.warn('Cloud Function failed, using Firebase direct write:', cfErr.message);
+                method = 'firebase_direct';
+                // Fallback: write deal notifications directly to all customers
+                result = await writeNotificationsDirectly(title, body, 'new_deal', 'new_deals', 'deals', 'customers');
+                await logNotificationSend('deal', 'all customers', { title, body }, result);
+            }
+
+            ReplateUI.showAlert(`✅ Deal notification sent (${method === 'firebase_direct' ? 'to ' + (result.written || 0) + ' users via Firebase' : 'via Cloud Function'})`, 'success');
             document.getElementById('dealForm').reset();
         } catch (err) {
             ReplateUI.showAlert('❌ Deal send failed: ' + escapeHtml(err.message), 'danger');
