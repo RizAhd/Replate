@@ -86,7 +86,8 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:background="@drawable/bg_chat_area">
 
         <!-- Chat messages list -->
         <androidx.recyclerview.widget.RecyclerView
@@ -94,11 +95,11 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp"
-            android:paddingTop="8dp"
-            android:paddingBottom="4dp"
-            android:scrollbars="vertical"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="6dp"
+            android:scrollbars="none"
             android:overScrollMode="never" />
 
         <!-- Empty state -->
@@ -148,18 +149,20 @@
             android:visibility="gone" />
     </FrameLayout>
 
-    <!-- Message input bar (always at bottom, above keyboard) -->
+    <!-- Message input bar -->
     <LinearLayout
         android:id="@+id/cardInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/surface_white"
-        android:elevation="6dp"
+        android:elevation="8dp"
         android:gravity="center_vertical"
-        android:minHeight="54dp"
+        android:minHeight="56dp"
         android:orientation="horizontal"
-        android:paddingHorizontal="10dp"
-        android:paddingVertical="6dp">
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp">
 
         <!-- Message input -->
         <com.google.android.material.textfield.TextInputEditText
@@ -167,13 +170,15 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:layout_marginStart="4dp"
             android:background="@drawable/bg_chat_input"
             android:hint="Type a message..."
             android:inputType="textMultiLine|textCapSentences"
             android:maxLines="4"
-            android:paddingHorizontal="16dp"
-            android:paddingVertical="10dp"
+            android:paddingHorizontal="18dp"
+            android:paddingVertical="11dp"
             android:textSize="14sp"
+            android:textColorHint="@color/text_hint"
             android:fontFamily="@font/poppins_regular" />
 
         <!-- Send button -->
@@ -185,10 +190,10 @@
             android:contentDescription="Send"
             android:src="@drawable/ic_send"
             app:backgroundTint="@color/green_primary"
-            app:fabCustomSize="42dp"
+            app:fabCustomSize="44dp"
             app:maxImageSize="20dp"
             app:tint="@color/white"
-            app:elevation="0dp" />
+            app:elevation="2dp" />
     </LinearLayout>
 
 </LinearLayout>

@@ -9,61 +9,77 @@
     <link rel="stylesheet" href="../css/style.css">
     <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
     <style>
-        /* ── Chat-specific styles ─────────────────────────── */
-        .chat-container {
+        /* ═══════════════════════════════════════════════════
+           3-PANEL CHAT LAYOUT
+           Left:   Conversation list
+           Center: Live chat (messages + input)
+           Right:  Customer details & context
+           ═══════════════════════════════════════════════════ */
+
+        .chat-wrapper {
             display: flex;
-            height: calc(100vh - 160px);
-            min-height: 480px;
-            border-radius: var(--radius-md);
+            height: calc(100vh - 145px);
+            min-height: 500px;
+            border-radius: var(--radius-lg);
             overflow: hidden;
             border: 1px solid var(--border);
+            background: var(--surface);
+            box-shadow: var(--shadow-sm);
         }
 
-        /* ── Conversation sidebar ─────────────────────────── */
-        .conversation-list {
-            width: 340px;
-            min-width: 280px;
+        /* ── LEFT: Conversation List ─────────────────────── */
+        .panel-conversations {
+            width: 300px;
+            min-width: 260px;
             border-right: 1px solid var(--border);
-            overflow-y: auto;
             background: var(--surface);
             display: flex;
             flex-direction: column;
         }
-        .conv-search {
-            padding: 14px 16px;
+        .panel-conversations .panel-head {
+            padding: 18px 16px 14px;
             border-bottom: 1px solid var(--border);
             background: var(--surface);
-            position: sticky;
-            top: 0;
-            z-index: 2;
         }
-        .conv-search input {
+        .panel-conversations .panel-head h6 {
+            margin: 0 0 10px;
+            font-weight: 700;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+        }
+        .conv-search-wrap {
+            position: relative;
+        }
+        .conv-search-wrap input {
             width: 100%;
             border: 1px solid var(--border);
             border-radius: var(--radius-pill);
-            padding: 9px 16px 9px 38px;
+            padding: 8px 14px 8px 36px;
             font-size: 13px;
             outline: none;
             background: var(--bg);
-            transition: border-color var(--transition-fast);
+            transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
         }
-        .conv-search input:focus {
+        .conv-search-wrap input:focus {
             border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(26, 107, 60, 0.08);
         }
-        .conv-search i {
+        .conv-search-wrap i {
             position: absolute;
-            left: 30px;
+            left: 12px;
             top: 50%;
             transform: translateY(-50%);
             color: var(--text-tertiary);
-            font-size: 13px;
+            font-size: 12px;
         }
         .conv-items {
             flex: 1;
             overflow-y: auto;
         }
         .conversation-item {
-            padding: 14px 16px;
+            padding: 12px 14px;
             border-bottom: 1px solid var(--border-light);
             cursor: pointer;
             transition: background var(--transition-fast);
@@ -74,160 +90,178 @@
         .conversation-item.active {
             background: var(--primary-light);
             border-left: 3px solid var(--primary);
+            padding-left: 11px;
         }
-        .conversation-item .conv-avatar {
-            width: 42px;
-            height: 42px;
+        .conversation-item .c-avatar {
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
-            background: var(--primary);
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 16px;
+            font-size: 15px;
             flex-shrink: 0;
         }
         .conversation-item h6 {
             margin: 0;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 13.5px;
             color: var(--text-primary);
         }
-        .conversation-item .conv-preview {
-            margin: 3px 0 0;
-            font-size: 12.5px;
+        .conversation-item .c-preview {
+            margin: 2px 0 0;
+            font-size: 12px;
             color: var(--text-secondary);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            max-width: 170px;
         }
-        .conversation-item .conv-time {
-            font-size: 11px;
+        .conversation-item .c-time {
+            font-size: 10px;
             color: var(--text-tertiary);
             white-space: nowrap;
         }
-        .conversation-item .conv-food {
-            font-size: 11px;
+        .conversation-item .c-food {
+            font-size: 10.5px;
             color: var(--primary);
-            margin-top: 2px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
+            margin-top: 3px;
+        }
+        .conversation-item .c-food i {
+            font-size: 9px;
+            margin-right: 3px;
+        }
+        .no-conversations {
+            padding: 50px 20px;
+            text-align: center;
+            color: var(--text-tertiary);
+        }
+        .no-conversations i {
+            font-size: 36px;
+            opacity: 0.3;
+            display: block;
+            margin-bottom: 12px;
         }
 
-        /* ── Chat area ────────────────────────────────────── */
-        .chat-area {
+        /* ── CENTER: Live Chat ───────────────────────────── */
+        .panel-chat {
             flex: 1;
             display: flex;
             flex-direction: column;
-            background: var(--bg);
+            background: #f8faf9;
             min-width: 0;
+            border-right: 1px solid var(--border);
         }
-        .chat-header {
-            padding: 14px 20px;
-            background: var(--surface);
-            border-bottom: 1px solid var(--border);
+        .chat-topbar {
+            padding: 12px 20px;
+            background: var(--primary);
+            color: white;
             display: flex;
             align-items: center;
             gap: 12px;
+            min-height: 58px;
         }
-        .chat-header .ch-avatar {
-            width: 42px;
-            height: 42px;
+        .chat-topbar .ct-avatar {
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
-            background: var(--primary);
+            background: rgba(255,255,255,0.2);
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 17px;
+            font-size: 15px;
             flex-shrink: 0;
         }
-        .chat-header h5 {
-            margin: 0;
+        .chat-topbar .ct-name {
             font-weight: 600;
-            font-size: 15px;
-        }
-        .chat-header .ch-sub {
+            font-size: 14.5px;
             margin: 0;
-            font-size: 12px;
-            color: var(--text-secondary);
         }
-        .chat-header .ch-food-badge {
+        .chat-topbar .ct-status {
             font-size: 11px;
-            color: var(--primary);
-            background: var(--primary-light);
-            padding: 3px 12px;
-            border-radius: var(--radius-pill);
-            margin-left: auto;
-            white-space: nowrap;
+            opacity: 0.75;
+            margin: 0;
         }
-
-        /* ── Messages ─────────────────────────────────────── */
-        .messages-container {
+        .chat-topbar .ct-live-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #4ade80;
+            display: inline-block;
+            margin-right: 4px;
+            animation: livePulse 2s ease-in-out infinite;
+        }
+        @keyframes livePulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.3); }
+        }
+        .messages-area {
             flex: 1;
             overflow-y: auto;
-            padding: 20px;
+            padding: 20px 18px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
         }
-        .message {
-            max-width: 68%;
-            padding: 10px 16px;
+        .msg-bubble {
+            max-width: 72%;
+            padding: 10px 15px;
             border-radius: 18px;
             font-size: 13.5px;
-            line-height: 1.45;
+            line-height: 1.5;
             word-break: break-word;
+            position: relative;
         }
-        .message.sent {
+        .msg-bubble.sent {
             align-self: flex-end;
             background: var(--primary);
             color: white;
             border-bottom-right-radius: 4px;
         }
-        .message.received {
+        .msg-bubble.received {
             align-self: flex-start;
-            background: var(--surface);
-            border: 1px solid var(--border);
+            background: white;
             color: var(--text-primary);
+            border: 1px solid var(--border);
             border-bottom-left-radius: 4px;
         }
-        .message .msg-time {
+        .msg-bubble .m-time {
             font-size: 10px;
-            opacity: 0.65;
-            margin-top: 5px;
+            opacity: 0.6;
+            margin-top: 4px;
             text-align: right;
         }
-
-        /* ── Input bar ────────────────────────────────────── */
-        .chat-input {
-            padding: 14px 20px;
-            background: var(--surface);
+        .chat-compose {
+            padding: 12px 18px;
+            background: white;
             border-top: 1px solid var(--border);
             display: flex;
             gap: 10px;
-            align-items: flex-end;
+            align-items: center;
         }
-        .chat-input input {
+        .chat-compose input {
             flex: 1;
-            border: 1px solid var(--border);
+            border: 1.5px solid var(--border);
             border-radius: var(--radius-pill);
             padding: 10px 18px;
             font-size: 13.5px;
             outline: none;
             font-family: var(--font-sans);
             background: var(--bg);
-            transition: border-color var(--transition-fast);
+            transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
         }
-        .chat-input input:focus {
+        .chat-compose input:focus {
             border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(26, 107, 60, 0.08);
         }
-        .chat-input button {
-            width: 42px;
-            height: 42px;
+        .chat-compose .btn-send {
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             border: none;
             background: var(--primary);
@@ -239,16 +273,108 @@
             justify-content: center;
             flex-shrink: 0;
         }
-        .chat-input button:hover {
+        .chat-compose .btn-send:hover {
             background: var(--primary-hover);
-            transform: scale(1.05);
+            transform: scale(1.06);
         }
-        .chat-input button:active {
-            transform: scale(0.97);
+        .chat-compose .btn-send:active {
+            transform: scale(0.96);
+        }
+
+        /* ── RIGHT: Customer Details Panel ───────────────── */
+        .panel-details {
+            width: 280px;
+            min-width: 240px;
+            background: var(--surface);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        .detail-profile {
+            text-align: center;
+            padding: 32px 20px 24px;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .detail-profile .dp-avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 28px;
+            margin: 0 auto 14px;
+            box-shadow: 0 4px 14px rgba(26, 107, 60, 0.25);
+        }
+        .detail-profile h5 {
+            margin: 0 0 2px;
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--text-primary);
+        }
+        .detail-profile .dp-role {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin: 0;
+        }
+        .detail-section {
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .detail-section:last-child {
+            border-bottom: none;
+        }
+        .detail-section .ds-label {
+            font-size: 10.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-tertiary);
+            margin: 0 0 10px;
+        }
+        .detail-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 7px 0;
+        }
+        .detail-row i {
+            width: 16px;
+            text-align: center;
+            color: var(--primary);
+            font-size: 13px;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+        .detail-row .dr-text {
+            font-size: 13px;
+            color: var(--text-primary);
+            word-break: break-all;
+            line-height: 1.4;
+        }
+        .detail-row .dr-text small {
+            display: block;
+            font-size: 11px;
+            color: var(--text-tertiary);
+            margin-top: 1px;
+        }
+        .detail-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 5px 12px;
+            border-radius: var(--radius-pill);
+            font-size: 12px;
+            font-weight: 600;
         }
 
         /* ── Empty / placeholder states ───────────────────── */
-        .empty-chat {
+        .empty-panel {
             flex: 1;
             display: flex;
             flex-direction: column;
@@ -256,44 +382,44 @@
             justify-content: center;
             color: var(--text-tertiary);
             text-align: center;
-            padding: 40px;
+            padding: 40px 24px;
         }
-        .empty-chat i {
-            font-size: 52px;
-            margin-bottom: 16px;
-            opacity: 0.35;
+        .empty-panel i {
+            font-size: 48px;
+            margin-bottom: 14px;
+            opacity: 0.25;
         }
-        .empty-chat h5 {
+        .empty-panel h5 {
             font-weight: 600;
             color: var(--text-secondary);
-            margin-bottom: 6px;
+            margin-bottom: 4px;
+            font-size: 15px;
         }
-        .empty-chat p {
-            font-size: 13px;
-        }
-        .no-conversations {
-            padding: 48px 24px;
-            text-align: center;
-            color: var(--text-tertiary);
-        }
-        .no-conversations i {
-            font-size: 40px;
-            opacity: 0.35;
-            margin-bottom: 14px;
+        .empty-panel p {
+            font-size: 12.5px;
+            max-width: 200px;
         }
 
         /* ── Responsive ───────────────────────────────────── */
+        @media (max-width: 1100px) {
+            .panel-details { display: none; }
+        }
         @media (max-width: 768px) {
-            .chat-container {
-                height: calc(100vh - 130px);
+            .chat-wrapper {
                 flex-direction: column;
+                height: calc(100vh - 120px);
             }
-            .conversation-list {
+            .panel-conversations {
                 width: 100%;
-                max-height: 220px;
+                min-width: unset;
+                max-height: 200px;
                 border-right: none;
                 border-bottom: 1px solid var(--border);
             }
+            .panel-chat {
+                border-right: none;
+            }
+            .panel-details { display: none; }
         }
     </style>
 </head>
@@ -315,30 +441,45 @@
                 </span>
             </div>
 
-            <div class="chat-container card">
-                <!-- Conversation List -->
-                <div class="conversation-list">
-                    <div class="conv-search position-relative">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="convSearch" placeholder="Search conversations..." oninput="filterConversations()">
+            <!-- ═══ 3-PANEL CHAT ═══ -->
+            <div class="chat-wrapper">
+
+                <!-- LEFT: Conversation List -->
+                <div class="panel-conversations">
+                    <div class="panel-head">
+                        <h6><i class="fas fa-inbox" style="margin-right:6px;"></i>Conversations</h6>
+                        <div class="conv-search-wrap">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="convSearch" placeholder="Search..." oninput="filterConversations()">
+                        </div>
                     </div>
                     <div class="conv-items" id="conversationList">
                         <div class="no-conversations">
-                            <i class="fas fa-comments d-block"></i>
-                            <p class="mt-2 mb-1 fw-semibold" style="color:var(--text-secondary);">No conversations yet</p>
-                            <small>Customer messages will appear here</small>
+                            <i class="fas fa-comments"></i>
+                            <p class="mb-1 fw-semibold" style="color:var(--text-secondary);font-size:13px;">No conversations yet</p>
+                            <small style="font-size:12px;">Customer messages will appear here</small>
                         </div>
                     </div>
                 </div>
 
-                <!-- Chat Area -->
-                <div class="chat-area" id="chatArea">
-                    <div class="empty-chat">
+                <!-- CENTER: Live Chat -->
+                <div class="panel-chat" id="panelChat">
+                    <div class="empty-panel">
                         <i class="fas fa-comments"></i>
                         <h5>Select a conversation</h5>
                         <p>Choose a customer from the left to start chatting</p>
                     </div>
                 </div>
+
+                <!-- RIGHT: Customer Details -->
+                <div class="panel-details" id="panelDetails">
+                    <div class="empty-panel">
+                        <i class="fas fa-user-circle"></i>
+                        <h5>Customer Details</h5>
+                        <p>Select a conversation to see customer information</p>
+                    </div>
+                </div>
+
             </div>
         </main>
     </div>
@@ -355,7 +496,7 @@
 
 <script>
     /* ────────────────────────────────────────────────────────
-       SIDEBAR — same links as every other hotel page
+       SIDEBAR
        ──────────────────────────────────────────────────────── */
     const hotelShellLinks = [
         { key: 'dashboard',  href: 'dashboard.html',       icon: 'fas fa-home',         label: 'Dashboard' },
@@ -375,232 +516,286 @@
     let currentHotelName = null;
     let currentConversationId = null;
     let messagesListener = null;
-    let allConversations = [];   // cached for search filtering
+    let allConversations = [];
 
     /* ────────────────────────────────────────────────────────
        AUTH + INIT
        ──────────────────────────────────────────────────────── */
     auth.onAuthStateChanged(async (user) => {
-        // Render sidebar immediately
         ReplateUI.renderSidebar('appShellSidebar', {
             title: '<img src="../assets/replate-icon.svg" alt="REPLATE" class="brand-logo-sm">REPLATE',
             activeKey: 'chat',
             links: hotelShellLinks,
         });
 
-        if (!user) {
-            window.location.href = 'login.html';
-            return;
-        }
+        if (!user) { window.location.href = 'login.html'; return; }
 
-        // Resolve hotelId properly — must match what the Android app uses
         currentHotelId = sessionStorage.getItem('hotelId');
-
         if (!currentHotelId) {
             try {
-                const hotelRecord = await ReplateSchema.findHotelByUserId(database, user.uid);
-                if (hotelRecord) {
-                    currentHotelId = hotelRecord.key;
-                    currentHotelName = hotelRecord.value?.name || hotelRecord.value?.hotelName || 'Hotel';
+                const rec = await ReplateSchema.findHotelByUserId(database, user.uid);
+                if (rec) {
+                    currentHotelId = rec.key;
+                    currentHotelName = rec.value?.name || rec.value?.hotelName || 'Hotel';
                     sessionStorage.setItem('hotelId', currentHotelId);
-                } else {
-                    currentHotelId = user.uid;
-                }
-            } catch (e) {
-                console.error('Failed to resolve hotelId:', e);
-                currentHotelId = user.uid;
-            }
+                } else { currentHotelId = user.uid; }
+            } catch (e) { currentHotelId = user.uid; }
         }
-
-        // Load hotel name if we don't have it yet
         if (!currentHotelName) {
             try {
-                const snap = await database.ref('hotels/' + currentHotelId).once('value');
-                if (snap.exists()) {
-                    currentHotelName = snap.val().name || snap.val().hotelName || 'Hotel';
-                }
-            } catch (e) { /* ignore */ }
+                const s = await database.ref('hotels/' + currentHotelId).once('value');
+                if (s.exists()) currentHotelName = s.val().name || s.val().hotelName || 'Hotel';
+            } catch (e) {}
         }
 
-        console.log('[Chat] hotelId =', currentHotelId, '| name =', currentHotelName);
         document.getElementById('chatStatus').style.display = '';
         loadConversations();
     });
 
-    function logout() {
-        auth.signOut().then(() => { window.location.href = 'login.html'; });
-    }
+    function logout() { auth.signOut().then(() => { window.location.href = 'login.html'; }); }
 
     /* ────────────────────────────────────────────────────────
-       CONVERSATION LIST (real-time via Firebase .on('value'))
+       CONVERSATION LIST
+       Checks both hotelId and user.uid paths to catch all
+       conversations regardless of how they were written.
        ──────────────────────────────────────────────────────── */
+    let convListeners = [];
+
     function loadConversations() {
         const listEl = document.getElementById('conversationList');
+        const uid = auth.currentUser?.uid;
 
-        database.ref('conversations/' + currentHotelId)
-            .orderByChild('lastTimestamp')
-            .on('value', (snapshot) => {
-                allConversations = [];
+        // Build list of unique paths to check
+        const paths = new Set();
+        if (currentHotelId) paths.add(currentHotelId);
+        if (uid && uid !== currentHotelId) paths.add(uid);
 
-                if (!snapshot.exists()) {
-                    listEl.innerHTML = `
-                        <div class="no-conversations">
-                            <i class="fas fa-comments d-block"></i>
-                            <p class="mt-2 mb-1 fw-semibold" style="color:var(--text-secondary);">No conversations yet</p>
-                            <small>Customer messages will appear here</small>
-                        </div>`;
-                    return;
-                }
+        console.log('[Chat] Listening for conversations under:', [...paths]);
 
-                snapshot.forEach((child) => {
-                    allConversations.push({ id: child.key, ...child.val() });
-                });
+        // Detach any previous listeners
+        convListeners.forEach(l => l.ref.off('value', l.cb));
+        convListeners = [];
 
-                // Most recent first
-                allConversations.sort((a, b) => (b.lastTimestamp || 0) - (a.lastTimestamp || 0));
-                renderConversations(allConversations);
-            });
-    }
+        // Merge map keyed by conversationId to deduplicate
+        const mergedMap = {};
 
-    function renderConversations(conversations) {
-        const listEl = document.getElementById('conversationList');
+        function refreshUI() {
+            allConversations = Object.values(mergedMap);
+            allConversations.sort((a, b) => (b.lastTimestamp || 0) - (a.lastTimestamp || 0));
 
-        if (!conversations.length) {
-            listEl.innerHTML = `
-                <div class="no-conversations">
-                    <i class="fas fa-search d-block"></i>
-                    <p class="mt-2 mb-1" style="color:var(--text-secondary);">No results</p>
-                </div>`;
-            return;
+            if (!allConversations.length) {
+                listEl.innerHTML = `<div class="no-conversations"><i class="fas fa-comments"></i>
+                    <p class="mb-1 fw-semibold" style="color:var(--text-secondary);font-size:13px;">No conversations yet</p>
+                    <small style="font-size:12px;">Customer messages will appear here</small></div>`;
+                return;
+            }
+            renderConversations(allConversations);
         }
 
-        listEl.innerHTML = conversations.map(conv => {
+        paths.forEach(path => {
+            const ref = database.ref('conversations/' + path);
+            const cb = (snapshot) => {
+                if (snapshot.exists()) {
+                    snapshot.forEach(c => {
+                        mergedMap[c.key] = { id: c.key, ...c.val() };
+                    });
+                    console.log('[Chat] Found', snapshot.numChildren(), 'conversations under', path);
+                } else {
+                    console.log('[Chat] No conversations under', path);
+                }
+                refreshUI();
+            };
+            convListeners.push({ ref, cb });
+            ref.orderByChild('lastTimestamp').on('value', cb);
+        });
+
+        // Also scan the chats/ node directly as a fallback
+        // in case conversations meta was never written
+        database.ref('chats').orderByKey().once('value', (snap) => {
+            if (!snap.exists()) return;
+            let found = 0;
+            snap.forEach(chatChild => {
+                const convId = chatChild.key;
+                // Check if this conversation belongs to this hotel
+                if (convId.startsWith(currentHotelId + '_') ||
+                    (uid && convId.startsWith(uid + '_'))) {
+                    if (!mergedMap[convId]) {
+                        // Build minimal conversation data from chat messages
+                        const msgs = chatChild.child('messages');
+                        let lastMsg = '', lastTs = 0, custName = 'Customer', custId = '', custEmail = '', food = '';
+                        msgs.forEach(m => {
+                            const v = m.val();
+                            if (v.timestamp > lastTs) {
+                                lastTs = v.timestamp;
+                                lastMsg = v.message || '';
+                            }
+                            if (v.customerName) custName = v.customerName;
+                            if (v.customerId) custId = v.customerId;
+                            if (v.customerEmail) custEmail = v.customerEmail;
+                            if (v.foodName) food = v.foodName;
+                            // If sender is customer, grab their info
+                            if (v.senderType === 'customer') {
+                                if (v.senderName) custName = v.senderName;
+                                if (v.senderId) custId = v.senderId;
+                            }
+                        });
+                        if (lastTs > 0) {
+                            mergedMap[convId] = {
+                                id: convId,
+                                customerName: custName,
+                                customerId: custId,
+                                customerEmail: custEmail,
+                                foodName: food,
+                                lastMessage: lastMsg,
+                                lastTimestamp: lastTs,
+                                hotelId: currentHotelId
+                            };
+                            found++;
+                        }
+                    }
+                }
+            });
+            if (found > 0) {
+                console.log('[Chat] Recovered', found, 'conversations from chats/ node');
+                refreshUI();
+            }
+        });
+    }
+
+    function renderConversations(list) {
+        const el = document.getElementById('conversationList');
+        if (!list.length) {
+            el.innerHTML = `<div class="no-conversations"><i class="fas fa-search"></i>
+                <p class="mb-0" style="color:var(--text-secondary);font-size:13px;">No results</p></div>`;
+            return;
+        }
+        el.innerHTML = list.map(conv => {
             const time = conv.lastTimestamp ? formatTime(conv.lastTimestamp) : '';
-            const isActive = conv.id === currentConversationId ? ' active' : '';
-            const initial = (conv.customerName || 'C')[0].toUpperCase();
-            const foodHtml = conv.foodName
-                ? `<div class="conv-food"><i class="fas fa-utensils"></i>${esc(conv.foodName)}</div>`
-                : '';
-
-            const cName = esc(conv.customerName || 'Customer');
-            const cEmail = esc(conv.customerEmail || '');
-            const cFood = esc(conv.foodName || '');
-            const cId = conv.customerId || '';
-
-            return `
-                <div class="conversation-item${isActive}"
-                     data-conv-id="${conv.id}"
-                     onclick="selectConversation('${conv.id}', '${cName}', '${cId}', '${cEmail}', '${cFood}')">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="conv-avatar">${initial}</div>
-                        <div class="flex-grow-1" style="min-width:0;">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <h6>${esc(conv.customerName || 'Customer')}</h6>
-                                <span class="conv-time">${time}</span>
-                            </div>
-                            <p class="conv-preview">${esc(conv.lastMessage || 'No messages yet')}</p>
-                            ${foodHtml}
+            const active = conv.id === currentConversationId ? ' active' : '';
+            const init = (conv.customerName || 'C')[0].toUpperCase();
+            const food = conv.foodName ? `<div class="c-food"><i class="fas fa-utensils"></i>${esc(conv.foodName)}</div>` : '';
+            return `<div class="conversation-item${active}" data-conv-id="${conv.id}"
+                         onclick="selectConversation('${conv.id}','${esc(conv.customerName||'Customer')}','${conv.customerId||''}','${esc(conv.customerEmail||'')}','${esc(conv.foodName||'')}')">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="c-avatar">${init}</div>
+                    <div class="flex-grow-1" style="min-width:0;">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <h6>${esc(conv.customerName||'Customer')}</h6>
+                            <span class="c-time">${time}</span>
                         </div>
+                        <p class="c-preview">${esc(conv.lastMessage||'No messages yet')}</p>
+                        ${food}
                     </div>
-                </div>`;
+                </div>
+            </div>`;
         }).join('');
     }
 
-    /* ── Search filter ──────────────────────────────────── */
     function filterConversations() {
         const q = (document.getElementById('convSearch').value || '').trim().toLowerCase();
-        if (!q) {
-            renderConversations(allConversations);
-            return;
-        }
-        const filtered = allConversations.filter(c =>
-            (c.customerName || '').toLowerCase().includes(q) ||
-            (c.foodName || '').toLowerCase().includes(q) ||
-            (c.customerEmail || '').toLowerCase().includes(q)
-        );
-        renderConversations(filtered);
+        if (!q) { renderConversations(allConversations); return; }
+        renderConversations(allConversations.filter(c =>
+            (c.customerName||'').toLowerCase().includes(q) ||
+            (c.foodName||'').toLowerCase().includes(q) ||
+            (c.customerEmail||'').toLowerCase().includes(q)
+        ));
     }
 
     /* ────────────────────────────────────────────────────────
-       SELECT CONVERSATION → open chat area
+       SELECT CONVERSATION — update CENTER + RIGHT panels
        ──────────────────────────────────────────────────────── */
     function selectConversation(conversationId, customerName, customerId, customerEmail, foodName) {
         currentConversationId = conversationId;
 
-        // Highlight active item
-        document.querySelectorAll('.conversation-item').forEach(el => {
-            el.classList.toggle('active', el.dataset.convId === conversationId);
-        });
+        // Highlight
+        document.querySelectorAll('.conversation-item').forEach(el =>
+            el.classList.toggle('active', el.dataset.convId === conversationId));
 
-        const initial = (customerName || 'C')[0].toUpperCase();
-        const emailHtml = customerEmail
-            ? `<p class="ch-sub"><i class="fas fa-envelope" style="margin-right:4px;font-size:10px;"></i>${esc(customerEmail)}</p>`
-            : '<p class="ch-sub">Customer</p>';
-        const foodHtml = foodName
-            ? `<span class="ch-food-badge"><i class="fas fa-utensils" style="margin-right:4px;"></i>${esc(foodName)}</span>`
-            : '';
+        const init = (customerName || 'C')[0].toUpperCase();
 
-        document.getElementById('chatArea').innerHTML = `
-            <div class="chat-header">
-                <div class="ch-avatar">${initial}</div>
-                <div style="flex:1;min-width:0;">
-                    <h5>${esc(customerName)}</h5>
-                    ${emailHtml}
-                </div>
-                ${foodHtml}
-            </div>
-            <div class="messages-container" id="messagesContainer">
-                <div style="text-align:center;padding:40px;color:var(--text-tertiary);">
-                    <i class="fas fa-spinner fa-spin"></i> Loading messages...
+        // ── CENTER: Live Chat Panel ──
+        document.getElementById('panelChat').innerHTML = `
+            <div class="chat-topbar">
+                <div class="ct-avatar">${init}</div>
+                <div>
+                    <p class="ct-name">${esc(customerName)}</p>
+                    <p class="ct-status"><span class="ct-live-dot"></span>Live Chat</p>
                 </div>
             </div>
-            <div class="chat-input">
+            <div class="messages-area" id="messagesContainer">
+                <div style="text-align:center;padding:40px;color:var(--text-tertiary);font-size:13px;">
+                    <i class="fas fa-spinner fa-spin" style="margin-right:6px;"></i>Loading messages...
+                </div>
+            </div>
+            <div class="chat-compose">
                 <input type="text" id="messageInput" placeholder="Type a message..."
                        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}">
-                <button onclick="sendMessage()" title="Send message"><i class="fas fa-paper-plane"></i></button>
+                <button class="btn-send" onclick="sendMessage()" title="Send"><i class="fas fa-paper-plane"></i></button>
+            </div>`;
+
+        // ── RIGHT: Customer Details Panel ──
+        const emailRow = customerEmail
+            ? `<div class="detail-row"><i class="fas fa-envelope"></i><div class="dr-text">${esc(customerEmail)}<small>Email address</small></div></div>`
+            : '';
+        const foodRow = foodName
+            ? `<div class="detail-row"><i class="fas fa-utensils"></i><div class="dr-text">${esc(foodName)}<small>Related product</small></div></div>`
+            : '';
+        const idRow = customerId
+            ? `<div class="detail-row"><i class="fas fa-fingerprint"></i><div class="dr-text" style="font-size:11px;font-family:monospace;opacity:0.7;">${esc(customerId.substring(0,20))}…<small>Customer ID</small></div></div>`
+            : '';
+        const convRow = `<div class="detail-row"><i class="fas fa-link"></i><div class="dr-text" style="font-size:11px;font-family:monospace;opacity:0.7;">${esc(conversationId.substring(0,24))}…<small>Conversation ID</small></div></div>`;
+
+        document.getElementById('panelDetails').innerHTML = `
+            <div class="detail-profile">
+                <div class="dp-avatar">${init}</div>
+                <h5>${esc(customerName)}</h5>
+                <p class="dp-role">Customer</p>
             </div>
-        `;
+            <div class="detail-section">
+                <p class="ds-label">Contact Info</p>
+                ${emailRow || '<div class="detail-row"><i class="fas fa-envelope"></i><div class="dr-text" style="color:var(--text-tertiary);">No email provided</div></div>'}
+            </div>
+            ${foodName ? `<div class="detail-section">
+                <p class="ds-label">Product Context</p>
+                <div class="detail-tag"><i class="fas fa-utensils"></i>${esc(foodName)}</div>
+            </div>` : ''}
+            <div class="detail-section">
+                <p class="ds-label">Conversation</p>
+                ${idRow}
+                ${convRow}
+            </div>`;
 
         setTimeout(() => document.getElementById('messageInput')?.focus(), 100);
         loadMessages(conversationId);
     }
 
     /* ────────────────────────────────────────────────────────
-       MESSAGES — real-time via Firebase child_added
+       MESSAGES — real-time Firebase
        ──────────────────────────────────────────────────────── */
     function loadMessages(conversationId) {
         const container = document.getElementById('messagesContainer');
         if (!container) return;
 
-        // Detach previous listener
         if (messagesListener && messagesListener.ref) {
             messagesListener.ref.off('child_added', messagesListener.callback);
             messagesListener = null;
         }
-
         container.innerHTML = '';
 
-        const messagesRef = database.ref('chats/' + conversationId + '/messages');
-
-        const callback = (snapshot) => {
+        const ref = database.ref('chats/' + conversationId + '/messages');
+        const cb = (snapshot) => {
             const msg = snapshot.val();
             if (!msg) return;
-
             const isSent = msg.senderId === auth.currentUser?.uid || msg.senderType === 'hotel';
             const time = msg.timestamp ? formatTime(msg.timestamp) : '';
-
             const el = document.createElement('div');
-            el.className = 'message ' + (isSent ? 'sent' : 'received');
-            el.innerHTML = `${esc(msg.message)}<div class="msg-time">${time}</div>`;
+            el.className = 'msg-bubble ' + (isSent ? 'sent' : 'received');
+            el.innerHTML = `${esc(msg.message)}<div class="m-time">${time}</div>`;
             container.appendChild(el);
-
-            requestAnimationFrame(() => {
-                container.scrollTop = container.scrollHeight;
-            });
+            requestAnimationFrame(() => { container.scrollTop = container.scrollHeight; });
         };
-
-        messagesListener = { ref: messagesRef, callback };
-        messagesRef.orderByChild('timestamp').on('child_added', callback);
+        messagesListener = { ref, callback: cb };
+        ref.orderByChild('timestamp').on('child_added', cb);
     }
 
     /* ────────────────────────────────────────────────────────
@@ -611,68 +806,43 @@
         if (!input) return;
         const message = input.value.trim();
         if (!message || !currentConversationId) return;
-
         input.value = '';
         input.focus();
 
         const messageId = database.ref().push().key;
         const timestamp = Date.now();
-
-        // Parse customerId from conversation ID (format: hotelId_customerId)
         const parts = currentConversationId.split('_');
         const customerId = parts.length > 1 ? parts.slice(1).join('_') : '';
 
-        const messageData = {
+        database.ref('chats/' + currentConversationId + '/messages/' + messageId).set({
             conversationId: currentConversationId,
             senderId: auth.currentUser.uid,
             senderName: currentHotelName || 'Hotel',
             senderType: 'hotel',
             receiverId: customerId,
-            message: message,
-            timestamp: timestamp,
+            message, timestamp,
             read: false,
             hotelId: currentHotelId,
             hotelName: currentHotelName
-        };
+        });
 
-        database.ref('chats/' + currentConversationId + '/messages/' + messageId).set(messageData);
-
-        const metaUpdate = {
-            lastMessage: message,
-            lastTimestamp: timestamp,
-            lastSenderId: auth.currentUser.uid
-        };
-        database.ref('conversations/' + currentHotelId + '/' + currentConversationId).update(metaUpdate);
-
-        if (customerId) {
-            database.ref('conversations/' + customerId + '/' + currentConversationId).update(metaUpdate);
-        }
+        const meta = { lastMessage: message, lastTimestamp: timestamp, lastSenderId: auth.currentUser.uid };
+        database.ref('conversations/' + currentHotelId + '/' + currentConversationId).update(meta);
+        if (customerId) database.ref('conversations/' + customerId + '/' + currentConversationId).update(meta);
     }
 
     /* ────────────────────────────────────────────────────────
        UTILITIES
        ──────────────────────────────────────────────────────── */
-    function formatTime(timestamp) {
-        const date = new Date(timestamp);
-        const now = new Date();
-        const diffMs = now - date;
-
-        if (diffMs < 60 * 1000) return 'Just now';
-        if (diffMs < 24 * 60 * 60 * 1000) {
-            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        }
-        if (diffMs < 7 * 24 * 60 * 60 * 1000) {
-            return date.toLocaleDateString([], { weekday: 'short' });
-        }
-        return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    function formatTime(ts) {
+        const d = new Date(ts), diff = Date.now() - ts;
+        if (diff < 60000) return 'Just now';
+        if (diff < 86400000) return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        if (diff < 604800000) return d.toLocaleDateString([], { weekday: 'short' });
+        return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
     }
 
-    function esc(text) {
-        const d = document.createElement('div');
-        d.textContent = text || '';
-        return d.innerHTML;
-    }
-
+    function esc(t) { const d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML; }
     const escapeHtml = esc;
 </script>
 </body>

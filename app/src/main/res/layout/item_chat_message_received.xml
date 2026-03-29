@@ -1,60 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Received message bubble (left side, light gray) -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<!-- Received message bubble (left side, white, WhatsApp-style) -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:gravity="start"
-    android:paddingVertical="4dp">
+    android:paddingStart="6dp"
+    android:paddingEnd="72dp"
+    android:paddingTop="2dp"
+    android:paddingBottom="2dp">
 
-    <com.google.android.material.card.MaterialCardView
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="60dp"
-        app:cardBackgroundColor="@color/surface_white"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="1dp"
-        app:strokeColor="@color/divider"
-        app:strokeWidth="1dp">
+        android:layout_gravity="start"
+        android:background="@drawable/bg_bubble_received"
+        android:orientation="vertical"
+        android:paddingStart="14dp"
+        android:paddingEnd="14dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="7dp"
+        android:elevation="0.5dp">
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/tvSenderName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingHorizontal="14dp"
-            android:paddingVertical="10dp">
+            android:textColor="@color/green_primary"
+            android:textSize="11.5sp"
+            android:fontFamily="@font/poppins_semibold" />
 
-            <TextView
-                android:id="@+id/tvSenderName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Sender Name"
-                android:textColor="@color/green_primary"
-                android:textSize="11sp"
-                android:fontFamily="@font/poppins_semibold" />
+        <TextView
+            android:id="@+id/tvMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:maxWidth="260dp"
+            android:textColor="@color/text_primary"
+            android:textSize="14.5sp"
+            android:lineSpacingMultiplier="1.15"
+            android:fontFamily="@font/poppins_regular" />
 
-            <TextView
-                android:id="@+id/tvMessage"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:maxWidth="260dp"
-                android:text="Message text"
-                android:textColor="@color/text_primary"
-                android:textSize="14sp"
-                android:fontFamily="@font/poppins_regular" />
-
-            <TextView
-                android:id="@+id/tvTime"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:layout_marginTop="4dp"
-                android:text="10:30 AM"
-                android:textColor="@color/text_hint"
-                android:textSize="10sp"
-                android:fontFamily="@font/poppins_regular" />
-        </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
-</LinearLayout>
-
+        <TextView
+            android:id="@+id/tvTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginTop="3dp"
+            android:textColor="@color/text_hint"
+            android:textSize="11sp"
+            android:fontFamily="@font/poppins_regular" />
+    </LinearLayout>
+</FrameLayout>

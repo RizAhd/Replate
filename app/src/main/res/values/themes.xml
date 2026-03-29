@@ -102,5 +102,10 @@
         <item name="colorSurface">@color/surface_white</item>
         <item name="android:fontFamily">@font/poppins_regular</item>
     </style>
+
+    <!-- Circular FAB shape for chat send button -->
+    <style name="ShapeAppearance.REPLATE.CircleFab" parent="">
+        <item name="cornerSize">50%</item>
+    </style>
 </resources>
 

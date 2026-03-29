@@ -20,6 +20,7 @@ import java.util.Locale;
 /**
  * Adapter for chat messages RecyclerView.
  * Shows sent messages on right, received on left.
+ * Includes date separators between different days.
  */
 public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
@@ -66,7 +67,22 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             ReceivedMessageHolder receivedHolder = (ReceivedMessageHolder) holder;
             receivedHolder.tvMessage.setText(msg.getMessage());
             receivedHolder.tvTime.setText(time);
-            receivedHolder.tvSenderName.setText(msg.getSenderName());
+
+            // Show sender name only for first message in a group from same sender
+            boolean showName = true;
+            if (position > 0) {
+                ChatMessage prev = messages.get(position - 1);
+                if (prev.getSenderId() != null && prev.getSenderId().equals(msg.getSenderId())
+                        && !prev.isSentByMe(currentUserId)) {
+                    showName = false;
+                }
+            }
+            if (showName && msg.getSenderName() != null && !msg.getSenderName().isEmpty()) {
+                receivedHolder.tvSenderName.setText(msg.getSenderName());
+                receivedHolder.tvSenderName.setVisibility(View.VISIBLE);
+            } else {
+                receivedHolder.tvSenderName.setVisibility(View.GONE);
+            }
         }
     }
 
