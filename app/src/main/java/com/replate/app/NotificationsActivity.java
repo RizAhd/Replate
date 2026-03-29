@@ -28,7 +28,6 @@ import com.replate.app.utils.ToastUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Notifications Activity - Shows push notification history

@@ -37,7 +37,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_centerInParent="true"
-                    android:text="Notifications"
+                    android:text="@string/notifications_title"
                     android:textAppearance="@style/TextAppearance.REPLATE.Subheading"
                     android:textColor="@color/white" />
             </RelativeLayout>
@@ -57,7 +57,7 @@
                     android:fontFamily="@font/poppins_semibold"
                     android:paddingHorizontal="@dimen/space_1_5"
                     android:paddingVertical="@dimen/space_1"
-                    android:text="Delete all"
+                    android:text="@string/notifications_delete_all"
                     android:textColor="@color/white"
                     android:textSize="@dimen/text_xs" />
 
@@ -70,7 +70,7 @@
                     android:fontFamily="@font/poppins_semibold"
                     android:paddingHorizontal="@dimen/space_1_5"
                     android:paddingVertical="@dimen/space_1"
-                    android:text="Mark all read"
+                    android:text="@string/notifications_mark_all_read"
                     android:textColor="@color/white"
                     android:textSize="@dimen/text_xs" />
             </LinearLayout>
@@ -79,7 +79,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="Stay updated about new deals, order progress, and hotel activity."
+                android:text="@string/notifications_header_subtitle"
                 android:textAppearance="@style/TextAppearance.REPLATE.Body"
                 android:textColor="@color/text_on_primary_muted" />
         </LinearLayout>
@@ -123,6 +123,7 @@
                 android:layout_width="44dp"
                 android:layout_height="44dp"
                 android:layout_gravity="center"
+                android:contentDescription="@string/cd_notifications_empty"
                 android:src="@drawable/ic_notification"
                 app:tint="@color/green_primary" />
         </com.google.android.material.card.MaterialCardView>
@@ -131,7 +132,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_3"
-            android:text="No notifications yet"
+            android:text="@string/notifications_empty_title"
             android:textAppearance="@style/TextAppearance.REPLATE.Headline"
             android:textColor="@color/text_primary" />
 
@@ -140,7 +141,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
             android:gravity="center"
-            android:text="We’ll notify you when a hotel posts new deals or your order status changes."
+            android:text="@string/notifications_empty_subtitle"
             android:textAppearance="@style/TextAppearance.REPLATE.Body" />
     </LinearLayout>
 </LinearLayout>
