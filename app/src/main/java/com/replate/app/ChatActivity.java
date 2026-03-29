@@ -1,7 +1,6 @@
 package com.replate.app;
 
 import android.Manifest;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.Editable;
@@ -39,15 +38,18 @@ import com.replate.app.utils.TelephonyUtils;
 import com.replate.app.utils.ToastUtils;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
 /**
  * Chat Activity for real-time messaging between customers and hotels.
- * Uses Firebase Realtime Database for message sync and SQLite for offline caching.
+ * Uses Firebase Realtime Database for real-time sync and SQLite for local
+ * chat history persistence so messages are never lost.
  */
 public class ChatActivity extends AppCompatActivity {
 
@@ -85,12 +87,15 @@ public class ChatActivity extends AppCompatActivity {
     private String currentUserType; // "customer" or "hotel"
     private boolean isHotelView;
 
+    // Tracks message IDs already loaded from SQLite so Firebase doesn't duplicate them
+    private final Set<String> loadedMessageIds = new HashSet<>();
+
     // Firebase
     private DatabaseReference messagesRef;
     private DatabaseReference conversationsRef;
     private ChildEventListener messagesListener;
 
-    // Local
+    // Local SQLite cache
     private ChatAdapter chatAdapter;
     private ChatDatabaseHelper chatDb;
 
@@ -189,7 +194,7 @@ public class ChatActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayShowTitleEnabled(false);
         }
 
-        toolbar.setNavigationOnClickListener(v -> onBackPressed());
+        toolbar.setNavigationOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
 
         // Set chat partner info
         if (isHotelView) {
@@ -229,7 +234,7 @@ public class ChatActivity extends AppCompatActivity {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                btnSend.setEnabled(s != null && s.toString().trim().length() > 0);
+                btnSend.setEnabled(s != null && !s.toString().trim().isEmpty());
             }
 
             @Override
@@ -266,18 +271,34 @@ public class ChatActivity extends AppCompatActivity {
                 });
     }
 
+    // ─────────────────────────────────────────────────────────────
+    //  MESSAGE LOADING — SQLite first, then Firebase sync
+    // ─────────────────────────────────────────────────────────────
+
+    /**
+     * Load chat history.  Strategy:
+     * 1. Instantly show messages from SQLite (offline-first, no spinner delay).
+     * 2. Sync any newer messages from Firebase and save them to SQLite.
+     * 3. Retry any locally-queued messages that were never pushed.
+     */
     private void loadMessages() {
         progressBar.setVisibility(View.VISIBLE);
 
-        // First load from local SQLite cache
+        // ── Step 1: Load from SQLite (instant, no network needed) ──
         List<ChatMessage> cachedMessages = chatDb.getMessages(conversationId);
         if (!cachedMessages.isEmpty()) {
+            for (ChatMessage cached : cachedMessages) {
+                if (cached.getMessageId() != null) {
+                    loadedMessageIds.add(cached.getMessageId());
+                }
+            }
             chatAdapter.setMessages(cachedMessages);
             updateEmptyState();
             scrollToBottom();
+            progressBar.setVisibility(View.GONE);
         }
 
-        // Then sync from Firebase
+        // ── Step 2: Sync from Firebase (fills gaps & catches new messages) ──
         messagesRef.orderByChild("timestamp").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -287,8 +308,15 @@ public class ChatActivity extends AppCompatActivity {
                     ChatMessage msg = msgSnap.getValue(ChatMessage.class);
                     if (msg != null) {
                         msg.setMessageId(msgSnap.getKey());
+
+                        // Save every Firebase message to SQLite for future offline use
                         chatDb.saveMessage(msg);
-                        chatAdapter.addMessage(msg);
+
+                        // Only add to the adapter if not already shown from cache
+                        if (!loadedMessageIds.contains(msg.getMessageId())) {
+                            loadedMessageIds.add(msg.getMessageId());
+                            chatAdapter.addMessage(msg);
+                        }
                     }
                 }
 
@@ -302,7 +330,50 @@ public class ChatActivity extends AppCompatActivity {
                 Log.e(TAG, "Failed to load messages", error.toException());
             }
         });
+
+        // ── Step 3: Retry any pending (un-synced) messages ──
+        retryPendingMessages();
     }
+
+    /**
+     * Push any messages that were saved locally but never confirmed by Firebase.
+     */
+    private void retryPendingMessages() {
+        List<ChatMessage> pending = chatDb.getPendingMessages();
+        for (ChatMessage msg : pending) {
+            if (msg.getConversationId() == null ||
+                !msg.getConversationId().equals(conversationId)) continue;
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("conversationId", msg.getConversationId());
+            data.put("senderId", msg.getSenderId());
+            data.put("senderName", msg.getSenderName());
+            data.put("senderType", msg.getSenderType());
+            data.put("receiverId", msg.getReceiverId());
+            data.put("message", msg.getMessage());
+            data.put("timestamp", msg.getTimestamp());
+            data.put("read", msg.isRead());
+            data.put("hotelId", msg.getHotelId());
+            data.put("hotelName", msg.getHotelName());
+            data.put("customerId", msg.getCustomerId());
+            data.put("customerName", msg.getCustomerName());
+            if (msg.getFoodId() != null) data.put("foodId", msg.getFoodId());
+            if (msg.getFoodName() != null) data.put("foodName", msg.getFoodName());
+
+            String mid = msg.getMessageId();
+            messagesRef.child(mid).setValue(data)
+                    .addOnSuccessListener(v -> {
+                        chatDb.markSynced(mid);
+                        Log.d(TAG, "Retried pending message synced: " + mid);
+                    })
+                    .addOnFailureListener(e ->
+                        Log.w(TAG, "Retry failed for message: " + mid, e));
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  REAL-TIME LISTENER — new messages from Firebase
+    // ─────────────────────────────────────────────────────────────
 
     private void listenForNewMessages() {
         messagesListener = new ChildEventListener() {
@@ -311,14 +382,22 @@ public class ChatActivity extends AppCompatActivity {
                 ChatMessage msg = snapshot.getValue(ChatMessage.class);
                 if (msg != null) {
                     msg.setMessageId(snapshot.getKey());
+
+                    // Always persist to SQLite
                     chatDb.saveMessage(msg);
-                    chatAdapter.addMessage(msg);
-                    updateEmptyState();
-                    scrollToBottom();
+
+                    // Only add to UI if not already displayed
+                    if (!loadedMessageIds.contains(msg.getMessageId())) {
+                        loadedMessageIds.add(msg.getMessageId());
+                        chatAdapter.addMessage(msg);
+                        updateEmptyState();
+                        scrollToBottom();
+                    }
 
                     // Mark as read if we're the receiver
                     if (!msg.isSentByMe(currentUserId) && !msg.isRead()) {
                         markAsRead(snapshot.getKey());
+                        chatDb.markMessageRead(snapshot.getKey());
                     }
                 }
             }
@@ -347,13 +426,16 @@ public class ChatActivity extends AppCompatActivity {
         messagesRef.orderByChild("timestamp").addChildEventListener(messagesListener);
     }
 
+    // ─────────────────────────────────────────────────────────────
+    //  SEND MESSAGE — save to SQLite immediately, push to Firebase
+    // ─────────────────────────────────────────────────────────────
+
     private void sendMessage() {
         String messageText = etMessage.getText() != null ? etMessage.getText().toString().trim() : "";
         if (messageText.isEmpty()) return;
 
         etMessage.setText("");
 
-        // Create message
         String messageId = UUID.randomUUID().toString();
         long timestamp = System.currentTimeMillis();
 
@@ -374,13 +456,14 @@ public class ChatActivity extends AppCompatActivity {
         message.setFoodId(foodId);
         message.setFoodName(foodName);
 
-        // Save locally first (optimistic UI)
+        // ── Save to SQLite first (optimistic UI — instant display) ──
         chatDb.savePendingMessage(message);
+        loadedMessageIds.add(messageId);
         chatAdapter.addMessage(message);
         updateEmptyState();
         scrollToBottom();
 
-        // Push to Firebase
+        // ── Push to Firebase ──
         Map<String, Object> messageData = new HashMap<>();
         messageData.put("conversationId", conversationId);
         messageData.put("senderId", currentUserId);
@@ -404,34 +487,40 @@ public class ChatActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Failed to send message", e);
-                    ToastUtils.showCustomToast(this, "Failed to send message");
+                    ToastUtils.showCustomToast(this, "Message saved locally — will retry when online");
                 });
     }
 
+    // ─────────────────────────────────────────────────────────────
+    //  CONVERSATION METADATA — keeps Firebase & SQLite in sync
+    // ─────────────────────────────────────────────────────────────
+
     private void updateConversationMeta(String lastMessage, long timestamp) {
-        // Update conversation summary for both parties
         Map<String, Object> convData = new HashMap<>();
         convData.put("hotelId", hotelId);
         convData.put("hotelName", hotelName);
         convData.put("customerId", customerId != null ? customerId : currentUserId);
         convData.put("customerName", customerName);
-        // Include customer email for hotel reference
+
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null && user.getEmail() != null && !isHotelView) {
-            convData.put("customerEmail", user.getEmail());
-        }
+        String email = (user != null && user.getEmail() != null && !isHotelView) ? user.getEmail() : null;
+        if (email != null) convData.put("customerEmail", email);
+
         convData.put("lastMessage", lastMessage);
         convData.put("lastTimestamp", timestamp);
         convData.put("lastSenderId", currentUserId);
         if (foodId != null) convData.put("foodId", foodId);
         if (foodName != null) convData.put("foodName", foodName);
 
-        // Save under hotel's conversations
+        // Push to Firebase
         conversationsRef.child(hotelId).child(conversationId).setValue(convData);
-
-        // Save under customer's conversations
         String custId = customerId != null ? customerId : currentUserId;
         conversationsRef.child(custId).child(conversationId).setValue(convData);
+
+        // Also save to local SQLite
+        chatDb.saveConversation(conversationId, hotelId, hotelName,
+                custId, customerName, email,
+                foodId, foodName, lastMessage, timestamp);
     }
 
     private void markAsRead(String messageId) {
@@ -450,6 +539,10 @@ public class ChatActivity extends AppCompatActivity {
             rvMessages.smoothScrollToPosition(chatAdapter.getItemCount() - 1);
         }
     }
+
+    // ─────────────────────────────────────────────────────────────
+    //  PHONE CALL
+    // ─────────────────────────────────────────────────────────────
 
     private void makeCall() {
         String phone = hotelPhone;

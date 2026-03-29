@@ -354,8 +354,8 @@ public class FoodDetailActivity extends AppCompatActivity {
         if (foodItem == null || mDatabase == null) {
             return;
         }
-        String hotelId = foodItem.getHotelId();
-        if (hotelId == null || hotelId.trim().isEmpty()) {
+        String foodId = foodItem.getFoodId();
+        if (foodId == null || foodId.trim().isEmpty()) {
             if (tvNoReviews != null) {
                 tvNoReviews.setVisibility(android.view.View.VISIBLE);
             }
@@ -366,8 +366,8 @@ public class FoodDetailActivity extends AppCompatActivity {
         }
 
         mDatabase.child("reviews")
-                .orderByChild("hotelId")
-                .equalTo(hotelId)
+                .orderByChild("foodId")
+                .equalTo(foodId)
                 .addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@androidx.annotation.NonNull DataSnapshot snapshot) {

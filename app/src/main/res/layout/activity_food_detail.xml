@@ -363,9 +363,10 @@
 
                     <RatingBar
                         android:id="@+id/ratingInput"
-                        style="?android:attr/ratingBarStyleIndicator"
+                        style="?android:attr/ratingBarStyle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:isIndicator="false"
                         android:numStars="5"
                         android:scaleX="0.8"
                         android:scaleY="0.8"
