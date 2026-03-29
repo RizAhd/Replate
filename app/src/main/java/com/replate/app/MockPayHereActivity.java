@@ -5,11 +5,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.View;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -24,7 +21,6 @@ public class MockPayHereActivity extends AppCompatActivity {
 
     private TextInputEditText etCardNumber, etExpiry, etCvc, etCardName;
     private Button btnPayNow;
-    private FrameLayout progressOverlay;
     private TextView tvAmount;
 
     @Override
@@ -46,8 +42,7 @@ public class MockPayHereActivity extends AppCompatActivity {
         etExpiry = findViewById(R.id.etExpiry);
         etCvc = findViewById(R.id.etCvv); // XML id is etCvv, java was etCvc
         etCardName = findViewById(R.id.etCardName);
-        btnPayNow = findViewById(R.id.btnPay); // XML id changed to btnPay
-        // progressOverlay = findViewById(R.id.progressOverlay); // Removed from new XML
+        btnPayNow = findViewById(R.id.btnPay);
         tvAmount = findViewById(R.id.tvAmount);
     }
 
@@ -93,7 +88,6 @@ public class MockPayHereActivity extends AppCompatActivity {
         }
 
         // Simulate Network Call
-        // progressOverlay.setVisibility(View.VISIBLE);
         btnPayNow.setEnabled(false);
 
         new Handler().postDelayed(() -> {

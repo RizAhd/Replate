@@ -3,8 +3,7 @@ plugins {
     id 'com.google.gms.google-services'
 }
 
-// ── Load secrets from local.properties ──────────────────────────────────────
-//  local.properties is already listed in .gitignore — secrets never hit Git.
+// Load secrets from local.properties
 def localProps = new Properties()
 def localPropsFile = rootProject.file("local.properties")
 if (localPropsFile.exists()) {
@@ -28,8 +27,7 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
-        // ── Inject secrets as BuildConfig constants ──────────────────────────
-        // Access in Java: BuildConfig.PAYHERE_MERCHANT_ID  etc.
+        // Inject secrets as BuildConfig constants
         buildConfigField "String", "PAYHERE_MERCHANT_ID",
             '"' + (localProps.getProperty("PAYHERE_MERCHANT_ID") ?: "") + '"'
         buildConfigField "String", "PAYHERE_MERCHANT_SECRET",
@@ -41,7 +39,7 @@ android {
         buildConfigField "String", "FIREBASE_FCM_SERVER_KEY",
             '"' + (localProps.getProperty("FIREBASE_FCM_SERVER_KEY") ?: "") + '"'
 
-        // ── Inject Google Maps key into res/values for Manifest use ──────────
+        // Inject Google Maps key into res/values for Manifest use
         resValue "string", "google_maps_key",
             (localProps.getProperty("GOOGLE_MAPS_API_KEY") ?: "")
     }
@@ -109,7 +107,7 @@ dependencies {
     // Lifecycle (required for ProcessLifecycleOwner in notification foreground detection)
     implementation 'androidx.lifecycle:lifecycle-process:2.7.0'
 
-    // Testing (keep these)
+    // Testing
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'

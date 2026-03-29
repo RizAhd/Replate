@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -59,7 +58,6 @@ public class CheckoutActivity extends AppCompatActivity {
     private static final String TAG = "PAYHERE_CHECKOUT";
     private static final int PAYHERE_REQUEST = 11001;
 
-    // ── Secrets loaded from local.properties via BuildConfig ────────────────
     private static final String MERCHANT_ID     = BuildConfig.PAYHERE_MERCHANT_ID;
     private static final String MERCHANT_SECRET = BuildConfig.PAYHERE_MERCHANT_SECRET;
 

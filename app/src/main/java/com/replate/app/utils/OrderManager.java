@@ -1,9 +1,7 @@
 package com.replate.app.utils;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.util.Log;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
@@ -12,7 +10,6 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.replate.app.models.FoodItem;
@@ -24,10 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-/**
- * OrderManager - Centralized order creation, processing, and notification
- * Handles complete order lifecycle from payment confirmation to delivery
- */
 public class OrderManager {
     private static final String TAG = "OrderManager";
     private static final int OTP_LENGTH = 6;
@@ -47,9 +40,6 @@ public class OrderManager {
         this.dbRef = FirebaseDatabase.getInstance().getReference();
     }
 
-    /**
-     * Create new order after successful payment
-     */
     public void createOrderAfterPayment(
             FoodItem foodItem,
             int quantity,
@@ -137,9 +127,6 @@ public class OrderManager {
         }
     }
 
-    /**
-     * Decrease food item quantity in Firebase
-     */
     private void decreaseFoodQuantity(String foodId, int quantity) {
         dbRef.child("foodItems").child(foodId)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
@@ -168,9 +155,6 @@ public class OrderManager {
                 });
     }
 
-    /**
-     * Send push notifications to hotel and customer
-     */
     private void sendOrderNotifications(Order order, String fallbackFoodName, int fallbackQty) {
         String foodName = extractPrimaryFoodName(order, fallbackFoodName);
         int qty = extractPrimaryQuantity(order, fallbackQty);
@@ -187,9 +171,6 @@ public class OrderManager {
                         order.getHotelName() + " at " + order.getPickupTime());
     }
 
-    /**
-     * Send notification to hotel (via FCM topic)
-     */
     private void sendNotificationToHotel(String hotelId, String title, String message) {
         try {
             // Subscribe to hotel-specific topic
@@ -203,9 +184,6 @@ public class OrderManager {
         }
     }
 
-    /**
-     * Send notification to customer (via FCM topic)
-     */
     private void sendNotificationToCustomer(String userId, String title, String message) {
         try {
             String userTopic = "user_" + userId;
@@ -218,9 +196,6 @@ public class OrderManager {
         }
     }
 
-    /**
-     * Index order for quick queries
-     */
     private void indexOrder(Order order) {
         try {
             // Index by hotel for hotel dashboard
@@ -254,9 +229,6 @@ public class OrderManager {
         }
     }
 
-    /**
-     * Mark order as completed (after hotel verifies QR/OTP)
-     */
     public void completeOrder(String orderId, OrderCompletionCallback callback) {
         long completedTime = System.currentTimeMillis();
 
@@ -294,9 +266,6 @@ public class OrderManager {
                 });
     }
 
-    /**
-     * Update hotel statistics after order completion
-     */
     private void updateHotelStats(Order order) {
         try {
             String hotelId = order.getHotelId();
@@ -384,9 +353,6 @@ public class OrderManager {
         return 0L;
     }
 
-    /**
-     * Callback for order completion
-     */
     public interface OrderCompletionCallback {
         void onSuccess(String orderId);
         void onFailure(String errorMessage);

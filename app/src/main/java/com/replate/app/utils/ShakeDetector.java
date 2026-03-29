@@ -7,7 +7,6 @@ import android.hardware.SensorManager;
 
 /**
  * Shake detection utility using Accelerometer sensor
- * Requirement: Sensors Controlling
  */
 public class ShakeDetector implements SensorEventListener {
 

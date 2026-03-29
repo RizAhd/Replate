@@ -37,25 +37,9 @@ import com.replate.app.utils.NotificationPermissionHelper;
 import com.replate.app.utils.ToastUtils;
 import com.replate.app.utils.UserRoleHelper;
 
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
-/**
- * Login/Register Activity with Firebase Authentication
- * Allows users to login or create new accounts
- */
 public class LoginActivity extends AppCompatActivity {
 
     // Firebase
@@ -80,9 +64,6 @@ public class LoginActivity extends AppCompatActivity {
     private TextInputEditText etRegisterPassword, etRegisterConfirmPassword;
     private Button btnRegister;
 
-    private final ExecutorService networkExecutor = Executors.newSingleThreadExecutor();
-    private static final String OTP_FALLBACK_US = "https://us-central1-replate-food-rescue.cloudfunctions.net";
-    private static final String OTP_FALLBACK_ASIA = "https://asia-southeast1-replate-food-rescue.cloudfunctions.net";
     private static final int REQ_POST_NOTIFICATIONS = 1201;
 
 
@@ -121,9 +102,6 @@ public class LoginActivity extends AppCompatActivity {
         NotificationPermissionHelper.request(this, REQ_POST_NOTIFICATIONS);
     }
 
-    /**
-     * Initialize all views from layout
-     */
     private void initializeViews() {
         tabLayout = findViewById(R.id.tabLayout);
         loginForm = findViewById(R.id.loginForm);
@@ -152,9 +130,6 @@ public class LoginActivity extends AppCompatActivity {
         btnRegister = findViewById(R.id.btnRegister);
     }
 
-    /**
-     * Setup tab layout to switch between Login and Register
-     */
     private void setupTabLayout() {
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
@@ -179,9 +154,6 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Setup click listeners for buttons
-     */
     private void setupClickListeners() {
         // Login button
         btnLogin.setOnClickListener(new View.OnClickListener() {
@@ -208,9 +180,6 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Login user with email and password
-     */
     private void loginUser() {
         String email = etLoginEmail.getText().toString().trim();
         String password = etLoginPassword.getText().toString().trim();
@@ -326,9 +295,6 @@ public class LoginActivity extends AppCompatActivity {
         mDatabase.child("notifications").child(userId).push().setValue(notif);
     }
 
-    /**
-     * Register new user
-     */
     private void registerUser() {
         String name = etRegisterName.getText().toString().trim();
         String email = etRegisterEmail.getText().toString().trim();
@@ -467,9 +433,6 @@ public class LoginActivity extends AppCompatActivity {
         return isValid;
     }
 
-    /**
-     * Validate registration form inputs
-     */
     private boolean validateRegisterInputs(String name, String email, String phone,
                                            String password, String confirmPassword) {
         boolean isValid = true;
@@ -532,9 +495,6 @@ public class LoginActivity extends AppCompatActivity {
         return isValid;
     }
 
-    /**
-     * Show forgot password dialog
-     */
     private void showForgotPasswordDialog() {
         // Create input field
         final TextInputEditText input = new TextInputEditText(this);
@@ -559,9 +519,6 @@ public class LoginActivity extends AppCompatActivity {
             .show();
     }
 
-    /**
-     * Send password reset email
-     */
     private void sendPasswordResetEmail(String email) {
         showLoading(true);
         mAuth.sendPasswordResetEmail(email)
@@ -577,9 +534,6 @@ public class LoginActivity extends AppCompatActivity {
             });
     }
 
-    /**
-     * Save user session to SharedPreferences
-     */
     private void saveUserSession(FirebaseUser user, String role) {
         if (user != null) {
             SharedPreferences prefs = getSharedPreferences("REPLATE_PREFS", MODE_PRIVATE);
@@ -600,9 +554,6 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Clear all form errors
-     */
     private void clearErrors() {
         tilLoginEmail.setError(null);
         tilLoginPassword.setError(null);
@@ -613,18 +564,12 @@ public class LoginActivity extends AppCompatActivity {
         tilRegisterConfirmPassword.setError(null);
     }
 
-    /**
-     * Show or hide loading indicator
-     */
     private void showLoading(boolean show) {
         progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
         btnLogin.setEnabled(!show);
         btnRegister.setEnabled(!show);
     }
 
-    /**
-     * Navigate to Home screen
-     */
     private void goToHomeByRole(String role, String userId) {
         if ("hotel".equals(role)) {
             checkHotelApprovalStatus(userId);
@@ -651,9 +596,6 @@ public class LoginActivity extends AppCompatActivity {
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
     }
 
-    /**
-     * Check hotel approval status and navigate accordingly
-     */
     private void checkHotelApprovalStatus(String userId) {
         // Attempt hotel dashboard if present, otherwise fallback to main customer shell.
         try {
@@ -665,68 +607,4 @@ public class LoginActivity extends AppCompatActivity {
         finish();
     }
 
-    private JSONObject postJson(String endpoint, JSONObject payload) throws Exception {
-        HttpURLConnection connection = null;
-        try {
-            URL url = new URL(endpoint);
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setConnectTimeout(15000);
-            connection.setReadTimeout(15000);
-            connection.setRequestProperty("Content-Type", "application/json");
-            connection.setDoOutput(true);
-
-            try (OutputStream os = connection.getOutputStream()) {
-                os.write(payload.toString().getBytes());
-            }
-
-            int code = connection.getResponseCode();
-            InputStream is = (code >= 200 && code < 300)
-                    ? connection.getInputStream()
-                    : connection.getErrorStream();
-
-            StringBuilder sb = new StringBuilder();
-            if (is != null) {
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        sb.append(line);
-                    }
-                }
-            }
-
-            String body = sb.toString().trim();
-            if (body.isEmpty()) {
-                JSONObject fallback = new JSONObject();
-                fallback.put("success", code >= 200 && code < 300);
-                fallback.put("message", "Empty server response");
-                return fallback;
-            }
-
-            String bodyLower = body.toLowerCase();
-            if (bodyLower.startsWith("<!doctype") || bodyLower.startsWith("<html") || bodyLower.contains("<head") || bodyLower.contains("<body")) {
-                throw new IllegalStateException("Endpoint returned HTML instead of JSON. Deploy OTP functions or fix endpoint URL.");
-            }
-
-            if (!body.startsWith("{")) {
-                throw new IllegalStateException("Endpoint returned non-JSON response: " + body.substring(0, Math.min(120, body.length())));
-            }
-
-            try {
-                return new JSONObject(body);
-            } catch (Exception parseEx) {
-                throw new IllegalStateException("Invalid JSON from endpoint: " + parseEx.getMessage());
-            }
-        } finally {
-            if (connection != null) {
-                connection.disconnect();
-            }
-        }
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        networkExecutor.shutdownNow();
-    }
 }

@@ -30,17 +30,13 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "ReplateLocalDB";
     private static final int DATABASE_VERSION = 3;
 
-    // ═══════════════════════════════════════════════════════
-    //  TABLE 1: SEARCH HISTORY
-    // ═══════════════════════════════════════════════════════
+    // TABLE 1: SEARCH HISTORY
     private static final String TABLE_SEARCH_HISTORY = "search_history";
     private static final String SH_ID = "id";
     private static final String SH_QUERY = "search_query";
     private static final String SH_TIMESTAMP = "timestamp";
 
-    // ═══════════════════════════════════════════════════════
-    //  TABLE 2: FAVORITES
-    // ═══════════════════════════════════════════════════════
+    // TABLE 2: FAVORITES
     private static final String TABLE_FAVORITES = "favorites";
     private static final String FAV_ID = "id";
     private static final String FAV_FOOD_ID = "food_id";
@@ -55,9 +51,7 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
     private static final String FAV_DESCRIPTION = "description";
     private static final String FAV_ADDED_AT = "added_at";
 
-    // ═══════════════════════════════════════════════════════
-    //  TABLE 3: NOTIFICATION CACHE
-    // ═══════════════════════════════════════════════════════
+    // TABLE 3: NOTIFICATION CACHE
     private static final String TABLE_NOTIFICATIONS = "notification_cache";
     private static final String NT_ID = "id";
     private static final String NT_NOTIFICATION_ID = "notification_id";
@@ -72,9 +66,7 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
     private static final String NT_ORDER_ID = "order_id";
     private static final String NT_HOTEL_ID = "hotel_id";
 
-    // ═══════════════════════════════════════════════════════
-    //  TABLE 4: ORDER HISTORY CACHE
-    // ═══════════════════════════════════════════════════════
+    // TABLE 4: ORDER HISTORY CACHE
     private static final String TABLE_ORDERS = "order_cache";
     private static final String OC_ID = "id";
     private static final String OC_ORDER_ID = "order_id";
@@ -83,18 +75,14 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
     private static final String OC_CREATED_AT = "created_at";
     private static final String OC_CACHED_AT = "cached_at";
 
-    // ═══════════════════════════════════════════════════════
-    //  TABLE 5: FOOD ITEMS CACHE
-    // ═══════════════════════════════════════════════════════
+    // TABLE 5: FOOD ITEMS CACHE
     private static final String TABLE_FOOD_CACHE = "food_cache";
     private static final String FC_ID = "id";
     private static final String FC_FOOD_ID = "food_id";
     private static final String FC_FOOD_JSON = "food_json";
     private static final String FC_CACHED_AT = "cached_at";
 
-    // ═══════════════════════════════════════════════════════
-    //  TABLE 6: USER PROFILE CACHE
-    // ═══════════════════════════════════════════════════════
+    // TABLE 6: USER PROFILE CACHE
     private static final String TABLE_USER_PROFILE = "user_profile";
     private static final String UP_ID = "id";
     private static final String UP_USER_ID = "user_id";
@@ -105,7 +93,7 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
     private static final String UP_ADDRESS = "address";
     private static final String UP_CACHED_AT = "cached_at";
 
-    // ── Singleton ──────────────────────────────────────────
+    // Singleton
     private static ReplateDatabaseHelper instance;
     private final Gson gson = new Gson();
 
@@ -120,10 +108,7 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
-    // ═══════════════════════════════════════════════════════
-    //  CREATE / UPGRADE
-    // ═══════════════════════════════════════════════════════
-
+    // CREATE / UPGRADE
     @Override
     public void onCreate(SQLiteDatabase db) {
         // Search History
@@ -236,13 +221,7 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    // ═══════════════════════════════════════════════════════
-    //  SEARCH HISTORY — CRUD
-    // ═══════════════════════════════════════════════════════
-
-    /**
-     * Save a search query. If it already exists, updates the timestamp.
-     */
+    // SEARCH HISTORY — CRUD
     public void saveSearchQuery(String query) {
         if (query == null || query.trim().isEmpty()) return;
         try {
@@ -305,13 +284,7 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    // ═══════════════════════════════════════════════════════
-    //  FAVORITES — CRUD
-    // ═══════════════════════════════════════════════════════
-
-    /**
-     * Add a food item to favorites.
-     */
+    // FAVORITES — CRUD
     public void addFavorite(FoodItem item) {
         if (item == null || item.getFoodId() == null) return;
         try {
@@ -417,13 +390,7 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
         return 0;
     }
 
-    // ═══════════════════════════════════════════════════════
-    //  NOTIFICATION CACHE — CRUD
-    // ═══════════════════════════════════════════════════════
-
-    /**
-     * Cache a list of notifications (bulk insert/replace).
-     */
+    // NOTIFICATION CACHE — CRUD
     public void cacheNotifications(List<AppNotification> notifications) {
         if (notifications == null || notifications.isEmpty()) return;
         SQLiteDatabase db = null;
@@ -501,13 +468,7 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    // ═══════════════════════════════════════════════════════
-    //  ORDER HISTORY CACHE — CRUD
-    // ═══════════════════════════════════════════════════════
-
-    /**
-     * Cache a list of orders (serialized as JSON via Gson).
-     */
+    // ORDER HISTORY CACHE — CRUD
     public void cacheOrders(List<Order> orders) {
         if (orders == null || orders.isEmpty()) return;
         SQLiteDatabase db = null;
@@ -584,14 +545,7 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    // ═══════════════════════════════════════════════════════
-    //  FOOD ITEMS CACHE — CRUD
-    // ═══════════════════════════════════════════════════════
-
-    /**
-     * Cache a list of food items (serialized as JSON).
-     * Replaces previous cache completely.
-     */
+    // FOOD ITEMS CACHE — CRUD
     public void cacheFoodItems(List<FoodItem> items) {
         if (items == null || items.isEmpty()) return;
         SQLiteDatabase db = null;
@@ -695,13 +649,7 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    // ═══════════════════════════════════════════════════════
-    //  USER PROFILE CACHE — CRUD
-    // ═══════════════════════════════════════════════════════
-
-    /**
-     * Cache user profile data for instant display.
-     */
+    // USER PROFILE CACHE — CRUD
     public void cacheUserProfile(String userId, String name, String email, String phone, String photoUrl, String address) {
         if (userId == null) return;
         try {
@@ -760,10 +708,7 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    // ═══════════════════════════════════════════════════════
-    //  UTILITY — safe cursor reading
-    // ═══════════════════════════════════════════════════════
-
+    // UTILITY — safe cursor reading
     private String getStr(Cursor c, String col) {
         int idx = c.getColumnIndex(col);
         return idx >= 0 ? c.getString(idx) : null;

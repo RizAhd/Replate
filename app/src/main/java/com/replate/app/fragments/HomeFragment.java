@@ -218,8 +218,6 @@ public class HomeFragment extends Fragment implements
         // Setup banner
         setupBanner();
 
-        // Setup greeting (Removed)
-        // setupGreeting();
 
         // Setup categories
         setupCategories();

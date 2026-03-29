@@ -12,7 +12,7 @@ public class LocationUtils {
 
         float[] results = new float[1];
         Location.distanceBetween(lat1, lon1, lat2, lon2, results);
-        return results[0] / 1000.0; // Convert items to meters
+        return results[0] / 1000.0; // Convert meters to km
     }
 }
 

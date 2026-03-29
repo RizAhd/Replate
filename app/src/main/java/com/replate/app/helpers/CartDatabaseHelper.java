@@ -13,7 +13,6 @@ import java.util.List;
 
 /**
  * SQLite Database Helper for offline shopping cart
- * Requirement: Data Storage - SQLite
  */
 public class CartDatabaseHelper extends SQLiteOpenHelper {
 

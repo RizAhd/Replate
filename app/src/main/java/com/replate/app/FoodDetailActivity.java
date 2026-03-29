@@ -49,9 +49,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * Food Detail Activity - Shows full details of a food item.
- */
 public class FoodDetailActivity extends AppCompatActivity {
 
     private ImageView ivFoodImage, ivBack, ivFavorite;
@@ -702,9 +699,6 @@ public class FoodDetailActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    /**
-     * Call hotel phone
-     */
     private void callHotel() {
         resolveHotelPhone(phone -> {
             pendingCallNumber = phone;
@@ -725,11 +719,7 @@ public class FoodDetailActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Open chat activity to message the hotel
-     */
     private void openChat() {
-        // Check if user is logged in
         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
             ToastUtils.showCustomToast(this, "Please login to chat with the hotel");
             return;
