@@ -50,14 +50,12 @@ async function checkUserRole(uid) {
         }
         return role;
     } catch (e) {
-        console.error('Role check failed:', e);
         return null;
     }
 }
 
 auth.onAuthStateChanged(async (user) => {
     if (user) {
-        console.log('Logged in as:', user.email);
         await checkUserRole(user.uid);
     } else {
         if (!isAuthPage(window.location.pathname)) {

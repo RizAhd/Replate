@@ -10,13 +10,13 @@ import androidx.work.WorkerParameters;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.FirebaseDatabase;
+import com.replate.app.BuildConfig;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Background Worker for syncing data
- * Requirement: Multitasking - Background services
+ * Background worker that periodically syncs user activity data.
  */
 public class OrderSyncWorker extends Worker {
 
@@ -29,7 +29,7 @@ public class OrderSyncWorker extends Worker {
     @NonNull
     @Override
     public Result doWork() {
-        Log.d(TAG, "Background sync started");
+        if (BuildConfig.DEBUG) Log.d(TAG, "Background sync started");
 
         try {
             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
@@ -43,7 +43,7 @@ public class OrderSyncWorker extends Worker {
                         .child(user.getUid())
                         .updateChildren(updates);
 
-                Log.d(TAG, "User activity synced successfully");
+                if (BuildConfig.DEBUG) Log.d(TAG, "User activity synced successfully");
             }
             return Result.success();
         } catch (Exception e) {

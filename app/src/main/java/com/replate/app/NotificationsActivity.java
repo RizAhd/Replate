@@ -47,6 +47,8 @@ public class NotificationsActivity extends AppCompatActivity
     private List<AppNotification> notifications = new ArrayList<>();
     private String launchOrderId;
     private ReplateDatabaseHelper localDb;
+    private ValueEventListener notificationsListener;
+    private DatabaseReference notificationsRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,6 +88,8 @@ public class NotificationsActivity extends AppCompatActivity
 
         progressBar.setVisibility(View.VISIBLE);
 
+        notificationsRef = mDatabase.child("notifications").child(userId);
+
         // Load cached notifications immediately for instant display
         if (localDb != null) {
             List<AppNotification> cached = localDb.getCachedNotifications();
@@ -97,8 +101,8 @@ public class NotificationsActivity extends AppCompatActivity
             }
         }
 
-        mDatabase.child("notifications").child(userId)
-                .addValueEventListener(new ValueEventListener() {
+        notificationsRef
+                .addValueEventListener(notificationsListener = new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         notifications.clear();
@@ -292,5 +296,13 @@ public class NotificationsActivity extends AppCompatActivity
                 .addOnFailureListener(e -> {
                     ToastUtils.showCustomToast(this, "Failed to delete notifications");
                 });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (notificationsRef != null && notificationsListener != null) {
+            notificationsRef.removeEventListener(notificationsListener);
+        }
     }
 }

@@ -1,12 +1,7 @@
 *.iml
 .gradle
 /local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
+/.idea/
 .DS_Store
 /build
 /captures
@@ -14,13 +9,22 @@
 .cxx
 local.properties
 
+# ── Dependencies ─────────────────────────────────────────────
+node_modules/
+package-lock.json
+
 # ── Secret / credential files — NEVER commit these ──────────
 .env
 web-panels/js/env-config.js
+app/google-services.json
 
-# ── Build logs, status files, and temp output files ──────────
+# ── Build logs, debug output, and temp files ─────────────────
+*.log
 build_*.txt
-build_*.log
 build_*.status
+compile_*.txt
+compile_*.log
+deploy_*.txt
 live_logcat.txt
 check_build.bat
+hs_err_*.log

@@ -16,7 +16,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -114,7 +113,7 @@ public class HomeFragment extends Fragment implements
     private ValueEventListener foodItemsListener;
     private DatabaseReference foodItemsRef;
 
-    // Shake to refresh (REQUIREMENT: Sensors)
+    // Shake-to-refresh
     private SensorManager sensorManager;
     private Sensor accelerometer;
     private ShakeDetector shakeDetector;
@@ -203,10 +202,6 @@ public class HomeFragment extends Fragment implements
         rvFoodItems.setRecycledViewPool(sharedPool);
         rvFavorites.setRecycledViewPool(sharedPool);
 
-        // Improve draw performance
-        rvFoodItems.setDrawingCacheEnabled(true);
-        rvHotDeals.setDrawingCacheEnabled(true);
-        rvFavorites.setDrawingCacheEnabled(true);
 
         categoryAdapter = new CategoryAdapter(getContext(), categories, this);
         rvCategories.setAdapter(categoryAdapter);
@@ -246,7 +241,7 @@ public class HomeFragment extends Fragment implements
             getUserLocation();
         });
 
-        // Setup shake-to-refresh (REQUIREMENT: Sensors - Accelerometer)
+        // Shake-to-refresh (accelerometer)
         sensorManager = (SensorManager) requireActivity().getSystemService(android.content.Context.SENSOR_SERVICE);
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         shakeDetector = new ShakeDetector();
@@ -834,7 +829,6 @@ public class HomeFragment extends Fragment implements
     }
 
     private void addToCart(FoodItem foodItem) {
-        // REQUIREMENT: SQLite Data Storage
         CartDatabaseHelper cartDb = CartDatabaseHelper.getInstance(requireContext());
         com.replate.app.models.CartItem cartItem = new com.replate.app.models.CartItem(
                 foodItem.getFoodId(),

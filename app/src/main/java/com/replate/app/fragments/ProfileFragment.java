@@ -221,7 +221,10 @@ public class ProfileFragment extends Fragment {
         });
 
         menuFavorites.setOnClickListener(v -> {
-            ToastUtils.showCustomToast(getContext(), "Favorites coming soon!");
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).switchToTab(R.id.nav_home);
+                ToastUtils.showCustomToast(getContext(), "Check your favorites on the home screen");
+            }
         });
 
         menuNotifications.setOnClickListener(v -> {
@@ -233,7 +236,13 @@ public class ProfileFragment extends Fragment {
         });
 
         menuHelp.setOnClickListener(v -> {
-            ToastUtils.showCustomToast(getContext(), "Help & Support coming soon!");
+            if (getContext() != null) {
+                new AlertDialog.Builder(getContext())
+                        .setTitle(R.string.help_title)
+                        .setMessage(R.string.help_body)
+                        .setPositiveButton(R.string.help_dismiss, null)
+                        .show();
+            }
         });
 
         btnLogout.setOnClickListener(v -> showLogoutDialog());

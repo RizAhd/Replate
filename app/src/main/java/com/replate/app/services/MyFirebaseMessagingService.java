@@ -27,6 +27,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
+import com.replate.app.BuildConfig;
 import com.replate.app.R;
 import com.replate.app.helpers.ReplateDatabaseHelper;
 import com.replate.app.models.AppNotification;
@@ -51,7 +52,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     @Override
     public void onNewToken(@NonNull String token) {
         super.onNewToken(token);
-        Log.d(TAG, "onNewToken received new token=" + token);
+        if (BuildConfig.DEBUG) Log.d(TAG, "onNewToken received");
         FcmTokenManager.persistLatestToken(getApplicationContext(), token);
         syncTokenToActiveUser(token);
     }
@@ -60,11 +61,12 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
 
-        Log.d(TAG, "FCM message received from=" + remoteMessage.getFrom());
-        Log.d(TAG, "FCM data payload=" + remoteMessage.getData());
-        if (remoteMessage.getNotification() != null) {
-            Log.d(TAG, "FCM notification payload title=" + remoteMessage.getNotification().getTitle()
-                    + " body=" + remoteMessage.getNotification().getBody());
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "FCM message received from=" + remoteMessage.getFrom());
+            Log.d(TAG, "FCM data payload=" + remoteMessage.getData());
+            if (remoteMessage.getNotification() != null) {
+                Log.d(TAG, "FCM notification title=" + remoteMessage.getNotification().getTitle());
+            }
         }
 
         String title = "REPLATE";
@@ -110,26 +112,26 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     private void syncTokenToActiveUser(@NonNull String token) {
         if (token.trim().isEmpty()) {
-            Log.w(TAG, "Skipping token sync because token is blank");
+            if (BuildConfig.DEBUG) Log.w(TAG, "Skipping token sync because token is blank");
             return;
         }
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {
-            Log.d(TAG, "No authenticated user while syncing token; token stored locally for later sync.");
+            if (BuildConfig.DEBUG) Log.d(TAG, "No authenticated user while syncing token; stored locally.");
             return;
         }
 
         SharedPreferences prefs = getSharedPreferences("REPLATE_PREFS", MODE_PRIVATE);
         String role = UserRoleHelper.fromPrefs(prefs);
-        Log.d(TAG, "Syncing refreshed token for uid=" + user.getUid() + " role=" + role);
+        if (BuildConfig.DEBUG) Log.d(TAG, "Syncing refreshed token for uid=" + user.getUid());
         FcmTokenManager.syncTokenForCurrentUser(getApplicationContext(), role);
     }
 
     private void saveNotification(String title, String body, Map<String, String> data) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {
-            Log.d(TAG, "Skipping local notification persistence because no user session is active.");
+            if (BuildConfig.DEBUG) Log.d(TAG, "Skipping notification persistence: no active user session.");
             return;
         }
 
@@ -302,18 +304,30 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     }
 
     /**
-     * Removes emoji and other non-BMP Unicode characters from notification text.
-     * Keeps only standard printable ASCII + Latin characters so the popup is clean.
+     * Removes emoji and decorative Unicode characters from notification text.
+     * Preserves currency symbols (e.g. ₨, €, £) and standard punctuation.
      */
     private String stripEmoji(String input) {
         if (input == null) return "";
-        // Remove supplementary (emoji) code points (U+1F000 and above) and common symbol ranges
         return input.codePoints()
-                .filter(cp -> cp <= 0xFFFF && !Character.isSurrogate((char) cp))
+                .filter(cp -> {
+                    // Keep ASCII printable characters
+                    if (cp <= 0x7F) return true;
+                    // Keep Latin Extended, currency symbols, general punctuation
+                    if (cp >= 0x00A0 && cp <= 0x024F) return true;
+                    // Keep currency symbols block
+                    if (cp >= 0x20A0 && cp <= 0x20CF) return true;
+                    // Keep general punctuation
+                    if (cp >= 0x2000 && cp <= 0x206F) return true;
+                    // Block emoji and miscellaneous symbols
+                    if (cp >= 0x2600 && cp <= 0x27BF) return false;
+                    if (cp >= 0x1F000) return false;
+                    // Keep everything else in the BMP that isn't a surrogate
+                    return cp <= 0xFFFF && !Character.isSurrogate((char) cp);
+                })
                 .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
                 .toString()
-                .replaceAll("[\\x{2000}-\\x{2BFF}]", "")  // misc symbols & arrows
-                .replaceAll("\\s{2,}", " ")                // collapse multiple spaces
+                .replaceAll("\\s{2,}", " ")
                 .trim();
     }
 }

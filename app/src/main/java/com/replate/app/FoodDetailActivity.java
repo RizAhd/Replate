@@ -14,6 +14,7 @@ import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -43,8 +44,10 @@ import com.replate.app.utils.LocationUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Food Detail Activity - Shows full details of a food item.
@@ -77,6 +80,8 @@ public class FoodDetailActivity extends AppCompatActivity {
     private ReviewAdapter reviewAdapter;
     private RelatedFoodAdapter relatedFoodAdapter;
     private ReplateDatabaseHelper localDb;
+    private ValueEventListener reviewsListener;
+    private DatabaseReference reviewsRef;
 
     private final ActivityResultLauncher<String> callPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
@@ -117,246 +122,182 @@ public class FoodDetailActivity extends AppCompatActivity {
         updateDistanceFromLiveLocation();
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        // Distance is already set in onCreate; no need to re-query GPS on every resume
-    }
-
     private void initViews() {
-        // Safe null-checking for all views to prevent crashes
-        try {
-            ivFoodImage = findViewById(R.id.ivFoodImage);
-            ivBack = findViewById(R.id.ivBack);
-            ivFavorite = findViewById(R.id.ivFavorite);
-            tvFoodName = findViewById(R.id.tvFoodName);
-            tvHotelName = findViewById(R.id.tvHotelName);
-            tvDescription = findViewById(R.id.tvDescription);
-            tvOriginalPrice = findViewById(R.id.tvOriginalPrice);
-            tvDiscountedPrice = findViewById(R.id.tvDiscountedPrice);
-            tvDiscount = findViewById(R.id.tvDiscount);
-            tvPickupTime = findViewById(R.id.tvPickupTime);
-            tvDistance = findViewById(R.id.tvDistance);
-            tvQuantity = findViewById(R.id.tvQuantity);
-            btnAddToCart = findViewById(R.id.btnAddToCart);
-            btnMinus = findViewById(R.id.btnMinus);
-            btnPlus = findViewById(R.id.btnPlus);
-            btnCallHotel = findViewById(R.id.btnCallHotel);
-            btnSmsHotel = findViewById(R.id.btnSmsHotel);
+        ivFoodImage = findViewById(R.id.ivFoodImage);
+        ivBack = findViewById(R.id.ivBack);
+        ivFavorite = findViewById(R.id.ivFavorite);
+        tvFoodName = findViewById(R.id.tvFoodName);
+        tvHotelName = findViewById(R.id.tvHotelName);
+        tvDescription = findViewById(R.id.tvDescription);
+        tvOriginalPrice = findViewById(R.id.tvOriginalPrice);
+        tvDiscountedPrice = findViewById(R.id.tvDiscountedPrice);
+        tvDiscount = findViewById(R.id.tvDiscount);
+        tvPickupTime = findViewById(R.id.tvPickupTime);
+        tvDistance = findViewById(R.id.tvDistance);
+        tvQuantity = findViewById(R.id.tvQuantity);
+        btnAddToCart = findViewById(R.id.btnAddToCart);
+        btnMinus = findViewById(R.id.btnMinus);
+        btnPlus = findViewById(R.id.btnPlus);
+        btnCallHotel = findViewById(R.id.btnCallHotel);
+        btnSmsHotel = findViewById(R.id.btnSmsHotel);
 
-            tvReviewSummary = findViewById(R.id.tvReviewSummary);
-            tvNoReviews = findViewById(R.id.tvNoReviews);
-            tvNoRecommendations = findViewById(R.id.tvNoRecommendations);
-            ratingInput = findViewById(R.id.ratingInput);
-            etReviewComment = findViewById(R.id.etReviewComment);
-            btnSubmitReview = findViewById(R.id.btnSubmitReview);
-            btnToggleReviewComposer = findViewById(R.id.btnToggleReviewComposer);
-            layoutReviewComposer = findViewById(R.id.layoutReviewComposer);
-            rvReviews = findViewById(R.id.rvReviews);
-            rvRecommended = findViewById(R.id.rvRecommended);
-
-            // Verify critical views are not null
-            if (ivFoodImage == null || ivBack == null || tvFoodName == null || btnAddToCart == null) {
-                throw new RuntimeException("Critical views not found in layout");
-            }
-        } catch (Exception e) {
-            android.util.Log.e("FoodDetailActivity", "Error initializing views", e);
-            finish();
-        }
+        tvReviewSummary = findViewById(R.id.tvReviewSummary);
+        tvNoReviews = findViewById(R.id.tvNoReviews);
+        tvNoRecommendations = findViewById(R.id.tvNoRecommendations);
+        ratingInput = findViewById(R.id.ratingInput);
+        etReviewComment = findViewById(R.id.etReviewComment);
+        btnSubmitReview = findViewById(R.id.btnSubmitReview);
+        btnToggleReviewComposer = findViewById(R.id.btnToggleReviewComposer);
+        layoutReviewComposer = findViewById(R.id.layoutReviewComposer);
+        rvReviews = findViewById(R.id.rvReviews);
+        rvRecommended = findViewById(R.id.rvRecommended);
     }
 
     private void setupReviewAndRecommendationLists() {
-        try {
-            currentUserId = FirebaseAuth.getInstance().getUid() == null ? "" : FirebaseAuth.getInstance().getUid();
+        currentUserId = FirebaseAuth.getInstance().getUid() == null ? "" : FirebaseAuth.getInstance().getUid();
 
-            // Setup reviews recycler view with null checks
-            if (rvReviews != null) {
-                reviewAdapter = new ReviewAdapter(currentUserId, new ReviewAdapter.ReviewActionListener() {
-                    @Override
-                    public void onEditReview(Review review) {
-                        startReviewEdit(review);
-                    }
+        if (rvReviews != null) {
+            reviewAdapter = new ReviewAdapter(currentUserId, new ReviewAdapter.ReviewActionListener() {
+                @Override
+                public void onEditReview(Review review) {
+                    startReviewEdit(review);
+                }
 
-                    @Override
-                    public void onDeleteReview(Review review) {
-                        confirmDeleteReview(review);
-                    }
-                });
-                rvReviews.setLayoutManager(new LinearLayoutManager(this));
-                rvReviews.setNestedScrollingEnabled(false);
-                rvReviews.setAdapter(reviewAdapter);
-            }
+                @Override
+                public void onDeleteReview(Review review) {
+                    confirmDeleteReview(review);
+                }
+            });
+            rvReviews.setLayoutManager(new LinearLayoutManager(this));
+            rvReviews.setNestedScrollingEnabled(false);
+            rvReviews.setAdapter(reviewAdapter);
+        }
 
-            // Setup recommended foods recycler view with null checks
-            if (rvRecommended != null) {
-                relatedFoodAdapter = new RelatedFoodAdapter(this, this::openRelatedFoodItem);
-                rvRecommended.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-                rvRecommended.setNestedScrollingEnabled(false);
-                rvRecommended.setAdapter(relatedFoodAdapter);
-            }
-        } catch (Exception e) {
-            android.util.Log.e("FoodDetailActivity", "Error setting up review lists", e);
+        if (rvRecommended != null) {
+            relatedFoodAdapter = new RelatedFoodAdapter(this, this::openRelatedFoodItem);
+            rvRecommended.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+            rvRecommended.setNestedScrollingEnabled(false);
+            rvRecommended.setAdapter(relatedFoodAdapter);
         }
     }
 
     private void displayFoodDetails() {
-        try {
-            if (foodItem == null) {
-                finish();
-                return;
-            }
-
-            if (tvFoodName != null) {
-                tvFoodName.setText(foodItem.getFoodName() != null ? foodItem.getFoodName() : "Food Item");
-            }
-            if (tvHotelName != null) {
-                tvHotelName.setText(foodItem.getHotelName() != null ? foodItem.getHotelName() : "Hotel");
-            }
-            if (tvDescription != null) {
-                tvDescription.setText(foodItem.getDescription() != null && !foodItem.getDescription().trim().isEmpty()
-                        ? foodItem.getDescription()
-                        : "Fresh rescue meal from a nearby hotel.");
-            }
-
-            if (tvOriginalPrice != null) {
-                tvOriginalPrice.setText(String.format(Locale.getDefault(), "LKR %.2f", foodItem.getOriginalPriceValue()));
-                tvOriginalPrice.setPaintFlags(tvOriginalPrice.getPaintFlags() | android.graphics.Paint.STRIKE_THRU_TEXT_FLAG);
-            }
-            if (tvDiscountedPrice != null) {
-                tvDiscountedPrice.setText(String.format(Locale.getDefault(), "LKR %.2f", foodItem.getDiscountedPriceValue()));
-            }
-            if (tvDiscount != null) {
-                tvDiscount.setText(String.format(Locale.getDefault(), "-%d%%", foodItem.getDiscountPercentValue()));
-            }
-
-            if (tvPickupTime != null) {
-                tvPickupTime.setText(foodItem.getPickupTimeFormatted());
-            }
-            if (tvDistance != null) {
-                tvDistance.setText(foodItem.getDistance() > 0 ? foodItem.getDistanceFormatted() + " away" : "Nearby pickup");
-            }
-
-            if (ivFoodImage != null && foodItem.getImageUrl() != null && !foodItem.getImageUrl().isEmpty()) {
-                Glide.with(this).load(foodItem.getImageUrl()).placeholder(R.drawable.placeholder_food).into(ivFoodImage);
-            }
-
-            updateQuantityDisplay();
-        } catch (Exception e) {
-            android.util.Log.e("FoodDetailActivity", "Error displaying food details", e);
+        if (foodItem == null) {
             finish();
+            return;
         }
+
+        tvFoodName.setText(foodItem.getFoodName() != null ? foodItem.getFoodName() : "Food Item");
+        tvHotelName.setText(foodItem.getHotelName() != null ? foodItem.getHotelName() : "Hotel");
+        tvDescription.setText(foodItem.getDescription() != null && !foodItem.getDescription().trim().isEmpty()
+                ? foodItem.getDescription()
+                : "Fresh rescue meal from a nearby hotel.");
+
+        tvOriginalPrice.setText(String.format(Locale.getDefault(), "LKR %.2f", foodItem.getOriginalPriceValue()));
+        tvOriginalPrice.setPaintFlags(tvOriginalPrice.getPaintFlags() | android.graphics.Paint.STRIKE_THRU_TEXT_FLAG);
+        tvDiscountedPrice.setText(String.format(Locale.getDefault(), "LKR %.2f", foodItem.getDiscountedPriceValue()));
+        tvDiscount.setText(String.format(Locale.getDefault(), "-%d%%", foodItem.getDiscountPercentValue()));
+
+        tvPickupTime.setText(foodItem.getPickupTimeFormatted());
+        tvDistance.setText(foodItem.getDistance() > 0 ? foodItem.getDistanceFormatted() + " away" : "Nearby pickup");
+
+        if (foodItem.getImageUrl() != null && !foodItem.getImageUrl().isEmpty()) {
+            Glide.with(this).load(foodItem.getImageUrl()).placeholder(R.drawable.placeholder_food).into(ivFoodImage);
+        }
+
+        updateQuantityDisplay();
     }
 
     private void setupClickListeners() {
-        try {
-            if (ivBack != null) ivBack.setOnClickListener(v -> finish());
+        ivBack.setOnClickListener(v -> finish());
 
-            // ── Favorite toggle (SQLite) ──
-            if (ivFavorite != null && localDb != null && foodItem != null) {
-                updateFavoriteIcon(localDb.isFavorite(foodItem.getFoodId()));
-                ivFavorite.setOnClickListener(v -> {
-                    boolean isFav = localDb.isFavorite(foodItem.getFoodId());
-                    if (isFav) {
-                        localDb.removeFavorite(foodItem.getFoodId());
-                        updateFavoriteIcon(false);
-                        ToastUtils.showCustomToast(this, "Removed from favorites");
-                    } else {
-                        localDb.addFavorite(foodItem);
-                        updateFavoriteIcon(true);
-                        ToastUtils.showCustomToast(this, "Added to favorites ❤");
-                    }
-                });
-            }
-
-            if (btnCallHotel != null) btnCallHotel.setOnClickListener(v -> callHotel());
-            if (btnSmsHotel != null) btnSmsHotel.setOnClickListener(v -> openChat());
-
-            if (btnMinus != null) {
-                btnMinus.setOnClickListener(v -> {
-                    if (quantity > 1) {
-                        quantity--;
-                        updateQuantityDisplay();
-                    }
-                });
-            }
-
-            if (btnPlus != null) {
-                btnPlus.setOnClickListener(v -> {
-                    if (quantity < foodItem.getQuantityValue()) {
-                        quantity++;
-                        updateQuantityDisplay();
-                    } else {
-                        ToastUtils.showCustomToast(this, "Maximum available quantity reached");
-                    }
-                });
-            }
-
-            if (btnToggleReviewComposer != null && layoutReviewComposer != null) {
-                btnToggleReviewComposer.setOnClickListener(v -> {
-                    boolean currentlyVisible = layoutReviewComposer.getVisibility() == android.view.View.VISIBLE;
-                    layoutReviewComposer.setVisibility(currentlyVisible ? android.view.View.GONE : android.view.View.VISIBLE);
-                    btnToggleReviewComposer.setText(currentlyVisible
-                            ? getString(R.string.food_detail_review_write)
-                            : getString(R.string.food_detail_review_hide_form));
-                });
-            }
-
-            if (btnAddToCart != null) btnAddToCart.setOnClickListener(v -> addToCart());
-            if (btnSubmitReview != null) btnSubmitReview.setOnClickListener(v -> submitReview());
-        } catch (Exception e) {
-            android.util.Log.e("FoodDetailActivity", "Error setting up click listeners", e);
+        // Favorite toggle (SQLite)
+        if (localDb != null && foodItem != null) {
+            updateFavoriteIcon(localDb.isFavorite(foodItem.getFoodId()));
+            ivFavorite.setOnClickListener(v -> {
+                boolean isFav = localDb.isFavorite(foodItem.getFoodId());
+                if (isFav) {
+                    localDb.removeFavorite(foodItem.getFoodId());
+                    updateFavoriteIcon(false);
+                    ToastUtils.showCustomToast(this, "Removed from favorites");
+                } else {
+                    localDb.addFavorite(foodItem);
+                    updateFavoriteIcon(true);
+                    ToastUtils.showCustomToast(this, "Added to favorites ❤");
+                }
+            });
         }
+
+        btnCallHotel.setOnClickListener(v -> callHotel());
+        btnSmsHotel.setOnClickListener(v -> openChat());
+
+        btnMinus.setOnClickListener(v -> {
+            if (quantity > 1) {
+                quantity--;
+                updateQuantityDisplay();
+            }
+        });
+
+        btnPlus.setOnClickListener(v -> {
+            if (quantity < foodItem.getQuantityValue()) {
+                quantity++;
+                updateQuantityDisplay();
+            } else {
+                ToastUtils.showCustomToast(this, "Maximum available quantity reached");
+            }
+        });
+
+        if (btnToggleReviewComposer != null && layoutReviewComposer != null) {
+            btnToggleReviewComposer.setOnClickListener(v -> {
+                boolean currentlyVisible = layoutReviewComposer.getVisibility() == View.VISIBLE;
+                layoutReviewComposer.setVisibility(currentlyVisible ? View.GONE : View.VISIBLE);
+                btnToggleReviewComposer.setText(currentlyVisible
+                        ? getString(R.string.food_detail_review_write)
+                        : getString(R.string.food_detail_review_hide_form));
+            });
+        }
+
+        btnAddToCart.setOnClickListener(v -> addToCart());
+        if (btnSubmitReview != null) btnSubmitReview.setOnClickListener(v -> submitReview());
     }
 
     private void updateFavoriteIcon(boolean isFavorite) {
         if (ivFavorite == null) return;
-        ivFavorite.setImageResource(isFavorite
-                ? android.R.drawable.btn_star_big_on
-                : android.R.drawable.btn_star_big_off);
+        ivFavorite.setImageResource(R.drawable.ic_favorite);
+        ivFavorite.setColorFilter(isFavorite
+                ? getColor(R.color.md_theme_error)
+                : getColor(R.color.text_secondary));
         ivFavorite.setContentDescription(isFavorite ? "Remove from favorites" : "Add to favorites");
     }
 
     private void updateQuantityDisplay() {
-        try {
-            if (tvQuantity != null) {
-                tvQuantity.setText(String.valueOf(quantity));
-            }
-            if (btnAddToCart != null && foodItem != null) {
-                double total = foodItem.getDiscountedPriceValue() * quantity;
-                btnAddToCart.setText(String.format(Locale.getDefault(), "Add to Cart - LKR %.2f", total));
-            }
-        } catch (Exception e) {
-            android.util.Log.e("FoodDetailActivity", "Error updating quantity display", e);
-        }
+        tvQuantity.setText(String.valueOf(quantity));
+        double total = foodItem.getDiscountedPriceValue() * quantity;
+        btnAddToCart.setText(String.format(Locale.getDefault(), "Add to Cart - LKR %.2f", total));
     }
 
     private void addToCart() {
-        try {
-            if (foodItem == null) {
-                ToastUtils.showCustomToast(this, "Error: Food item not available");
-                return;
-            }
-
-            CartDatabaseHelper cartDb = CartDatabaseHelper.getInstance(this);
-            CartItem cartItem = new CartItem(
-                    foodItem.getFoodId(),
-                    foodItem.getFoodName() != null ? foodItem.getFoodName() : "Item",
-                    foodItem.getHotelName() != null ? foodItem.getHotelName() : "Hotel",
-                    foodItem.getHotelId() != null ? foodItem.getHotelId() : "",
-                    foodItem.getImageUrl() != null ? foodItem.getImageUrl() : "",
-                    foodItem.getDiscountedPriceValue(),
-                    foodItem.getOriginalPriceValue(),
-                    quantity,
-                    foodItem.getDiscountPercentValue()
-            );
-            cartDb.addItem(cartItem);
-
-            ToastUtils.showCustomToast(this, quantity + " x " + foodItem.getFoodName() + " added to cart!");
-            startActivity(new Intent(this, CartActivity.class));
-        } catch (Exception e) {
-            android.util.Log.e("FoodDetailActivity", "Error adding to cart", e);
-            ToastUtils.showCustomToast(this, "Error adding to cart");
+        if (foodItem == null) {
+            ToastUtils.showCustomToast(this, "Error: Food item not available");
+            return;
         }
+
+        CartDatabaseHelper cartDb = CartDatabaseHelper.getInstance(this);
+        CartItem cartItem = new CartItem(
+                foodItem.getFoodId(),
+                foodItem.getFoodName() != null ? foodItem.getFoodName() : "Item",
+                foodItem.getHotelName() != null ? foodItem.getHotelName() : "Hotel",
+                foodItem.getHotelId() != null ? foodItem.getHotelId() : "",
+                foodItem.getImageUrl() != null ? foodItem.getImageUrl() : "",
+                foodItem.getDiscountedPriceValue(),
+                foodItem.getOriginalPriceValue(),
+                quantity,
+                foodItem.getDiscountPercentValue()
+        );
+        cartDb.addItem(cartItem);
+
+        ToastUtils.showCustomToast(this, quantity + " x " + foodItem.getFoodName() + " added to cart!");
+        startActivity(new Intent(this, CartActivity.class));
     }
 
     private void loadCurrentUserName() {
@@ -366,7 +307,7 @@ public class FoodDetailActivity extends AppCompatActivity {
         mDatabase.child("users").child(uid).child("name")
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
-                    public void onDataChange(@androidx.annotation.NonNull DataSnapshot snapshot) {
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
                         String name = snapshot.getValue(String.class);
                         if (name != null && !name.trim().isEmpty()) {
                             currentUserName = name.trim();
@@ -374,7 +315,7 @@ public class FoodDetailActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onCancelled(@androidx.annotation.NonNull DatabaseError error) {
+                    public void onCancelled(@NonNull DatabaseError error) {
                     }
                 });
     }
@@ -386,7 +327,7 @@ public class FoodDetailActivity extends AppCompatActivity {
         String foodId = foodItem.getFoodId();
         if (foodId == null || foodId.trim().isEmpty()) {
             if (tvNoReviews != null) {
-                tvNoReviews.setVisibility(android.view.View.VISIBLE);
+                tvNoReviews.setVisibility(View.VISIBLE);
             }
             if (tvReviewSummary != null) {
                 tvReviewSummary.setText(getString(R.string.food_detail_review_summary_zero));
@@ -394,20 +335,28 @@ public class FoodDetailActivity extends AppCompatActivity {
             return;
         }
 
-        mDatabase.child("reviews")
-                .orderByChild("foodId")
-                .equalTo(foodId)
-                .addValueEventListener(new ValueEventListener() {
+        // Remove previous listener if any
+        if (reviewsRef != null && reviewsListener != null) {
+            reviewsRef.removeEventListener(reviewsListener);
+        }
+
+        reviewsRef = mDatabase.child("reviews");
+
+        reviewsListener = new ValueEventListener() {
                     @Override
-                    public void onDataChange(@androidx.annotation.NonNull DataSnapshot snapshot) {
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
                         if (isFinishing() || isDestroyed()) return;
                         List<Review> reviews = new ArrayList<>();
                         float total = 0f;
+                        int ratedCount = 0;
 
                         for (DataSnapshot child : snapshot.getChildren()) {
                             Review review = new Review();
                             review.setReviewId(child.getKey());
                             review.setFoodId(getStringValue(child, "foodId"));
+                            if (!foodId.equals(review.getFoodId())) {
+                                continue;
+                            }
                             review.setUserId(getStringValue(child, "userId"));
                             review.setUserName(getStringValue(child, "userName"));
                             review.setComment(getStringValue(child, "comment"));
@@ -424,8 +373,16 @@ public class FoodDetailActivity extends AppCompatActivity {
                             }
                             review.setVerifiedPurchase(verified);
 
+                            float ratingValue = review.getRatingValue();
+                            if (ratingValue < 0f) ratingValue = 0f;
+                            if (ratingValue > 5f) ratingValue = 5f;
+                            review.setRating(ratingValue);
+
                             reviews.add(review);
-                            total += review.getRatingValue();
+                            if (ratingValue > 0f) {
+                                total += ratingValue;
+                                ratedCount++;
+                            }
                         }
 
                         Collections.sort(reviews, (a, b) -> Long.compare(b.getCreatedAtValue(), a.getCreatedAtValue()));
@@ -435,22 +392,24 @@ public class FoodDetailActivity extends AppCompatActivity {
 
                         boolean hasReviews = !reviews.isEmpty();
                         if (tvNoReviews != null) {
-                            tvNoReviews.setVisibility(hasReviews ? android.view.View.GONE : android.view.View.VISIBLE);
+                            tvNoReviews.setVisibility(hasReviews ? View.GONE : View.VISIBLE);
                         }
 
-                        float avg = hasReviews ? (total / reviews.size()) : 0f;
+                        float avg = ratedCount > 0 ? (total / ratedCount) : 0f;
                         if (tvReviewSummary != null) {
                             tvReviewSummary.setText(String.format(Locale.getDefault(), "%.1f (%d reviews)", avg, reviews.size()));
                         }
                     }
 
                     @Override
-                    public void onCancelled(@androidx.annotation.NonNull DatabaseError error) {
+                    public void onCancelled(@NonNull DatabaseError error) {
                         if (tvNoReviews != null) {
-                            tvNoReviews.setVisibility(android.view.View.VISIBLE);
+                            tvNoReviews.setVisibility(View.VISIBLE);
                         }
                     }
-                });
+                };
+
+        reviewsRef.orderByChild("foodId").equalTo(foodId).addValueEventListener(reviewsListener);
     }
 
     private void submitReview() {
@@ -490,7 +449,7 @@ public class FoodDetailActivity extends AppCompatActivity {
             review.setCreatedAt(System.currentTimeMillis());
             review.setVerifiedPurchase(verified);
 
-            java.util.Map<String, Object> payload = new java.util.HashMap<>();
+            Map<String, Object> payload = new HashMap<>();
             payload.put("reviewId", review.getReviewId());
             payload.put("foodId", foodItem.getFoodId() == null ? "" : foodItem.getFoodId());
             payload.put("userId", uid);
@@ -540,7 +499,7 @@ public class FoodDetailActivity extends AppCompatActivity {
         editingReviewId = review.getReviewId();
         ratingInput.setRating(review.getRatingValue());
         etReviewComment.setText(review.getComment());
-        if (layoutReviewComposer != null) layoutReviewComposer.setVisibility(android.view.View.VISIBLE);
+        if (layoutReviewComposer != null) layoutReviewComposer.setVisibility(View.VISIBLE);
         if (btnToggleReviewComposer != null) btnToggleReviewComposer.setText(getString(R.string.food_detail_review_hide_form));
         btnSubmitReview.setText(getString(R.string.food_detail_review_update));
         etReviewComment.requestFocus();
@@ -551,7 +510,7 @@ public class FoodDetailActivity extends AppCompatActivity {
         ratingInput.setRating(0f);
         etReviewComment.setText("");
         btnSubmitReview.setText(getString(R.string.food_detail_review_submit));
-        if (layoutReviewComposer != null) layoutReviewComposer.setVisibility(android.view.View.GONE);
+        if (layoutReviewComposer != null) layoutReviewComposer.setVisibility(View.GONE);
         if (btnToggleReviewComposer != null) btnToggleReviewComposer.setText(getString(R.string.food_detail_review_write));
     }
 
@@ -581,36 +540,44 @@ public class FoodDetailActivity extends AppCompatActivity {
     }
 
     private void updateFoodRatingAggregate(String foodId) {
-        String hotelId = foodItem.getHotelId();
-        if (hotelId == null || hotelId.trim().isEmpty()) return;
+        if (foodId == null || foodId.trim().isEmpty()) return;
 
         mDatabase.child("reviews")
-                .orderByChild("hotelId")
-                .equalTo(hotelId)
+                .orderByChild("foodId")
+                .equalTo(foodId)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
-                    public void onDataChange(@androidx.annotation.NonNull DataSnapshot snapshot) {
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
                         int count = 0;
                         float sum = 0f;
                         for (DataSnapshot child : snapshot.getChildren()) {
+                            String reviewFoodId = getStringValue(child, "foodId");
+                            if (!foodId.equals(reviewFoodId)) {
+                                continue;
+                            }
+
                             Object ratingValue = child.child("rating").getValue();
                             if (ratingValue == null) continue;
                             try {
-                                sum += Float.parseFloat(String.valueOf(ratingValue));
+                                float parsed = Float.parseFloat(String.valueOf(ratingValue));
+                                if (parsed < 0f || parsed > 5f) {
+                                    continue;
+                                }
+                                sum += parsed;
                                 count++;
                             } catch (NumberFormatException ignored) {
                             }
                         }
 
                         float avg = count > 0 ? sum / count : 0f;
-                        if (foodId != null && !foodId.trim().isEmpty()) {
+                        if (!foodId.trim().isEmpty()) {
                             mDatabase.child("foodItems").child(foodId).child("avgRating").setValue(avg);
                             mDatabase.child("foodItems").child(foodId).child("reviewCount").setValue(count);
                         }
                     }
 
                     @Override
-                    public void onCancelled(@androidx.annotation.NonNull DatabaseError error) {
+                    public void onCancelled(@NonNull DatabaseError error) {
                     }
                 });
     }
@@ -621,7 +588,7 @@ public class FoodDetailActivity extends AppCompatActivity {
                 .equalTo(uid)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
-                    public void onDataChange(@androidx.annotation.NonNull DataSnapshot snapshot) {
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
                         boolean hasPurchase = false;
                         String latestOrderId = "";
 
@@ -643,7 +610,7 @@ public class FoodDetailActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onCancelled(@androidx.annotation.NonNull DatabaseError error) {
+                    public void onCancelled(@NonNull DatabaseError error) {
                         callback.onResult(false, "");
                     }
                 });
@@ -659,7 +626,7 @@ public class FoodDetailActivity extends AppCompatActivity {
         }
         mDatabase.child("foodItems").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(@androidx.annotation.NonNull DataSnapshot snapshot) {
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (isFinishing() || isDestroyed()) return;
                 List<FoodItem> all = new ArrayList<>();
                 for (DataSnapshot child : snapshot.getChildren()) {
@@ -680,14 +647,14 @@ public class FoodDetailActivity extends AppCompatActivity {
                     relatedFoodAdapter.submitList(all);
                 }
                 if (tvNoRecommendations != null) {
-                    tvNoRecommendations.setVisibility(all.isEmpty() ? android.view.View.VISIBLE : android.view.View.GONE);
+                    tvNoRecommendations.setVisibility(all.isEmpty() ? View.VISIBLE : View.GONE);
                 }
             }
 
             @Override
-            public void onCancelled(@androidx.annotation.NonNull DatabaseError error) {
+            public void onCancelled(@NonNull DatabaseError error) {
                 if (tvNoRecommendations != null) {
-                    tvNoRecommendations.setVisibility(android.view.View.VISIBLE);
+                    tvNoRecommendations.setVisibility(View.VISIBLE);
                 }
             }
         });
@@ -736,7 +703,7 @@ public class FoodDetailActivity extends AppCompatActivity {
     }
 
     /**
-     * Call hotel phone - TELEPHONY REQUIREMENT
+     * Call hotel phone
      */
     private void callHotel() {
         resolveHotelPhone(phone -> {
@@ -800,21 +767,25 @@ public class FoodDetailActivity extends AppCompatActivity {
 
         String hotelId = foodItem.getHotelId();
         if (hotelId == null || hotelId.trim().isEmpty()) {
-            callback.onPhone("0112345678");
+            ToastUtils.showCustomToast(this, "Hotel phone number not available");
             return;
         }
 
         mDatabase.child("hotels").child(hotelId).child("phone")
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
-                    public void onDataChange(@androidx.annotation.NonNull DataSnapshot snapshot) {
-                        String phone = TelephonyUtils.normalizePhone(snapshot.getValue(String.class), "0112345678");
-                        callback.onPhone(phone);
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        String phone = TelephonyUtils.normalizePhone(snapshot.getValue(String.class), "");
+                        if (!phone.isEmpty()) {
+                            callback.onPhone(phone);
+                        } else {
+                            ToastUtils.showCustomToast(FoodDetailActivity.this, "Hotel phone number not available");
+                        }
                     }
 
                     @Override
-                    public void onCancelled(@androidx.annotation.NonNull DatabaseError error) {
-                        callback.onPhone("0112345678");
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        ToastUtils.showCustomToast(FoodDetailActivity.this, "Could not load phone number");
                     }
                 });
     }
@@ -887,6 +858,14 @@ public class FoodDetailActivity extends AppCompatActivity {
                     ? String.format(Locale.getDefault(), "%.0f m away", distanceKm * 1000)
                     : String.format(Locale.getDefault(), "%.1f km away", distanceKm);
             tvDistance.setText(label);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (reviewsRef != null && reviewsListener != null) {
+            reviewsRef.removeEventListener(reviewsListener);
         }
     }
 }

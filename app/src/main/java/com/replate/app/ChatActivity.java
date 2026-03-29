@@ -266,7 +266,7 @@ public class ChatActivity extends AppCompatActivity {
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
-                        Log.w(TAG, "Failed to load user name", error.toException());
+                        if (BuildConfig.DEBUG) Log.w(TAG, "Failed to load user name", error.toException());
                     }
                 });
     }

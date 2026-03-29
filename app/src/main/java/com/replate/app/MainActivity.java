@@ -13,6 +13,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
@@ -26,6 +27,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.work.Constraints;
+import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.NetworkType;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
@@ -171,7 +173,7 @@ public class MainActivity extends AppCompatActivity {
             } else if (id == R.id.drawer_settings) {
                 startActivity(new Intent(this, SettingsActivity.class));
             } else if (id == R.id.drawer_help) {
-                startActivity(new Intent(this, SettingsActivity.class));
+                showHelpDialog();
             } else if (id == R.id.drawer_logout) {
                 logoutToLogin();
                 return true;
@@ -181,6 +183,21 @@ public class MainActivity extends AppCompatActivity {
         });
 
         handleDeepLinkFromNotification(getIntent());
+
+        // Modern back navigation via OnBackPressedDispatcher
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (drawerLayout != null && drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    drawerLayout.closeDrawer(GravityCompat.START);
+                } else if (bottomNavigation != null && bottomNavigation.getSelectedItemId() != R.id.nav_home) {
+                    bottomNavigation.setSelectedItemId(R.id.nav_home);
+                } else {
+                    setEnabled(false);
+                    getOnBackPressedDispatcher().onBackPressed();
+                }
+            }
+        });
 
         // Defer non-critical operations to after first frame for faster startup
         mainContent.post(() -> {
@@ -308,7 +325,11 @@ public class MainActivity extends AppCompatActivity {
                 .setConstraints(constraints)
                 .build();
 
-        WorkManager.getInstance(this).enqueue(syncRequest);
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+                "replate_order_sync",
+                ExistingPeriodicWorkPolicy.KEEP,
+                syncRequest
+        );
     }
 
     private void checkNotificationPermissions() {
@@ -370,7 +391,8 @@ public class MainActivity extends AppCompatActivity {
         if (networkReceiver != null) {
             try {
                 unregisterReceiver(networkReceiver);
-            } catch (Exception ignored) {
+            } catch (IllegalArgumentException ignored) {
+                // Receiver was already unregistered or never registered
             }
         }
     }
@@ -450,17 +472,15 @@ public class MainActivity extends AppCompatActivity {
         return null;
     }
 
-    @Override
-    public void onBackPressed() {
-        if (drawerLayout != null && drawerLayout.isDrawerOpen(GravityCompat.START)) {
-            drawerLayout.closeDrawer(GravityCompat.START);
-            return;
-        }
-        if (bottomNavigation != null && bottomNavigation.getSelectedItemId() != R.id.nav_home) {
-            bottomNavigation.setSelectedItemId(R.id.nav_home);
-        } else {
-            super.onBackPressed();
-        }
+    // Back navigation handled via OnBackPressedDispatcher in onCreate
+
+    private void showHelpDialog() {
+        if (isFinishing() || isDestroyed()) return;
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.help_title)
+                .setMessage(R.string.help_body)
+                .setPositiveButton(R.string.help_dismiss, null)
+                .show();
     }
 
     public void logoutToLogin() {
@@ -472,17 +492,20 @@ public class MainActivity extends AppCompatActivity {
             if (drawerLayout != null && drawerLayout.isDrawerOpen(GravityCompat.START)) {
                 drawerLayout.closeDrawer(GravityCompat.START);
             }
-        } catch (Exception ignored) {
+        } catch (IllegalStateException ignored) {
+            // Drawer may already be destroyed
         }
 
         try {
             FcmTokenManager.clearTokenForCurrentUser();
         } catch (Exception ignored) {
+            // Best-effort token cleanup; user still logs out
         }
 
         try {
             mAuth.signOut();
         } catch (Exception ignored) {
+            // Auth signout failure is non-blocking
         }
 
         SharedPreferences sessionPrefs = getSharedPreferences("REPLATE_PREFS", MODE_PRIVATE);

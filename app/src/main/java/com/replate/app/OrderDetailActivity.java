@@ -294,7 +294,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
 
             ivQRCode.setImageBitmap(bitmap);
         } catch (Exception e) {
-            e.printStackTrace();
+            android.util.Log.w("OrderDetail", "QR generation failed", e);
             ToastUtils.showCustomToast(this, "QR Code generation failed");
         }
     }

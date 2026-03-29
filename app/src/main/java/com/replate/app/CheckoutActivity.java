@@ -14,7 +14,6 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RadioGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -323,6 +322,11 @@ public class CheckoutActivity extends AppCompatActivity {
     }
 
     private void startSandboxPayment() {
+        if (MERCHANT_ID == null || MERCHANT_ID.trim().isEmpty()) {
+            ToastUtils.showCustomToast(this, "Payment not configured. Please contact support.");
+            return;
+        }
+
         InitRequest req = new InitRequest();
         req.setMerchantId(MERCHANT_ID);
         applyMerchantSecretIfSupported(req);
@@ -363,7 +367,7 @@ public class CheckoutActivity extends AppCompatActivity {
         try {
             Method m = req.getClass().getMethod("setMerchantSecret", String.class);
             m.invoke(req, MERCHANT_SECRET);
-            Log.d(TAG, "Applied merchant secret to InitRequest via SDK method");
+            if (BuildConfig.DEBUG) Log.d(TAG, "Applied merchant secret via SDK method");
         } catch (Exception ignore) {
             // SDK version may not expose merchant secret setter; sandbox can still proceed.
         }
@@ -402,7 +406,7 @@ public class CheckoutActivity extends AppCompatActivity {
         }
 
         if (success) {
-            Log.d(TAG, "Payment success: " + responseText);
+            if (BuildConfig.DEBUG) Log.d(TAG, "Payment success: " + responseText);
             submitOrder("PayHere Online", "paid");
         } else if (resultCode == Activity.RESULT_CANCELED) {
             ToastUtils.showCustomToast(this, "Payment canceled: " + responseText);
@@ -537,7 +541,7 @@ public class CheckoutActivity extends AppCompatActivity {
             fos.write(receipt.getBytes());
             fos.close();
         } catch (Exception e) {
-            e.printStackTrace();
+            if (BuildConfig.DEBUG) Log.w(TAG, "Failed to save receipt", e);
         }
     }
 
@@ -549,7 +553,7 @@ public class CheckoutActivity extends AppCompatActivity {
                 mp.start();
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            // Non-critical: sound playback failure doesn't affect order
         }
     }
 

@@ -5,11 +5,13 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.webkit.WebResourceRequest;
+import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class PayHereWebCheckoutActivity extends AppCompatActivity {
@@ -33,6 +35,16 @@ public class PayHereWebCheckoutActivity extends AppCompatActivity {
         webView = findViewById(R.id.web_checkout);
         progressBar = findViewById(R.id.progress_checkout);
 
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                Intent result = new Intent();
+                result.putExtra(EXTRA_PAYMENT_STATUS, "cancelled");
+                setResult(RESULT_CANCELED, result);
+                finish();
+            }
+        });
+
         String html = getIntent().getStringExtra(EXTRA_CHECKOUT_HTML);
         String orderId = getIntent().getStringExtra(EXTRA_ORDER_ID);
 
@@ -44,13 +56,13 @@ public class PayHereWebCheckoutActivity extends AppCompatActivity {
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
-                progressBar.setVisibility(android.view.View.VISIBLE);
+                progressBar.setVisibility(View.VISIBLE);
                 handleRedirect(url, orderId);
             }
 
             @Override
             public void onPageFinished(WebView view, String url) {
-                progressBar.setVisibility(android.view.View.GONE);
+                progressBar.setVisibility(View.GONE);
             }
 
             @Override
@@ -98,13 +110,5 @@ public class PayHereWebCheckoutActivity extends AppCompatActivity {
         }
 
         return false;
-    }
-
-    @Override
-    public void onBackPressed() {
-        Intent result = new Intent();
-        result.putExtra(EXTRA_PAYMENT_STATUS, "cancelled");
-        setResult(RESULT_CANCELED, result);
-        super.onBackPressed();
     }
 }

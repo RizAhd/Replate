@@ -13,6 +13,7 @@ import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -79,6 +80,13 @@ public class OrderSuccessActivity extends AppCompatActivity {
         loadOrder();
         attachStatusListener();
         playEntranceAnimation();
+
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                navigateToOrders();
+            }
+        });
     }
 
     private void initViews() {
@@ -393,10 +401,6 @@ public class OrderSuccessActivity extends AppCompatActivity {
         finish();
     }
 
-    @Override
-    public void onBackPressed() {
-        navigateToOrders();
-    }
 
     @Override
     protected void onDestroy() {

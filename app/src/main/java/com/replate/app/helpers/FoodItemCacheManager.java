@@ -2,6 +2,7 @@ package com.replate.app.helpers;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 import androidx.annotation.NonNull;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -17,6 +18,7 @@ import java.util.List;
  */
 public class FoodItemCacheManager {
 
+    private static final String TAG = "FoodCache";
     private static final String PREFS_NAME = "REPLATE_FOOD_CACHE";
     private static final String KEY_FOOD_ITEMS = "cached_food_items";
     private static final String KEY_CACHE_TIMESTAMP = "cache_timestamp";
@@ -41,7 +43,7 @@ public class FoodItemCacheManager {
                     .putLong(KEY_CACHE_TIMESTAMP, System.currentTimeMillis())
                     .apply();
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.w(TAG, "Failed to cache food items", e);
         }
     }
 
@@ -71,7 +73,7 @@ public class FoodItemCacheManager {
             List<FoodItem> items = gson.fromJson(json, listType);
             return items != null ? items : new ArrayList<>();
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.w(TAG, "Failed to read food cache", e);
             return new ArrayList<>();
         }
     }
@@ -106,7 +108,7 @@ public class FoodItemCacheManager {
                     .remove(KEY_CACHE_TIMESTAMP)
                     .apply();
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.w(TAG, "Failed to clear food cache", e);
         }
     }
 
@@ -120,4 +122,3 @@ public class FoodItemCacheManager {
         return System.currentTimeMillis() - cacheTime;
     }
 }
-

@@ -62,7 +62,6 @@ import com.replate.app.utils.ToastUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -105,6 +104,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private final Map<String, FoodPlace> markerPlaceMap = new HashMap<>();
     private final Map<String, Marker> markerByHotelId = new HashMap<>();
     private final Map<String, String> hotelFoodPreviewCache = new HashMap<>();
+    private final List<FoodPlace> allPlaces = new ArrayList<>();
+    private Marker searchMarker;
     private DatabaseReference foodItemsRef;
     private String pendingFocusHotelId;
     private LocationCallback liveLocationCallback;
@@ -228,18 +229,64 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                if (query != null && !query.trim().isEmpty()) {
+                String normalized = query == null ? "" : query.trim();
+                if (!normalized.isEmpty()) {
                     searchView.clearFocus();
-                    searchLocation(query.trim());
+                    boolean matchedPlaces = applyPlaceFilter(normalized, true);
+                    if (!matchedPlaces) {
+                        searchLocation(normalized);
+                    }
                 }
                 return true;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                return false;
+                String query = newText == null ? "" : newText.trim();
+                if (query.isEmpty()) {
+                    applyPlaceFilter("", false);
+                } else if (query.length() >= 2) {
+                    applyPlaceFilter(query, false);
+                }
+                return true;
             }
         });
+    }
+
+    private boolean applyPlaceFilter(@NonNull String query, boolean moveCameraToFirst) {
+        if (allPlaces.isEmpty()) {
+            return false;
+        }
+
+        String normalized = query.trim().toLowerCase(Locale.US);
+        if (normalized.isEmpty()) {
+            renderPlaceMarkers(allPlaces);
+            return true;
+        }
+
+        List<FoodPlace> filtered = new ArrayList<>();
+        for (FoodPlace place : allPlaces) {
+            String name = place.getName() == null ? "" : place.getName().toLowerCase(Locale.US);
+            String address = place.getAddress() == null ? "" : place.getAddress().toLowerCase(Locale.US);
+            String category = place.getCategory() == null ? "" : place.getCategory().toLowerCase(Locale.US);
+            if (name.contains(normalized) || address.contains(normalized) || category.contains(normalized)) {
+                filtered.add(place);
+            }
+        }
+
+        if (filtered.isEmpty()) {
+            return false;
+        }
+
+        renderPlaceMarkers(filtered);
+        if (moveCameraToFirst && mMap != null) {
+            FoodPlace first = filtered.get(0);
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                    new LatLng(first.getLatitude(), first.getLongitude()),
+                    14f
+            ));
+        }
+        return true;
     }
 
     private void searchLocation(@NonNull String locationName) {
@@ -343,6 +390,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 if (loadingOverlay != null) {
                     loadingOverlay.setVisibility(View.GONE);
                 }
+                allPlaces.clear();
+                allPlaces.addAll(places);
                 if (places.isEmpty()) {
                     showNoRegisteredHotelsState();
                     return;
@@ -366,6 +415,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             mMap.clear();
             markerPlaceMap.clear();
             markerByHotelId.clear();
+            searchMarker = null;
+            clearRouteOnly();
         }
         clearSelectedState();
     }
@@ -539,11 +590,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         mMap.clear();
         markerPlaceMap.clear();
         markerByHotelId.clear();
+        searchMarker = null;
         clearRouteOnly();
 
         List<FoodPlace> sortedPlaces = new ArrayList<>(places);
         if (currentUserLatLng != null) {
-            Collections.sort(sortedPlaces, Comparator.comparingDouble(place ->
+            sortedPlaces.sort(Comparator.comparingDouble(place ->
                     LocationUtils.calculateDistance(
                             currentUserLatLng.latitude,
                             currentUserLatLng.longitude,
@@ -596,7 +648,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             return;
         }
 
-        mMap.addMarker(new MarkerOptions()
+        if (searchMarker != null) {
+            searchMarker.remove();
+        }
+
+        searchMarker = mMap.addMarker(new MarkerOptions()
                 .position(searchPin)
                 .title(searchQueryLabel != null ? searchQueryLabel : "Searched location")
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
@@ -623,7 +679,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         ));
         tvRouteInfo.setText(getString(R.string.map_tap_marker_route));
         tvAvailableItems.setText(getString(R.string.map_loading_items));
-        loadAvailableItemsPreview(place.getId(), place.getName());
+        loadAvailableItemsPreview(place.getId());
         if (ivRestaurantImage instanceof ImageView) {
             ((ImageView) ivRestaurantImage).setImageResource(R.drawable.placeholder_food);
         }
@@ -738,7 +794,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
-    private void loadAvailableItemsPreview(@NonNull String hotelId, @NonNull String hotelName) {
+    private void loadAvailableItemsPreview(@NonNull String hotelId) {
         if (hotelFoodPreviewCache.containsKey(hotelId)) {
             tvAvailableItems.setText(hotelFoodPreviewCache.get(hotelId));
             return;
@@ -787,7 +843,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 }
 
                 hotelFoodPreviewCache.put(hotelId, previewText);
-                if (tvAvailableItems != null) {
+                if (tvAvailableItems != null && selectedPlace != null && hotelId.equals(selectedPlace.getId())) {
                     tvAvailableItems.setText(previewText);
                 }
             }
@@ -834,7 +890,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             currentSelectedMarker = null;
         }
         clearRouteOnly();
-        bottomSheet.setVisibility(View.GONE);
+        if (bottomSheet != null) {
+            bottomSheet.setVisibility(View.GONE);
+        }
         if (tvAvailableItems != null) {
             tvAvailableItems.setText(getString(R.string.map_items_tap_marker));
         }

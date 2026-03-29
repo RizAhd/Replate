@@ -143,7 +143,7 @@
     <string name="profile_help_support">Help &amp; Support</string>
     <string name="profile_logout">Logout</string>
     <string name="profile_delete_account">Delete Account</string>
-    <string name="profile_version">REPLATE v1.0.0</string>
+    <string name="profile_version">REPLATE v1.1.0</string>
 
     <!-- Delete Account -->
     <string name="delete_account_title">Delete Account</string>
@@ -182,7 +182,7 @@
     <string name="settings_preferences">Preferences</string>
     <string name="settings_push_notifications">Push Notifications</string>
     <string name="settings_location_services">Location Services</string>
-    <string name="settings_version">Version 1.0.0</string>
+    <string name="settings_version">Version 1.1.0</string>
     <string name="settings_notification_tools">Notification Tools</string>
     <string name="settings_notification_tools_desc">Refresh your FCM token, verify what is saved for this account, and send a secure self-test push.</string>
     <string name="settings_send_test_push">Send Test Push</string>
@@ -345,5 +345,10 @@ Total: LKR %1$.2f</string>
     <string name="search_recent_title">Recent Searches</string>
     <string name="search_recent_clear">Clear</string>
     <string name="search_empty_suggestion">Try adjusting your search or filters</string>
+
+    <!-- Help -->
+    <string name="help_title">Help &amp; Support</string>
+    <string name="help_body">Need a hand?\n\nBrowse nearby deals from the home screen, find pickup locations on the map, chat with hotels about your order, or track orders in the Orders tab.\n\nFor support, email: support@replate.app</string>
+    <string name="help_dismiss">Got it</string>
 
 </resources>

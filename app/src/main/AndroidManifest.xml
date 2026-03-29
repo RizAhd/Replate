@@ -80,20 +80,11 @@
         <activity android:name=".ChatActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
         <activity android:name=".MockPayHereActivity"
             android:exported="false"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+            android:theme="@style/Theme.REPLATE" />
         <activity
             android:name=".LocationPickerActivity"
             android:screenOrientation="portrait"
             android:label="Pick Location"/>
-
-        <!-- PayHere SDK Activity - Disabled due to repo outage
-        <activity
-            android:name="lk.payhere.androidsdk.PHMainActivity"
-            android:exported="false"
-            android:label="PayHere Payment"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
-        -->
 
 
         <activity android:name=".PayHereWebCheckoutActivity"

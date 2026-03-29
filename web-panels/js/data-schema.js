@@ -29,9 +29,9 @@ const ReplateSchema = (() => {
     /** Human-readable label for a normalised status. */
     function statusLabel(status) {
         switch (normalizeOrderStatus(status)) {
-            case 'completed': return '✅ Completed';
-            case 'cancelled': return '❌ Cancelled';
-            default:          return '⏳ Pending Pickup';
+            case 'completed': return 'Completed';
+            case 'cancelled': return 'Cancelled';
+            default:          return 'Pending Pickup';
         }
     }
 

@@ -10,7 +10,6 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -60,6 +59,8 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
     private OrderAdapter adapter;
     private List<Order> allOrders = new ArrayList<>();
     private List<Order> filteredOrders = new ArrayList<>();
+    private ValueEventListener ordersListener;
+    private Query ordersQuery;
 
     private String currentFilter = "active"; // active, completed, cancelled
 
@@ -148,11 +149,16 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
         progressBar.setVisibility(View.VISIBLE);
         String userId = mAuth.getCurrentUser().getUid();
 
-        Query ordersQuery = mDatabase.child("orders")
+        // Remove previous listener if any
+        if (ordersQuery != null && ordersListener != null) {
+            ordersQuery.removeEventListener(ordersListener);
+        }
+
+        ordersQuery = mDatabase.child("orders")
                 .orderByChild("userId")
                 .equalTo(userId);
 
-        ordersQuery.addValueEventListener(new ValueEventListener() {
+        ordersListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 allOrders.clear();
@@ -196,7 +202,9 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
                     ToastUtils.showCustomToast(ctx, "Failed to load orders");
                 }
             }
-        });
+        };
+
+        ordersQuery.addValueEventListener(ordersListener);
     }
 
     private void filterOrders() {
@@ -298,5 +306,13 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
                         ToastUtils.showCustomToast(ctx, "Failed to cancel order");
                     }
                 });
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (ordersQuery != null && ordersListener != null) {
+            ordersQuery.removeEventListener(ordersListener);
+        }
     }
 }
