@@ -7,40 +7,76 @@ const ReplateSchema = (() => {
 
     /**
      * Normalise every possible order-status variant to one of:
-     *   pending_pickup | completed | cancelled
+     *   pending_pickup | pending_delivery | confirmed | preparing |
+     *   ready | out_for_delivery | delivered | completed | cancelled
      */
     function normalizeOrderStatus(raw) {
         if (!raw) return 'pending_pickup';
         const s = String(raw).toLowerCase().trim();
         if (s === 'completed' || s === 'complete' || s === 'done') return 'completed';
         if (s === 'cancelled' || s === 'canceled') return 'cancelled';
+        if (s === 'delivered') return 'delivered';
+        if (s === 'out_for_delivery') return 'out_for_delivery';
+        if (s === 'preparing') return 'preparing';
+        if (s === 'confirmed') return 'confirmed';
+        if (s === 'ready') return 'ready';
+        if (s === 'pending_delivery') return 'pending_delivery';
+        if (s === 'pending' || s === 'pending_pickup') return 'pending_pickup';
         return 'pending_pickup';
     }
 
     /** Bootstrap badge class for a normalised status. */
     function statusBadgeClass(status) {
-        switch (normalizeOrderStatus(status)) {
-            case 'completed': return 'badge-success';
-            case 'cancelled': return 'badge-danger';
-            default:          return 'badge-warning';
+        const s = normalizeOrderStatus(status);
+        switch (s) {
+            case 'completed':
+            case 'delivered':
+                return 'badge-success';
+            case 'cancelled':
+                return 'badge-danger';
+            case 'confirmed':
+            case 'preparing':
+            case 'ready':
+            case 'out_for_delivery':
+                return 'badge-primary';
+            default:
+                return 'badge-warning';
         }
     }
 
     /** Human-readable label for a normalised status. */
     function statusLabel(status) {
-        switch (normalizeOrderStatus(status)) {
-            case 'completed': return 'Completed';
-            case 'cancelled': return 'Cancelled';
-            default:          return 'Pending Pickup';
+        const s = normalizeOrderStatus(status);
+        switch (s) {
+            case 'pending_pickup':     return 'Pending Pickup';
+            case 'pending_delivery':   return 'Pending Delivery';
+            case 'confirmed':          return 'Confirmed';
+            case 'preparing':          return 'Preparing';
+            case 'ready':              return 'Ready for Pickup';
+            case 'out_for_delivery':   return 'Out for Delivery';
+            case 'delivered':          return 'Delivered';
+            case 'completed':          return 'Completed';
+            case 'cancelled':          return 'Cancelled';
+            default:                   return 'Pending';
         }
     }
 
     /** Bootstrap bg-* class */
     function statusBgClass(status) {
-        switch (normalizeOrderStatus(status)) {
-            case 'completed': return 'bg-success';
-            case 'cancelled': return 'bg-danger';
-            default:          return 'bg-warning text-dark';
+        const s = normalizeOrderStatus(status);
+        switch (s) {
+            case 'completed':
+            case 'delivered':
+                return 'bg-success';
+            case 'cancelled':
+                return 'bg-danger';
+            case 'confirmed':
+            case 'preparing':
+            case 'ready':
+            case 'out_for_delivery':
+                return 'bg-primary';
+            default:
+                return 'bg-warning text-dark';
         }
     }
 

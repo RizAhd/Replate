@@ -203,11 +203,23 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
                 case "pending_pickup":
                     tvOrderStatus.setText("🛍️ Pending Pickup");
                     break;
+                case "pending_delivery":
+                    tvOrderStatus.setText("📦 Pending Delivery");
+                    break;
                 case "confirmed":
                     tvOrderStatus.setText("✅ Order Confirmed");
                     break;
+                case "preparing":
+                    tvOrderStatus.setText("👨‍🍳 Preparing");
+                    break;
                 case "ready":
                     tvOrderStatus.setText("🍽️ Ready for Pickup");
+                    break;
+                case "out_for_delivery":
+                    tvOrderStatus.setText("🚚 Out for Delivery");
+                    break;
+                case "delivered":
+                    tvOrderStatus.setText("📬 Delivered");
                     break;
                 case "completed":
                     tvOrderStatus.setText("🎉 Order Completed");
@@ -224,7 +236,18 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         tvHotelAddress.setText(order.getHotelAddress() != null && !order.getHotelAddress().trim().isEmpty()
                 ? order.getHotelAddress()
                 : "Pickup address will be shared by the hotel");
-        tvPickupTime.setText("Pickup: " + (order.getPickupTime() != null ? order.getPickupTime() : "N/A"));
+
+        // Show delivery address or pickup time depending on order type
+        if (order.isDelivery()) {
+            String addr = order.getDeliveryAddress();
+            if (addr != null && !addr.isEmpty() && !"Pickup at Hotel".equalsIgnoreCase(addr)) {
+                tvPickupTime.setText("📍 Delivery to: " + addr);
+            } else {
+                tvPickupTime.setText("🚚 Delivery Order");
+            }
+        } else {
+            tvPickupTime.setText("Pickup: " + (order.getPickupTime() != null ? order.getPickupTime() : "N/A"));
+        }
 
         tvTotalAmount.setText(String.format(Locale.getDefault(), "LKR %.2f", order.getTotalAmountValue()));
         tvPaymentMethod.setText(order.getPaymentMethod() != null ? order.getPaymentMethod() : "N/A");
@@ -241,7 +264,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
     private void updateReviewSection() {
         if (reviewSection == null || order == null) return;
 
-        boolean completed = order.isCompleted();
+        boolean completed = order.isCompleted(); // includes "completed" and "delivered"
         boolean hasReview = order.hasReview();
 
         if (!completed) {

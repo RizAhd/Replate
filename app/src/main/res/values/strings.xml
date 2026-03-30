@@ -383,4 +383,7 @@ Total: LKR %1$.2f</string>
     <string name="auth_not_registered_title">Account Not Found</string>
     <string name="auth_not_registered_message">No account exists with this email address.\n\nPlease register first to create your account, then come back and log in.</string>
 
+    <!-- App footer attribution -->
+    <string name="app_footer_built_by">REPLATE V1.1.0 • Built by Riflan Mohamed • 2026</string>
+
 </resources>

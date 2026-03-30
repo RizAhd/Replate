@@ -274,6 +274,15 @@
                     android:layout_marginTop="@dimen/space_0_5"
                     android:text="@string/settings_version"
                     android:textAppearance="@style/TextAppearance.REPLATE.Overline" />
+
+                <TextView
+                    android:id="@+id/tvBuildAttribution"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/space_0_5"
+                    android:text="@string/app_footer_built_by"
+                    android:textAppearance="@style/TextAppearance.REPLATE.Caption"
+                    android:textColor="@color/text_secondary" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
     </LinearLayout>

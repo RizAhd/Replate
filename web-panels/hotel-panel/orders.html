@@ -212,27 +212,47 @@
                 const label      = ReplateSchema.statusLabel(status);
                 const amount     = ReplateSchema.formatAmount(order.totalAmount || order.totalPrice);
                 const displayId  = ReplateSchema.shortOrderId(order, key);
-                const isNew      = status === 'pending_pickup';
+                const isActive   = !['completed', 'delivered', 'cancelled'].includes(status);
+                const isDelivery = (order.orderType || '').toLowerCase() === 'delivery';
+                const typeIcon   = isDelivery ? '🚚' : '🛍️';
                 const review = Number(order.reviewRating || 0);
                 const reviewText = review > 0 ? `⭐ ${review.toFixed(1)}` : '<span class="text-muted">No review</span>';
 
+                let actionButtons = `<button class="btn btn-sm btn-outline-primary" onclick="viewOrderByKey('${key}')">
+                    <i class="fas fa-eye"></i> View
+                </button>`;
+
+                if (isActive) {
+                    if (isDelivery) {
+                        // Delivery order actions
+                        if (status === 'pending_delivery' || status === 'pending_pickup' || status === 'confirmed' || status === 'preparing') {
+                            actionButtons += ` <button class="btn btn-sm btn-info ms-1 text-white" onclick="markOutForDelivery('${key}')">
+                                <i class="fas fa-truck"></i> Dispatch
+                            </button>`;
+                        }
+                        if (status === 'out_for_delivery') {
+                            actionButtons += ` <button class="btn btn-sm btn-success ms-1" onclick="markDelivered('${key}')">
+                                <i class="fas fa-check-double"></i> Delivered
+                            </button>`;
+                        }
+                    } else {
+                        // Pickup order — show Done button
+                        actionButtons += ` <button class="btn btn-sm btn-success ms-1" onclick="quickComplete('${key}')">
+                            <i class="fas fa-check"></i> Done
+                        </button>`;
+                    }
+                }
+
                 return `
-                    <tr class="${isNew ? 'order-new' : ''}">
+                    <tr class="${isActive ? 'order-new' : ''}">
                         <td data-label="Order ID"><code>#${displayId}</code></td>
                         <td data-label="Customer">${order.customerName || 'Customer'}<br>
                             <small class="text-muted">${order.customerPhone || ''}</small></td>
-                        <td data-label="Items">${itemNames}</td>
+                        <td data-label="Items">${typeIcon} ${itemNames}</td>
                         <td data-label="Total">LKR ${amount}</td>
                         <td data-label="Review">${reviewText}</td>
                         <td data-label="Status"><span class="${badgeClass}">${label}</span></td>
-                        <td data-label="Action" class="actions-cell">
-                            <button class="btn btn-sm btn-outline-primary" onclick="viewOrderByKey('${key}')">
-                                <i class="fas fa-eye"></i> View
-                            </button>
-                            ${isNew ? `<button class="btn btn-sm btn-success ms-1" onclick="quickComplete('${key}')">
-                                <i class="fas fa-check"></i> Done
-                            </button>` : ''}
-                        </td>
+                        <td data-label="Action" class="actions-cell">${actionButtons}</td>
                     </tr>`;
             }).join('');
 
@@ -351,7 +371,7 @@
         currentOrderKey = key;
 
         const status = ReplateSchema.normalizeOrderStatus(order.orderStatus);
-        if (status === 'completed') {
+        if (status === 'completed' || status === 'delivered') {
             alert('ℹ️ This order is already completed.');
             return;
         }
@@ -384,15 +404,59 @@
 
     function confirmPickup() {
         if (!currentOrderKey) return;
-        database.ref('orders/' + currentOrderKey).update({
-            orderStatus: 'completed',
-            completedAt: Date.now()
-        }).then(() => {
-            sendCompletionNotification(currentOrderKey);
-            if (verificationModalInstance) verificationModalInstance.hide();
-            ReplateUI.showAlert('✅ Order marked as completed!', 'success');
-        }).catch(err => alert('Error: ' + err.message));
+        database.ref('orders/' + currentOrderKey).once('value').then(snap => {
+            const order = snap.val() || {};
+            const isDelivery = (order.orderType || '').toLowerCase() === 'delivery';
+            const finalStatus = isDelivery ? 'delivered' : 'completed';
+
+            database.ref('orders/' + currentOrderKey).update({
+                orderStatus: finalStatus,
+                completedAt: Date.now(),
+                updatedAt: Date.now()
+            }).then(() => {
+                sendCompletionNotification(currentOrderKey);
+                if (verificationModalInstance) verificationModalInstance.hide();
+                ReplateUI.showAlert(isDelivery ? '✅ Order marked as delivered!' : '✅ Order marked as completed!', 'success');
+            }).catch(err => alert('Error: ' + err.message));
+        });
     }
+
+    window.markOutForDelivery = function(key) {
+        if (!confirm('Mark this order as "Out for Delivery"?')) return;
+        database.ref('orders/' + key).update({
+            orderStatus: 'out_for_delivery',
+            updatedAt: Date.now(),
+            dispatchedAt: Date.now()
+        }).then(() => {
+            ReplateUI.showAlert('🚚 Order dispatched for delivery!', 'info');
+            // Notify the customer
+            database.ref('orders/' + key).once('value').then(snapshot => {
+                const order = snapshot.val();
+                if (!order || !order.userId) return;
+                NotificationApi.sendTargeted({
+                    userIds: [order.userId],
+                    title: 'Order Out for Delivery',
+                    body: `Your order from ${order.hotelName || 'the restaurant'} is on its way!`,
+                    type: 'order_dispatched',
+                    route: 'order',
+                    orderId: key,
+                    hotelId: order.hotelId || ''
+                }).catch(err => console.error('Failed to send dispatch notification:', err));
+            });
+        }).catch(err => alert('Error: ' + err.message));
+    };
+
+    window.markDelivered = function(key) {
+        if (!confirm('Mark this order as "Delivered"?')) return;
+        database.ref('orders/' + key).update({
+            orderStatus: 'delivered',
+            completedAt: Date.now(),
+            updatedAt: Date.now()
+        }).then(() => {
+            sendCompletionNotification(key);
+            ReplateUI.showAlert('📬 Order marked as delivered!', 'success');
+        }).catch(err => alert('Error: ' + err.message));
+    };
 
     window.quickComplete = function(key) {
         database.ref('orders/' + key).once('value').then(snap => {
@@ -414,10 +478,16 @@
             const order = snapshot.val();
             if (!order || !order.userId) return;
 
+            const isDelivery = (order.orderType || '').toLowerCase() === 'delivery';
+            const title = isDelivery ? 'Order Delivered' : 'Pickup Confirmed';
+            const body = isDelivery
+                ? `Your order from ${order.hotelName || 'the restaurant'} has been delivered. Enjoy your meal!`
+                : `Your order at ${order.hotelName || 'the restaurant'} has been picked up. Enjoy your meal!`;
+
             NotificationApi.sendTargeted({
                 userIds: [order.userId],
-                title: 'Pickup Confirmed',
-                body: `Your order at ${order.hotelName || 'the restaurant'} has been picked up. Enjoy your meal!`,
+                title,
+                body,
                 type: 'order_completed',
                 route: 'order',
                 orderId: orderKey,

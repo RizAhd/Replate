@@ -36,6 +36,13 @@ public class Order implements Serializable {
     private String reviewComment;
     private Object reviewAt;
     private Object hasReview;
+    private String orderType;
+    private String deliveryAddress;
+    private Object deliveryLatitude;
+    private Object deliveryLongitude;
+    private Object subtotalAmount;
+    private Object deliveryFee;
+    private Object savingsAmount;
 
     public Order() {}
 
@@ -88,6 +95,28 @@ public class Order implements Serializable {
     public String getHotelAddress() { return hotelAddress; }
     public String getCustomerName() { return customerName; }
     public String getCustomerPhone() { return customerPhone; }
+    public String getOrderType() { return orderType; }
+    public String getDeliveryAddress() { return deliveryAddress; }
+
+    @Exclude
+    public double getDeliveryLatitudeValue() { return toDouble(deliveryLatitude); }
+    public Object getDeliveryLatitude() { return deliveryLatitude; }
+
+    @Exclude
+    public double getDeliveryLongitudeValue() { return toDouble(deliveryLongitude); }
+    public Object getDeliveryLongitude() { return deliveryLongitude; }
+
+    @Exclude
+    public double getSubtotalAmountValue() { return toDouble(subtotalAmount); }
+    public Object getSubtotalAmount() { return subtotalAmount; }
+
+    @Exclude
+    public double getDeliveryFeeValue() { return toDouble(deliveryFee); }
+    public Object getDeliveryFee() { return deliveryFee; }
+
+    @Exclude
+    public double getSavingsAmountValue() { return toDouble(savingsAmount); }
+    public Object getSavingsAmount() { return savingsAmount; }
 
     @Exclude
     public float getReviewRatingValue() { return (float) toDouble(reviewRating); }
@@ -131,6 +160,13 @@ public class Order implements Serializable {
     public void setReviewComment(String reviewComment) { this.reviewComment = reviewComment; }
     public void setReviewAt(Object reviewAt) { this.reviewAt = reviewAt; }
     public void setHasReview(Object hasReview) { this.hasReview = hasReview; }
+    public void setOrderType(String orderType) { this.orderType = orderType; }
+    public void setDeliveryAddress(String deliveryAddress) { this.deliveryAddress = deliveryAddress; }
+    public void setDeliveryLatitude(Object deliveryLatitude) { this.deliveryLatitude = deliveryLatitude; }
+    public void setDeliveryLongitude(Object deliveryLongitude) { this.deliveryLongitude = deliveryLongitude; }
+    public void setSubtotalAmount(Object subtotalAmount) { this.subtotalAmount = subtotalAmount; }
+    public void setDeliveryFee(Object deliveryFee) { this.deliveryFee = deliveryFee; }
+    public void setSavingsAmount(Object savingsAmount) { this.savingsAmount = savingsAmount; }
 
     // --- Helper methods ---
     @Exclude
@@ -138,13 +174,17 @@ public class Order implements Serializable {
         return orderStatus != null &&
                (orderStatus.equals("pending") ||
                 orderStatus.equals("pending_pickup") ||
+                orderStatus.equals("pending_delivery") ||
                 orderStatus.equals("confirmed") ||
-                orderStatus.equals("ready"));
+                orderStatus.equals("preparing") ||
+                orderStatus.equals("ready") ||
+                orderStatus.equals("out_for_delivery"));
     }
 
     @Exclude
     public boolean isCompleted() {
-        return orderStatus != null && orderStatus.equals("completed");
+        return orderStatus != null &&
+               (orderStatus.equals("completed") || orderStatus.equals("delivered"));
     }
 
     @Exclude
@@ -153,16 +193,25 @@ public class Order implements Serializable {
     }
 
     @Exclude
+    public boolean isDelivery() {
+        return orderType != null && orderType.equalsIgnoreCase("Delivery");
+    }
+
+    @Exclude
     public String getStatusDisplay() {
         if (orderStatus == null) return "Unknown";
         switch (orderStatus) {
-            case "pending": return "Pending Confirmation";
-            case "pending_pickup": return "Pending Pickup";
-            case "confirmed": return "Confirmed";
-            case "ready": return "Ready for Pickup";
-            case "completed": return "Completed";
-            case "cancelled": return "Cancelled";
-            default: return orderStatus;
+            case "pending":            return "Pending Confirmation";
+            case "pending_pickup":     return "Pending Pickup";
+            case "pending_delivery":   return "Pending Delivery";
+            case "confirmed":          return "Confirmed";
+            case "preparing":          return "Preparing";
+            case "ready":              return "Ready for Pickup";
+            case "out_for_delivery":   return "Out for Delivery";
+            case "delivered":          return "Delivered";
+            case "completed":          return "Completed";
+            case "cancelled":          return "Cancelled";
+            default:                   return orderStatus;
         }
     }
 

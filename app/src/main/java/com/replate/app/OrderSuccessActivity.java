@@ -185,7 +185,7 @@ public class OrderSuccessActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 String status = snapshot.getValue(String.class);
-                if ("completed".equals(status) && !completionShown) {
+                if (("completed".equals(status) || "delivered".equals(status)) && !completionShown) {
                     completionShown = true;
                     // Reload full order to get latest data
                     mDatabase.child("orders").child(orderId)
@@ -250,8 +250,9 @@ public class OrderSuccessActivity extends AppCompatActivity {
     }
 
     private void transitionToReviewState() {
-        // Update header
-        tvTitle.setText("Pickup Complete!");
+        // Update header based on order type
+        boolean isDelivery = order != null && order.isDelivery();
+        tvTitle.setText(isDelivery ? "Delivery Complete!" : "Pickup Complete!");
         tvSubtitle.setText("Thanks for using REPLATE");
 
         // Hide QR card (no longer needed)
@@ -259,7 +260,7 @@ public class OrderSuccessActivity extends AppCompatActivity {
 
         // Update status row
         statusSpinner.setVisibility(View.GONE);
-        tvStatus.setText("✅ Order completed");
+        tvStatus.setText(isDelivery ? "📬 Order delivered" : "✅ Order completed");
         tvStatus.setTextColor(getColor(R.color.green_primary));
 
         // Show review section (if not already reviewed)

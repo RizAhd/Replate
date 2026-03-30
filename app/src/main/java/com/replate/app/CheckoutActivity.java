@@ -537,7 +537,9 @@ public class CheckoutActivity extends AppCompatActivity {
                     com.replate.app.notifications.InAppNotificationCenter.publish(
                             new com.replate.app.notifications.InAppNotificationCenter.InAppNotificationMessage(
                                     "Order placed successfully",
-                                    "Your order has been placed and is waiting for pickup.",
+                                    isDelivery
+                                        ? "Your delivery order has been placed and is being processed."
+                                        : "Your order has been placed and is waiting for pickup.",
                                     com.replate.app.notifications.NotificationCategories.ORDER_PLACED,
                                     "order",
                                     orderId,

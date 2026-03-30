@@ -107,16 +107,28 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
             // Total amount
             tvTotalAmount.setText(String.format(Locale.getDefault(), "LKR %.2f", order.getTotalAmountValue()));
 
-            // Order status
-            tvOrderStatus.setText(order.getStatusDisplay());
+            // Order status — include order type prefix for delivery orders
+            String statusText = order.getStatusDisplay();
+            if (order.isDelivery()) {
+                statusText = "🚚 " + statusText;
+            }
+            tvOrderStatus.setText(statusText);
             setStatusColor(order.getOrderStatus());
 
             // Order date
             SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy • hh:mm a", Locale.getDefault());
             tvOrderDate.setText(sdf.format(new Date(order.getCreatedAtValue())));
 
-            // Pickup time
-            if (order.getPickupTime() != null && !order.getPickupTime().isEmpty() && !"N/A".equalsIgnoreCase(order.getPickupTime())) {
+            // Pickup time / delivery info
+            if (order.isDelivery()) {
+                String addr = order.getDeliveryAddress();
+                if (addr != null && !addr.isEmpty() && !"Pickup at Hotel".equalsIgnoreCase(addr)) {
+                    tvPickupTime.setText("📍 Delivery: " + addr);
+                } else {
+                    tvPickupTime.setText("🚚 Delivery Order");
+                }
+                tvPickupTime.setVisibility(View.VISIBLE);
+            } else if (order.getPickupTime() != null && !order.getPickupTime().isEmpty() && !"N/A".equalsIgnoreCase(order.getPickupTime())) {
                 tvPickupTime.setText("Pickup " + order.getPickupTime());
                 tvPickupTime.setVisibility(View.VISIBLE);
             } else {
@@ -165,13 +177,19 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
                 switch (status) {
                     case "pending":
                     case "pending_pickup":
+                    case "pending_delivery":
                         color = R.color.warning;
                         break;
                     case "confirmed":
+                    case "preparing":
                     case "ready":
                         color = R.color.primary;
                         break;
+                    case "out_for_delivery":
+                        color = R.color.primary;
+                        break;
                     case "completed":
+                    case "delivered":
                         color = R.color.success;
                         break;
                     case "cancelled":
