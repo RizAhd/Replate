@@ -70,16 +70,11 @@ import de.hdodenhof.circleimageview.CircleImageView;
 public class SettingsActivity extends AppCompatActivity {
 
     private static final int CAMERA_PERMISSION_REQUEST = 2001;
-    private static final String FUNCTIONS_BASE_URL = "https://asia-southeast1-replate-food-rescue.cloudfunctions.net";
-    private static final String SELF_TEST_FUNCTION_PATH = "/sendSelfTestPush";
     private static final String TAG = "SettingsActivity";
 
     private CircleImageView ivProfileImage;
     private TextInputEditText etName, etPhone, etEmail, etAddress;
     private Button btnChangePhoto, btnSaveProfile, btnPickAddress;
-    private Button btnSendTestPush, btnRefreshFcmToken;
-    private TextView tvCurrentFcmToken;
-    private MaterialCardView cardNotificationTools;
     private SwitchMaterial switchNotifications, switchLocation;
 
     private FirebaseAuth mAuth;
@@ -182,8 +177,6 @@ public class SettingsActivity extends AppCompatActivity {
         initViews();
         loadUserData();
         loadPreferences();
-        bindCurrentTokenText(FcmTokenManager.getLastToken(this));
-        refreshSavedTokenFromFirebase();
     }
 
     private void initViews() {
@@ -196,10 +189,6 @@ public class SettingsActivity extends AppCompatActivity {
         btnChangePhoto = findViewById(R.id.btnChangePhoto);
         btnSaveProfile = findViewById(R.id.btnSaveProfile);
         btnPickAddress = findViewById(R.id.btnPickAddress);
-        btnSendTestPush = findViewById(R.id.btnSendTestPush);
-        btnRefreshFcmToken = findViewById(R.id.btnRefreshFcmToken);
-        tvCurrentFcmToken = findViewById(R.id.tvCurrentFcmToken);
-        cardNotificationTools = findViewById(R.id.cardNotificationTools);
         switchNotifications = findViewById(R.id.switchNotifications);
         switchLocation = findViewById(R.id.switchLocation);
 
@@ -219,22 +208,6 @@ public class SettingsActivity extends AppCompatActivity {
 
         switchLocation.setOnCheckedChangeListener((btn, checked) ->
                 prefs.edit().putBoolean("location_enabled", checked).apply());
-
-        setupNotificationTools();
-    }
-
-    private void setupNotificationTools() {
-        if (cardNotificationTools != null) {
-            cardNotificationTools.setVisibility(View.VISIBLE);
-        }
-
-        if (btnRefreshFcmToken != null) {
-            btnRefreshFcmToken.setOnClickListener(v -> refreshAndSyncToken());
-        }
-
-        if (btnSendTestPush != null) {
-            btnSendTestPush.setOnClickListener(v -> sendSelfTestPush());
-        }
     }
 
     private void requestNotificationPermissionFromSettings() {
@@ -259,201 +232,6 @@ public class SettingsActivity extends AppCompatActivity {
         NotificationPermissionHelper.request(notificationsPermissionLauncher);
     }
 
-    private void refreshAndSyncToken() {
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user == null) {
-            ToastUtils.showCustomToast(this, getString(R.string.settings_token_refresh_failed));
-            return;
-        }
-
-        ToastUtils.showCustomToast(this, getString(R.string.settings_token_refreshing));
-        FirebaseMessaging.getInstance().setAutoInitEnabled(true);
-        FirebaseMessaging.getInstance().getToken()
-                .addOnSuccessListener(token -> {
-                    if (token == null || token.trim().isEmpty()) {
-                        ToastUtils.showCustomToast(this, getString(R.string.settings_token_refresh_failed));
-                        return;
-                    }
-                    bindCurrentTokenText(token);
-                    String role = UserRoleHelper.fromPrefs(prefs);
-                    FcmTokenManager.persistLatestToken(this, token);
-                    FcmTokenManager.syncTokenForCurrentUser(this, role);
-                    Log.d(TAG, "Manual FCM token refresh completed for uid=" + user.getUid() + " token=" + token);
-                    ToastUtils.showCustomToast(this, getString(R.string.settings_token_refreshed));
-                })
-                .addOnFailureListener(e -> {
-                    Log.w(TAG, "Manual FCM token refresh failed", e);
-                    ToastUtils.showCustomToast(this, getString(R.string.settings_token_refresh_failed));
-                });
-    }
-
-    private void refreshSavedTokenFromFirebase() {
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user == null) return;
-
-        FcmTokenManager.fetchReceiverToken(user.getUid(), result -> runOnUiThread(() -> {
-            if (!canUseUi()) return;
-            String token = result == null ? "" : result.token;
-            if (token == null || token.trim().isEmpty()) {
-                token = FcmTokenManager.getLastToken(SettingsActivity.this);
-            }
-            bindCurrentTokenText(token);
-        }));
-    }
-
-    private void bindCurrentTokenText(String token) {
-        if (tvCurrentFcmToken == null) return;
-        if (token == null || token.trim().isEmpty()) {
-            tvCurrentFcmToken.setText(getString(R.string.settings_current_fcm_token_empty));
-            return;
-        }
-        tvCurrentFcmToken.setText(getString(R.string.settings_current_fcm_token_format, token.trim()));
-        Log.d(TAG, "Current FCM token=" + token.trim());
-    }
-
-    private void sendSelfTestPush() {
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user == null) {
-            ToastUtils.showCustomToast(this, getString(R.string.settings_test_push_failed));
-            return;
-        }
-
-        if (!NotificationPermissionHelper.hasPermission(this)) {
-            requestNotificationPermissionFromSettings();
-            return;
-        }
-
-        ToastUtils.showCustomToast(this, getString(R.string.settings_test_push_sending));
-
-        networkExecutor.execute(() -> {
-            HttpURLConnection connection = null;
-            boolean cloudFunctionSucceeded = false;
-            try {
-                String idToken = Tasks.await(user.getIdToken(true), 20, TimeUnit.SECONDS).getToken();
-                if (idToken == null || idToken.trim().isEmpty()) {
-                    throw new IllegalStateException("Missing auth token");
-                }
-
-                JSONObject payload = new JSONObject();
-                payload.put("title", "REPLATE Test Push");
-                payload.put("body", "If you can see this popup, push notifications are working.");
-                payload.put("category", "admin_announcement");
-                payload.put("route", "notifications");
-                payload.put("data", new JSONObject().put("debug", "true").put("source", "settings_self_test"));
-
-                String requestUrl = FUNCTIONS_BASE_URL + SELF_TEST_FUNCTION_PATH;
-                Log.d(TAG, "sendSelfTestPush request URL: " + requestUrl);
-                URL url = new URL(requestUrl);
-                connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("POST");
-                connection.setConnectTimeout(10000);
-                connection.setReadTimeout(10000);
-                connection.setDoOutput(true);
-                connection.setRequestProperty("Content-Type", "application/json");
-                connection.setRequestProperty("Authorization", "Bearer " + idToken);
-
-                byte[] out = payload.toString().getBytes(StandardCharsets.UTF_8);
-                connection.getOutputStream().write(out);
-
-                int code = connection.getResponseCode();
-                BufferedReader reader = new BufferedReader(new InputStreamReader(
-                        code >= 200 && code < 300 ? connection.getInputStream() : connection.getErrorStream(),
-                        StandardCharsets.UTF_8
-                ));
-                StringBuilder response = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) response.append(line);
-                reader.close();
-
-                Log.d(TAG, "sendSelfTestPush HTTP " + code + " response from " + requestUrl + ": " + response);
-                if (code >= 200 && code < 300) {
-                    cloudFunctionSucceeded = true;
-                    runOnUiThread(() -> ToastUtils.showCustomToast(SettingsActivity.this,
-                            getString(R.string.settings_test_push_sent)));
-                } else {
-                    Log.w(TAG, "Cloud function returned " + code + ", falling back to local notification");
-                }
-            } catch (Exception e) {
-                Log.w(TAG, "Cloud function call failed, falling back to local notification", e);
-            } finally {
-                if (connection != null) connection.disconnect();
-            }
-
-            // Fallback: show a local notification directly if cloud function not deployed
-            if (!cloudFunctionSucceeded) {
-                showLocalTestNotification();
-            }
-        });
-    }
-
-    /**
-     * Shows a local test notification directly on the device.
-     * Used as fallback when Cloud Function is not deployed yet.
-     */
-    private void showLocalTestNotification() {
-        try {
-            String channelId = "replate_notifications_v4";
-
-            // Create channel if needed (Android 8+)
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                android.app.NotificationManager nm =
-                        (android.app.NotificationManager) getSystemService(android.content.Context.NOTIFICATION_SERVICE);
-                if (nm != null && nm.getNotificationChannel(channelId) == null) {
-                    android.app.NotificationChannel channel = new android.app.NotificationChannel(
-                            channelId, "REPLATE Alerts",
-                            android.app.NotificationManager.IMPORTANCE_HIGH);
-                    channel.setDescription("Order, deal and pickup alerts");
-                    channel.enableVibration(true);
-                    channel.enableLights(true);
-                    channel.setShowBadge(true);
-                    nm.createNotificationChannel(channel);
-                }
-            }
-
-            Intent tapIntent = new Intent(this, MainActivity.class);
-            tapIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            android.app.PendingIntent pendingIntent = android.app.PendingIntent.getActivity(
-                    this, (int) System.currentTimeMillis(), tapIntent,
-                    android.app.PendingIntent.FLAG_UPDATE_CURRENT | android.app.PendingIntent.FLAG_IMMUTABLE);
-
-            android.graphics.Bitmap largeIcon =
-                    android.graphics.BitmapFactory.decodeResource(getResources(), R.drawable.replate);
-
-            androidx.core.app.NotificationCompat.Builder builder =
-                    new androidx.core.app.NotificationCompat.Builder(this, channelId)
-                            .setSmallIcon(R.drawable.ic_notif_replate)
-                            .setLargeIcon(largeIcon)
-                            .setContentTitle("REPLATE Test Push")
-                            .setContentText("Push notifications are working! (local test)")
-                            .setStyle(new androidx.core.app.NotificationCompat.BigTextStyle()
-                                    .bigText("Push notifications are working! This is a local test notification. " +
-                                            "Cloud Function endpoint is not deployed yet — deploy with: firebase deploy --only functions"))
-                            .setAutoCancel(true)
-                            .setSound(android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_NOTIFICATION))
-                            .setContentIntent(pendingIntent)
-                            .setPriority(androidx.core.app.NotificationCompat.PRIORITY_HIGH)
-                            .setDefaults(androidx.core.app.NotificationCompat.DEFAULT_ALL)
-                            .setVisibility(androidx.core.app.NotificationCompat.VISIBILITY_PUBLIC)
-                            .setColor(ContextCompat.getColor(this, R.color.primary));
-
-            androidx.core.app.NotificationManagerCompat notifManager =
-                    androidx.core.app.NotificationManagerCompat.from(this);
-
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-                    == PackageManager.PERMISSION_GRANTED
-                    || android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.TIRAMISU) {
-                notifManager.notify((int) System.currentTimeMillis(), builder.build());
-            }
-
-            Log.d(TAG, "Local test notification shown (cloud function fallback)");
-            runOnUiThread(() -> ToastUtils.showCustomToast(SettingsActivity.this,
-                    getString(R.string.settings_test_push_sent) + " (local)"));
-        } catch (Exception e) {
-            Log.e(TAG, "Local test notification failed", e);
-            runOnUiThread(() -> ToastUtils.showCustomToast(SettingsActivity.this,
-                    getString(R.string.settings_test_push_failed)));
-        }
-    }
 
     private void loadUserData() {
         FirebaseUser user = mAuth.getCurrentUser();

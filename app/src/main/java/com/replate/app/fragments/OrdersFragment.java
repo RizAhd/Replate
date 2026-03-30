@@ -309,10 +309,22 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        // Re-attach real-time listener when fragment comes back to foreground
+        // This ensures new orders (e.g. after PayHere payment) appear immediately
+        if (ordersQuery == null || ordersListener == null) {
+            loadOrders();
+        }
+    }
+
+    @Override
     public void onDestroyView() {
         super.onDestroyView();
         if (ordersQuery != null && ordersListener != null) {
             ordersQuery.removeEventListener(ordersListener);
+            ordersListener = null;
+            ordersQuery = null;
         }
     }
 }

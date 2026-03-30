@@ -5,6 +5,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.provider.Settings;
@@ -54,7 +58,10 @@ import com.replate.app.utils.UserRoleHelper;
 
 import java.util.concurrent.TimeUnit;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements SensorEventListener {
+
+    private static final float SHAKE_THRESHOLD = 12.0f;
+    private static final long SHAKE_COOLDOWN_MS = 2000;
 
     private BottomNavigationView bottomNavigation;
     private DrawerLayout drawerLayout;
@@ -69,6 +76,11 @@ public class MainActivity extends AppCompatActivity {
 
     private NetworkChangeReceiver networkReceiver;
     private View mainContent;
+
+    // Accelerometer shake detection
+    private SensorManager sensorManager;
+    private Sensor accelerometer;
+    private long lastShakeTime = 0;
 
     private final com.replate.app.notifications.InAppNotificationCenter.Listener inAppListener = message ->
             runOnUiThread(() -> com.replate.app.notifications.InAppNotificationPopup.show(MainActivity.this, message));
@@ -183,6 +195,12 @@ public class MainActivity extends AppCompatActivity {
         });
 
         handleDeepLinkFromNotification(getIntent());
+
+        // Setup accelerometer for shake-to-refresh
+        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        if (sensorManager != null) {
+            accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        }
 
         // Modern back navigation via OnBackPressedDispatcher
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
@@ -407,6 +425,78 @@ public class MainActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         com.replate.app.notifications.InAppNotificationCenter.unregister(inAppListener);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (sensorManager != null && accelerometer != null) {
+            sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (sensorManager != null) {
+            sensorManager.unregisterListener(this);
+        }
+    }
+
+    // ─── Accelerometer shake-to-refresh ─────────────────────────────
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        if (event.sensor.getType() != Sensor.TYPE_ACCELEROMETER) return;
+
+        float x = event.values[0];
+        float y = event.values[1];
+        float z = event.values[2];
+
+        // Calculate acceleration magnitude (minus gravity)
+        double acceleration = Math.sqrt(x * x + y * y + z * z) - SensorManager.GRAVITY_EARTH;
+
+        if (acceleration > SHAKE_THRESHOLD) {
+            long now = System.currentTimeMillis();
+            if (now - lastShakeTime > SHAKE_COOLDOWN_MS) {
+                lastShakeTime = now;
+                onShakeDetected();
+            }
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        // Not needed
+    }
+
+    private void onShakeDetected() {
+        // Short vibration feedback
+        try {
+            android.os.Vibrator vibrator = (android.os.Vibrator) getSystemService(VIBRATOR_SERVICE);
+            if (vibrator != null && vibrator.hasVibrator()) {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    vibrator.vibrate(android.os.VibrationEffect.createOneShot(100,
+                            android.os.VibrationEffect.DEFAULT_AMPLITUDE));
+                } else {
+                    vibrator.vibrate(100);
+                }
+            }
+        } catch (Exception ignored) {}
+
+        com.replate.app.utils.ToastUtils.showCustomToast(this, "Refreshing...");
+        refreshCurrentFragment();
+    }
+
+    private void refreshCurrentFragment() {
+        Fragment current = getSupportFragmentManager().findFragmentById(R.id.fragmentContainer);
+        if (current instanceof HomeFragment) {
+            ((HomeFragment) current).refreshData();
+        } else if (current != null) {
+            // Detach then attach in separate transactions to force view recreation
+            final Fragment frag = current;
+            getSupportFragmentManager().beginTransaction().detach(frag).commitNow();
+            getSupportFragmentManager().beginTransaction().attach(frag).commitNow();
+        }
     }
 
     @Override

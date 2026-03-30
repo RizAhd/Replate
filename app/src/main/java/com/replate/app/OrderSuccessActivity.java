@@ -1,11 +1,20 @@
 package com.replate.app;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.media.AudioAttributes;
+import android.media.MediaPlayer;
+import android.media.RingtoneManager;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
+import android.os.VibratorManager;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.OvershootInterpolator;
@@ -80,6 +89,7 @@ public class OrderSuccessActivity extends AppCompatActivity {
         loadOrder();
         attachStatusListener();
         playEntranceAnimation();
+        playOrderPlacedFeedback();
 
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
@@ -391,6 +401,44 @@ public class OrderSuccessActivity extends AppCompatActivity {
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) { }
                 });
+    }
+
+    /**
+     * Play a success bell/notification sound + vibration pattern when order is placed.
+     */
+    private void playOrderPlacedFeedback() {
+        // 1. Play notification bell sound
+        try {
+            Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+            MediaPlayer mp = MediaPlayer.create(this, soundUri);
+            if (mp != null) {
+                mp.setOnCompletionListener(MediaPlayer::release);
+                mp.start();
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "Could not play order success sound", e);
+        }
+
+        // 2. Vibrate with a celebratory pattern: short-pause-long
+        try {
+            Vibrator vibrator;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                VibratorManager vm = (VibratorManager) getSystemService(Context.VIBRATOR_MANAGER_SERVICE);
+                vibrator = vm != null ? vm.getDefaultVibrator() : null;
+            } else {
+                vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+            }
+            if (vibrator != null && vibrator.hasVibrator()) {
+                long[] pattern = {0, 100, 80, 200, 80, 300}; // off-on-off-on-off-on
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    vibrator.vibrate(VibrationEffect.createWaveform(pattern, -1));
+                } else {
+                    vibrator.vibrate(pattern, -1);
+                }
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "Could not vibrate on order success", e);
+        }
     }
 
     private void navigateToOrders() {

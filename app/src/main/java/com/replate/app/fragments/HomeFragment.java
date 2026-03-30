@@ -512,6 +512,13 @@ public class HomeFragment extends Fragment implements
         }
     }
 
+    /**
+     * Public method for shake-to-refresh from MainActivity.
+     */
+    public void refreshData() {
+        loadFoodItems();
+    }
+
     private void loadFoodItems() {
         // Keep cached content visible while refreshing from network.
         if (allFoodItems == null || allFoodItems.isEmpty()) {
