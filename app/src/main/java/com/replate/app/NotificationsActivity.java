@@ -1,8 +1,13 @@
 package com.replate.app;
 
 import android.content.Intent;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.RectF;
 import android.os.Bundle;
 import android.view.View;
+import android.view.animation.AnimationUtils;
+import android.view.animation.LayoutAnimationController;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -11,9 +16,12 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -39,7 +47,7 @@ public class NotificationsActivity extends AppCompatActivity
     private RecyclerView rvNotifications;
     private LinearLayout emptyState;
     private ProgressBar progressBar;
-    private TextView tvMarkAllRead, tvDeleteAll;
+    private TextView tvMarkAllRead, tvDeleteAll, tvUnreadCount;
 
     private DatabaseReference mDatabase;
     private NotificationAdapter adapter;
@@ -69,16 +77,129 @@ public class NotificationsActivity extends AppCompatActivity
         progressBar = findViewById(R.id.progressBar);
         tvMarkAllRead = findViewById(R.id.tvMarkAllRead);
         tvDeleteAll = findViewById(R.id.tvDeleteAll);
+        tvUnreadCount = findViewById(R.id.tvUnreadCount);
 
         rvNotifications.setLayoutManager(new LinearLayoutManager(this));
         adapter = new NotificationAdapter(this, notifications, this);
         rvNotifications.setAdapter(adapter);
+
+        // Slide-in animation for items
+        try {
+            LayoutAnimationController animation = AnimationUtils.loadLayoutAnimation(
+                    this, R.anim.layout_animation_slide_from_bottom);
+            rvNotifications.setLayoutAnimation(animation);
+        } catch (Exception ignored) {
+            // Animation resource may not exist yet; skip gracefully
+        }
+
+        // Swipe-to-delete
+        ItemTouchHelper.SimpleCallback swipeCallback = new ItemTouchHelper.SimpleCallback(
+                0, ItemTouchHelper.LEFT) {
+
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView,
+                                  @NonNull RecyclerView.ViewHolder viewHolder,
+                                  @NonNull RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public int getSwipeDirs(@NonNull RecyclerView recyclerView,
+                                    @NonNull RecyclerView.ViewHolder viewHolder) {
+                // Don't allow swiping on header items
+                if (adapter.isHeader(viewHolder.getAdapterPosition())) {
+                    return 0;
+                }
+                return super.getSwipeDirs(recyclerView, viewHolder);
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                int position = viewHolder.getAdapterPosition();
+                AppNotification notif = adapter.getNotificationAt(position);
+                if (notif != null) {
+                    deleteNotificationWithUndo(notif);
+                } else {
+                    adapter.buildDisplayList();
+                    adapter.notifyDataSetChanged();
+                }
+            }
+
+            @Override
+            public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView,
+                                    @NonNull RecyclerView.ViewHolder viewHolder,
+                                    float dX, float dY, int actionState, boolean isCurrentlyActive) {
+                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE && dX < 0) {
+                    View itemView = viewHolder.itemView;
+                    Paint paint = new Paint();
+                    paint.setColor(ContextCompat.getColor(NotificationsActivity.this, R.color.error));
+                    paint.setAntiAlias(true);
+
+                    float cornerRadius = 16 * getResources().getDisplayMetrics().density;
+                    RectF background = new RectF(
+                            itemView.getRight() + dX,
+                            itemView.getTop(),
+                            itemView.getRight(),
+                            itemView.getBottom());
+                    c.drawRoundRect(background, cornerRadius, cornerRadius, paint);
+
+                    // Draw delete icon/text
+                    Paint textPaint = new Paint();
+                    textPaint.setColor(0xFFFFFFFF);
+                    textPaint.setTextSize(14 * getResources().getDisplayMetrics().density);
+                    textPaint.setAntiAlias(true);
+                    float textY = itemView.getTop() + (itemView.getHeight() + textPaint.getTextSize()) / 2f;
+                    float textX = itemView.getRight() - 24 * getResources().getDisplayMetrics().density
+                            - textPaint.measureText("Delete");
+                    if (textX > itemView.getRight() + dX + 8 * getResources().getDisplayMetrics().density) {
+                        c.drawText("Delete", textX, textY, textPaint);
+                    }
+                }
+                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+            }
+        };
+        new ItemTouchHelper(swipeCallback).attachToRecyclerView(rvNotifications);
 
         ivBack.setOnClickListener(v -> finish());
         tvMarkAllRead.setOnClickListener(v -> markAllAsRead());
         if (tvDeleteAll != null) {
             tvDeleteAll.setOnClickListener(v -> confirmDeleteAll());
         }
+    }
+
+    private void deleteNotificationWithUndo(AppNotification notification) {
+        String userId = FirebaseAuth.getInstance().getUid();
+        if (userId == null || notification.getNotificationId() == null) return;
+
+        // Remove from local list immediately for smooth UX
+        notifications.remove(notification);
+        adapter.buildDisplayList();
+        adapter.notifyDataSetChanged();
+        updateUI();
+
+        Snackbar snackbar = Snackbar.make(rvNotifications, "Notification deleted", Snackbar.LENGTH_LONG);
+        snackbar.setAction("Undo", v -> {
+            // Re-add to list and refresh
+            notifications.add(notification);
+            Collections.sort(notifications, (a, b) ->
+                    Long.compare(b.getTimestampValue(), a.getTimestampValue()));
+            adapter.buildDisplayList();
+            adapter.notifyDataSetChanged();
+            updateUI();
+        });
+        snackbar.addCallback(new Snackbar.Callback() {
+            @Override
+            public void onDismissed(Snackbar snackbar, int event) {
+                if (event != DISMISS_EVENT_ACTION) {
+                    // Only delete from Firebase if undo was NOT clicked
+                    mDatabase.child("notifications").child(userId)
+                            .child(notification.getNotificationId())
+                            .removeValue();
+                }
+            }
+        });
+        snackbar.setActionTextColor(ContextCompat.getColor(this, R.color.green_light));
+        snackbar.show();
     }
 
     private void loadNotifications() {
@@ -95,6 +216,7 @@ public class NotificationsActivity extends AppCompatActivity
             if (!cached.isEmpty() && notifications.isEmpty()) {
                 notifications.clear();
                 notifications.addAll(cached);
+                adapter.buildDisplayList();
                 adapter.notifyDataSetChanged();
                 updateUI();
             }
@@ -123,8 +245,15 @@ public class NotificationsActivity extends AppCompatActivity
                             localDb.cacheNotifications(notifications);
                         }
 
+                        adapter.buildDisplayList();
                         adapter.notifyDataSetChanged();
                         progressBar.setVisibility(View.GONE);
+
+                        // Run layout animation on first load
+                        if (rvNotifications.getLayoutAnimation() != null) {
+                            rvNotifications.scheduleLayoutAnimation();
+                        }
+
                         updateUI();
 
                         if (launchOrderId != null && !launchOrderId.trim().isEmpty()) {
@@ -142,6 +271,7 @@ public class NotificationsActivity extends AppCompatActivity
                             if (!cached.isEmpty()) {
                                 notifications.clear();
                                 notifications.addAll(cached);
+                                adapter.buildDisplayList();
                                 adapter.notifyDataSetChanged();
                                 updateUI();
                             }
@@ -156,19 +286,28 @@ public class NotificationsActivity extends AppCompatActivity
             emptyState.setVisibility(View.VISIBLE);
             tvMarkAllRead.setVisibility(View.GONE);
             if (tvDeleteAll != null) tvDeleteAll.setVisibility(View.GONE);
+            if (tvUnreadCount != null) tvUnreadCount.setVisibility(View.GONE);
         } else {
             rvNotifications.setVisibility(View.VISIBLE);
             emptyState.setVisibility(View.GONE);
             if (tvDeleteAll != null) tvDeleteAll.setVisibility(View.VISIBLE);
 
-            boolean hasUnread = false;
+            int unreadCount = 0;
             for (AppNotification notif : notifications) {
-                if (!notif.isRead()) {
-                    hasUnread = true;
-                    break;
+                if (!notif.isRead()) unreadCount++;
+            }
+
+            boolean hasUnread = unreadCount > 0;
+            tvMarkAllRead.setVisibility(hasUnread ? View.VISIBLE : View.GONE);
+
+            if (tvUnreadCount != null) {
+                if (hasUnread) {
+                    tvUnreadCount.setVisibility(View.VISIBLE);
+                    tvUnreadCount.setText(String.valueOf(unreadCount));
+                } else {
+                    tvUnreadCount.setVisibility(View.GONE);
                 }
             }
-            tvMarkAllRead.setVisibility(hasUnread ? View.VISIBLE : View.GONE);
         }
     }
 

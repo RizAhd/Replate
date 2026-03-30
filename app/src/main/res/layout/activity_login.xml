@@ -188,6 +188,46 @@
                             android:layout_height="@dimen/button_height"
                             android:layout_marginTop="22dp"
                             android:text="@string/auth_btn_login" />
+
+                        <!-- Divider: OR -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="18dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+                            <View
+                                android:layout_width="0dp"
+                                android:layout_height="1dp"
+                                android:layout_weight="1"
+                                android:background="@color/divider" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginHorizontal="12dp"
+                                android:text="or"
+                                android:textColor="@color/text_hint"
+                                android:textSize="13sp" />
+                            <View
+                                android:layout_width="0dp"
+                                android:layout_height="1dp"
+                                android:layout_weight="1"
+                                android:background="@color/divider" />
+                        </LinearLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnGoogleLogin"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="@dimen/button_height"
+                            android:layout_marginTop="14dp"
+                            android:text="Continue with Google"
+                            android:textColor="@color/text_primary"
+                            app:icon="@drawable/ic_google"
+                            app:iconGravity="textStart"
+                            app:iconTint="@null"
+                            app:strokeColor="@color/md_theme_outlineVariant"
+                            app:strokeWidth="1dp" />
                     </LinearLayout>
 
                     <!-- Register Form -->
@@ -297,6 +337,46 @@
                             android:layout_height="@dimen/button_height"
                             android:layout_marginTop="22dp"
                             android:text="@string/auth_btn_create_account" />
+
+                        <!-- Divider: OR -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="18dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+                            <View
+                                android:layout_width="0dp"
+                                android:layout_height="1dp"
+                                android:layout_weight="1"
+                                android:background="@color/divider" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginHorizontal="12dp"
+                                android:text="or"
+                                android:textColor="@color/text_hint"
+                                android:textSize="13sp" />
+                            <View
+                                android:layout_width="0dp"
+                                android:layout_height="1dp"
+                                android:layout_weight="1"
+                                android:background="@color/divider" />
+                        </LinearLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnGoogleRegister"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="@dimen/button_height"
+                            android:layout_marginTop="14dp"
+                            android:text="Continue with Google"
+                            android:textColor="@color/text_primary"
+                            app:icon="@drawable/ic_google"
+                            app:iconGravity="textStart"
+                            app:iconTint="@null"
+                            app:strokeColor="@color/md_theme_outlineVariant"
+                            app:strokeWidth="1dp" />
                     </LinearLayout>
 
                     <!-- Progress Bar -->

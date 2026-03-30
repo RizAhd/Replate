@@ -21,12 +21,19 @@ import androidx.core.content.ContextCompat;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.ApiException;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -56,6 +63,7 @@ public class LoginActivity extends AppCompatActivity {
     private TextInputEditText etLoginEmail, etLoginPassword;
     private Button btnLogin;
     private TextView tvForgotPassword;
+    private com.google.android.material.button.MaterialButton btnGoogleLogin;
 
     // Register form fields
     private TextInputLayout tilRegisterName, tilRegisterEmail, tilRegisterPhone;
@@ -63,8 +71,13 @@ public class LoginActivity extends AppCompatActivity {
     private TextInputEditText etRegisterName, etRegisterEmail, etRegisterPhone;
     private TextInputEditText etRegisterPassword, etRegisterConfirmPassword;
     private Button btnRegister;
+    private com.google.android.material.button.MaterialButton btnGoogleRegister;
+
+    // Google Sign-In
+    private GoogleSignInClient mGoogleSignInClient;
 
     private static final int REQ_POST_NOTIFICATIONS = 1201;
+    private static final int RC_GOOGLE_SIGN_IN = 9001;
 
 
     @Override
@@ -75,6 +88,14 @@ public class LoginActivity extends AppCompatActivity {
         // Initialize Firebase
         mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference();
+
+        // Initialize Google Sign-In
+        String webClientId = BuildConfig.GOOGLE_WEB_CLIENT_ID;
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(webClientId.isEmpty() ? getString(R.string.default_web_client_id) : webClientId)
+                .requestEmail()
+                .build();
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
         // Initialize views
         initializeViews();
@@ -115,6 +136,7 @@ public class LoginActivity extends AppCompatActivity {
         etLoginPassword = findViewById(R.id.etLoginPassword);
         btnLogin = findViewById(R.id.btnLogin);
         tvForgotPassword = findViewById(R.id.tvForgotPassword);
+        btnGoogleLogin = findViewById(R.id.btnGoogleLogin);
 
         // Register fields
         tilRegisterName = findViewById(R.id.tilRegisterName);
@@ -128,6 +150,7 @@ public class LoginActivity extends AppCompatActivity {
         etRegisterPassword = findViewById(R.id.etRegisterPassword);
         etRegisterConfirmPassword = findViewById(R.id.etRegisterConfirmPassword);
         btnRegister = findViewById(R.id.btnRegister);
+        btnGoogleRegister = findViewById(R.id.btnGoogleRegister);
     }
 
     private void setupTabLayout() {
@@ -178,6 +201,14 @@ public class LoginActivity extends AppCompatActivity {
                 showForgotPasswordDialog();
             }
         });
+
+        // Google Sign-In buttons
+        if (btnGoogleLogin != null) {
+            btnGoogleLogin.setOnClickListener(v -> signInWithGoogle());
+        }
+        if (btnGoogleRegister != null) {
+            btnGoogleRegister.setOnClickListener(v -> signInWithGoogle());
+        }
     }
 
     private void loginUser() {
@@ -215,17 +246,26 @@ public class LoginActivity extends AppCompatActivity {
                         return;
                     }
 
-                    // Enforce verified email before allowing app access.
-                    if (!user.isEmailVerified()) {
-                        showLoading(false);
-                        ToastUtils.showCustomToast(LoginActivity.this,
-                            "Please verify your email first. Verification mail sent.");
-                        user.sendEmailVerification();
-                        mAuth.signOut();
-                        return;
-                    }
+                    // Reload user to get fresh emailVerified status from Firebase
+                    user.reload().addOnCompleteListener(reloadTask -> {
+                        FirebaseUser freshUser = mAuth.getCurrentUser();
+                        if (freshUser == null) {
+                            showLoading(false);
+                            ToastUtils.showCustomToast(LoginActivity.this,
+                                "Login failed. Please try again.");
+                            return;
+                        }
 
-                    resolveUserRoleAndProceed(user);
+                        // Enforce verified email before allowing app access.
+                        if (!freshUser.isEmailVerified()) {
+                            showLoading(false);
+                            mAuth.signOut();
+                            showEmailNotVerifiedDialog(freshUser.getEmail());
+                            return;
+                        }
+
+                        resolveUserRoleAndProceed(freshUser);
+                    });
                 }
             });
     }
@@ -386,20 +426,93 @@ public class LoginActivity extends AppCompatActivity {
                         return;
                     }
 
-                    firebaseUser.sendEmailVerification().addOnCompleteListener(mailTask -> {
-                        showLoading(false);
-                        if (mailTask.isSuccessful()) {
-                            ToastUtils.showCustomToast(LoginActivity.this,
-                                "Verification email sent. Please check your inbox before login.");
-                        } else {
-                            ToastUtils.showCustomToast(LoginActivity.this,
-                                "Account created, but email send failed. You can retry from login.");
-                        }
-                        mAuth.signOut();
-                        tabLayout.selectTab(tabLayout.getTabAt(0));
-                    });
+                    // Send branded verification email via Cloud Function
+                    sendBrandedVerificationEmail(email,
+                        etRegisterName.getText() != null ? etRegisterName.getText().toString().trim() : "",
+                        firebaseUser);
                 }
             });
+    }
+
+    /**
+     * Send branded verification email via our Cloud Function.
+     * Falls back to Firebase default sendEmailVerification if Cloud Function fails.
+     */
+    private void sendBrandedVerificationEmail(String email, String name, FirebaseUser firebaseUser) {
+        new Thread(() -> {
+            boolean cloudSuccess = false;
+            try {
+                String projectId = getFirebaseProjectId();
+                if (projectId == null || projectId.isEmpty()) {
+                    throw new Exception("Project ID not available");
+                }
+                java.net.URL url = new java.net.URL(
+                    "https://asia-southeast1-" + projectId + ".cloudfunctions.net/sendCustomVerificationEmail");
+                java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("POST");
+                conn.setRequestProperty("Content-Type", "application/json");
+                conn.setDoOutput(true);
+                conn.setConnectTimeout(10000);
+                conn.setReadTimeout(10000);
+
+                String jsonBody = "{\"email\":\"" + email + "\",\"name\":\"" + (name != null ? name : "") + "\"}";
+                conn.getOutputStream().write(jsonBody.getBytes("UTF-8"));
+                conn.getOutputStream().close();
+
+                int responseCode = conn.getResponseCode();
+                cloudSuccess = (responseCode >= 200 && responseCode < 300);
+                conn.disconnect();
+            } catch (Exception e) {
+                // Cloud Function call failed, will fallback
+            }
+
+            final boolean success = cloudSuccess;
+            runOnUiThread(() -> {
+                if (success) {
+                    showLoading(false);
+                    mAuth.signOut();
+                    showVerificationSentDialog(email);
+                } else {
+                    // Fallback: use Firebase default verification
+                    if (firebaseUser != null) {
+                        firebaseUser.sendEmailVerification().addOnCompleteListener(mailTask -> {
+                            showLoading(false);
+                            mAuth.signOut();
+                            showVerificationSentDialog(email);
+                        });
+                    } else {
+                        showLoading(false);
+                        mAuth.signOut();
+                        showVerificationSentDialog(email);
+                    }
+                }
+            });
+        }).start();
+    }
+
+    private String getFirebaseProjectId() {
+        try {
+            com.google.firebase.FirebaseApp app = com.google.firebase.FirebaseApp.getInstance();
+            if (app != null && app.getOptions() != null) {
+                return app.getOptions().getProjectId();
+            }
+        } catch (Exception ignored) {}
+        return null;
+    }
+
+    /**
+     * Show a clean dialog after signup telling the user to verify their email.
+     */
+    private void showVerificationSentDialog(String email) {
+        new AlertDialog.Builder(this)
+            .setTitle("📧 Verify Your Email")
+            .setMessage("We've sent a verification link to:\n\n" + (email != null ? email : "") +
+                "\n\nPlease check your inbox (and spam folder) and click the link to activate your account.\n\nOnce verified, come back and log in.")
+            .setPositiveButton("Got it", (dialog, which) -> {
+                tabLayout.selectTab(tabLayout.getTabAt(0));
+            })
+            .setCancelable(false)
+            .show();
     }
 
     /**
@@ -495,6 +608,126 @@ public class LoginActivity extends AppCompatActivity {
         return isValid;
     }
 
+    private void showEmailNotVerifiedDialog(String email) {
+        new AlertDialog.Builder(this)
+            .setTitle("✉️ Email Not Verified")
+            .setMessage("Your email address (" + (email != null ? email : "") + ") has not been verified yet.\n\nPlease check your inbox (and spam folder) for the verification link, then try logging in again.")
+            .setPositiveButton("Resend Email", (dialog, which) -> {
+                // Re-authenticate briefly to resend
+                showLoading(true);
+                String enteredEmail = etLoginEmail.getText() != null ? etLoginEmail.getText().toString().trim() : "";
+                String enteredPass = etLoginPassword.getText() != null ? etLoginPassword.getText().toString().trim() : "";
+                if (!enteredEmail.isEmpty() && !enteredPass.isEmpty()) {
+                    mAuth.signInWithEmailAndPassword(enteredEmail, enteredPass)
+                        .addOnCompleteListener(task -> {
+                            if (task.isSuccessful() && mAuth.getCurrentUser() != null) {
+                                FirebaseUser u = mAuth.getCurrentUser();
+                                sendBrandedVerificationEmail(enteredEmail, null, u);
+                            } else {
+                                showLoading(false);
+                                ToastUtils.showCustomToast(this, "Could not resend. Please check your password.");
+                            }
+                        });
+                } else {
+                    showLoading(false);
+                    ToastUtils.showCustomToast(this, "Enter your email and password to resend the verification link.");
+                }
+            })
+            .setNegativeButton("OK", null)
+            .setCancelable(true)
+            .show();
+    }
+
+    private void signInWithGoogle() {
+        if (mGoogleSignInClient == null) {
+            ToastUtils.showCustomToast(this, "Google Sign-In is not configured.");
+            return;
+        }
+        // Sign out first so the account chooser always appears
+        mGoogleSignInClient.signOut().addOnCompleteListener(this, task -> {
+            Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+            startActivityForResult(signInIntent, RC_GOOGLE_SIGN_IN);
+        });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == RC_GOOGLE_SIGN_IN) {
+            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+            try {
+                GoogleSignInAccount account = task.getResult(ApiException.class);
+                firebaseAuthWithGoogle(account.getIdToken());
+            } catch (ApiException e) {
+                int code = e.getStatusCode();
+                if (code == com.google.android.gms.common.api.CommonStatusCodes.CANCELED
+                        || code == 12501) {
+                    // User cancelled - do nothing
+                } else if (code == com.google.android.gms.common.api.CommonStatusCodes.NETWORK_ERROR
+                        || code == 7) {
+                    new AlertDialog.Builder(this)
+                        .setTitle("Network Error")
+                        .setMessage("Could not connect to Google. Please check your internet connection and try again.")
+                        .setPositiveButton("Retry", (d, w) -> signInWithGoogle())
+                        .setNegativeButton("Cancel", null)
+                        .show();
+                } else {
+                    ToastUtils.showCustomToast(this, "Google sign-in failed. Please try again.");
+                }
+            }
+        }
+    }
+
+    private void firebaseAuthWithGoogle(String idToken) {
+        showLoading(true);
+        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
+        mAuth.signInWithCredential(credential)
+            .addOnCompleteListener(this, task -> {
+                if (!task.isSuccessful()) {
+                    showLoading(false);
+                    ToastUtils.showCustomToast(this, "Google sign-in failed. Please try again.");
+                    return;
+                }
+                FirebaseUser user = mAuth.getCurrentUser();
+                if (user == null) {
+                    showLoading(false);
+                    ToastUtils.showCustomToast(this, "Sign-in failed. Please try again.");
+                    return;
+                }
+                // Check if user profile exists; if not, create it
+                mDatabase.child("users").child(user.getUid())
+                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            if (!snapshot.exists()) {
+                                Map<String, Object> userData = new HashMap<>();
+                                userData.put("name", user.getDisplayName() != null ? user.getDisplayName() : "Customer");
+                                userData.put("email", user.getEmail());
+                                userData.put("phone", "");
+                                userData.put("userType", "customer");
+                                userData.put("role", "customer");
+                                userData.put("createdAt", System.currentTimeMillis());
+                                userData.put("profileImage", user.getPhotoUrl() != null ? user.getPhotoUrl().toString() : "");
+                                userData.put("emailVerified", true);
+                                mDatabase.child("users").child(user.getUid()).setValue(userData);
+                            }
+                            String role = snapshot.exists() ? UserRoleHelper.fromSnapshot(snapshot) : UserRoleHelper.ROLE_CUSTOMER;
+                            showLoading(false);
+                            saveUserSession(user, role);
+                            createLoginNotification(user.getUid(), role);
+                            ToastUtils.showCustomToast(LoginActivity.this, "Welcome, " + (user.getDisplayName() != null ? user.getDisplayName() : "there") + "!");
+                            goToHomeByRole(role, user.getUid());
+                        }
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+                            showLoading(false);
+                            saveUserSession(user, UserRoleHelper.ROLE_CUSTOMER);
+                            goToHomeByRole(UserRoleHelper.ROLE_CUSTOMER, user.getUid());
+                        }
+                    });
+            });
+    }
+
     private void showForgotPasswordDialog() {
         // Create input field
         final TextInputEditText input = new TextInputEditText(this);
@@ -568,6 +801,8 @@ public class LoginActivity extends AppCompatActivity {
         progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
         btnLogin.setEnabled(!show);
         btnRegister.setEnabled(!show);
+        if (btnGoogleLogin != null) btnGoogleLogin.setEnabled(!show);
+        if (btnGoogleRegister != null) btnGoogleRegister.setEnabled(!show);
     }
 
     private void goToHomeByRole(String role, String userId) {

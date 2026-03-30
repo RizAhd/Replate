@@ -372,9 +372,12 @@ public class CheckoutActivity extends AppCompatActivity {
     }
 
     private void handlePayHereResult(int resultCode, @Nullable Intent data) {
+        // Always reset loading/button state first
+        showLoading(false);
+
         if (data == null || !data.hasExtra(PHConstants.INTENT_EXTRA_RESULT)) {
             if (resultCode == Activity.RESULT_CANCELED) {
-                ToastUtils.showCustomToast(this, "Payment canceled");
+                showPaymentCancelledDialog();
             }
             return;
         }
@@ -406,11 +409,44 @@ public class CheckoutActivity extends AppCompatActivity {
         if (success) {
             if (BuildConfig.DEBUG) Log.d(TAG, "Payment success: " + responseText);
             submitOrder("PayHere Online", "paid");
-        } else if (resultCode == Activity.RESULT_CANCELED) {
-            ToastUtils.showCustomToast(this, "Payment canceled: " + responseText);
+        } else if (resultCode == Activity.RESULT_CANCELED || lower.contains("cancel")) {
+            showPaymentCancelledDialog();
         } else {
-            ToastUtils.showCustomToast(this, "Payment failed: " + responseText);
+            new AlertDialog.Builder(this)
+                    .setTitle("Payment Failed")
+                    .setMessage("Your payment could not be processed. No charges were made.\n\nPlease try again or choose a different payment method.")
+                    .setPositiveButton("Try Again", (d, w) -> startSandboxPayment())
+                    .setNeutralButton("Pay with Cash", (d, w) -> {
+                        if (rgPayment != null) {
+                            rgPayment.check(R.id.rbCash);
+                        }
+                        updatePlaceOrderButton();
+                        ToastUtils.showCustomToast(this, "Switched to cash payment.");
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
         }
+    }
+
+    private void showPaymentCancelledDialog() {
+        // Ensure UI is fully reset to prevent broken state
+        showLoading(false);
+
+        new AlertDialog.Builder(this)
+                .setTitle("💳 Payment Cancelled")
+                .setMessage("You cancelled the payment. Your order was not placed and no charges were made.\n\nYou can retry the payment or switch to cash instead.")
+                .setPositiveButton("Retry Payment", (dialog, which) -> startSandboxPayment())
+                .setNeutralButton("Pay with Cash", (dialog, which) -> {
+                    // Switch payment method to Cash and auto-submit
+                    if (rgPayment != null) {
+                        rgPayment.check(R.id.rbCash);
+                    }
+                    updatePlaceOrderButton();
+                    ToastUtils.showCustomToast(this, "Switched to cash payment. Tap the order button to confirm.");
+                })
+                .setNegativeButton("Cancel Order", (dialog, which) -> finish())
+                .setCancelable(true)
+                .show();
     }
 
     private void submitOrder(String paymentMethod, String paymentStatus) {

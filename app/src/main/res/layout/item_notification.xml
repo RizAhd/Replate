@@ -3,84 +3,114 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="16dp"
-    android:layout_marginVertical="6dp"
+    android:layout_marginHorizontal="14dp"
+    android:layout_marginVertical="4dp"
     app:cardBackgroundColor="@color/surface_white"
-    app:cardCornerRadius="@dimen/radius_lg"
-    app:cardElevation="@dimen/elevation_card"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="1dp"
     app:strokeColor="@color/md_theme_outlineVariant"
-    app:strokeWidth="1dp">
+    app:strokeWidth="0.5dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:padding="16dp">
+        android:orientation="horizontal">
 
+        <!-- Left accent strip (color changes per category via code) -->
         <View
-            android:id="@+id/unreadDot"
-            android:layout_width="10dp"
-            android:layout_height="10dp"
-            android:layout_marginEnd="12dp"
-            android:background="@drawable/circle_primary" />
+            android:id="@+id/viewAccentStrip"
+            android:layout_width="4dp"
+            android:layout_height="match_parent"
+            android:background="@color/green_primary"
+            android:minHeight="72dp" />
 
-        <ImageView
-            android:id="@+id/ivIcon"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:layout_marginEnd="14dp"
-            android:background="@drawable/circle_primary_light"
-            android:padding="10dp"
-            android:src="@drawable/ic_notification"
-            app:tint="@color/green_primary" />
-
+        <!-- Content row -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:orientation="vertical">
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingVertical="14dp"
+            android:paddingStart="14dp"
+            android:paddingEnd="10dp">
 
-            <TextView
-                android:id="@+id/tvTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:text="Notification Title"
-                android:textAppearance="@style/TextAppearance.REPLATE.Label" />
+            <!-- Icon with unread badge overlay -->
+            <FrameLayout
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_marginEnd="12dp">
 
-            <TextView
-                android:id="@+id/tvBody"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:ellipsize="end"
-                android:maxLines="2"
-                android:text="Notification body text"
-                android:textAppearance="@style/TextAppearance.REPLATE.Body" />
+                <ImageView
+                    android:id="@+id/ivIcon"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:background="@drawable/circle_primary_light"
+                    android:padding="10dp"
+                    android:src="@drawable/ic_notification"
+                    app:tint="@color/green_primary" />
 
-            <TextView
-                android:id="@+id/tvTime"
-                android:layout_width="wrap_content"
+                <!-- Unread dot badge (top-right corner of icon) -->
+                <View
+                    android:id="@+id/unreadDot"
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:layout_gravity="top|end"
+                    android:background="@drawable/circle_primary"
+                    android:visibility="gone" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_1"
-                android:fontFamily="@font/poppins_regular"
-                android:text="2 hours ago"
-                android:textColor="@color/text_hint"
-                android:textSize="@dimen/text_caption" />
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="Notification Title"
+                    android:textAppearance="@style/TextAppearance.REPLATE.Label"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/tvBody"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:ellipsize="end"
+                    android:maxLines="2"
+                    android:text="Notification body text"
+                    android:textAppearance="@style/TextAppearance.REPLATE.Body"
+                    android:textSize="13sp"
+                    android:lineSpacingMultiplier="1.2" />
+
+                <TextView
+                    android:id="@+id/tvTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="@font/poppins_regular"
+                    android:text="2 hours ago"
+                    android:textColor="@color/text_hint"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <!-- Delete button -->
+            <ImageView
+                android:id="@+id/ivDelete"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginStart="6dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Delete notification"
+                android:padding="7dp"
+                android:src="@drawable/ic_close"
+                app:tint="@color/text_hint" />
         </LinearLayout>
-
-        <!-- Delete button -->
-        <ImageView
-            android:id="@+id/ivDelete"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:layout_marginStart="8dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Delete notification"
-            android:padding="8dp"
-            android:src="@android:drawable/ic_menu_delete"
-            app:tint="@color/text_hint" />
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

@@ -367,4 +367,7 @@ Total: LKR %1$.2f</string>
     <string name="help_body">Need a hand?\n\nBrowse nearby deals from the home screen, find pickup locations on the map, chat with hotels about your order, or track orders in the Orders tab.\n\nFor support, email: support@replate.app</string>
     <string name="help_dismiss">Got it</string>
 
+    <!-- Google Sign-In (override with your actual web client ID from Firebase console) -->
+    <string name="default_web_client_id">YOUR_WEB_CLIENT_ID_HERE</string>
+
 </resources>

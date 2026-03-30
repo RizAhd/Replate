@@ -357,6 +357,101 @@ async function sendToTopic(topic, payload) {
   return { messageId };
 }
 
+// ── Custom branded verification email ──────────────────────────────
+exports.sendCustomVerificationEmail = functions.region(REGION).https.onRequest(async (req, res) => {
+  setCorsHeaders(res);
+  if (req.method === "OPTIONS") return res.status(204).send("");
+
+  try {
+    if (req.method !== "POST") {
+      return res.status(405).json({ success: false, message: "Method not allowed" });
+    }
+
+    const { email, name } = req.body || {};
+
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+      return res.status(400).json({ success: false, message: "Valid email is required" });
+    }
+
+    // Generate the Firebase verification link
+    const actionCodeSettings = {
+      url: `https://replate-app.web.app/verified?email=${encodeURIComponent(email)}`,
+      handleCodeInApp: false,
+    };
+    const verificationLink = await admin.auth().generateEmailVerificationLink(email, actionCodeSettings);
+
+    const transporter = getTransporter();
+    await transporter.sendMail({
+      from: `"REPLATE" <${process.env.OTP_EMAIL}>`,
+      to: email,
+      subject: "Verify your REPLATE account",
+      text: `Hi ${name || "there"},\n\nWelcome to REPLATE! Please verify your email address by clicking the link below:\n\n${verificationLink}\n\nThis link will expire in 24 hours.\n\nIf you didn't create this account, you can safely ignore this email.\n\n— The REPLATE Team`,
+      html: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Verify your REPLATE account</title>
+</head>
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:32px 16px;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+          <!-- Header -->
+          <tr>
+            <td style="background:linear-gradient(135deg,#1A6B3C 0%,#25A55A 100%);padding:40px 32px;text-align:center;">
+              <div style="font-size:36px;margin-bottom:8px;">🍃</div>
+              <div style="color:#ffffff;font-size:28px;font-weight:700;letter-spacing:1px;">REPLATE</div>
+              <div style="color:rgba(255,255,255,0.8);font-size:13px;margin-top:4px;">Because Every Meal Matters</div>
+            </td>
+          </tr>
+          <!-- Body -->
+          <tr>
+            <td style="padding:36px 32px 28px;">
+              <p style="margin:0 0 8px;font-size:20px;font-weight:600;color:#1C1C1E;">Welcome, ${name || "there"}! 👋</p>
+              <p style="margin:0 0 24px;font-size:14px;color:#6C6C6E;line-height:1.7;">
+                Thank you for joining REPLATE. To get started and unlock all features, please verify your email address by clicking the button below.
+              </p>
+              <!-- CTA Button -->
+              <div style="text-align:center;margin-bottom:28px;">
+                <a href="${verificationLink}" style="display:inline-block;padding:14px 40px;background:linear-gradient(135deg,#1A6B3C,#25A55A);color:#ffffff;font-size:16px;font-weight:600;text-decoration:none;border-radius:12px;letter-spacing:0.5px;box-shadow:0 4px 12px rgba(26,107,60,0.3);">
+                  Verify My Email
+                </a>
+              </div>
+              <p style="margin:0 0 16px;font-size:13px;color:#9E9E9E;line-height:1.6;">
+                Or copy and paste this link into your browser:
+              </p>
+              <div style="background:#f0f9f4;border:1px solid #E0F5E8;border-radius:10px;padding:12px 16px;margin-bottom:24px;word-break:break-all;">
+                <a href="${verificationLink}" style="font-size:12px;color:#1A6B3C;text-decoration:none;">${verificationLink}</a>
+              </div>
+              <p style="margin:0 0 8px;font-size:13px;color:#6C6C6E;line-height:1.6;">
+                This link will expire in <strong>24 hours</strong>. If you didn't create a REPLATE account, you can safely ignore this email.
+              </p>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="background:#f9f9f9;padding:20px 32px;border-top:1px solid #EAEAEA;text-align:center;">
+              <p style="margin:0 0 4px;font-size:12px;color:#9E9E9E;">© ${new Date().getFullYear()} REPLATE · Reducing Food Waste Together</p>
+              <p style="margin:0;font-size:11px;color:#BDBDBD;">This is an automated email. Please do not reply.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`,
+    });
+
+    return res.status(200).json({ success: true, message: "Verification email sent" });
+  } catch (err) {
+    console.error("sendCustomVerificationEmail error", err);
+    return res.status(500).json({ success: false, message: err.message || "Server error" });
+  }
+});
+
 exports.sendOtpEmail = functions.region(REGION).https.onRequest(async (req, res) => {
   try {
     if (req.method !== "POST") {
@@ -387,14 +482,62 @@ exports.sendOtpEmail = functions.region(REGION).https.onRequest(async (req, res)
 
     const transporter = getTransporter();
     await transporter.sendMail({
-      from: process.env.OTP_EMAIL,
+      from: `"REPLATE" <${process.env.OTP_EMAIL}>`,
       to: email,
-      subject: "REPLATE Verification Code",
-      text:
-        `Hi ${name || "there"},\n\n` +
-        `Your REPLATE verification code is: ${otp}\n` +
-        `This code expires in ${OTP_EXPIRY_MINUTES} minutes.\n\n` +
-        "If you did not request this, you can ignore this email.",
+      subject: "Your REPLATE Verification Code",
+      text: `Hi ${name || "there"},\n\nYour REPLATE verification code is: ${otp}\nThis code expires in ${OTP_EXPIRY_MINUTES} minutes.\n\nIf you did not request this, you can ignore this email.`,
+      html: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>REPLATE Verification</title>
+</head>
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:32px 16px;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+          <!-- Header -->
+          <tr>
+            <td style="background:linear-gradient(135deg,#1A6B3C 0%,#25A55A 100%);padding:36px 32px;text-align:center;">
+              <div style="font-size:32px;margin-bottom:8px;">🍃</div>
+              <div style="color:#ffffff;font-size:26px;font-weight:700;letter-spacing:1px;">REPLATE</div>
+              <div style="color:rgba(255,255,255,0.8);font-size:13px;margin-top:4px;">Because Every Meal Matters</div>
+            </td>
+          </tr>
+          <!-- Body -->
+          <tr>
+            <td style="padding:36px 32px 28px;">
+              <p style="margin:0 0 8px;font-size:18px;font-weight:600;color:#1C1C1E;">Hi ${name || "there"} 👋</p>
+              <p style="margin:0 0 28px;font-size:14px;color:#6C6C6E;line-height:1.6;">
+                Here is your one-time verification code to complete your REPLATE registration.
+              </p>
+              <!-- OTP Box -->
+              <div style="background:#f0f9f4;border:2px dashed #25A55A;border-radius:16px;padding:28px 24px;text-align:center;margin-bottom:28px;">
+                <div style="font-size:44px;font-weight:800;letter-spacing:12px;color:#1A6B3C;font-family:'Courier New',monospace;">${otp}</div>
+                <div style="margin-top:10px;font-size:13px;color:#6C6C6E;">⏱ Expires in <strong>${OTP_EXPIRY_MINUTES} minutes</strong></div>
+              </div>
+              <p style="margin:0 0 16px;font-size:13px;color:#6C6C6E;line-height:1.6;">
+                For your security, do not share this code with anyone. REPLATE staff will never ask for your OTP.
+              </p>
+              <p style="margin:0;font-size:13px;color:#9E9E9E;">
+                If you didn't request this code, you can safely ignore this email.
+              </p>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="background:#f9f9f9;padding:20px 32px;border-top:1px solid #EAEAEA;text-align:center;">
+              <p style="margin:0;font-size:12px;color:#9E9E9E;">© ${new Date().getFullYear()} REPLATE · Reducing Food Waste Together</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`,
     });
 
     return res.status(200).json({ success: true, message: "OTP sent to your email" });

@@ -38,6 +38,8 @@ android {
             '"' + (localProps.getProperty("FIREBASE_WEB_API_KEY") ?: "") + '"'
         buildConfigField "String", "FIREBASE_FCM_SERVER_KEY",
             '"' + (localProps.getProperty("FIREBASE_FCM_SERVER_KEY") ?: "") + '"'
+        buildConfigField "String", "GOOGLE_WEB_CLIENT_ID",
+            '"' + (localProps.getProperty("GOOGLE_WEB_CLIENT_ID") ?: "") + '"'
 
         // Inject Google Maps key into res/values for Manifest use
         resValue "string", "google_maps_key",
@@ -80,6 +82,8 @@ dependencies {
     // Google Maps
     implementation 'com.google.android.gms:play-services-maps:18.2.0'
     implementation 'com.google.android.gms:play-services-location:21.0.1'
+    // Google Sign-In
+    implementation 'com.google.android.gms:play-services-auth:21.2.0'
 
     // Image loading
     implementation 'com.github.bumptech.glide:glide:4.16.0'

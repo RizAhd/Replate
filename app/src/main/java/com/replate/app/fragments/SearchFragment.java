@@ -96,6 +96,9 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
     private double currentLat = 0;
     private double currentLng = 0;
 
+    private ValueEventListener foodItemsListener;
+    private DatabaseReference foodItemsRef;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -170,7 +173,8 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         }
 
         for (FoodItem item : allFoodItems) {
-            if (item == null || !item.hasValidCoordinates()) {
+            if (item == null) continue;
+            if (!item.hasValidCoordinates()) {
                 item.setDistance(0);
                 continue;
             }
@@ -510,18 +514,21 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         }
     }
 
-    private void uncheckAllExcept(Object selected) {
-        // Chips no longer used - handled via bottom sheet filter dialog
-    }
 
     private void loadAllFoodItems() {
         if (allFoodItems.isEmpty()) {
             setLoadingState(true);
         }
 
-        mDatabase.child("foodItems").addValueEventListener(new ValueEventListener() {
+        if (foodItemsRef != null && foodItemsListener != null) {
+            foodItemsRef.removeEventListener(foodItemsListener);
+        }
+
+        foodItemsRef = mDatabase.child("foodItems");
+        foodItemsListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (!isAdded()) return;
                 allFoodItems.clear();
 
                 for (DataSnapshot itemSnapshot : snapshot.getChildren()) {
@@ -570,12 +577,15 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
+                if (!isAdded()) return;
                 setLoadingState(false);
                 if (allFoodItems.isEmpty()) {
                     ToastUtils.showCustomToast(getContext(), "Error loading data");
                 }
             }
-        });
+        };
+
+        foodItemsRef.addValueEventListener(foodItemsListener);
     }
 
     private void setLoadingState(boolean loading) {
@@ -735,6 +745,9 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         super.onDestroyView();
         if (searchRunnable != null) {
             searchDebounceHandler.removeCallbacks(searchRunnable);
+        }
+        if (foodItemsRef != null && foodItemsListener != null) {
+            foodItemsRef.removeEventListener(foodItemsListener);
         }
     }
 

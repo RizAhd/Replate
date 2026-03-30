@@ -175,27 +175,33 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
         }
 
         void bind(FoodItem item) {
-            tvFoodName.setText(item.getFoodName());
-            tvHotelName.setText(item.getHotelName());
+            if (tvFoodName != null) tvFoodName.setText(item.getFoodName());
+            if (tvHotelName != null) tvHotelName.setText(item.getHotelName());
 
-            // Format prices with LKR
-            tvOriginalPrice.setText(String.format(Locale.getDefault(), "LKR %.2f", item.getOriginalPriceValue()));
-            tvOriginalPrice.setPaintFlags(tvOriginalPrice.getPaintFlags() | android.graphics.Paint.STRIKE_THRU_TEXT_FLAG);
-            tvDiscountedPrice.setText(String.format(Locale.getDefault(), "LKR %.2f", item.getDiscountedPriceValue()));
-
-            // Discount badge
-            tvDiscount.setText(String.format(Locale.getDefault(), "-%d%%", item.getDiscountPercentValue()));
-
-            // Keep distance visible for consistent card hierarchy.
-            if (item.getDistance() > 0) {
-                tvDistance.setText(item.getDistanceFormatted());
-            } else {
-                tvDistance.setText(context.getString(R.string.food_distance_nearby));
+            if (tvOriginalPrice != null) {
+                tvOriginalPrice.setText(String.format(Locale.getDefault(), "LKR %.2f", item.getOriginalPriceValue()));
+                tvOriginalPrice.setPaintFlags(tvOriginalPrice.getPaintFlags() | android.graphics.Paint.STRIKE_THRU_TEXT_FLAG);
             }
-            tvDistance.setVisibility(View.VISIBLE);
+            if (tvDiscountedPrice != null) {
+                tvDiscountedPrice.setText(String.format(Locale.getDefault(), "LKR %.2f", item.getDiscountedPriceValue()));
+            }
 
-            // Pickup time
-            tvPickupTime.setText(context.getString(R.string.food_pickup_template, item.getPickupTimeFormatted()));
+            if (tvDiscount != null) {
+                tvDiscount.setText(String.format(Locale.getDefault(), "-%d%%", item.getDiscountPercentValue()));
+            }
+
+            if (tvDistance != null) {
+                if (item.getDistance() > 0) {
+                    tvDistance.setText(item.getDistanceFormatted());
+                } else {
+                    tvDistance.setText(context.getString(R.string.food_distance_nearby));
+                }
+                tvDistance.setVisibility(View.VISIBLE);
+            }
+
+            if (tvPickupTime != null) {
+                tvPickupTime.setText(context.getString(R.string.food_pickup_template, item.getPickupTimeFormatted()));
+            }
 
             // Load image with Glide
             loadFoodImage(item.getImageUrl());
