@@ -23,7 +23,7 @@
             android:layout_width="4dp"
             android:layout_height="match_parent"
             android:background="@color/green_primary"
-            android:minHeight="72dp" />
+            android:minHeight="80dp" />
 
         <!-- Content row -->
         <LinearLayout
@@ -38,16 +38,16 @@
 
             <!-- Icon with unread badge overlay -->
             <FrameLayout
-                android:layout_width="44dp"
-                android:layout_height="44dp"
+                android:layout_width="46dp"
+                android:layout_height="46dp"
                 android:layout_marginEnd="12dp">
 
                 <ImageView
                     android:id="@+id/ivIcon"
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
+                    android:layout_width="46dp"
+                    android:layout_height="46dp"
                     android:background="@drawable/circle_primary_light"
-                    android:padding="10dp"
+                    android:padding="11dp"
                     android:src="@drawable/ic_notification"
                     app:tint="@color/green_primary" />
 
@@ -89,15 +89,35 @@
                     android:textSize="13sp"
                     android:lineSpacingMultiplier="1.2" />
 
-                <TextView
-                    android:id="@+id/tvTime"
-                    android:layout_width="wrap_content"
+                <!-- Category chip + Time row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:fontFamily="@font/poppins_regular"
-                    android:text="2 hours ago"
-                    android:textColor="@color/text_hint"
-                    android:textSize="11sp" />
+                    android:layout_marginTop="6dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tvCategoryChip"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_category_chip"
+                        android:fontFamily="@font/poppins_medium"
+                        android:text="Order"
+                        android:textColor="@color/green_primary"
+                        android:textSize="10sp"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/tvTime"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:fontFamily="@font/poppins_regular"
+                        android:text="2 hours ago"
+                        android:textColor="@color/text_hint"
+                        android:textSize="11sp" />
+                </LinearLayout>
             </LinearLayout>
 
             <!-- Delete button -->

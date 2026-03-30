@@ -20,7 +20,10 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -39,7 +42,7 @@ import java.util.List;
 
 /**
  * Notifications Activity - Shows push notification history
- * Requirement: Notifications
+ * Features: filter chips, pull-to-refresh, swipe-to-delete, category filtering
  */
 public class NotificationsActivity extends AppCompatActivity
         implements NotificationAdapter.OnNotificationClickListener {
@@ -48,14 +51,18 @@ public class NotificationsActivity extends AppCompatActivity
     private LinearLayout emptyState;
     private ProgressBar progressBar;
     private TextView tvMarkAllRead, tvDeleteAll, tvUnreadCount;
+    private SwipeRefreshLayout swipeRefresh;
+    private ChipGroup chipGroupFilter;
 
     private DatabaseReference mDatabase;
     private NotificationAdapter adapter;
     private List<AppNotification> notifications = new ArrayList<>();
+    private List<AppNotification> allNotifications = new ArrayList<>();
     private String launchOrderId;
     private ReplateDatabaseHelper localDb;
     private ValueEventListener notificationsListener;
     private DatabaseReference notificationsRef;
+    private String activeFilter = "all";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +74,7 @@ public class NotificationsActivity extends AppCompatActivity
         localDb = ReplateDatabaseHelper.getInstance(this);
 
         initViews();
+        setupFilterChips();
         loadNotifications();
     }
 
@@ -78,10 +86,21 @@ public class NotificationsActivity extends AppCompatActivity
         tvMarkAllRead = findViewById(R.id.tvMarkAllRead);
         tvDeleteAll = findViewById(R.id.tvDeleteAll);
         tvUnreadCount = findViewById(R.id.tvUnreadCount);
+        swipeRefresh = findViewById(R.id.swipeRefresh);
+        chipGroupFilter = findViewById(R.id.chipGroupFilter);
 
         rvNotifications.setLayoutManager(new LinearLayoutManager(this));
         adapter = new NotificationAdapter(this, notifications, this);
         rvNotifications.setAdapter(adapter);
+
+        // Item spacing decoration
+        rvNotifications.addItemDecoration(new RecyclerView.ItemDecoration() {
+            @Override
+            public void getItemOffsets(@NonNull android.graphics.Rect outRect, @NonNull View view,
+                                       @NonNull RecyclerView parent, @NonNull RecyclerView.State state) {
+                outRect.bottom = (int) (2 * getResources().getDisplayMetrics().density);
+            }
+        });
 
         // Slide-in animation for items
         try {
@@ -89,7 +108,19 @@ public class NotificationsActivity extends AppCompatActivity
                     this, R.anim.layout_animation_slide_from_bottom);
             rvNotifications.setLayoutAnimation(animation);
         } catch (Exception ignored) {
-            // Animation resource may not exist yet; skip gracefully
+        }
+
+        // Pull-to-refresh
+        if (swipeRefresh != null) {
+            swipeRefresh.setColorSchemeResources(R.color.green_primary, R.color.leaf2, R.color.orange_accent);
+            swipeRefresh.setOnRefreshListener(() -> {
+                activeFilter = "all";
+                if (chipGroupFilter != null) {
+                    Chip chipAll = findViewById(R.id.chipAll);
+                    if (chipAll != null) chipAll.setChecked(true);
+                }
+                loadNotifications();
+            });
         }
 
         // Swipe-to-delete
@@ -106,7 +137,6 @@ public class NotificationsActivity extends AppCompatActivity
             @Override
             public int getSwipeDirs(@NonNull RecyclerView recyclerView,
                                     @NonNull RecyclerView.ViewHolder viewHolder) {
-                // Don't allow swiping on header items
                 if (adapter.isHeader(viewHolder.getAdapterPosition())) {
                     return 0;
                 }
@@ -143,7 +173,6 @@ public class NotificationsActivity extends AppCompatActivity
                             itemView.getBottom());
                     c.drawRoundRect(background, cornerRadius, cornerRadius, paint);
 
-                    // Draw delete icon/text
                     Paint textPaint = new Paint();
                     textPaint.setColor(0xFFFFFFFF);
                     textPaint.setTextSize(14 * getResources().getDisplayMetrics().density);
@@ -165,33 +194,102 @@ public class NotificationsActivity extends AppCompatActivity
         if (tvDeleteAll != null) {
             tvDeleteAll.setOnClickListener(v -> confirmDeleteAll());
         }
+
+        // Browse Deals empty-state button
+        com.google.android.material.button.MaterialButton btnBrowseDeals = findViewById(R.id.btnBrowseDeals);
+        if (btnBrowseDeals != null) {
+            btnBrowseDeals.setOnClickListener(v -> {
+                Intent intent = new Intent(this, MainActivity.class);
+                intent.putExtra("open_tab", "home");
+                startActivity(intent);
+                finish();
+            });
+        }
+    }
+
+    private void setupFilterChips() {
+        if (chipGroupFilter == null) return;
+
+        chipGroupFilter.setOnCheckedStateChangeListener((group, checkedIds) -> {
+            if (checkedIds.isEmpty()) {
+                activeFilter = "all";
+            } else {
+                int checkedId = checkedIds.get(0);
+                if (checkedId == R.id.chipAll) {
+                    activeFilter = "all";
+                } else if (checkedId == R.id.chipOrders) {
+                    activeFilter = "orders";
+                } else if (checkedId == R.id.chipDeals) {
+                    activeFilter = "deals";
+                } else if (checkedId == R.id.chipPickup) {
+                    activeFilter = "pickup";
+                } else if (checkedId == R.id.chipAdmin) {
+                    activeFilter = "admin";
+                } else {
+                    activeFilter = "all";
+                }
+            }
+            applyFilter();
+        });
+    }
+
+    private void applyFilter() {
+        notifications.clear();
+        if ("all".equals(activeFilter)) {
+            notifications.addAll(allNotifications);
+        } else {
+            for (AppNotification notif : allNotifications) {
+                String cat = notif.getCategory() != null ? notif.getCategory().toLowerCase() : "";
+                boolean matches = false;
+                switch (activeFilter) {
+                    case "orders":
+                        matches = cat.contains("order") || cat.contains("hotel_new");
+                        break;
+                    case "deals":
+                        matches = cat.contains("deal") || cat.contains("hot_deal") || cat.contains("new_deal");
+                        break;
+                    case "pickup":
+                        matches = cat.contains("pickup");
+                        break;
+                    case "admin":
+                        matches = cat.contains("admin") || cat.contains("broadcast") || cat.contains("announcement")
+                                || cat.contains("welcome") || cat.contains("hotel_approved");
+                        break;
+                }
+                if (matches) notifications.add(notif);
+            }
+        }
+        adapter.buildDisplayList();
+        adapter.notifyDataSetChanged();
+        updateUI();
+
+        // Replay animation when filter changes
+        if (rvNotifications.getLayoutAnimation() != null) {
+            rvNotifications.scheduleLayoutAnimation();
+        }
     }
 
     private void deleteNotificationWithUndo(AppNotification notification) {
         String userId = FirebaseAuth.getInstance().getUid();
         if (userId == null || notification.getNotificationId() == null) return;
 
-        // Remove from local list immediately for smooth UX
         notifications.remove(notification);
+        allNotifications.remove(notification);
         adapter.buildDisplayList();
         adapter.notifyDataSetChanged();
         updateUI();
 
         Snackbar snackbar = Snackbar.make(rvNotifications, "Notification deleted", Snackbar.LENGTH_LONG);
         snackbar.setAction("Undo", v -> {
-            // Re-add to list and refresh
-            notifications.add(notification);
-            Collections.sort(notifications, (a, b) ->
+            allNotifications.add(notification);
+            Collections.sort(allNotifications, (a, b) ->
                     Long.compare(b.getTimestampValue(), a.getTimestampValue()));
-            adapter.buildDisplayList();
-            adapter.notifyDataSetChanged();
-            updateUI();
+            applyFilter();
         });
         snackbar.addCallback(new Snackbar.Callback() {
             @Override
             public void onDismissed(Snackbar snackbar, int event) {
                 if (event != DISMISS_EVENT_ACTION) {
-                    // Only delete from Firebase if undo was NOT clicked
                     mDatabase.child("notifications").child(userId)
                             .child(notification.getNotificationId())
                             .removeValue();
@@ -208,17 +306,20 @@ public class NotificationsActivity extends AppCompatActivity
 
         progressBar.setVisibility(View.VISIBLE);
 
+        // Remove previous listener
+        if (notificationsRef != null && notificationsListener != null) {
+            notificationsRef.removeEventListener(notificationsListener);
+        }
+
         notificationsRef = mDatabase.child("notifications").child(userId);
 
         // Load cached notifications immediately for instant display
         if (localDb != null) {
             List<AppNotification> cached = localDb.getCachedNotifications();
-            if (!cached.isEmpty() && notifications.isEmpty()) {
-                notifications.clear();
-                notifications.addAll(cached);
-                adapter.buildDisplayList();
-                adapter.notifyDataSetChanged();
-                updateUI();
+            if (!cached.isEmpty() && allNotifications.isEmpty()) {
+                allNotifications.clear();
+                allNotifications.addAll(cached);
+                applyFilter();
             }
         }
 
@@ -226,35 +327,33 @@ public class NotificationsActivity extends AppCompatActivity
                 .addValueEventListener(notificationsListener = new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        notifications.clear();
+                        allNotifications.clear();
 
                         for (DataSnapshot notifSnapshot : snapshot.getChildren()) {
                             AppNotification notif = notifSnapshot.getValue(AppNotification.class);
                             if (notif != null) {
                                 notif.setNotificationId(notifSnapshot.getKey());
-                                notifications.add(notif);
+                                allNotifications.add(notif);
                             }
                         }
 
                         // Sort by timestamp (newest first)
-                        Collections.sort(notifications, (a, b) ->
+                        Collections.sort(allNotifications, (a, b) ->
                                 Long.compare(b.getTimestampValue(), a.getTimestampValue()));
 
                         // Cache to SQLite for offline access
-                        if (localDb != null && !notifications.isEmpty()) {
-                            localDb.cacheNotifications(notifications);
+                        if (localDb != null && !allNotifications.isEmpty()) {
+                            localDb.cacheNotifications(allNotifications);
                         }
 
-                        adapter.buildDisplayList();
-                        adapter.notifyDataSetChanged();
+                        applyFilter();
                         progressBar.setVisibility(View.GONE);
+                        if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
 
                         // Run layout animation on first load
                         if (rvNotifications.getLayoutAnimation() != null) {
                             rvNotifications.scheduleLayoutAnimation();
                         }
-
-                        updateUI();
 
                         if (launchOrderId != null && !launchOrderId.trim().isEmpty()) {
                             openOrderFromPayload(launchOrderId.trim());
@@ -265,15 +364,14 @@ public class NotificationsActivity extends AppCompatActivity
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
                         progressBar.setVisibility(View.GONE);
+                        if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
                         // Fallback: load from SQLite cache if Firebase fails
-                        if (localDb != null && notifications.isEmpty()) {
+                        if (localDb != null && allNotifications.isEmpty()) {
                             List<AppNotification> cached = localDb.getCachedNotifications();
                             if (!cached.isEmpty()) {
-                                notifications.clear();
-                                notifications.addAll(cached);
-                                adapter.buildDisplayList();
-                                adapter.notifyDataSetChanged();
-                                updateUI();
+                                allNotifications.clear();
+                                allNotifications.addAll(cached);
+                                applyFilter();
                             }
                         }
                     }
@@ -293,7 +391,7 @@ public class NotificationsActivity extends AppCompatActivity
             if (tvDeleteAll != null) tvDeleteAll.setVisibility(View.VISIBLE);
 
             int unreadCount = 0;
-            for (AppNotification notif : notifications) {
+            for (AppNotification notif : allNotifications) {
                 if (!notif.isRead()) unreadCount++;
             }
 
@@ -313,14 +411,12 @@ public class NotificationsActivity extends AppCompatActivity
 
     @Override
     public void onNotificationClick(AppNotification notification) {
-        // Mark as read
         String userId = FirebaseAuth.getInstance().getUid();
         if (userId != null && notification.getNotificationId() != null) {
             mDatabase.child("notifications").child(userId)
                     .child(notification.getNotificationId())
                     .child("read").setValue(true);
         }
-
         navigateFromNotification(notification);
     }
 
@@ -340,10 +436,6 @@ public class NotificationsActivity extends AppCompatActivity
         if (intent != null) {
             startActivity(intent);
         }
-    }
-
-    private String normalizeCategory(String rawCategory) {
-        return com.replate.app.notifications.NotificationCategories.normalize(rawCategory);
     }
 
     private String value(String input) {
@@ -367,7 +459,7 @@ public class NotificationsActivity extends AppCompatActivity
         String userId = FirebaseAuth.getInstance().getUid();
         if (userId == null) return;
 
-        for (AppNotification notif : notifications) {
+        for (AppNotification notif : allNotifications) {
             if (!notif.isRead() && notif.getNotificationId() != null) {
                 mDatabase.child("notifications").child(userId)
                         .child(notif.getNotificationId())
@@ -405,14 +497,14 @@ public class NotificationsActivity extends AppCompatActivity
     }
 
     private void confirmDeleteAll() {
-        if (notifications.isEmpty()) {
+        if (allNotifications.isEmpty()) {
             ToastUtils.showCustomToast(this, "No notifications to delete");
             return;
         }
 
         new AlertDialog.Builder(this)
                 .setTitle("Delete all notifications")
-                .setMessage("Are you sure you want to delete all " + notifications.size() + " notifications? This cannot be undone.")
+                .setMessage("Are you sure you want to delete all " + allNotifications.size() + " notifications? This cannot be undone.")
                 .setPositiveButton("Delete All", (d, w) -> deleteAllNotifications())
                 .setNegativeButton("Cancel", null)
                 .show();
@@ -425,7 +517,6 @@ public class NotificationsActivity extends AppCompatActivity
         mDatabase.child("notifications").child(userId)
                 .removeValue()
                 .addOnSuccessListener(unused -> {
-                    // Also clear SQLite cache
                     if (localDb != null) {
                         localDb.clearNotificationCache();
                     }

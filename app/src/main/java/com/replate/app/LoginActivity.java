@@ -31,9 +31,13 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.auth.PhoneAuthCredential;
+import com.google.firebase.auth.PhoneAuthOptions;
+import com.google.firebase.auth.PhoneAuthProvider;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -44,8 +48,16 @@ import com.replate.app.utils.NotificationPermissionHelper;
 import com.replate.app.utils.ToastUtils;
 import com.replate.app.utils.UserRoleHelper;
 
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.login.LoginManager;
+import com.facebook.login.LoginResult;
+
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -73,8 +85,19 @@ public class LoginActivity extends AppCompatActivity {
     private Button btnRegister;
     private com.google.android.material.button.MaterialButton btnGoogleRegister;
 
+    // Social login buttons
+    private com.google.android.material.button.MaterialButton btnFacebookLogin, btnFacebookRegister;
+    private com.google.android.material.button.MaterialButton btnPhoneLogin, btnPhoneRegister;
+
     // Google Sign-In
     private GoogleSignInClient mGoogleSignInClient;
+
+    // Facebook Sign-In
+    private CallbackManager callbackManager;
+
+    // Phone Auth
+    private String phoneVerificationId;
+    private PhoneAuthProvider.ForceResendingToken phoneResendToken;
 
     private static final int REQ_POST_NOTIFICATIONS = 1201;
     private static final int RC_GOOGLE_SIGN_IN = 9001;
@@ -96,6 +119,28 @@ public class LoginActivity extends AppCompatActivity {
                 .requestEmail()
                 .build();
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+
+        // Initialize Facebook Sign-In
+        callbackManager = CallbackManager.Factory.create();
+        LoginManager.getInstance().registerCallback(callbackManager,
+                new FacebookCallback<LoginResult>() {
+                    @Override
+                    public void onSuccess(LoginResult loginResult) {
+                        firebaseAuthWithFacebook(loginResult.getAccessToken().getToken());
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        showLoading(false);
+                    }
+
+                    @Override
+                    public void onError(@NonNull FacebookException error) {
+                        showLoading(false);
+                        ToastUtils.showCustomToast(LoginActivity.this,
+                                "Facebook sign-in failed. Please try again.");
+                    }
+                });
 
         // Initialize views
         initializeViews();
@@ -137,6 +182,8 @@ public class LoginActivity extends AppCompatActivity {
         btnLogin = findViewById(R.id.btnLogin);
         tvForgotPassword = findViewById(R.id.tvForgotPassword);
         btnGoogleLogin = findViewById(R.id.btnGoogleLogin);
+        btnFacebookLogin = findViewById(R.id.btnFacebookLogin);
+        btnPhoneLogin = findViewById(R.id.btnPhoneLogin);
 
         // Register fields
         tilRegisterName = findViewById(R.id.tilRegisterName);
@@ -151,6 +198,8 @@ public class LoginActivity extends AppCompatActivity {
         etRegisterConfirmPassword = findViewById(R.id.etRegisterConfirmPassword);
         btnRegister = findViewById(R.id.btnRegister);
         btnGoogleRegister = findViewById(R.id.btnGoogleRegister);
+        btnFacebookRegister = findViewById(R.id.btnFacebookRegister);
+        btnPhoneRegister = findViewById(R.id.btnPhoneRegister);
     }
 
     private void setupTabLayout() {
@@ -209,6 +258,22 @@ public class LoginActivity extends AppCompatActivity {
         if (btnGoogleRegister != null) {
             btnGoogleRegister.setOnClickListener(v -> signInWithGoogle());
         }
+
+        // Facebook Sign-In buttons
+        if (btnFacebookLogin != null) {
+            btnFacebookLogin.setOnClickListener(v -> signInWithFacebook());
+        }
+        if (btnFacebookRegister != null) {
+            btnFacebookRegister.setOnClickListener(v -> signInWithFacebook());
+        }
+
+        // Phone Sign-In buttons
+        if (btnPhoneLogin != null) {
+            btnPhoneLogin.setOnClickListener(v -> showPhoneAuthDialog());
+        }
+        if (btnPhoneRegister != null) {
+            btnPhoneRegister.setOnClickListener(v -> showPhoneAuthDialog());
+        }
     }
 
     private void loginUser() {
@@ -230,11 +295,20 @@ public class LoginActivity extends AppCompatActivity {
                 public void onComplete(@NonNull Task<AuthResult> task) {
                     if (!task.isSuccessful()) {
                         showLoading(false);
-                        String errorMessage = "Login failed. Please check your credentials.";
-                        if (task.getException() != null) {
-                            errorMessage = task.getException().getMessage();
+                        Exception ex = task.getException();
+                        if (ex instanceof com.google.firebase.auth.FirebaseAuthInvalidUserException) {
+                            // Email not registered
+                            showNotRegisteredDialog(email);
+                        } else if (ex instanceof com.google.firebase.auth.FirebaseAuthInvalidCredentialsException) {
+                            // Wrong password
+                            tilLoginPassword.setError("Incorrect password. Please try again.");
+                        } else {
+                            String errorMessage = "Login failed. Please check your credentials.";
+                            if (ex != null && ex.getMessage() != null) {
+                                errorMessage = ex.getMessage();
+                            }
+                            ToastUtils.showCustomToast(LoginActivity.this, errorMessage);
                         }
-                        ToastUtils.showCustomToast(LoginActivity.this, errorMessage);
                         return;
                     }
 
@@ -608,6 +682,25 @@ public class LoginActivity extends AppCompatActivity {
         return isValid;
     }
 
+    /**
+     * Show dialog when user tries to log in with an unregistered email.
+     */
+    private void showNotRegisteredDialog(String email) {
+        new AlertDialog.Builder(this)
+            .setTitle(getString(R.string.auth_not_registered_title))
+            .setMessage(getString(R.string.auth_not_registered_message))
+            .setPositiveButton("Register Now", (dialog, which) -> {
+                // Switch to Register tab and pre-fill the email
+                tabLayout.selectTab(tabLayout.getTabAt(1));
+                if (etRegisterEmail != null && email != null) {
+                    etRegisterEmail.setText(email);
+                }
+            })
+            .setNegativeButton("OK", null)
+            .setCancelable(true)
+            .show();
+    }
+
     private void showEmailNotVerifiedDialog(String email) {
         new AlertDialog.Builder(this)
             .setTitle("✉️ Email Not Verified")
@@ -653,6 +746,12 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
+        // Facebook callback
+        if (callbackManager != null) {
+            callbackManager.onActivityResult(requestCode, resultCode, data);
+        }
+
         if (requestCode == RC_GOOGLE_SIGN_IN) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             try {
@@ -725,6 +824,190 @@ public class LoginActivity extends AppCompatActivity {
                             goToHomeByRole(UserRoleHelper.ROLE_CUSTOMER, user.getUid());
                         }
                     });
+            });
+    }
+
+    // ─── Facebook Sign-In ───────────────────────────────────────────────
+    private void signInWithFacebook() {
+        showLoading(true);
+        LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("email", "public_profile"));
+    }
+
+    private void firebaseAuthWithFacebook(String token) {
+        showLoading(true);
+        AuthCredential credential = FacebookAuthProvider.getCredential(token);
+        mAuth.signInWithCredential(credential)
+            .addOnCompleteListener(this, task -> {
+                if (!task.isSuccessful()) {
+                    showLoading(false);
+                    ToastUtils.showCustomToast(this, "Facebook sign-in failed. Please try again.");
+                    return;
+                }
+                FirebaseUser user = mAuth.getCurrentUser();
+                if (user == null) {
+                    showLoading(false);
+                    ToastUtils.showCustomToast(this, "Sign-in failed. Please try again.");
+                    return;
+                }
+                handleSocialAuthUser(user);
+            });
+    }
+
+    // ─── Phone Sign-In ──────────────────────────────────────────────────
+    private void showPhoneAuthDialog() {
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_phone_auth, null);
+
+        TextInputEditText etCountryCode = dialogView.findViewById(R.id.etCountryCode);
+        TextInputEditText etPhoneNumber = dialogView.findViewById(R.id.etPhoneNumber);
+        com.google.android.material.button.MaterialButton btnSendOtp = dialogView.findViewById(R.id.btnSendOtp);
+        LinearLayout otpSection = dialogView.findViewById(R.id.otpSection);
+        TextInputEditText etOtpCode = dialogView.findViewById(R.id.etOtpCode);
+        com.google.android.material.button.MaterialButton btnVerifyOtp = dialogView.findViewById(R.id.btnVerifyOtp);
+        TextView tvResendOtp = dialogView.findViewById(R.id.tvResendOtp);
+        ProgressBar phoneAuthProgress = dialogView.findViewById(R.id.phoneAuthProgress);
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .setCancelable(true)
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(R.drawable.card_background_shape);
+        }
+
+        btnSendOtp.setOnClickListener(v -> {
+            String code = etCountryCode.getText() != null ? etCountryCode.getText().toString().trim() : "+94";
+            String phone = etPhoneNumber.getText() != null ? etPhoneNumber.getText().toString().trim() : "";
+            if (phone.isEmpty()) {
+                ToastUtils.showCustomToast(this, "Please enter your phone number");
+                return;
+            }
+            String fullPhone = code + phone;
+
+            btnSendOtp.setEnabled(false);
+            phoneAuthProgress.setVisibility(View.VISIBLE);
+
+            PhoneAuthOptions options = PhoneAuthOptions.newBuilder(mAuth)
+                    .setPhoneNumber(fullPhone)
+                    .setTimeout(60L, TimeUnit.SECONDS)
+                    .setActivity(this)
+                    .setCallbacks(new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
+                        @Override
+                        public void onVerificationCompleted(@NonNull PhoneAuthCredential credential) {
+                            phoneAuthProgress.setVisibility(View.GONE);
+                            dialog.dismiss();
+                            signInWithPhoneCredential(credential);
+                        }
+
+                        @Override
+                        public void onVerificationFailed(@NonNull com.google.firebase.FirebaseException e) {
+                            phoneAuthProgress.setVisibility(View.GONE);
+                            btnSendOtp.setEnabled(true);
+                            ToastUtils.showCustomToast(LoginActivity.this,
+                                    "Verification failed: " + e.getMessage());
+                        }
+
+                        @Override
+                        public void onCodeSent(@NonNull String verificationId,
+                                               @NonNull PhoneAuthProvider.ForceResendingToken token) {
+                            phoneVerificationId = verificationId;
+                            phoneResendToken = token;
+                            phoneAuthProgress.setVisibility(View.GONE);
+
+                            // Show OTP section
+                            btnSendOtp.setVisibility(View.GONE);
+                            otpSection.setVisibility(View.VISIBLE);
+                            ToastUtils.showCustomToast(LoginActivity.this, "Verification code sent!");
+                        }
+                    })
+                    .build();
+            PhoneAuthProvider.verifyPhoneNumber(options);
+        });
+
+        btnVerifyOtp.setOnClickListener(v -> {
+            String otp = etOtpCode.getText() != null ? etOtpCode.getText().toString().trim() : "";
+            if (otp.length() != 6) {
+                ToastUtils.showCustomToast(this, "Please enter the 6-digit code");
+                return;
+            }
+            if (phoneVerificationId == null) {
+                ToastUtils.showCustomToast(this, "Please request a code first");
+                return;
+            }
+
+            phoneAuthProgress.setVisibility(View.VISIBLE);
+            btnVerifyOtp.setEnabled(false);
+
+            PhoneAuthCredential credential = PhoneAuthProvider.getCredential(phoneVerificationId, otp);
+            dialog.dismiss();
+            signInWithPhoneCredential(credential);
+        });
+
+        tvResendOtp.setOnClickListener(v -> {
+            // Reset UI to send again
+            otpSection.setVisibility(View.GONE);
+            btnSendOtp.setVisibility(View.VISIBLE);
+            btnSendOtp.setEnabled(true);
+        });
+
+        dialog.show();
+    }
+
+    private void signInWithPhoneCredential(PhoneAuthCredential credential) {
+        showLoading(true);
+        mAuth.signInWithCredential(credential)
+            .addOnCompleteListener(this, task -> {
+                if (!task.isSuccessful()) {
+                    showLoading(false);
+                    ToastUtils.showCustomToast(this, "Phone verification failed. Please try again.");
+                    return;
+                }
+                FirebaseUser user = mAuth.getCurrentUser();
+                if (user == null) {
+                    showLoading(false);
+                    ToastUtils.showCustomToast(this, "Sign-in failed. Please try again.");
+                    return;
+                }
+                handleSocialAuthUser(user);
+            });
+    }
+
+    /**
+     * Common handler for social/phone auth users. Creates profile if new, then navigates.
+     */
+    private void handleSocialAuthUser(FirebaseUser user) {
+        mDatabase.child("users").child(user.getUid())
+            .addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (!snapshot.exists()) {
+                        Map<String, Object> userData = new HashMap<>();
+                        userData.put("name", user.getDisplayName() != null ? user.getDisplayName() : "Customer");
+                        userData.put("email", user.getEmail() != null ? user.getEmail() : "");
+                        userData.put("phone", user.getPhoneNumber() != null ? user.getPhoneNumber() : "");
+                        userData.put("userType", "customer");
+                        userData.put("role", "customer");
+                        userData.put("createdAt", System.currentTimeMillis());
+                        userData.put("profileImage", user.getPhotoUrl() != null ? user.getPhotoUrl().toString() : "");
+                        userData.put("emailVerified", true);
+                        mDatabase.child("users").child(user.getUid()).setValue(userData);
+                    }
+                    String role = snapshot.exists() ? UserRoleHelper.fromSnapshot(snapshot) : UserRoleHelper.ROLE_CUSTOMER;
+                    showLoading(false);
+                    saveUserSession(user, role);
+                    createLoginNotification(user.getUid(), role);
+                    String displayName = user.getDisplayName() != null ? user.getDisplayName() :
+                            (user.getPhoneNumber() != null ? user.getPhoneNumber() : "there");
+                    ToastUtils.showCustomToast(LoginActivity.this, "Welcome, " + displayName + "!");
+                    goToHomeByRole(role, user.getUid());
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    showLoading(false);
+                    saveUserSession(user, UserRoleHelper.ROLE_CUSTOMER);
+                    goToHomeByRole(UserRoleHelper.ROLE_CUSTOMER, user.getUid());
+                }
             });
     }
 
@@ -803,6 +1086,10 @@ public class LoginActivity extends AppCompatActivity {
         btnRegister.setEnabled(!show);
         if (btnGoogleLogin != null) btnGoogleLogin.setEnabled(!show);
         if (btnGoogleRegister != null) btnGoogleRegister.setEnabled(!show);
+        if (btnFacebookLogin != null) btnFacebookLogin.setEnabled(!show);
+        if (btnFacebookRegister != null) btnFacebookRegister.setEnabled(!show);
+        if (btnPhoneLogin != null) btnPhoneLogin.setEnabled(!show);
+        if (btnPhoneRegister != null) btnPhoneRegister.setEnabled(!show);
     }
 
     private void goToHomeByRole(String role, String userId) {

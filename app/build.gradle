@@ -40,6 +40,10 @@ android {
             '"' + (localProps.getProperty("FIREBASE_FCM_SERVER_KEY") ?: "") + '"'
         buildConfigField "String", "GOOGLE_WEB_CLIENT_ID",
             '"' + (localProps.getProperty("GOOGLE_WEB_CLIENT_ID") ?: "") + '"'
+        buildConfigField "String", "FACEBOOK_APP_ID",
+            '"' + (localProps.getProperty("FACEBOOK_APP_ID") ?: "") + '"'
+        buildConfigField "String", "FACEBOOK_CLIENT_TOKEN",
+            '"' + (localProps.getProperty("FACEBOOK_CLIENT_TOKEN") ?: "") + '"'
 
         // Inject Google Maps key into res/values for Manifest use
         resValue "string", "google_maps_key",
@@ -84,6 +88,12 @@ dependencies {
     implementation 'com.google.android.gms:play-services-location:21.0.1'
     // Google Sign-In
     implementation 'com.google.android.gms:play-services-auth:21.2.0'
+
+    // Facebook Login
+    implementation 'com.facebook.android:facebook-login:17.0.0'
+
+    // SwipeRefreshLayout
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
 
     // Image loading
     implementation 'com.github.bumptech.glide:glide:4.16.0'

@@ -52,11 +52,16 @@
             <hr class="flex-grow-1">
         </div>
 
-        <!-- Google Sign-In -->
-        <div class="d-grid mb-3">
-            <button type="button" class="btn btn-outline-secondary" id="btnGoogleLogin" style="display:flex;align-items:center;justify-content:center;gap:10px;">
-                <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 7.294C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
-                Continue with Google
+        <!-- Social login: 3 rounded icon buttons -->
+        <div class="d-flex justify-content-center gap-3 mb-3">
+            <button type="button" class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center" id="btnGoogleLogin" style="width:50px;height:50px;padding:0;" title="Continue with Google">
+                <svg width="20" height="20" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 7.294C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
+            </button>
+            <button type="button" class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center" id="btnFacebookLogin" style="width:50px;height:50px;padding:0;" title="Continue with Facebook">
+                <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#1877F2" d="M22,12C22,6.48 17.52,2 12,2S2,6.48 2,12c0,4.84 3.44,8.87 8,9.8V15H8v-3h2V9.5C10,7.57 11.57,6 13.5,6H16v3h-2c-0.55,0-1,0.45-1,1v2h3l-0.5,3H13v6.95C18.05,21.45 22,17.19 22,12z"/></svg>
+            </button>
+            <button type="button" class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center" id="btnPhoneLogin" style="width:50px;height:50px;padding:0;" title="Continue with Phone">
+                <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#1C1C1E" d="M6.62,10.79C8.06,13.62 10.38,15.94 13.21,17.38L15.41,15.18C15.69,14.9 16.08,14.82 16.43,14.93C17.55,15.3 18.75,15.5 20,15.5C20.55,15.5 21,15.95 21,16.5V20C21,20.55 20.55,21 20,21C10.61,21 3,13.39 3,4C3,3.45 3.45,3 4,3H7.5C8.05,3 8.5,3.45 8.5,4C8.5,5.25 8.7,6.45 9.07,7.57C9.18,7.92 9.1,8.31 8.82,8.59L6.62,10.79Z"/></svg>
             </button>
         </div>
 
@@ -122,7 +127,16 @@
                 await auth.signOut();
             }
         } catch (error) {
-            alert(error.message);
+            if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+                const goRegister = confirm("No account found with this email.\n\nWould you like to register a new hotel account?");
+                if (goRegister) {
+                    window.location.href = "register.html";
+                }
+            } else if (error.code === 'auth/wrong-password') {
+                alert("Incorrect password. Please try again.");
+            } else {
+                alert(error.message);
+            }
         } finally {
             ReplateUI.setButtonLoading('btnLogin', false);
         }
@@ -131,8 +145,26 @@
     // Google Sign-In handler
     document.getElementById('btnGoogleLogin').addEventListener('click', async () => {
         const provider = new firebase.auth.GoogleAuthProvider();
-        const btn = document.getElementById('btnGoogleLogin');
+        await socialLoginWithProvider(provider, 'btnGoogleLogin', 'Google');
+    });
+
+    // Facebook Sign-In handler
+    document.getElementById('btnFacebookLogin').addEventListener('click', async () => {
+        const provider = new firebase.auth.FacebookAuthProvider();
+        await socialLoginWithProvider(provider, 'btnFacebookLogin', 'Facebook');
+    });
+
+    // Phone Sign-In handler
+    document.getElementById('btnPhoneLogin').addEventListener('click', () => {
+        const phone = prompt("Enter your phone number with country code (e.g., +94771234567):");
+        if (!phone || phone.trim().length < 8) return;
+        alert("Phone authentication is available in the mobile app. Please use the REPLATE Android app for phone sign-in.");
+    });
+
+    async function socialLoginWithProvider(provider, btnId, providerName) {
+        const btn = document.getElementById(btnId);
         btn.disabled = true;
+        const originalHTML = btn.innerHTML;
         btn.textContent = 'Signing in...';
 
         try {
@@ -141,7 +173,7 @@
 
             const hotelRecord = await ReplateSchema.findHotelByUserId(database, uid);
             if (!hotelRecord) {
-                alert("No hotel account found linked to this Google account. Please register first or use your email and password.");
+                alert(`No hotel account found linked to this ${providerName} account. Please register first or use your email and password.`);
                 await auth.signOut();
                 return;
             }
@@ -160,13 +192,13 @@
             }
         } catch (error) {
             if (error.code !== 'auth/popup-closed-by-user') {
-                alert(error.message || "Google sign-in failed. Please try again.");
+                alert(error.message || `${providerName} sign-in failed. Please try again.`);
             }
         } finally {
             btn.disabled = false;
-            btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 7.294C4.672 5.163 6.656 3.58 9 3.58z"/></svg> Continue with Google`;
+            btn.innerHTML = originalHTML;
         }
-    });
+    }
 </script>
 
 </body>

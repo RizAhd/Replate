@@ -169,7 +169,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     class NotifViewHolder extends RecyclerView.ViewHolder {
         ImageView ivIcon, ivDelete;
-        TextView tvTitle, tvBody, tvTime;
+        TextView tvTitle, tvBody, tvTime, tvCategoryChip;
         View unreadDot;
         View viewAccentStrip;
 
@@ -182,6 +182,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             tvTime = itemView.findViewById(R.id.tvTime);
             unreadDot = itemView.findViewById(R.id.unreadDot);
             viewAccentStrip = itemView.findViewById(R.id.viewAccentStrip);
+            tvCategoryChip = itemView.findViewById(R.id.tvCategoryChip);
         }
 
         void bind(AppNotification notif) {
@@ -200,12 +201,39 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             itemView.setAlpha(isRead ? 0.78f : 1.0f);
 
             // Apply category-colored accent strip and icon tint
-            int accentColor = ContextCompat.getColor(context, getCategoryAccentColor(notif.getCategory()));
+            int accentColorRes = getCategoryAccentColor(notif.getCategory());
+            int accentColor = ContextCompat.getColor(context, accentColorRes);
             if (viewAccentStrip != null) {
                 viewAccentStrip.setBackgroundColor(accentColor);
             }
             if (ivIcon != null) {
                 ivIcon.setColorFilter(accentColor);
+                // Set category-specific icon
+                int iconRes = getCategoryIcon(notif.getCategory());
+                ivIcon.setImageResource(iconRes);
+            }
+
+            // Category chip label
+            if (tvCategoryChip != null) {
+                String label = getCategoryLabel(notif.getCategory());
+                if (label != null && !label.isEmpty()) {
+                    tvCategoryChip.setVisibility(View.VISIBLE);
+                    tvCategoryChip.setText(label);
+                    tvCategoryChip.setTextColor(accentColor);
+                    // Update background tint for the chip
+                    android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable();
+                    bg.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
+                    bg.setCornerRadius(8 * context.getResources().getDisplayMetrics().density);
+                    bg.setColor(adjustAlpha(accentColor, 0.1f));
+                    bg.setPadding(
+                            (int)(8 * context.getResources().getDisplayMetrics().density),
+                            (int)(2 * context.getResources().getDisplayMetrics().density),
+                            (int)(8 * context.getResources().getDisplayMetrics().density),
+                            (int)(2 * context.getResources().getDisplayMetrics().density));
+                    tvCategoryChip.setBackground(bg);
+                } else {
+                    tvCategoryChip.setVisibility(View.GONE);
+                }
             }
 
             itemView.setOnClickListener(v -> {
@@ -237,6 +265,64 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, hh:mm a", Locale.getDefault());
             return sdf.format(new Date(timestamp));
         }
+    }
+
+    /** Returns a category-specific icon resource. */
+    private int getCategoryIcon(String category) {
+        if (category == null) return R.drawable.ic_notification;
+        switch (category.toLowerCase(Locale.US)) {
+            case "order_placed":
+            case "order_accepted":
+            case "hotel_new_order":
+                return R.drawable.ic_orders;
+            case "order_cancelled":
+            case "order_rejected":
+                return R.drawable.ic_order_cancel;
+            case "pickup_ready":
+            case "pickup_reminder":
+                return R.drawable.ic_pickup;
+            case "new_deals":
+            case "hot_deals":
+                return R.drawable.ic_deal;
+            case "admin_announcement":
+            case "admin_broadcast":
+                return R.drawable.ic_admin_announce;
+            case "hotel_approved":
+            case "welcome":
+                return R.drawable.ic_welcome;
+            default:
+                return R.drawable.ic_notification;
+        }
+    }
+
+    /** Returns a human-readable label for the category chip. */
+    private String getCategoryLabel(String category) {
+        if (category == null) return "";
+        switch (category.toLowerCase(Locale.US)) {
+            case "order_placed": return "Order Placed";
+            case "order_accepted": return "Accepted";
+            case "order_cancelled": return "Cancelled";
+            case "order_rejected": return "Rejected";
+            case "hotel_new_order": return "New Order";
+            case "pickup_ready": return "Pickup Ready";
+            case "pickup_reminder": return "Pickup";
+            case "new_deals": return "New Deal";
+            case "hot_deals": return "Hot Deal";
+            case "admin_announcement": return "Announcement";
+            case "admin_broadcast": return "System";
+            case "hotel_approved": return "Approved";
+            case "welcome": return "Welcome";
+            default: return "";
+        }
+    }
+
+    /** Adjust alpha of an argb color. */
+    private int adjustAlpha(int color, float factor) {
+        int alpha = Math.round(android.graphics.Color.alpha(color) * factor);
+        int red = android.graphics.Color.red(color);
+        int green = android.graphics.Color.green(color);
+        int blue = android.graphics.Color.blue(color);
+        return android.graphics.Color.argb(alpha, red, green, blue);
     }
 }
 
