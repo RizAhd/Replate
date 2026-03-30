@@ -599,7 +599,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
 
         SharedPreferences sessionPrefs = getSharedPreferences("REPLATE_PREFS", MODE_PRIVATE);
+        // Preserve device-level onboarding flag across logouts
+        boolean onboardingSeen = sessionPrefs.getBoolean("onboarding_seen", false);
         sessionPrefs.edit().clear().apply();
+        if (onboardingSeen) {
+            sessionPrefs.edit().putBoolean("onboarding_seen", true).apply();
+        }
 
         Intent i = new Intent(this, SplashActivity.class);
         i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);

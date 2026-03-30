@@ -3,6 +3,8 @@ package com.replate.app.adapters;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.DecelerateInterpolator;
+import android.view.animation.OvershootInterpolator;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -29,7 +31,6 @@ public class OnboardingAdapter extends RecyclerView.Adapter<OnboardingAdapter.On
     @NonNull
     @Override
     public OnboardingViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // Inflate the item layout for each slide
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_onboarding, parent, false);
         return new OnboardingViewHolder(view);
@@ -37,7 +38,6 @@ public class OnboardingAdapter extends RecyclerView.Adapter<OnboardingAdapter.On
 
     @Override
     public void onBindViewHolder(@NonNull OnboardingViewHolder holder, int position) {
-        // Bind data to the view holder
         holder.bind(onboardingItems.get(position));
     }
 
@@ -48,6 +48,7 @@ public class OnboardingAdapter extends RecyclerView.Adapter<OnboardingAdapter.On
 
     /**
      * ViewHolder class - holds references to views in each item
+     * with entrance animations for a premium feel
      */
     class OnboardingViewHolder extends RecyclerView.ViewHolder {
         private ImageView imageOnboarding;
@@ -65,6 +66,41 @@ public class OnboardingAdapter extends RecyclerView.Adapter<OnboardingAdapter.On
             imageOnboarding.setImageResource(onboardingItem.getImage());
             textTitle.setText(onboardingItem.getTitle());
             textDescription.setText(onboardingItem.getDescription());
+
+            // Entrance animation — image scales up with overshoot
+            imageOnboarding.setScaleX(0.7f);
+            imageOnboarding.setScaleY(0.7f);
+            imageOnboarding.setAlpha(0f);
+            imageOnboarding.animate()
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .alpha(1f)
+                    .setDuration(500)
+                    .setStartDelay(100)
+                    .setInterpolator(new OvershootInterpolator(1.2f))
+                    .start();
+
+            // Title slides up and fades in
+            textTitle.setTranslationY(40f);
+            textTitle.setAlpha(0f);
+            textTitle.animate()
+                    .translationY(0f)
+                    .alpha(1f)
+                    .setDuration(400)
+                    .setStartDelay(250)
+                    .setInterpolator(new DecelerateInterpolator())
+                    .start();
+
+            // Description slides up and fades in
+            textDescription.setTranslationY(30f);
+            textDescription.setAlpha(0f);
+            textDescription.animate()
+                    .translationY(0f)
+                    .alpha(1f)
+                    .setDuration(400)
+                    .setStartDelay(350)
+                    .setInterpolator(new DecelerateInterpolator())
+                    .start();
         }
     }
 }

@@ -81,7 +81,6 @@ public class SplashActivity extends AppCompatActivity {
         if (savedUserId != null) {
             // Auto-login based on role
             if ("hotel".equals(savedRole)) {
-                // Check if we have hotel dashboard activity class
                 try {
                     Class<?> hotelClass = Class.forName("com.replate.app.hotel.HotelDashboardActivity");
                     nextIntent = new Intent(this, hotelClass);
@@ -100,7 +99,14 @@ public class SplashActivity extends AppCompatActivity {
                 nextIntent = new Intent(this, MainActivity.class);
             }
         } else {
-            nextIntent = new Intent(this, LoginActivity.class);
+            // Show onboarding for first-time users; OnboardingActivity will
+            // skip to LoginActivity automatically if onboarding was already seen.
+            boolean onboardingSeen = prefs.getBoolean("onboarding_seen", false);
+            if (onboardingSeen) {
+                nextIntent = new Intent(this, LoginActivity.class);
+            } else {
+                nextIntent = new Intent(this, OnboardingActivity.class);
+            }
         }
 
         copyNotificationExtras(launchIntent, nextIntent);

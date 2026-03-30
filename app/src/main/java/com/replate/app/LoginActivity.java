@@ -1093,6 +1093,19 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void goToHomeByRole(String role, String userId) {
+        // Show onboarding for first-time users before entering the app
+        SharedPreferences prefs = getSharedPreferences("REPLATE_PREFS", MODE_PRIVATE);
+        boolean onboardingSeen = prefs.getBoolean("onboarding_seen", false);
+        if (!onboardingSeen) {
+            Intent onboardingIntent = new Intent(LoginActivity.this, OnboardingActivity.class);
+            onboardingIntent.putExtra("post_auth", true);
+            onboardingIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(onboardingIntent);
+            finish();
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+            return;
+        }
+
         if ("hotel".equals(role)) {
             checkHotelApprovalStatus(userId);
             return;
