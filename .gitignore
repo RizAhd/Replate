@@ -1,25 +1,57 @@
-*.iml
-.gradle
-/local.properties
-/.idea/
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+# ───────────────── ANDROID / JAVA ─────────────────
+
+# Gradle
+.gradle/
+build/
+
+# Local config
 local.properties
 
-# ── Dependencies ─────────────────────────────────────────────
-node_modules/
-package-lock.json
+# Android Studio
+.idea/
+*.iml
 
-# ── Secret / credential files — NEVER commit these ──────────
-.env
-web-panels/js/env-config.js
+# Generated files
+captures/
+.externalNativeBuild/
+.cxx/
+
+# APK / Bundle
+*.apk
+*.aab
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+
+# ───────────────── FIREBASE / SECRETS ─────────────────
+
+# Firebase config (DO NOT upload)
 app/google-services.json
 
-# ── Build logs, debug output, and temp files ─────────────────
-*.log
+# Environment files
+.env
+*.env
+
+# Web panel config
+web-panels/js/env-config.js
+
+
+# ───────────────── NODE / WEB PANEL ─────────────────
+
+node_modules/
+package-lock.json
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+
+# ───────────────── BUILD / TEMP FILES ─────────────────
+
 build_*.txt
 build_*.status
 compile_*.txt
@@ -28,3 +60,20 @@ deploy_*.txt
 live_logcat.txt
 check_build.bat
 hs_err_*.log
+
+
+# ───────────────── SECURITY FILES ─────────────────
+
+# Keystore files
+*.jks
+*.keystore
+*.pem
+*.key
+
+
+# ───────────────── MISC ─────────────────
+
+# Backup / temp
+*.bak
+*.tmp
+*.swp

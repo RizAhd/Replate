@@ -3,7 +3,6 @@ plugins {
     id 'com.google.gms.google-services'
 }
 
-// Load secrets from local.properties
 def localProps = new Properties()
 def localPropsFile = rootProject.file("local.properties")
 if (localPropsFile.exists()) {
@@ -27,7 +26,6 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
-        // Inject secrets as BuildConfig constants
         buildConfigField "String", "PAYHERE_MERCHANT_ID",
             '"' + (localProps.getProperty("PAYHERE_MERCHANT_ID") ?: "") + '"'
         buildConfigField "String", "PAYHERE_MERCHANT_SECRET",
@@ -45,7 +43,6 @@ android {
         buildConfigField "String", "FACEBOOK_CLIENT_TOKEN",
             '"' + (localProps.getProperty("FACEBOOK_CLIENT_TOKEN") ?: "") + '"'
 
-        // Inject Google Maps key into res/values for Manifest use
         resValue "string", "google_maps_key",
             (localProps.getProperty("GOOGLE_MAPS_API_KEY") ?: "")
     }
@@ -67,61 +64,44 @@ dependencies {
     implementation 'com.google.android.material:material:1.11.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
 
-    // ViewPager2 for onboarding
     implementation 'androidx.viewpager2:viewpager2:1.0.0'
 
-    // Circle Indicator for dots
     implementation 'me.relex:circleindicator:2.1.6'
 
-    // CardView
     implementation 'androidx.cardview:cardview:1.0.0'
 
-    // Firebase
     implementation platform('com.google.firebase:firebase-bom:32.3.1')
     implementation 'com.google.firebase:firebase-auth'
     implementation 'com.google.firebase:firebase-database'
     implementation 'com.google.firebase:firebase-storage'
     implementation 'com.google.firebase:firebase-messaging'
 
-    // Google Maps
     implementation 'com.google.android.gms:play-services-maps:18.2.0'
     implementation 'com.google.android.gms:play-services-location:21.0.1'
-    // Google Sign-In
     implementation 'com.google.android.gms:play-services-auth:21.2.0'
 
-    // Facebook Login
     implementation 'com.facebook.android:facebook-login:17.0.0'
 
-    // SwipeRefreshLayout
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
 
-    // Image loading
     implementation 'com.github.bumptech.glide:glide:4.16.0'
 
-    // Circle Image View for profile
     implementation 'de.hdodenhof:circleimageview:3.1.0'
 
-    // PayHere SDK (official JitPack package)
     implementation 'com.github.PayHereDevs:payhere-android-sdk:v3.0.18'
     implementation 'com.google.code.gson:gson:2.8.0'
 
-    // QR Code
     implementation 'com.google.zxing:core:3.5.2'
     implementation 'com.journeyapps:zxing-android-embedded:4.3.0'
 
-    // Charts
     implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
 
-    // Splash Screen
     implementation 'androidx.core:core-splashscreen:1.0.1'
 
-    // WorkManager
     implementation 'androidx.work:work-runtime:2.9.0'
 
-    // Lifecycle (required for ProcessLifecycleOwner in notification foreground detection)
     implementation 'androidx.lifecycle:lifecycle-process:2.7.0'
 
-    // Testing
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'

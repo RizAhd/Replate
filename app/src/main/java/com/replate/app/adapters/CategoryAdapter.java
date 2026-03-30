@@ -17,9 +17,7 @@ import com.replate.app.models.Category;
 
 import java.util.List;
 
-/**
- * Adapter for displaying food categories
- */
+// ...existing code...
 public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.CategoryViewHolder> {
 
     private Context context;
@@ -108,7 +106,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
                 int previousSelected = selectedPosition;
                 selectedPosition = position;
 
-                // Smooth press feedback
+// ...existing code...
                 cardView.animate()
                         .scaleX(0.96f)
                         .scaleY(0.96f)

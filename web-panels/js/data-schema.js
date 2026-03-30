@@ -1,15 +1,6 @@
-/**
- * REPLATE Data Schema Helpers
- * Shared utilities for normalizing Firebase data across all web panels.
- */
 
 const ReplateSchema = (() => {
 
-    /**
-     * Normalise every possible order-status variant to one of:
-     *   pending_pickup | pending_delivery | confirmed | preparing |
-     *   ready | out_for_delivery | delivered | completed | cancelled
-     */
     function normalizeOrderStatus(raw) {
         if (!raw) return 'pending_pickup';
         const s = String(raw).toLowerCase().trim();
@@ -25,7 +16,6 @@ const ReplateSchema = (() => {
         return 'pending_pickup';
     }
 
-    /** Bootstrap badge class for a normalised status. */
     function statusBadgeClass(status) {
         const s = normalizeOrderStatus(status);
         switch (s) {
@@ -44,7 +34,6 @@ const ReplateSchema = (() => {
         }
     }
 
-    /** Human-readable label for a normalised status. */
     function statusLabel(status) {
         const s = normalizeOrderStatus(status);
         switch (s) {
@@ -61,7 +50,6 @@ const ReplateSchema = (() => {
         }
     }
 
-    /** Bootstrap bg-* class */
     function statusBgClass(status) {
         const s = normalizeOrderStatus(status);
         switch (s) {
@@ -80,10 +68,6 @@ const ReplateSchema = (() => {
         }
     }
 
-    /**
-     * Extract a display-friendly list of item names from an order object.
-     * Firebase can store items as an Array OR a plain Object (numeric keys).
-     */
     function extractItemNames(order) {
         const items = order.items;
         if (!items) return 'N/A';
@@ -98,7 +82,6 @@ const ReplateSchema = (() => {
         return 'N/A';
     }
 
-    /** Extract items as an array regardless of Firebase storage form. */
     function extractItemsArray(order) {
         const items = order.items;
         if (!items) return [];
@@ -107,13 +90,11 @@ const ReplateSchema = (() => {
         return [];
     }
 
-    /** Safe number formatter — handles String/Number ambiguity from Firebase. */
     function formatAmount(val) {
         const n = parseFloat(val);
         return isNaN(n) ? '0.00' : n.toFixed(2);
     }
 
-    /** Short display ID for an order — last 8 chars of key or orderId field. */
     function shortOrderId(order, firebaseKey) {
         const id = order.orderId || order.qrCode || order.pickupCode || firebaseKey || '';
         return id.length > 8 ? id.substring(id.length - 8) : id;
@@ -148,14 +129,12 @@ const ReplateSchema = (() => {
     }
 
     async function findHotelByUserId(database, uid) {
-        // New schema: hotels keyed by hotel id and linked via userId.
         const byUser = await database.ref('hotels').orderByChild('userId').equalTo(uid).once('value');
         if (byUser.exists()) {
             const [key, value] = Object.entries(byUser.val())[0];
             return { key, value };
         }
 
-        // Backward compatibility for old builds where hotel node key == uid.
         const legacy = await database.ref('hotels/' + uid).once('value');
         if (legacy.exists()) {
             return { key: uid, value: legacy.val() };
@@ -177,7 +156,6 @@ const ReplateSchema = (() => {
             status: 'pending',
             rejectionReason: '',
             licenseUrl,
-            // Keep legacy field for older pages.
             license: licenseUrl,
             searchRegion: toSearchRegion(formData.address),
             createdAt: Date.now(),
