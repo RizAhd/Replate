@@ -132,6 +132,12 @@ public class HomeFragment extends Fragment implements
                 }
             });
 
+    // Parses food snapshots off the main thread, one at a time and in order, so an older snapshot
+    // can never overwrite a newer one. Shut down in onDestroyView.
+    private java.util.concurrent.ExecutorService foodParseExecutor;
+    private DatabaseReference favoritesRef;
+    private ValueEventListener favoritesListener;
+
     private final Handler bannerHandler = new Handler(Looper.getMainLooper());
     private final Handler uiHandler = new Handler(Looper.getMainLooper());
 
@@ -654,8 +660,12 @@ public class HomeFragment extends Fragment implements
         foodItemsListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                // Process Firebase data on background thread to prevent UI jank
-                new Thread(() -> {
+                // Process Firebase data on a background thread to prevent UI jank
+                if (foodParseExecutor == null || foodParseExecutor.isShutdown()) {
+                    foodParseExecutor = java.util.concurrent.Executors.newSingleThreadExecutor();
+                }
+                try {
+                    foodParseExecutor.execute(() -> {
                     List<FoodItem> newItems = new ArrayList<>();
 
                     for (DataSnapshot itemSnapshot : snapshot.getChildren()) {
@@ -752,7 +762,10 @@ public class HomeFragment extends Fragment implements
                         filterByCategory(selectedCategory);
                         showLoading(false);
                     });
-                }).start();
+                    });
+                } catch (java.util.concurrent.RejectedExecutionException e) {
+                    // The screen was torn down while a snapshot arrived; nothing to update
+                }
             }
 
             @Override
@@ -774,8 +787,11 @@ public class HomeFragment extends Fragment implements
             updateFavorites();
             return;
         }
-        mDatabase.child("favorites").child(mAuth.getCurrentUser().getUid())
-                .addValueEventListener(new ValueEventListener() {
+        if (favoritesRef != null && favoritesListener != null) {
+            favoritesRef.removeEventListener(favoritesListener);
+        }
+        favoritesRef = mDatabase.child("favorites").child(mAuth.getCurrentUser().getUid());
+        favoritesListener = new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         favoriteFoodIds.clear();
@@ -801,8 +817,10 @@ public class HomeFragment extends Fragment implements
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
+                        android.util.Log.w("HomeFragment", "Favorites listener cancelled: " + error.getMessage());
                     }
-                });
+                };
+        favoritesRef.addValueEventListener(favoritesListener);
     }
 
     private void updateHotDeals() {
@@ -1022,6 +1040,14 @@ public class HomeFragment extends Fragment implements
         // Remove real-time food items listener
         if (foodItemsRef != null && foodItemsListener != null) {
             foodItemsRef.removeEventListener(foodItemsListener);
+        }
+        // Otherwise a new favorites listener piles up every time this tab is opened
+        if (favoritesRef != null && favoritesListener != null) {
+            favoritesRef.removeEventListener(favoritesListener);
+        }
+        if (foodParseExecutor != null) {
+            foodParseExecutor.shutdownNow();
+            foodParseExecutor = null;
         }
     }
 }
