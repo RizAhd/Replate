@@ -72,7 +72,7 @@ public final class NotificationRouter {
             return applyCommonExtras(homeIntent, normalizedCategory, normalizedRoute, safeOrderId, safeHotelId, safeDeepLink);
         }
 
-        if (!safeDeepLink.isEmpty()) {
+        if (isSafeDeepLink(safeDeepLink)) {
             try {
                 Intent deepLinkIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(safeDeepLink));
                 return applyCommonExtras(deepLinkIntent, normalizedCategory, normalizedRoute, safeOrderId, safeHotelId, safeDeepLink);
@@ -82,6 +82,23 @@ public final class NotificationRouter {
 
         Intent fallback = new Intent(context, NotificationsActivity.class);
         return applyCommonExtras(fallback, normalizedCategory, normalizedRoute, safeOrderId, safeHotelId, safeDeepLink);
+    }
+
+    /**
+     * Deep links come from push payloads / database rows, so only open plain web links.
+     * Rejects javascript:, file:, content:, intent: and any other scheme.
+     */
+    public static boolean isSafeDeepLink(String deepLink) {
+        if (deepLink == null || deepLink.trim().isEmpty()) {
+            return false;
+        }
+        try {
+            Uri uri = Uri.parse(deepLink.trim());
+            String scheme = uri.getScheme();
+            return "https".equalsIgnoreCase(scheme) && uri.getHost() != null && !uri.getHost().isEmpty();
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private static Intent applyCommonExtras(Intent intent,
