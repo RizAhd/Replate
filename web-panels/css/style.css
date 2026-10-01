@@ -1743,3 +1743,65 @@ main > h2 {
 .stat-value {
     font-variant-numeric: tabular-nums;
 }
+
+/* ── Login / register pages ──────────────────────────────── */
+.auth-brand { display: flex; flex-direction: column; align-items: center; }
+
+.auth-wordmark {
+    margin-top: 8px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: 0.14em;
+    padding-left: 0.14em;
+    color: var(--primary);
+}
+
+.auth-card .auth-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-top: 6px;
+}
+
+.auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+}
+
+.social-btn {
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.status-notice {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    background: var(--info-light);
+    font-size: 0.9rem;
+}
+
+.status-notice strong { color: var(--text-primary); }
+.status-notice span { color: var(--text-secondary); }
+.status-notice.status-pending { background: var(--warning-light); border-color: #fcd9a1; }
+.status-notice.status-rejected { background: var(--danger-light); border-color: #f6b8b8; }
+.status-notice.status-warning { background: var(--warning-light); border-color: #fcd9a1; }

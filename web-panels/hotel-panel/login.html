@@ -3,73 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>Hotel Login - REPLATE</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <meta name="description" content="Hotel partner sign in - REPLATE food rescue.">
+    <meta name="theme-color" content="#1a6b3c">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Hotel Sign In - REPLATE</title>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/style.css">
     <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+    <link rel="icon" href="../assets/favicon.ico" sizes="any">
+    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+    <link rel="manifest" href="../manifest.webmanifest">
 </head>
 <body class="auth-page">
+<a class="skip-link" href="#mainContent">Skip to content</a>
 
-<div class="auth-card text-center">
-    <div class="mb-4">
-        <img src="../assets/replate-logo.svg" alt="REPLATE" class="brand-logo-auth">
-        <h2 class="auth-title">REPLATE</h2>
-        <p class="auth-subtext mb-0">Hotel Partner Login</p>
+<main class="auth-card text-center" id="mainContent">
+    <div class="auth-brand mb-4">
+        <img src="../assets/replate-icon.svg" alt="" width="64" height="64" class="brand-logo-auth">
+        <div class="auth-wordmark">REPLATE</div>
+        <h1 class="auth-title">Hotel partner sign in</h1>
+        <p class="auth-subtext mb-0">Manage your surplus food listings and orders</p>
     </div>
 
-    <form id="loginForm">
+    <!-- Shown when the account is waiting for approval or was declined -->
+    <div id="statusNotice" class="status-notice d-none text-start" role="status"></div>
+
+    <form id="loginForm" novalidate>
         <div class="mb-3 text-start">
-            <label class="form-label">Email Address</label>
-            <input type="email" class="form-control" id="email" placeholder="hotel@email.com" required>
+            <label class="form-label" for="email">Email address</label>
+            <input type="email" class="form-control" id="email" placeholder="hotel@email.com"
+                   autocomplete="username" inputmode="email" required>
         </div>
-        <div class="mb-4 text-start">
-            <label class="form-label">Password</label>
+        <div class="mb-3 text-start">
+            <label class="form-label" for="password">Password</label>
             <div class="input-with-icon">
-                <input type="password" class="form-control" id="password" placeholder="Enter password" required>
+                <input type="password" class="form-control" id="password" placeholder="Enter password"
+                       autocomplete="current-password" required>
                 <button type="button" class="password-toggle" id="togglePassword" aria-label="Show password">
-                    <i class="fas fa-eye" id="togglePasswordIcon"></i>
+                    <i class="fas fa-eye" id="togglePasswordIcon" aria-hidden="true"></i>
                 </button>
             </div>
         </div>
 
         <div class="auth-links-row mb-3">
             <a href="#" class="auth-link" id="forgotPasswordLink">Forgot password?</a>
-            <span class="text-secondary small">Need admin approval first</span>
+            <span class="text-secondary small">New hotels need admin approval</span>
         </div>
 
         <div class="d-grid mb-3">
-            <button type="submit" class="btn btn-primary btn-lg" id="btnLogin">LOGIN</button>
+            <button type="submit" class="btn btn-primary btn-lg" id="btnLogin">Sign in</button>
         </div>
 
-        <!-- Divider -->
-        <div class="d-flex align-items-center mb-3">
-            <hr class="flex-grow-1">
-            <span class="mx-2 text-secondary small">or</span>
-            <hr class="flex-grow-1">
-        </div>
+        <div class="auth-divider mb-3"><span>or</span></div>
 
-        <!-- Social login: 3 rounded icon buttons -->
         <div class="d-flex justify-content-center gap-3 mb-3">
-            <button type="button" class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center" id="btnGoogleLogin" style="width:50px;height:50px;padding:0;" title="Continue with Google">
-                <svg width="20" height="20" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 7.294C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
+            <button type="button" class="btn btn-outline-secondary social-btn" id="btnGoogleLogin" aria-label="Continue with Google">
+                <svg width="20" height="20" viewBox="0 0 18 18" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 7.294C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
             </button>
-            <button type="button" class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center" id="btnFacebookLogin" style="width:50px;height:50px;padding:0;" title="Continue with Facebook">
-                <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#1877F2" d="M22,12C22,6.48 17.52,2 12,2S2,6.48 2,12c0,4.84 3.44,8.87 8,9.8V15H8v-3h2V9.5C10,7.57 11.57,6 13.5,6H16v3h-2c-0.55,0-1,0.45-1,1v2h3l-0.5,3H13v6.95C18.05,21.45 22,17.19 22,12z"/></svg>
-            </button>
-            <button type="button" class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center" id="btnPhoneLogin" style="width:50px;height:50px;padding:0;" title="Continue with Phone">
-                <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#1C1C1E" d="M6.62,10.79C8.06,13.62 10.38,15.94 13.21,17.38L15.41,15.18C15.69,14.9 16.08,14.82 16.43,14.93C17.55,15.3 18.75,15.5 20,15.5C20.55,15.5 21,15.95 21,16.5V20C21,20.55 20.55,21 20,21C10.61,21 3,13.39 3,4C3,3.45 3.45,3 4,3H7.5C8.05,3 8.5,3.45 8.5,4C8.5,5.25 8.7,6.45 9.07,7.57C9.18,7.92 9.1,8.31 8.82,8.59L6.62,10.79Z"/></svg>
+            <button type="button" class="btn btn-outline-secondary social-btn" id="btnFacebookLogin" aria-label="Continue with Facebook">
+                <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><path fill="#1877F2" d="M22,12C22,6.48 17.52,2 12,2S2,6.48 2,12c0,4.84 3.44,8.87 8,9.8V15H8v-3h2V9.5C10,7.57 11.57,6 13.5,6H16v3h-2c-0.55,0-1,0.45-1,1v2h3l-0.5,3H13v6.95C18.05,21.45 22,17.19 22,12z"/></svg>
             </button>
         </div>
+        <p class="text-secondary small mb-3">Phone sign-in is available in the REPLATE mobile app.</p>
 
-        <p class="mb-0">New here? <a href="register.html" class="fw-semibold">Register Hotel</a></p>
+        <p class="mb-0">New here? <a href="register.html" class="fw-semibold">Register your hotel</a></p>
+        <p class="mb-0 mt-2"><a href="../index.html" class="auth-link">&larr; Back to home</a></p>
 
-        <p class="text-secondary small mt-3 mb-0">REPLATE V1.1.0 • Built by Riflan Mohamed • 2026</p>
+        <p class="text-secondary small mt-3 mb-0">REPLATE V1.1.0 &bull; Built by Riflan Mohamed &bull; 2026</p>
     </form>
-</div>
+</main>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -83,124 +88,121 @@
 <script>
     ReplateUI.attachPasswordToggle('password', 'togglePassword', 'togglePasswordIcon');
 
+    const notice = document.getElementById('statusNotice');
+
+    function showNotice(kind, title, text) {
+        notice.className = 'status-notice status-' + kind + ' text-start';
+        notice.innerHTML = '<strong>' + ReplateUI.esc(title) + '</strong><span>' + ReplateUI.esc(text) + '</span>';
+    }
+
+    function clearNotice() {
+        notice.className = 'status-notice d-none text-start';
+        notice.textContent = '';
+    }
+
+    function friendlyAuthError(error) {
+        switch (error && error.code) {
+            case 'auth/user-not-found':
+                return 'There is no account with this email. Register your hotel to get started.';
+            case 'auth/wrong-password':
+            case 'auth/invalid-credential':
+                return 'That email or password is not correct.';
+            case 'auth/too-many-requests':
+                return 'Too many attempts. Wait a few minutes or reset your password.';
+            case 'auth/network-request-failed':
+                return 'No connection. Check your internet and try again.';
+            case 'auth/user-disabled':
+                return 'This account has been disabled. Please contact support.';
+            default:
+                return 'Could not sign in. Please try again.';
+        }
+    }
+
+    /** Check the hotel record for this user and either enter the dashboard or explain why not. */
+    async function enterIfApproved(uid, providerName) {
+        const hotelRecord = await ReplateSchema.findHotelByUserId(database, uid);
+        if (!hotelRecord) {
+            showNotice('warning', 'No hotel account found',
+                providerName
+                    ? 'No hotel is linked to this ' + providerName + ' account. Register first or use your email and password.'
+                    : 'No hotel is registered with this account. Use "Register your hotel" below.');
+            await auth.signOut();
+            return;
+        }
+
+        sessionStorage.setItem('hotelId', hotelRecord.key);
+        const status = ReplateSchema.normalizeHotelStatus(hotelRecord.value && hotelRecord.value.status);
+
+        if (status === 'approved') {
+            window.location.href = 'dashboard.html';
+            return;
+        }
+        if (status === 'pending') {
+            showNotice('pending', 'Waiting for approval',
+                'Your hotel is registered and being reviewed by the REPLATE team. You will be able to sign in as soon as it is approved.');
+        } else {
+            const reason = (hotelRecord.value && hotelRecord.value.rejectionReason) || 'The registration did not meet our criteria.';
+            showNotice('rejected', 'Registration was not approved', 'Reason: ' + reason);
+        }
+        await auth.signOut();
+    }
+
     document.getElementById('forgotPasswordLink').addEventListener('click', async (e) => {
         e.preventDefault();
         const email = document.getElementById('email').value.trim();
         if (!email) {
-            alert('Enter your hotel email first, then click Forgot password.');
+            ReplateUI.toast('Enter your hotel email first, then choose "Forgot password".', 'info');
             return;
         }
-
         try {
             await auth.sendPasswordResetEmail(email);
-            alert('Password reset link sent. Please check your email inbox.');
+            ReplateUI.toast('Password reset link sent. Check your inbox.', 'success');
         } catch (error) {
-            alert(error.message || 'Could not send reset email.');
+            ReplateUI.toast(friendlyAuthError(error), 'danger');
         }
     });
 
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const email = document.getElementById('email').value;
+        clearNotice();
+        const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value;
+        if (!email || !password) {
+            ReplateUI.toast('Enter your email and password.', 'warning');
+            return;
+        }
         ReplateUI.setButtonLoading('btnLogin', true, 'Signing in...');
 
         try {
-            const userCredential = await auth.signInWithEmailAndPassword(email, password);
-            const uid = userCredential.user.uid;
-
-            const hotelRecord = await ReplateSchema.findHotelByUserId(database, uid);
-            if (!hotelRecord) {
-                alert("No hotel account found with this email.");
-                await auth.signOut();
-                return;
-            }
-
-            sessionStorage.setItem('hotelId', hotelRecord.key);
-            const status = ReplateSchema.normalizeHotelStatus(hotelRecord.value?.status);
-
-            if (status === 'approved') {
-                window.location.href = "dashboard.html";
-            } else if (status === 'pending') {
-                alert("Your account is pending approval. Please wait for admin verification.");
-                await auth.signOut();
-            } else {
-                alert("Your account was rejected. Reason: " + (hotelRecord.value?.rejectionReason || "Criteria not met"));
-                await auth.signOut();
-            }
+            const credential = await auth.signInWithEmailAndPassword(email, password);
+            await enterIfApproved(credential.user.uid, null);
         } catch (error) {
-            if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-                const goRegister = confirm("No account found with this email.\n\nWould you like to register a new hotel account?");
-                if (goRegister) {
-                    window.location.href = "register.html";
-                }
-            } else if (error.code === 'auth/wrong-password') {
-                alert("Incorrect password. Please try again.");
-            } else {
-                alert(error.message);
-            }
+            ReplateUI.toast(friendlyAuthError(error), 'danger');
         } finally {
             ReplateUI.setButtonLoading('btnLogin', false);
         }
     });
 
-    // Google Sign-In handler
-    document.getElementById('btnGoogleLogin').addEventListener('click', async () => {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        await socialLoginWithProvider(provider, 'btnGoogleLogin', 'Google');
-    });
-
-    // Facebook Sign-In handler
-    document.getElementById('btnFacebookLogin').addEventListener('click', async () => {
-        const provider = new firebase.auth.FacebookAuthProvider();
-        await socialLoginWithProvider(provider, 'btnFacebookLogin', 'Facebook');
-    });
-
-    // Phone Sign-In handler
-    document.getElementById('btnPhoneLogin').addEventListener('click', () => {
-        const phone = prompt("Enter your phone number with country code (e.g., +94771234567):");
-        if (!phone || phone.trim().length < 8) return;
-        alert("Phone authentication is available in the mobile app. Please use the REPLATE Android app for phone sign-in.");
-    });
-
-    async function socialLoginWithProvider(provider, btnId, providerName) {
+    async function socialLogin(provider, btnId, providerName) {
+        clearNotice();
         const btn = document.getElementById(btnId);
         btn.disabled = true;
-        const originalHTML = btn.innerHTML;
-        btn.textContent = 'Signing in...';
-
         try {
             const result = await auth.signInWithPopup(provider);
-            const uid = result.user.uid;
-
-            const hotelRecord = await ReplateSchema.findHotelByUserId(database, uid);
-            if (!hotelRecord) {
-                alert(`No hotel account found linked to this ${providerName} account. Please register first or use your email and password.`);
-                await auth.signOut();
-                return;
-            }
-
-            sessionStorage.setItem('hotelId', hotelRecord.key);
-            const status = ReplateSchema.normalizeHotelStatus(hotelRecord.value?.status);
-
-            if (status === 'approved') {
-                window.location.href = "dashboard.html";
-            } else if (status === 'pending') {
-                alert("Your account is pending approval. Please wait for admin verification.");
-                await auth.signOut();
-            } else {
-                alert("Your account was rejected. Reason: " + (hotelRecord.value?.rejectionReason || "Criteria not met"));
-                await auth.signOut();
-            }
+            await enterIfApproved(result.user.uid, providerName);
         } catch (error) {
-            if (error.code !== 'auth/popup-closed-by-user') {
-                alert(error.message || `${providerName} sign-in failed. Please try again.`);
+            if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+                ReplateUI.toast(providerName + ' sign-in failed. Please try again.', 'danger');
             }
         } finally {
             btn.disabled = false;
-            btn.innerHTML = originalHTML;
         }
     }
+
+    document.getElementById('btnGoogleLogin').addEventListener('click', () =>
+        socialLogin(new firebase.auth.GoogleAuthProvider(), 'btnGoogleLogin', 'Google'));
+    document.getElementById('btnFacebookLogin').addEventListener('click', () =>
+        socialLogin(new firebase.auth.FacebookAuthProvider(), 'btnFacebookLogin', 'Facebook'));
 </script>
 
 </body>

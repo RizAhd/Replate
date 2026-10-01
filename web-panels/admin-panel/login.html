@@ -3,47 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>Admin Login - REPLATE</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <meta name="description" content="Admin sign in - REPLATE food rescue.">
+    <meta name="theme-color" content="#1a6b3c">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Admin Sign In - REPLATE</title>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/style.css">
     <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+    <link rel="icon" href="../assets/favicon.ico" sizes="any">
+    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+    <link rel="manifest" href="../manifest.webmanifest">
 </head>
 <body class="auth-page">
+<a class="skip-link" href="#mainContent">Skip to content</a>
 
-<div class="auth-card text-center">
-    <div class="mb-4">
-        <img src="../assets/replate-logo.svg" alt="REPLATE" class="brand-logo-auth">
-        <h3 class="auth-title">Admin Panel</h3>
-        <p class="text-secondary mb-0">Super Admin Access Only</p>
+<main class="auth-card text-center" id="mainContent">
+    <div class="auth-brand mb-4">
+        <img src="../assets/replate-icon.svg" alt="" width="64" height="64" class="brand-logo-auth">
+        <div class="auth-wordmark">REPLATE</div>
+        <h1 class="auth-title">Admin sign in</h1>
+        <p class="auth-subtext mb-0">Super admin access only</p>
     </div>
 
-    <form id="loginForm">
+    <form id="loginForm" novalidate>
         <div class="mb-3 text-start">
-            <label class="form-label" for="email">Admin Email</label>
-            <input type="email" class="form-control" id="email" placeholder="admin@replate.com" required>
+            <label class="form-label" for="email">Admin email</label>
+            <input type="email" class="form-control" id="email" placeholder="admin@replate.com"
+                   autocomplete="username" inputmode="email" required>
         </div>
 
-        <div class="mb-4 text-start">
+        <div class="mb-3 text-start">
             <label class="form-label" for="password">Password</label>
             <div class="input-with-icon">
-                <input type="password" class="form-control" id="password" placeholder="Enter password" required>
+                <input type="password" class="form-control" id="password" placeholder="Enter password"
+                       autocomplete="current-password" required>
                 <button type="button" class="password-toggle" id="toggleAdminPassword" aria-label="Show password">
-                    <i class="fas fa-eye" id="toggleAdminPasswordIcon"></i>
+                    <i class="fas fa-eye" id="toggleAdminPasswordIcon" aria-hidden="true"></i>
                 </button>
             </div>
         </div>
 
-        <div class="d-grid">
-            <button type="submit" class="btn btn-primary btn-lg" id="btnAdminLogin">LOGIN</button>
+        <div class="auth-links-row mb-3">
+            <a href="#" class="auth-link" id="forgotPasswordLink">Forgot password?</a>
+            <a href="../index.html" class="auth-link">&larr; Back to home</a>
         </div>
 
-        <p class="text-secondary small mt-3 mb-0">REPLATE V1.1.0 • Built by Riflan Mohamed • 2026</p>
+        <div class="d-grid">
+            <button type="submit" class="btn btn-primary btn-lg" id="btnAdminLogin">Sign in</button>
+        </div>
+
+        <p class="text-secondary small mt-3 mb-0">REPLATE V1.1.0 &bull; Built by Riflan Mohamed &bull; 2026</p>
     </form>
-</div>
+</main>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -56,13 +70,32 @@
     const ADMIN_EMAILS = ['admin@replate.com', 'superadmin@replate.com'];
     ReplateUI.attachPasswordToggle('password', 'toggleAdminPassword', 'toggleAdminPasswordIcon');
 
+    function friendlyAuthError(error) {
+        switch (error && error.code) {
+            case 'auth/invalid-credential':
+            case 'auth/wrong-password':
+            case 'auth/user-not-found':
+                return 'That email or password is not correct.';
+            case 'auth/too-many-requests':
+                return 'Too many attempts. Wait a few minutes or reset your password.';
+            case 'auth/network-request-failed':
+                return 'No connection. Check your internet and try again.';
+            default:
+                return 'Could not sign in. Please try again.';
+        }
+    }
+
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const email = document.getElementById('email').value;
+        const email = document.getElementById('email').value.trim().toLowerCase();
         const password = document.getElementById('password').value;
 
+        if (!email || !password) {
+            ReplateUI.toast('Enter your admin email and password.', 'warning');
+            return;
+        }
         if (!ADMIN_EMAILS.includes(email)) {
-            alert('Access Denied: Not an admin email');
+            ReplateUI.toast('This email is not an admin account.', 'danger');
             return;
         }
 
@@ -71,9 +104,24 @@
             await auth.signInWithEmailAndPassword(email, password);
             window.location.href = 'approve-hotels.html';
         } catch (error) {
-            alert(error.message);
+            ReplateUI.toast(friendlyAuthError(error), 'danger');
         } finally {
             ReplateUI.setButtonLoading('btnAdminLogin', false);
+        }
+    });
+
+    document.getElementById('forgotPasswordLink').addEventListener('click', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('email').value.trim().toLowerCase();
+        if (!ADMIN_EMAILS.includes(email)) {
+            ReplateUI.toast('Type your admin email above first, then choose "Forgot password".', 'info');
+            return;
+        }
+        try {
+            await auth.sendPasswordResetEmail(email);
+            ReplateUI.toast('Password reset email sent. Check your inbox.', 'success');
+        } catch (error) {
+            ReplateUI.toast('Could not send the reset email. Please try again.', 'danger');
         }
     });
 </script>
