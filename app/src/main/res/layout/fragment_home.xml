@@ -322,8 +322,10 @@
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="@dimen/space_2"
                     android:layout_marginTop="@dimen/space_2"
+                    android:drawablePadding="@dimen/space_1_5"
+                    android:drawableTop="@drawable/ic_empty_food"
                     android:gravity="center"
-                    android:padding="@dimen/space_2"
+                    android:padding="@dimen/space_3"
                     android:textAppearance="@style/TextAppearance.REPLATE.Body"
                     android:visibility="gone" />
             </LinearLayout>

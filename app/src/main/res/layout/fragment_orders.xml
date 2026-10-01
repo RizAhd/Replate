@@ -76,6 +76,16 @@
         </com.google.android.material.tabs.TabLayout>
     </com.google.android.material.card.MaterialCardView>
 
+    <!-- Loading: sits under the tabs, above the list -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="@dimen/space_1"
+        android:indeterminateTint="@color/green_primary"
+        android:visibility="gone" />
+
     <!-- Orders RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvOrders"
@@ -96,7 +106,7 @@
         android:layout_weight="1"
         android:gravity="center"
         android:orientation="vertical"
-        android:paddingHorizontal="28dp"
+        android:paddingHorizontal="@dimen/space_3"
         android:visibility="gone">
 
         <com.google.android.material.card.MaterialCardView
@@ -143,14 +153,5 @@
             android:text="@string/orders_browse_deals" />
 
     </LinearLayout>
-
-    <!-- Loading -->
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:indeterminateTint="@color/green_primary"
-        android:visibility="gone" />
 
 </LinearLayout>

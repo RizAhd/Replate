@@ -225,18 +225,19 @@
             android:paddingHorizontal="@dimen/space_3"
             android:visibility="gone">
 
+            <!-- Shared empty-state look: 128dp pale circle, 56dp decorative icon, title, body, optional action -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="128dp"
                 android:layout_height="128dp"
                 app:cardBackgroundColor="@color/green_pale"
-                app:cardCornerRadius="@dimen/radius_hero"
+                app:cardCornerRadius="64dp"
                 app:cardElevation="0dp">
 
                 <ImageView
                     android:layout_width="56dp"
                     android:layout_height="56dp"
                     android:layout_gravity="center"
-                    android:contentDescription="@string/cd_search"
+                    android:importantForAccessibility="no"
                     android:src="@drawable/ic_search_empty"
                     app:tint="@color/green_primary" />
             </com.google.android.material.card.MaterialCardView>
@@ -247,8 +248,7 @@
                 android:layout_marginTop="@dimen/space_3"
                 android:gravity="center"
                 android:text="@string/search_empty_title"
-                android:textAppearance="@style/TextAppearance.REPLATE.Headline"
-                android:textColor="@color/text_primary" />
+                android:textAppearance="@style/TextAppearance.REPLATE.Headline" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -257,7 +257,6 @@
                 android:gravity="center"
                 android:text="@string/search_empty_suggestion"
                 android:textAppearance="@style/TextAppearance.REPLATE.Body" />
-
         </LinearLayout>
 
     </LinearLayout>
