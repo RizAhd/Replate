@@ -14,6 +14,7 @@ import com.bumptech.glide.Glide;
 import com.google.firebase.storage.FirebaseStorage;
 import com.replate.app.R;
 import com.replate.app.models.FoodItem;
+import com.replate.app.utils.GlideSafe;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -80,26 +81,44 @@ public class RelatedFoodAdapter extends RecyclerView.Adapter<RelatedFoodAdapter.
 
         private void loadImage(String imageSource) {
             if (imageSource == null || imageSource.trim().isEmpty()) {
+                ivImage.setTag(null);
                 ivImage.setImageResource(R.drawable.placeholder_food);
                 return;
             }
 
             String src = imageSource.trim();
+            // Remember which image this row wants so a late callback can't fill a recycled row
+            ivImage.setTag(src);
+
             if (src.startsWith("http://") || src.startsWith("https://")) {
-                Glide.with(context).load(src).placeholder(R.drawable.placeholder_food).into(ivImage);
+                if (GlideSafe.canLoad(context)) {
+                    Glide.with(context).load(src)
+                            .placeholder(R.drawable.placeholder_food)
+                            .error(R.drawable.placeholder_food)
+                            .into(ivImage);
+                }
                 return;
             }
 
-            if (src.startsWith("gs://")) {
-                FirebaseStorage.getInstance().getReferenceFromUrl(src).getDownloadUrl()
-                        .addOnSuccessListener(uri -> Glide.with(context).load(uri).placeholder(R.drawable.placeholder_food).into(ivImage))
-                        .addOnFailureListener(e -> ivImage.setImageResource(R.drawable.placeholder_food));
-                return;
-            }
+            com.google.firebase.storage.StorageReference ref = src.startsWith("gs://")
+                    ? FirebaseStorage.getInstance().getReferenceFromUrl(src)
+                    : FirebaseStorage.getInstance().getReference().child(src);
 
-            FirebaseStorage.getInstance().getReference().child(src).getDownloadUrl()
-                    .addOnSuccessListener(uri -> Glide.with(context).load(uri).placeholder(R.drawable.placeholder_food).into(ivImage))
-                    .addOnFailureListener(e -> ivImage.setImageResource(R.drawable.placeholder_food));
+            ref.getDownloadUrl()
+                    .addOnSuccessListener(uri -> {
+                        if (!src.equals(ivImage.getTag()) || !GlideSafe.canLoad(context)) {
+                            return;
+                        }
+                        Glide.with(context).load(uri)
+                                .placeholder(R.drawable.placeholder_food)
+                                .error(R.drawable.placeholder_food)
+                                .into(ivImage);
+                    })
+                    .addOnFailureListener(e -> {
+                        if (src.equals(ivImage.getTag())) {
+                            ivImage.setImageResource(R.drawable.placeholder_food);
+                        }
+                    });
         }
     }
 }
