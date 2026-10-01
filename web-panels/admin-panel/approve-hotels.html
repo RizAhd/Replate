@@ -65,94 +65,123 @@
 <script src="../js/ui-shell.js"></script>
 
 <script>
+    const esc = ReplateUI.esc;
+    const lists = {
+        pending: document.getElementById('pendingList'),
+        approved: document.getElementById('approvedList'),
+        rejected: document.getElementById('rejectedList')
+    };
 
-    auth.onAuthStateChanged((user) => {
-        ReplateUI.renderSidebar('appShellSidebar', {
-            title: '<img src="../assets/replate-icon.svg" alt="" class="brand-logo-sm">ADMIN',
-            activeKey: 'approve-hotels',
-            links: adminShellLinks,
-        });
-        if (user) loadHotels();
-    });
+    function showLoading() {
+        Object.values(lists).forEach((el) => { el.innerHTML = ReplateUI.skeleton('cards', 3); });
+    }
+
+    (async () => {
+        const user = await ReplateUI.requireRole('admin');
+        if (!user) return;
+        showLoading();
+        loadHotels();
+    })();
 
     function loadHotels() {
         database.ref('hotels').on('value', (snapshot) => {
-            const pendingDiv = document.getElementById('pendingList');
-            const approvedDiv = document.getElementById('approvedList');
-            const rejectedDiv = document.getElementById('rejectedList');
-
-            pendingDiv.innerHTML = '';
-            approvedDiv.innerHTML = '';
-            rejectedDiv.innerHTML = '';
-
-            const pendingCards = [];
-            const approvedCards = [];
-            const rejectedCards = [];
+            const cards = { pending: [], approved: [], rejected: [] };
 
             snapshot.forEach((child) => {
                 const hotel = child.val() || {};
-                const key = child.key;
-                const card = createHotelCard(hotel, key);
-                const status = (hotel.status || '').toLowerCase();
-
-                if (status === 'pending') pendingCards.push(card);
-                else if (status === 'approved') approvedCards.push(card);
-                else if (status === 'rejected') rejectedCards.push(card);
+                const status = String(hotel.status || '').toLowerCase();
+                if (cards[status]) cards[status].push(createHotelCard(hotel, child.key));
             });
 
-            pendingDiv.innerHTML = pendingCards.join('') || '<p class="text-muted">No pending hotels.</p>';
-            approvedDiv.innerHTML = approvedCards.join('') || '<p class="text-muted">No approved hotels yet.</p>';
-            rejectedDiv.innerHTML = rejectedCards.join('') || '<p class="text-muted">No rejected hotels.</p>';
+            lists.pending.innerHTML = cards.pending.join('') || ReplateUI.emptyState('No pending hotels', 'New registrations will appear here for review.', 'fa-hourglass-half');
+            lists.approved.innerHTML = cards.approved.join('') || ReplateUI.emptyState('No approved hotels yet', 'Approved partners are listed here.', 'fa-hotel');
+            lists.rejected.innerHTML = cards.rejected.join('') || ReplateUI.emptyState('No rejected hotels', 'Declined registrations are listed here.', 'fa-circle-check');
+        }, (error) => {
+            console.error('Could not load hotels', error);
+            Object.values(lists).forEach((el) => { el.innerHTML = ReplateUI.errorState('Hotels could not be loaded. Check your admin access and connection.'); });
         });
     }
 
     function createHotelCard(hotel, key) {
-        let buttons = '';
-        if ((hotel.status || '').toLowerCase() === 'pending') {
-            buttons = `
-                <button class="btn btn-success btn-sm w-100 mb-2" onclick="updateStatus('${key}', 'approved')">✅ Approve</button>
-                <button class="btn btn-danger btn-sm w-100" onclick="rejectHotel('${key}')">❌ Reject</button>
-            `;
-        }
+        const status = String(hotel.status || '').toLowerCase();
+        const buttons = status === 'pending'
+            ? `<button class="btn btn-success btn-sm w-100 mb-2" data-action="approve" data-key="${esc(key)}"><i class="fas fa-check" aria-hidden="true"></i> Approve</button>
+               <button class="btn btn-danger btn-sm w-100" data-action="reject" data-key="${esc(key)}"><i class="fas fa-xmark" aria-hidden="true"></i> Reject</button>`
+            : '';
 
-        const licenseUrl = hotel.licenseUrl || hotel.license || '#';
+        const licenseUrl = ReplateUI.safeUrl(hotel.licenseUrl || hotel.license);
+        const license = licenseUrl
+            ? `<a href="${esc(licenseUrl)}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-dark btn-sm w-100 mb-3"><i class="fas fa-file-lines" aria-hidden="true"></i> View license</a>`
+            : '<p class="small text-muted mb-3">No license uploaded.</p>';
         const gps = (hotel.latitude && hotel.longitude)
-            ? `<p class="small mb-2"><i class="fas fa-location-arrow"></i> ${hotel.latitude}, ${hotel.longitude}</p>`
+            ? `<p class="small mb-2"><i class="fas fa-location-arrow" aria-hidden="true"></i> ${esc(hotel.latitude)}, ${esc(hotel.longitude)}</p>`
+            : '';
+        const reason = status === 'rejected' && hotel.rejectionReason
+            ? `<p class="small text-danger mb-2">Reason: ${esc(hotel.rejectionReason)}</p>`
             : '';
 
         return `
             <div class="col-md-6 col-xl-4 mb-4">
                 <div class="card h-100 data-panel">
                     <div class="card-body">
-                        <h5 class="mb-1">${hotel.hotelName || 'Hotel'}</h5>
-                        <p class="small text-muted mb-2">Owner: ${hotel.ownerName || '-'}</p>
-                        <p class="small mb-1"><i class="fas fa-envelope"></i> ${hotel.email || '-'}</p>
-                        <p class="small mb-1"><i class="fas fa-phone"></i> ${hotel.phone || '-'}</p>
-                        <p class="small mb-2"><i class="fas fa-map-marker-alt"></i> ${hotel.address || '-'}</p>
+                        <h2 class="h5 mb-1">${esc(hotel.hotelName || 'Hotel')}</h2>
+                        <p class="small text-muted mb-2">Owner: ${esc(hotel.ownerName || '-')}</p>
+                        <p class="small mb-1"><i class="fas fa-envelope" aria-hidden="true"></i> ${esc(hotel.email || '-')}</p>
+                        <p class="small mb-1"><i class="fas fa-phone" aria-hidden="true"></i> ${esc(hotel.phone || '-')}</p>
+                        <p class="small mb-2"><i class="fas fa-map-marker-alt" aria-hidden="true"></i> ${esc(hotel.address || '-')}</p>
                         ${gps}
-                        <a href="${licenseUrl}" target="_blank" class="btn btn-outline-dark btn-sm w-100 mb-3">📄 View License</a>
+                        ${reason}
+                        ${license}
                         ${buttons}
                     </div>
                 </div>
-            </div>
-        `;
+            </div>`;
     }
 
-    window.updateStatus = function(key, status) {
-        if (confirm(`Mark this hotel as ${status}?`)) {
-            database.ref('hotels/' + key).update({ status: status });
+    async function updateStatus(key, status) {
+        const ok = await ReplateUI.confirmAction(`This hotel will be marked as ${status}.`, {
+            title: status === 'approved' ? 'Approve this hotel?' : 'Update hotel?',
+            confirmText: status === 'approved' ? 'Approve' : 'Confirm'
+        });
+        if (!ok) return;
+        try {
+            await database.ref('hotels/' + key).update({ status });
+            ReplateUI.toast('Hotel ' + status + '.', 'success');
+        } catch (error) {
+            console.error(error);
+            ReplateUI.toast('Could not update the hotel. Please try again.', 'danger');
         }
     }
 
-    window.rejectHotel = function(key) {
-        const reason = prompt('Reason for rejection:');
-        if (reason) {
-            database.ref('hotels/' + key).update({
-                status: 'rejected',
-                rejectionReason: reason
-            });
+    async function rejectHotel(key) {
+        const reason = await ReplateUI.askText('Tell the hotel why the registration was declined.', {
+            title: 'Reject this hotel?',
+            placeholder: 'Reason (shown to the hotel)',
+            confirmText: 'Reject',
+            danger: true,
+            multiline: true
+        });
+        if (!reason) {
+            if (reason !== null) ReplateUI.toast('A reason is required to reject a hotel.', 'warning');
+            return;
+        }
+        try {
+            await database.ref('hotels/' + key).update({ status: 'rejected', rejectionReason: reason });
+            ReplateUI.toast('Hotel rejected.', 'success');
+        } catch (error) {
+            console.error(error);
+            ReplateUI.toast('Could not reject the hotel. Please try again.', 'danger');
         }
     }
+
+    // One delegated listener instead of inline onclick attributes
+    document.querySelector('main').addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-action]');
+        if (!button) return;
+        const key = button.dataset.key;
+        if (button.dataset.action === 'approve') updateStatus(key, 'approved');
+        else if (button.dataset.action === 'reject') rejectHotel(key);
+    });
 </script>
 
 </body>

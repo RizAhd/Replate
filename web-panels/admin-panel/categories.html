@@ -85,59 +85,86 @@
 <script src="../js/ui-shell.js"></script>
 
 <script>
+    const esc = ReplateUI.esc;
+    const tbody = document.getElementById('categoryTable');
 
-    auth.onAuthStateChanged((user) => {
-        ReplateUI.renderSidebar('appShellSidebar', {
-            title: '<img src="../assets/replate-icon.svg" alt="REPLATE" class="brand-logo-sm">ADMIN',
-            activeKey: 'categories',
-            links: adminShellLinks,
-        });
-        if (user) loadCategories();
-        else window.location.href = 'login.html';
-    });
+    (async () => {
+        const user = await ReplateUI.requireRole('admin');
+        if (!user) return;
+        tbody.innerHTML = '<tr><td colspan="3">' + ReplateUI.skeleton('rows', 3) + '</td></tr>';
+        loadCategories();
+    })();
 
     function loadCategories() {
         database.ref('categories').orderByChild('order').on('value', (snapshot) => {
-            const tbody = document.getElementById('categoryTable');
-            tbody.innerHTML = '';
-
             const rows = [];
             snapshot.forEach((child) => {
                 const cat = child.val() || {};
-                const key = child.key;
+                const name = cat.name || '';
                 rows.push(`
                     <tr>
-                        <td data-label="Order">${cat.order ?? ''}</td>
-                        <td data-label="Name">${cat.name || ''}</td>
+                        <td data-label="Order">${esc(cat.order ?? '')}</td>
+                        <td data-label="Name">${esc(name)}</td>
                         <td data-label="Actions" class="actions-cell">
-                            <button class="btn btn-sm btn-danger" onclick="deleteCategory('${key}')">🗑️</button>
+                            <button class="btn btn-sm btn-danger" data-action="delete" data-key="${esc(child.key)}"
+                                    data-name="${esc(name)}" aria-label="Delete category ${esc(name)}">
+                                <i class="fas fa-trash" aria-hidden="true"></i>
+                            </button>
                         </td>
-                    </tr>
-                `);
+                    </tr>`);
             });
-
-            tbody.innerHTML = rows.join('');
+            tbody.innerHTML = rows.join('') || '<tr><td colspan="3">' +
+                ReplateUI.emptyState('No categories yet', 'Add the first category using the form.', 'fa-tags') + '</td></tr>';
+        }, (error) => {
+            console.error('Could not load categories', error);
+            tbody.innerHTML = '<tr><td colspan="3">' + ReplateUI.errorState('Categories could not be loaded. Check your admin access and connection.') + '</td></tr>';
         });
     }
 
-    document.getElementById('addCategoryForm').addEventListener('submit', (e) => {
+    document.getElementById('addCategoryForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const name = document.getElementById('catName').value;
-        const order = parseInt(document.getElementById('catOrder').value);
+        const name = document.getElementById('catName').value.trim();
+        const order = parseInt(document.getElementById('catOrder').value, 10);
 
-        database.ref('categories').push({
-            name: name,
-            order: order
-        });
+        if (!name) {
+            ReplateUI.toast('Enter a category name.', 'warning');
+            return;
+        }
+        if (name.length > 40) {
+            ReplateUI.toast('Keep the category name under 40 characters.', 'warning');
+            return;
+        }
+        if (!Number.isFinite(order) || order < 0) {
+            ReplateUI.toast('Display order must be a number, 0 or higher.', 'warning');
+            return;
+        }
 
-        document.getElementById('addCategoryForm').reset();
+        try {
+            await database.ref('categories').push({ name, order });
+            document.getElementById('addCategoryForm').reset();
+            document.getElementById('catOrder').value = order + 1;
+            ReplateUI.toast('Category added.', 'success');
+        } catch (error) {
+            console.error(error);
+            ReplateUI.toast('Could not add the category. Please try again.', 'danger');
+        }
     });
 
-    window.deleteCategory = function(key) {
-        if(confirm("Delete this category?")) {
-            database.ref('categories/' + key).remove();
+    tbody.addEventListener('click', async (event) => {
+        const button = event.target.closest('button[data-action="delete"]');
+        if (!button) return;
+        const ok = await ReplateUI.confirmAction(
+            `"${button.dataset.name}" will be removed from the app's category list.`,
+            { title: 'Delete this category?', confirmText: 'Delete', danger: true });
+        if (!ok) return;
+        try {
+            await database.ref('categories/' + button.dataset.key).remove();
+            ReplateUI.toast('Category deleted.', 'success');
+        } catch (error) {
+            console.error(error);
+            ReplateUI.toast('Could not delete the category. Please try again.', 'danger');
         }
-    }
+    });
 </script>
 </body>
 </html>

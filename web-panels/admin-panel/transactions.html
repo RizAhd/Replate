@@ -72,54 +72,62 @@
 <script src="../js/ui-shell.js"></script>
 
 <script>
+    const esc = ReplateUI.esc;
+    const MAX_ROWS = 500; // newest first; keeps the page quick as the order history grows
 
-    auth.onAuthStateChanged((user) => {
-        ReplateUI.renderSidebar('appShellSidebar', {
-            title: '<img src="../assets/replate-icon.svg" alt="REPLATE" class="brand-logo-sm">ADMIN',
-            activeKey: 'transactions',
-            links: adminShellLinks,
-        });
-        if (user) loadTransactions();
-    });
+    (async () => {
+        const user = await ReplateUI.requireRole('admin');
+        if (!user) return;
+        document.getElementById('tableBody').innerHTML =
+            '<tr><td colspan="7">' + ReplateUI.skeleton('rows', 5) + '</td></tr>';
+        loadTransactions();
+    })();
 
     function loadTransactions() {
-        database.ref('orders').on('value', (snapshot) => {
+        database.ref('orders').orderByChild('createdAt').limitToLast(MAX_ROWS).on('value', (snapshot) => {
             const tbody = document.getElementById('tableBody');
 
             const rows = [];
             snapshot.forEach((child) => {
                 const order = child.val() || {};
-                const date  = order.createdAt
-                    ? new Date(order.createdAt).toLocaleString() : 'N/A';
-                const status    = ReplateSchema.normalizeOrderStatus(order.orderStatus);
-                const bgClass   = ReplateSchema.statusBgClass(status);
-                const label     = ReplateSchema.statusLabel(status);
-                const amount    = ReplateSchema.formatAmount(order.totalAmount);
+                const date = order.createdAt ? new Date(order.createdAt).toLocaleString() : 'N/A';
+                const status = ReplateSchema.normalizeOrderStatus(order.orderStatus);
+                const label = ReplateSchema.statusLabel(status);
+                const amount = ReplateSchema.formatAmount(order.totalAmount);
                 const displayId = ReplateSchema.shortOrderId(order, child.key);
+                const rating = Number(order.reviewRating);
 
                 rows.push(`
                     <tr>
-                        <td data-label="Order ID"><code>#${displayId}</code></td>
-                        <td data-label="Date">${date}</td>
-                        <td data-label="Customer">${order.customerName || '—'}</td>
-                        <td data-label="Hotel">${order.hotelName || '—'}</td>
-                        <td data-label="Amount">LKR ${amount}</td>
-                        <td data-label="Review">${order.reviewRating ? `⭐ ${Number(order.reviewRating).toFixed(1)}` : '<span class="text-muted">—</span>'}</td>
-                        <td data-label="Status"><span class="badge ${bgClass}">${label}</span></td>
+                        <td data-label="Order ID"><code>#${esc(displayId)}</code></td>
+                        <td data-label="Date" data-order="${esc(order.createdAt || 0)}">${esc(date)}</td>
+                        <td data-label="Customer">${esc(order.customerName || '—')}</td>
+                        <td data-label="Hotel">${esc(order.hotelName || '—')}</td>
+                        <td data-label="Amount" class="num">LKR ${esc(amount)}</td>
+                        <td data-label="Review">${rating > 0 ? `<i class="fas fa-star text-warning" aria-hidden="true"></i> ${rating.toFixed(1)}` : '<span class="text-muted">—</span>'}</td>
+                        <td data-label="Status"><span class="badge ${esc(ReplateSchema.statusBadgeClass(status))}">${esc(label)}</span></td>
                     </tr>`);
             });
 
-            tbody.innerHTML = rows.join('') || '<tr><td colspan="7" class="text-center text-muted py-4">No transactions yet</td></tr>';
-
+            // Redraw the table in place instead of tearing it down and rebuilding it
             if ($.fn.DataTable.isDataTable('#transactionsTable')) {
                 $('#transactionsTable').DataTable().destroy();
+            }
+            tbody.innerHTML = rows.reverse().join('');
+            if (rows.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7">' +
+                    ReplateUI.emptyState('No transactions yet', 'Orders will appear here as customers place them.', 'fa-receipt') + '</td></tr>';
+                return;
             }
             $('#transactionsTable').DataTable({
                 pageLength: 25,
                 order: [[1, 'desc']],
-                autoWidth: false,
-                scrollX: true
+                autoWidth: false
             });
+        }, (error) => {
+            console.error('Could not load transactions', error);
+            document.getElementById('tableBody').innerHTML =
+                '<tr><td colspan="7">' + ReplateUI.errorState('Transactions could not be loaded. Check your admin access and connection.') + '</td></tr>';
         });
     }
 </script>
