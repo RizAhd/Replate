@@ -1,146 +1,169 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Row 1: photo + name / hotel / price.  Row 2: quantity stepper (left) and subtotal (right).
+     Two rows so nothing is squeezed on a 320dp-wide phone. -->
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/Widget.REPLATE.Card.Row"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="@dimen/space_2"
-    android:layout_marginVertical="@dimen/space_1"
-    style="@style/Widget.REPLATE.Card.Row">
+    android:layout_marginVertical="@dimen/space_1">
 
-    <RelativeLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="14dp">
+        android:padding="@dimen/space_1_5">
 
         <ImageView
             android:id="@+id/ivFoodImage"
-            android:layout_width="84dp"
-            android:layout_height="84dp"
-            android:layout_alignParentStart="true"
-            android:layout_centerVertical="true"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
             android:background="@drawable/card_background_shape"
             android:clipToOutline="true"
             android:contentDescription="@string/cd_food_image"
             android:scaleType="centerCrop"
-            android:src="@drawable/placeholder_food" />
+            android:src="@drawable/placeholder_food"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
             android:id="@+id/ivRemove"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentTop="true"
+            android:layout_marginTop="-8dp"
+            android:layout_marginEnd="-8dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:padding="8dp"
+            android:contentDescription="@string/cd_remove_item"
+            android:padding="@dimen/space_1"
             android:src="@android:drawable/ic_menu_close_clear_cancel"
-            app:tint="@color/error"
-            android:contentDescription="@string/cd_remove_item" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/error" />
+
+        <TextView
+            android:id="@+id/tvFoodName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/space_1_5"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAppearance="@style/TextAppearance.REPLATE.Label"
+            app:layout_constraintEnd_toStartOf="@id/ivRemove"
+            app:layout_constraintStart_toEndOf="@id/ivFoodImage"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="@string/food_name_placeholder" />
+
+        <TextView
+            android:id="@+id/tvHotelName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/space_1_5"
+            android:layout_marginTop="@dimen/space_0_5"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAppearance="@style/TextAppearance.REPLATE.Body"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/ivFoodImage"
+            app:layout_constraintTop_toBottomOf="@id/tvFoodName"
+            tools:text="@string/food_hotel_placeholder" />
+
+        <TextView
+            android:id="@+id/tvPrice"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/space_1_5"
+            android:layout_marginTop="@dimen/space_1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAppearance="@style/TextAppearance.REPLATE.Subheading"
+            android:textColor="@color/price_discounted"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/ivFoodImage"
+            app:layout_constraintTop_toBottomOf="@id/tvHotelName"
+            tools:text="@string/price_zero_lkr" />
+
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/barrierRow1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:barrierDirection="bottom"
+            app:constraint_referenced_ids="ivFoodImage,tvPrice" />
+
+        <!-- Quantity stepper: 40dp visual buttons, 48dp touch areas -->
+        <TextView
+            android:id="@+id/btnMinus"
+            android:layout_width="@dimen/touch_target_min"
+            android:layout_height="@dimen/touch_target_min"
+            android:layout_marginTop="@dimen/space_1"
+            android:background="@drawable/bg_stepper_button"
+            android:clickable="true"
+            android:contentDescription="@string/cd_decrease_quantity"
+            android:focusable="true"
+            android:gravity="center"
+            android:text="@string/cart_minus"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/text_lg"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/barrierRow1" />
+
+        <TextView
+            android:id="@+id/tvQuantity"
+            android:layout_width="40dp"
+            android:layout_height="@dimen/touch_target_min"
+            android:gravity="center"
+            android:textAppearance="@style/TextAppearance.REPLATE.Label"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="@id/btnMinus"
+            app:layout_constraintStart_toEndOf="@id/btnMinus"
+            app:layout_constraintTop_toTopOf="@id/btnMinus"
+            tools:text="@string/cart_qty_default" />
+
+        <TextView
+            android:id="@+id/btnPlus"
+            android:layout_width="@dimen/touch_target_min"
+            android:layout_height="@dimen/touch_target_min"
+            android:background="@drawable/bg_stepper_button"
+            android:clickable="true"
+            android:contentDescription="@string/cd_increase_quantity"
+            android:focusable="true"
+            android:gravity="center"
+            android:text="@string/cart_plus"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/text_lg"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="@id/btnMinus"
+            app:layout_constraintStart_toEndOf="@id/tvQuantity"
+            app:layout_constraintTop_toTopOf="@id/btnMinus" />
 
         <LinearLayout
-            android:id="@+id/infoLayout"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="14dp"
-            android:layout_marginEnd="28dp"
-            android:layout_toEndOf="@id/ivFoodImage"
-            android:orientation="vertical">
+            android:background="@drawable/badge_distance"
+            android:orientation="vertical"
+            android:paddingHorizontal="@dimen/space_1_5"
+            android:paddingVertical="@dimen/space_0_5"
+            app:layout_constraintBottom_toBottomOf="@id/btnMinus"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/btnMinus">
 
             <TextView
-                android:id="@+id/tvFoodName"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:text="@string/food_name_placeholder"
-                android:textAppearance="@style/TextAppearance.REPLATE.Label" />
-
-            <TextView
-                android:id="@+id/tvHotelName"
-                android:ellipsize="end"
-                android:maxLines="1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_0_5"
-                android:text="@string/food_hotel_placeholder"
-                android:textAppearance="@style/TextAppearance.REPLATE.Body" />
+                android:text="@string/cart_subtotal_label"
+                android:textAppearance="@style/TextAppearance.REPLATE.Caption" />
 
             <TextView
-                android:id="@+id/tvPrice"
+                android:id="@+id/tvSubtotal"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_1"
-                android:text="@string/price_zero_lkr"
-                android:textColor="@color/price_discounted"
-                android:textAppearance="@style/TextAppearance.REPLATE.Subheading"
-                android:textStyle="bold" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_1_5"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/btnMinus"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:background="@drawable/button_outline_neutral"
-                    android:gravity="center"
-                    android:text="@string/cart_minus"
-                    android:textColor="@color/text_primary"
-                    android:textSize="@dimen/text_lg"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tvQuantity"
-                    android:layout_width="44dp"
-                    android:layout_height="40dp"
-                    android:gravity="center"
-                    android:text="@string/cart_qty_default"
-                    android:textAppearance="@style/TextAppearance.REPLATE.Label"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/btnPlus"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:background="@drawable/button_outline_neutral"
-                    android:gravity="center"
-                    android:text="@string/cart_plus"
-                    android:textColor="@color/text_primary"
-                    android:textSize="@dimen/text_lg"
-                    android:textStyle="bold" />
-
-                <Space
-                    android:layout_width="0dp"
-                    android:layout_height="1dp"
-                    android:layout_weight="1" />
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/badge_distance"
-                    android:orientation="vertical"
-                    android:paddingHorizontal="10dp"
-                    android:paddingVertical="6dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/cart_subtotal_label"
-                        android:textAppearance="@style/TextAppearance.REPLATE.Caption" />
-
-                    <TextView
-                        android:id="@+id/tvSubtotal"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/price_zero_lkr"
-                        android:textColor="@color/primary"
-                        android:textAppearance="@style/TextAppearance.REPLATE.Label"
-                        android:textStyle="bold" />
-                </LinearLayout>
-            </LinearLayout>
+                android:textAppearance="@style/TextAppearance.REPLATE.Label"
+                android:textColor="@color/primary"
+                android:textStyle="bold"
+                tools:text="@string/price_zero_lkr" />
         </LinearLayout>
-    </RelativeLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>

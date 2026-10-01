@@ -701,4 +701,6 @@ Total: LKR %1$.2f</string>
     <string name="auth_cd_facebook">Continue with Facebook</string>
     <string name="auth_cd_phone">Continue with phone number</string>
     <string name="phone_auth_default_country_code" translatable="false">+94</string>
+    <string name="cd_decrease_quantity">Decrease quantity</string>
+    <string name="cd_increase_quantity">Increase quantity</string>
 </resources>

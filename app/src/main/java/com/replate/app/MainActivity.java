@@ -43,7 +43,6 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
-import com.replate.app.fragments.CartFragment;
 import com.replate.app.fragments.HomeFragment;
 import com.replate.app.fragments.MapFragment;
 import com.replate.app.fragments.OrdersFragment;
@@ -71,7 +70,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private HomeFragment homeFragment;
     private MapFragment mapFragment;
-    private CartFragment cartFragment;
     private OrdersFragment ordersFragment;
     private ProfileFragment profileFragment;
 
@@ -307,11 +305,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         return mapFragment;
     }
 
-    private CartFragment getCartFragment() {
-        if (cartFragment == null) cartFragment = new CartFragment();
-        return cartFragment;
-    }
-
     private OrdersFragment getOrdersFragment() {
         if (ordersFragment == null) ordersFragment = new OrdersFragment();
         return ordersFragment;
@@ -332,8 +325,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 homeFragment = (HomeFragment) restored;
             } else if (restored instanceof MapFragment) {
                 mapFragment = (MapFragment) restored;
-            } else if (restored instanceof CartFragment) {
-                cartFragment = (CartFragment) restored;
             } else if (restored instanceof OrdersFragment) {
                 ordersFragment = (OrdersFragment) restored;
             } else if (restored instanceof ProfileFragment) {
