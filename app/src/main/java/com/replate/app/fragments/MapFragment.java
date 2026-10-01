@@ -8,6 +8,7 @@ import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
 import android.view.LayoutInflater;
@@ -935,7 +936,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         tvAvailableItems.setText(getString(R.string.map_loading_items));
         loadAvailableItemsPreview(place.getId());
         showPreviewImage(place.getId());
-        bottomSheet.setVisibility(View.VISIBLE);
+        showSheet();
 
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(selectedDestinationLatLng, 15f));
     }
@@ -1204,6 +1205,50 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
+    private boolean sheetAnimationsEnabled() {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.O || android.animation.ValueAnimator.areAnimatorsEnabled();
+    }
+
+    /** Slides the hotel card up from the bottom edge instead of popping it in. */
+    private void showSheet() {
+        if (bottomSheet == null) {
+            return;
+        }
+        bottomSheet.animate().cancel();
+        boolean wasHidden = bottomSheet.getVisibility() != View.VISIBLE;
+        bottomSheet.setVisibility(View.VISIBLE);
+        if (wasHidden && sheetAnimationsEnabled()) {
+            float distance = getResources().getDisplayMetrics().density * 160f;
+            bottomSheet.setTranslationY(distance);
+            bottomSheet.setAlpha(0f);
+            bottomSheet.animate().translationY(0f).alpha(1f).setDuration(260)
+                    .setInterpolator(new android.view.animation.DecelerateInterpolator()).start();
+        } else {
+            bottomSheet.setTranslationY(0f);
+            bottomSheet.setAlpha(1f);
+        }
+    }
+
+    private void hideSheet() {
+        if (bottomSheet == null || bottomSheet.getVisibility() != View.VISIBLE) {
+            return;
+        }
+        bottomSheet.animate().cancel();
+        if (!sheetAnimationsEnabled()) {
+            bottomSheet.setVisibility(View.GONE);
+            return;
+        }
+        final View sheet = bottomSheet;
+        float distance = getResources().getDisplayMetrics().density * 160f;
+        sheet.animate().translationY(distance).alpha(0f).setDuration(200)
+                .setInterpolator(new android.view.animation.AccelerateInterpolator())
+                .withEndAction(() -> {
+                    sheet.setVisibility(View.GONE);
+                    sheet.setTranslationY(0f);
+                    sheet.setAlpha(1f);
+                }).start();
+    }
+
     private void clearSelectedState() {
         selectedPlace = null;
         selectedDestinationLatLng = null;
@@ -1212,9 +1257,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             currentSelectedMarker = null;
         }
         clearRouteOnly();
-        if (bottomSheet != null) {
-            bottomSheet.setVisibility(View.GONE);
-        }
+        hideSheet();
         if (tvAvailableItems != null) {
             tvAvailableItems.setText(getString(R.string.map_items_tap_marker));
         }
