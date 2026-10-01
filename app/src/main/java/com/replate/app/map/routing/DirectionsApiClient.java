@@ -35,20 +35,31 @@ public class DirectionsApiClient {
 
     private static final String TAG = "DirectionsApiClient";
 
+    // Shared by every client instance: the map screen creates a new client each time its view is
+    // built, and a per-instance executor was never shut down.
+    private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(2);
+    private static final RouteCache ROUTE_CACHE = new RouteCache();
+
     private final String mapsApiKey;
-    private final ExecutorService executorService;
     private final Handler mainHandler;
 
     public DirectionsApiClient(@NonNull String mapsApiKey) {
         this.mapsApiKey = mapsApiKey;
-        this.executorService = Executors.newSingleThreadExecutor();
         this.mainHandler = new Handler(Looper.getMainLooper());
     }
 
     public void fetchRoute(@NonNull LatLng origin,
                            @NonNull LatLng destination,
                            @NonNull Callback callback) {
-        executorService.execute(() -> {
+        final String cacheKey = RouteCache.key(
+                origin.latitude, origin.longitude, destination.latitude, destination.longitude);
+        RouteResult cached = ROUTE_CACHE.get(cacheKey, System.currentTimeMillis());
+        if (cached != null) {
+            mainHandler.post(() -> callback.onSuccess(cached));
+            return;
+        }
+
+        EXECUTOR.execute(() -> {
             HttpURLConnection connection = null;
             try {
                 String originParam = origin.latitude + "," + origin.longitude;
@@ -112,6 +123,7 @@ public class DirectionsApiClient {
                 }
 
                 RouteResult routeResult = new RouteResult(points, distanceText, durationText);
+                ROUTE_CACHE.put(cacheKey, routeResult, System.currentTimeMillis());
                 mainHandler.post(() -> callback.onSuccess(routeResult));
 
             } catch (UnknownHostException | ConnectException e) {
