@@ -19,7 +19,8 @@ const firebaseConfig = {
 const app = firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const database = firebase.database();
-const storage = firebase.storage();
+// Only pages that load firebase-storage-compat have this; everywhere else it is null (and never used)
+const storage = typeof firebase.storage === 'function' ? firebase.storage() : null;
 
 function isAuthPage(pathname) {
     return pathname.includes('login.html') || pathname.includes('register.html');
@@ -54,18 +55,18 @@ async function checkUserRole(uid) {
     }
 }
 
+// Send signed-out visitors to the login page (every page except login/register itself)
 auth.onAuthStateChanged(async (user) => {
     if (user) {
         await checkUserRole(user.uid);
-    } else {
-        if (!isAuthPage(window.location.pathname)) {
-            window.location.href = 'login.html';
-        }
+    } else if (!isAuthPage(window.location.pathname)) {
+        window.location.href = 'login.html';
     }
 });
 
+// The one logout used by every page and by the sidebar link
 function logout() {
-    auth.signOut().then(() => {
+    auth.signOut().finally(() => {
         sessionStorage.removeItem('hotelId');
         window.location.href = 'login.html';
     });

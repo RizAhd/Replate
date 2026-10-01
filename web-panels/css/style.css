@@ -3,8 +3,15 @@
    Premium dashboard UI with modern sidebar navigation
    ============================================================ */
 
-/* ── Google Fonts ────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+/* ── Fonts: Poppins, self-hosted (SIL OFL, see assets/fonts/OFL-Poppins.txt) ───────── */
+@font-face { font-family: 'Poppins'; font-weight: 400; font-style: normal; font-display: swap;
+    src: url('../assets/fonts/poppins-regular.woff2') format('woff2'); }
+@font-face { font-family: 'Poppins'; font-weight: 500; font-style: normal; font-display: swap;
+    src: url('../assets/fonts/poppins-medium.woff2') format('woff2'); }
+@font-face { font-family: 'Poppins'; font-weight: 600; font-style: normal; font-display: swap;
+    src: url('../assets/fonts/poppins-semibold.woff2') format('woff2'); }
+@font-face { font-family: 'Poppins'; font-weight: 700; font-style: normal; font-display: swap;
+    src: url('../assets/fonts/poppins-bold.woff2') format('woff2'); }
 
 /* ── Design Tokens ───────────────────────────────────────── */
 :root {
@@ -15,8 +22,8 @@
     --primary-50: rgba(26, 107, 60, 0.06);
     --primary-100: rgba(26, 107, 60, 0.10);
 
-    --accent: #e8521a;
-    --accent-hover: #f97316;
+    --accent: #f97316;
+    --accent-hover: #ea580c;
     --accent-light: #fff4ed;
 
     --bg: #f4f6f8;
@@ -25,7 +32,7 @@
 
     --text-primary: #111827;
     --text-secondary: #6b7280;
-    --text-tertiary: #9ca3af;
+    --text-tertiary: #6f7782;
     --text-on-primary: #ffffff;
 
     --success: #059669;
@@ -34,8 +41,8 @@
     --warning-light: #fffbeb;
     --danger: #dc2626;
     --danger-light: #fef2f2;
-    --info: #2563eb;
-    --info-light: #eff6ff;
+    --info: #1a6b3c;
+    --info-light: #e8f8ee;
 
     --border: #e5e7eb;
     --border-light: #f3f4f6;
@@ -54,11 +61,9 @@
     --radius-pill: 999px;
 
     --sidebar-width: 264px;
-    --sidebar-collapsed: 72px;
-    --topbar-height: 0px;
     --content-max-width: 1320px;
 
-    --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-sans: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
     --transition-fast: 0.15s ease;
     --transition-base: 0.2s ease;
@@ -796,6 +801,14 @@ main > h2 {
     color: var(--warning) !important;
 }
 
+.badge-primary,
+.badge-info,
+.bg-primary,
+.bg-info {
+    background: var(--primary-light) !important;
+    color: var(--primary-dark) !important;
+}
+
 .badge-approved,
 .badge-success,
 .bg-success {
@@ -1504,6 +1517,44 @@ main > h2 {
     opacity: 0.4;
 }
 
+.empty-state .empty-icon {
+    width: 88px;
+    height: 88px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    background: var(--primary-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.empty-state .empty-icon i {
+    font-size: 2rem;
+    margin: 0;
+    opacity: 1;
+    color: var(--primary);
+}
+
+.empty-state h3 {
+    font-size: 1.05rem;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.empty-state p {
+    margin: 0 auto 12px;
+    max-width: 38ch;
+    color: var(--text-secondary);
+}
+
+.empty-state.error .empty-icon {
+    background: var(--danger-light);
+}
+
+.empty-state.error .empty-icon i {
+    color: var(--danger);
+}
+
 /* ── Smooth transitions on all interactive ────────────────── */
 .form-control,
 .form-select,
@@ -1535,4 +1586,160 @@ main > h2 {
     color: var(--primary) !important;
     font-weight: 800;
     letter-spacing: 0.4px;
+}
+
+
+/* ============================================================
+   Shared components added in the 2026 polish pass
+   ============================================================ */
+
+/* ── Keyboard focus: visible everywhere, only for keyboard users ─────── */
+:focus-visible {
+    outline: 3px solid rgba(26, 107, 60, 0.45);
+    outline-offset: 2px;
+    border-radius: var(--radius-xs);
+}
+
+.btn:focus-visible,
+.form-control:focus-visible,
+.form-select:focus-visible {
+    outline-offset: 1px;
+}
+
+.skip-link {
+    position: absolute;
+    left: 12px;
+    top: -48px;
+    z-index: 2000;
+    background: var(--primary);
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    transition: top var(--transition-base);
+}
+
+.skip-link:focus {
+    top: 12px;
+    color: #fff;
+}
+
+/* ── Toasts ───────────────────────────────────────────────── */
+.toast-region {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 3000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: min(380px, calc(100vw - 32px));
+    pointer-events: none;
+}
+
+.toast-item {
+    pointer-events: auto;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    background: var(--surface);
+    color: var(--text-primary);
+    border-radius: var(--radius-md);
+    border-left: 4px solid var(--info);
+    box-shadow: var(--shadow-lg);
+    font-size: 0.9rem;
+    animation: toast-in 0.22s ease-out;
+}
+
+.toast-item span { flex: 1; word-break: break-word; }
+.toast-item i { margin-top: 3px; }
+.toast-success { border-left-color: var(--success); }
+.toast-success i { color: var(--success); }
+.toast-danger { border-left-color: var(--danger); }
+.toast-danger i { color: var(--danger); }
+.toast-warning { border-left-color: var(--warning); }
+.toast-warning i { color: var(--warning); }
+.toast-info i { color: var(--primary); }
+.toast-item.leaving { opacity: 0; transform: translateX(12px); transition: all 0.2s ease; }
+
+.toast-close {
+    background: none;
+    border: 0;
+    font-size: 1.25rem;
+    line-height: 1;
+    color: var(--text-secondary);
+    padding: 0 4px;
+    cursor: pointer;
+}
+
+@keyframes toast-in {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: none; }
+}
+
+/* ── Confirm / prompt dialog ─────────────────────────────── */
+.rp-dialog-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2500;
+    background: rgba(17, 24, 39, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    animation: fade-in 0.15s ease-out;
+}
+
+.rp-dialog {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    width: min(440px, 100%);
+    padding: 24px;
+}
+
+.rp-dialog-title { font-size: 1.15rem; margin-bottom: 8px; }
+.rp-dialog-body { color: var(--text-secondary); margin-bottom: 16px; white-space: pre-line; }
+.rp-dialog-input { margin-bottom: 16px; }
+.rp-dialog-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.rp-dialog-actions .btn { width: auto; min-width: 96px; }
+
+@keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* ── Loading skeletons ───────────────────────────────────── */
+.skeleton {
+    background: linear-gradient(90deg, #eef1ef 25%, #f7f9f8 37%, #eef1ef 63%);
+    background-size: 400% 100%;
+    animation: skeleton-shimmer 1.4s ease infinite;
+    border-radius: var(--radius-sm);
+}
+
+.sk-line { height: 14px; }
+.sk-row { height: 56px; margin-bottom: 10px; }
+.skeleton-group { display: flex; flex-wrap: wrap; width: 100%; }
+.skeleton-group > .sk-row { width: 100%; }
+
+@keyframes skeleton-shimmer {
+    0% { background-position: 100% 50%; }
+    100% { background-position: 0 50%; }
+}
+
+/* ── Charts: fixed-height wrapper keeps the canvas undistorted ─ */
+.chart-wrap {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
+
+.chart-wrap canvas {
+    max-height: none;
+}
+
+/* ── Tabular numbers for money columns ───────────────────── */
+.num,
+.stat-value {
+    font-variant-numeric: tabular-nums;
 }
