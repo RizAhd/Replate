@@ -23,7 +23,8 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
     private Context context;
     private List<Category> categories;
     private OnCategoryClickListener listener;
-    private int selectedPosition = -1;
+    // "All" is the first chip and the feed starts unfiltered, so it must look selected from the start
+    private int selectedPosition = 0;
 
     public interface OnCategoryClickListener {
         void onCategoryClick(Category category);

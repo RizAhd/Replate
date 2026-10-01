@@ -206,11 +206,19 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
 
         void bind(FoodItem item) {
             if (tvFoodName != null) tvFoodName.setText(item.getFoodName());
-            if (tvHotelName != null) tvHotelName.setText(item.getHotelName());
+            if (tvHotelName != null) {
+                String hotelName = item.getHotelName();
+                tvHotelName.setText(hotelName != null && !hotelName.trim().isEmpty()
+                        ? hotelName : context.getString(R.string.hotel_name_fallback));
+            }
 
+            // Only show a saving when there really is one: no "-0%" badge and no struck-through price
+            boolean hasDiscount = item.getDiscountPercentValue() > 0
+                    && item.getOriginalPriceValue() > item.getDiscountedPriceValue();
             if (tvOriginalPrice != null) {
                 tvOriginalPrice.setText(Money.format(item.getOriginalPriceValue()));
                 tvOriginalPrice.setPaintFlags(tvOriginalPrice.getPaintFlags() | android.graphics.Paint.STRIKE_THRU_TEXT_FLAG);
+                tvOriginalPrice.setVisibility(hasDiscount ? View.VISIBLE : View.GONE);
             }
             if (tvDiscountedPrice != null) {
                 tvDiscountedPrice.setText(Money.format(item.getDiscountedPriceValue()));
@@ -218,15 +226,17 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
 
             if (tvDiscount != null) {
                 tvDiscount.setText(String.format(Locale.getDefault(), "-%d%%", item.getDiscountPercentValue()));
+                tvDiscount.setVisibility(hasDiscount ? View.VISIBLE : View.GONE);
             }
 
+            // An unknown distance (no location yet) is hidden rather than labelled "Nearby", which was a guess
             if (tvDistance != null) {
                 if (item.getDistance() > 0) {
                     tvDistance.setText(item.getDistanceFormatted());
+                    tvDistance.setVisibility(View.VISIBLE);
                 } else {
-                    tvDistance.setText(context.getString(R.string.food_distance_nearby));
+                    tvDistance.setVisibility(View.GONE);
                 }
-                tvDistance.setVisibility(View.VISIBLE);
             }
 
             if (tvPickupTime != null) {
