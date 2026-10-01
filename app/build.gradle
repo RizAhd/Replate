@@ -30,19 +30,11 @@ android {
             '"' + (localProps.getProperty("PAYHERE_MERCHANT_ID") ?: "") + '"'
         buildConfigField "String", "PAYHERE_MERCHANT_SECRET",
             '"' + (localProps.getProperty("PAYHERE_MERCHANT_SECRET") ?: "") + '"'
-        buildConfigField "String", "GOOGLE_MAPS_API_KEY",
-            '"' + (localProps.getProperty("GOOGLE_MAPS_API_KEY") ?: "") + '"'
-        buildConfigField "String", "FIREBASE_WEB_API_KEY",
-            '"' + (localProps.getProperty("FIREBASE_WEB_API_KEY") ?: "") + '"'
-        buildConfigField "String", "FIREBASE_FCM_SERVER_KEY",
-            '"' + (localProps.getProperty("FIREBASE_FCM_SERVER_KEY") ?: "") + '"'
         buildConfigField "String", "GOOGLE_WEB_CLIENT_ID",
             '"' + (localProps.getProperty("GOOGLE_WEB_CLIENT_ID") ?: "") + '"'
-        buildConfigField "String", "FACEBOOK_APP_ID",
-            '"' + (localProps.getProperty("FACEBOOK_APP_ID") ?: "") + '"'
-        buildConfigField "String", "FACEBOOK_CLIENT_TOKEN",
-            '"' + (localProps.getProperty("FACEBOOK_CLIENT_TOKEN") ?: "") + '"'
 
+        // The only secrets compiled into the app. Anything shipped in an APK can be extracted, so
+        // never put server keys (FCM server key, payment secrets) here.
         resValue "string", "google_maps_key",
             (localProps.getProperty("GOOGLE_MAPS_API_KEY") ?: "")
     }
