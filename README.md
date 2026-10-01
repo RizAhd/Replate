@@ -101,7 +101,8 @@ to change. Keep commits small, and make sure `./gradlew testDebugUnitTest` and `
 
 ## License
 
-This project is licensed. See the LICENSE file for details.
+No open-source licence has been added yet, so all rights are reserved by the owner. Add a `LICENSE` file
+to grant others permission to use or contribute to the code.
 
 ## Roadmap (known gaps)
 
