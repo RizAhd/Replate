@@ -70,7 +70,6 @@ public class FoodDetailActivity extends AppCompatActivity {
     private int quantity = 1;
     private DatabaseReference mDatabase;
     private FusedLocationProviderClient fusedLocationClient;
-    private String pendingCallNumber;
     private String currentUserName = "Anonymous";
     private String currentUserId = "";
     private String editingReviewId = null;
@@ -80,18 +79,6 @@ public class FoodDetailActivity extends AppCompatActivity {
     private ReplateDatabaseHelper localDb;
     private ValueEventListener reviewsListener;
     private DatabaseReference reviewsRef;
-
-    private final ActivityResultLauncher<String> callPermissionLauncher =
-            registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
-                if (granted && pendingCallNumber != null && !pendingCallNumber.isEmpty()) {
-                    TelephonyUtils.callNow(this, pendingCallNumber);
-                } else if (!granted) {
-                    ToastUtils.showCustomToast(this, "Call permission denied. Opening dialer instead.");
-                    if (pendingCallNumber != null && !pendingCallNumber.isEmpty()) {
-                        TelephonyUtils.openDialer(this, pendingCallNumber);
-                    }
-                }
-            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -702,21 +689,12 @@ public class FoodDetailActivity extends AppCompatActivity {
 
     private void callHotel() {
         resolveHotelPhone(phone -> {
-            pendingCallNumber = phone;
-            new AlertDialog.Builder(this)
-                    .setTitle("Contact hotel")
-                    .setItems(new CharSequence[]{"Open Dialer", "Call Now"}, (dialog, which) -> {
-                        if (which == 0) {
-                            TelephonyUtils.openDialer(this, phone);
-                        } else {
-                            if (TelephonyUtils.hasCallPermission(this)) {
-                                TelephonyUtils.callNow(this, phone);
-                            } else {
-                                callPermissionLauncher.launch(Manifest.permission.CALL_PHONE);
-                            }
-                        }
-                    })
-                    .show();
+            // The dialer needs no CALL_PHONE permission; the customer taps once to place the call.
+            try {
+                TelephonyUtils.openDialer(this, phone);
+            } catch (android.content.ActivityNotFoundException e) {
+                ToastUtils.showCustomToast(this, "No phone app available");
+            }
         });
     }
 
