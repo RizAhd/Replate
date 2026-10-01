@@ -897,6 +897,53 @@ public class LoginActivity extends AppCompatActivity {
                     android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         }
 
+        final PhoneAuthProvider.OnVerificationStateChangedCallbacks callbacks =
+                new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
+                    @Override
+                    public void onVerificationCompleted(@NonNull PhoneAuthCredential credential) {
+                        phoneAuthProgress.setVisibility(View.GONE);
+                        dialog.dismiss();
+                        signInWithPhoneCredential(credential);
+                    }
+
+                    @Override
+                    public void onVerificationFailed(@NonNull com.google.firebase.FirebaseException e) {
+                        android.util.Log.w("LoginActivity", "Phone verification failed", e);
+                        phoneAuthProgress.setVisibility(View.GONE);
+                        btnSendOtp.setEnabled(true);
+                        ToastUtils.showCustomToast(LoginActivity.this,
+                                R.string.login_phone_verification_failed_please_try);
+                    }
+
+                    @Override
+                    public void onCodeSent(@NonNull String verificationId,
+                                           @NonNull PhoneAuthProvider.ForceResendingToken token) {
+                        phoneVerificationId = verificationId;
+                        phoneResendToken = token;
+                        phoneAuthProgress.setVisibility(View.GONE);
+
+                        // Show OTP section (animated, so the dialog does not jump)
+                        TransitionManager.beginDelayedTransition((ViewGroup) dialogView);
+                        btnSendOtp.setVisibility(View.GONE);
+                        otpSection.setVisibility(View.VISIBLE);
+                        ToastUtils.showCustomToast(LoginActivity.this, R.string.login_verification_code_sent);
+                    }
+                };
+
+        // The number the code was last sent to, so Resend can reuse it with Firebase's resend token
+        final String[] pendingPhone = new String[1];
+        final Runnable startVerification = () -> {
+            PhoneAuthOptions.Builder builder = PhoneAuthOptions.newBuilder(mAuth)
+                    .setPhoneNumber(pendingPhone[0])
+                    .setTimeout(60L, TimeUnit.SECONDS)
+                    .setActivity(this)
+                    .setCallbacks(callbacks);
+            if (phoneResendToken != null) {
+                builder.setForceResendingToken(phoneResendToken);
+            }
+            PhoneAuthProvider.verifyPhoneNumber(builder.build());
+        };
+
         btnSendOtp.setOnClickListener(v -> {
             String code = etCountryCode.getText() != null ? etCountryCode.getText().toString().trim() : "+94";
             String phone = etPhoneNumber.getText() != null ? etPhoneNumber.getText().toString().trim() : "";
@@ -904,47 +951,14 @@ public class LoginActivity extends AppCompatActivity {
                 ToastUtils.showCustomToast(this, R.string.login_please_enter_your_phone_number);
                 return;
             }
-            String fullPhone = code + phone;
 
             btnSendOtp.setEnabled(false);
             phoneAuthProgress.setVisibility(View.VISIBLE);
 
-            PhoneAuthOptions options = PhoneAuthOptions.newBuilder(mAuth)
-                    .setPhoneNumber(fullPhone)
-                    .setTimeout(60L, TimeUnit.SECONDS)
-                    .setActivity(this)
-                    .setCallbacks(new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
-                        @Override
-                        public void onVerificationCompleted(@NonNull PhoneAuthCredential credential) {
-                            phoneAuthProgress.setVisibility(View.GONE);
-                            dialog.dismiss();
-                            signInWithPhoneCredential(credential);
-                        }
-
-                        @Override
-                        public void onVerificationFailed(@NonNull com.google.firebase.FirebaseException e) {
-                            phoneAuthProgress.setVisibility(View.GONE);
-                            btnSendOtp.setEnabled(true);
-                            ToastUtils.showCustomToast(LoginActivity.this,
-                                    "Verification failed: " + e.getMessage());
-                        }
-
-                        @Override
-                        public void onCodeSent(@NonNull String verificationId,
-                                               @NonNull PhoneAuthProvider.ForceResendingToken token) {
-                            phoneVerificationId = verificationId;
-                            phoneResendToken = token;
-                            phoneAuthProgress.setVisibility(View.GONE);
-
-                            // Show OTP section (animated, so the dialog does not jump)
-                            TransitionManager.beginDelayedTransition((ViewGroup) dialogView);
-                            btnSendOtp.setVisibility(View.GONE);
-                            otpSection.setVisibility(View.VISIBLE);
-                            ToastUtils.showCustomToast(LoginActivity.this, R.string.login_verification_code_sent);
-                        }
-                    })
-                    .build();
-            PhoneAuthProvider.verifyPhoneNumber(options);
+            // A fresh send, so any token from an earlier number must not be reused
+            phoneResendToken = null;
+            pendingPhone[0] = code + phone;
+            startVerification.run();
         });
 
         btnVerifyOtp.setOnClickListener(v -> {
@@ -961,19 +975,39 @@ public class LoginActivity extends AppCompatActivity {
             phoneAuthProgress.setVisibility(View.VISIBLE);
             btnVerifyOtp.setEnabled(false);
 
+            // Keep the dialog open until we know the code was right, so a typo doesn't lose the user's place
             PhoneAuthCredential credential = PhoneAuthProvider.getCredential(phoneVerificationId, otp);
-            dialog.dismiss();
-            signInWithPhoneCredential(credential);
+            mAuth.signInWithCredential(credential).addOnCompleteListener(this, task -> {
+                phoneAuthProgress.setVisibility(View.GONE);
+                if (!task.isSuccessful()) {
+                    btnVerifyOtp.setEnabled(true);
+                    ToastUtils.showCustomToast(this, R.string.login_phone_verification_failed_please_try);
+                    return;
+                }
+                dialog.dismiss();
+                FirebaseUser user = mAuth.getCurrentUser();
+                if (user == null) {
+                    ToastUtils.showCustomToast(this, R.string.login_sign_in_failed_please_try);
+                    return;
+                }
+                showLoading(true);
+                handleSocialAuthUser(user);
+            });
         });
 
         tvResendOtp.setOnClickListener(v -> {
-            // Reset UI to send again
-            TransitionManager.beginDelayedTransition((ViewGroup) dialogView);
-            otpSection.setVisibility(View.GONE);
-            btnSendOtp.setVisibility(View.VISIBLE);
-            btnSendOtp.setEnabled(true);
+            if (pendingPhone[0] == null) return;
+            // Real resend with Firebase's token, then a short cooldown so it can't be spammed
+            tvResendOtp.setEnabled(false);
+            tvResendOtp.setAlpha(0.5f);
+            tvResendOtp.postDelayed(() -> {
+                tvResendOtp.setEnabled(true);
+                tvResendOtp.setAlpha(1f);
+            }, 30_000L);
+            phoneAuthProgress.setVisibility(View.VISIBLE);
+            btnVerifyOtp.setEnabled(true);
+            startVerification.run();
         });
-
         dialog.show();
     }
 
