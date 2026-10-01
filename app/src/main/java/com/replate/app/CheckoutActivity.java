@@ -32,6 +32,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.replate.app.helpers.CartDatabaseHelper;
 import com.replate.app.models.CartItem;
+import com.replate.app.utils.CheckoutValidator;
 import com.replate.app.utils.ToastUtils;
 
 import java.io.FileOutputStream;
@@ -293,9 +294,19 @@ public class CheckoutActivity extends AppCompatActivity {
             etCustomerPhone.setError("Enter phone number");
             return;
         }
+        if (!CheckoutValidator.isValidPhone(customerPhone)) {
+            etCustomerPhone.setError("Enter a valid phone number (9-15 digits)");
+            return;
+        }
 
         if (!isDelivery && pickupTime.isEmpty()) {
             ToastUtils.showCustomToast(this, "Please select pickup time");
+            return;
+        }
+        Calendar now = Calendar.getInstance();
+        if (!isDelivery && CheckoutValidator.isPickupTimeInPast(
+                pickupTime, now.get(Calendar.HOUR_OF_DAY), now.get(Calendar.MINUTE))) {
+            ToastUtils.showCustomToast(this, "Pickup time has already passed. Please choose a later time today.");
             return;
         }
 
@@ -305,6 +316,11 @@ public class CheckoutActivity extends AppCompatActivity {
         }
 
         recalculateTotals();
+        boolean payingByCard = rgPayment.getCheckedRadioButtonId() == R.id.rbCard;
+        if (payingByCard && !CheckoutValidator.isPayableAmount(totalAmount)) {
+            ToastUtils.showCustomToast(this, "This order has no payable amount. Please review your cart or pay by cash.");
+            return;
+        }
         new AlertDialog.Builder(this)
                 .setTitle("Confirm Order")
                 .setMessage(getString(R.string.checkout_confirm_message, totalAmount))
