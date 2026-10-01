@@ -53,6 +53,8 @@
     <string name="map_waiting_current_location">Waiting for current location...</string>
     <string name="map_select_destination_first">Select destination first</string>
     <string name="map_route_template_clear">Distance %1$s · ETA %2$s</string>
+    <string name="map_distance_hint_template">About %1$.1f km away · tap Show route for directions</string>
+    <string name="map_route_hint">Tap Show route for directions</string>
 
     <!-- Cart -->
     <string name="cart_title">Your cart</string>

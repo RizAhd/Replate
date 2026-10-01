@@ -705,7 +705,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 place.getCategory(),
                 place.getRating()
         ));
-        tvRouteInfo.setText(getString(R.string.map_tap_marker_route));
+        // Routes are fetched only from the "Show route" button (each one is a paid API call),
+        // so a marker tap just shows the straight-line distance.
+        clearRouteOnly();
+        showStraightLineHint(currentUserLatLng, selectedDestinationLatLng);
         tvAvailableItems.setText(getString(R.string.map_loading_items));
         loadAvailableItemsPreview(place.getId());
         if (ivRestaurantImage instanceof ImageView) {
@@ -714,7 +717,19 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         bottomSheet.setVisibility(View.VISIBLE);
 
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(selectedDestinationLatLng, 15f));
-        drawRouteToSelectedPlace();
+    }
+
+    private void showStraightLineHint(@Nullable LatLng origin, @Nullable LatLng destination) {
+        if (tvRouteInfo == null) {
+            return;
+        }
+        if (origin == null || destination == null) {
+            tvRouteInfo.setText(getString(R.string.map_route_hint));
+            return;
+        }
+        double distanceKm = LocationUtils.calculateDistance(
+                origin.latitude, origin.longitude, destination.latitude, destination.longitude);
+        tvRouteInfo.setText(getString(R.string.map_distance_hint_template, distanceKm));
     }
 
     private void drawRouteToSelectedPlace() {
@@ -775,6 +790,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     }
 
     private void maybeUpdateRouteInfo(@NonNull LatLng origin, @NonNull LatLng destination) {
+        // A drawn route already shows road distance and ETA; don't replace it with a straight-line figure
+        if (currentRoutePolyline != null) {
+            return;
+        }
         long now = System.currentTimeMillis();
         boolean enoughTimePassed = now - lastRouteInfoUpdateAt >= 1500;
         boolean movedEnough = true;
@@ -793,13 +812,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             return;
         }
 
-        double distance = LocationUtils.calculateDistance(
-                origin.latitude,
-                origin.longitude,
-                destination.latitude,
-                destination.longitude
-        );
-        tvRouteInfo.setText(String.format(Locale.getDefault(), "Distance: %.2f km • Updating...", distance));
+        showStraightLineHint(origin, destination);
         lastRouteInfoUpdateAt = now;
         lastRouteInfoOrigin = origin;
     }
