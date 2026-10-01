@@ -77,7 +77,6 @@
         <activity android:name=".SearchActivity" android:exported="false" />
         <activity android:name=".OrderDetailActivity" android:exported="false" />
         <activity android:name=".OrderSuccessActivity" android:exported="false" />
-        <activity android:name=".EditProfileActivity" android:exported="false" />
         <activity android:name=".ChatActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".LocationPickerActivity"
