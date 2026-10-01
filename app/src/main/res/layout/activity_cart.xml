@@ -10,15 +10,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/space_2"
-        app:cardBackgroundColor="@color/green_primary"
-        app:cardCornerRadius="28dp"
-        app:cardElevation="0dp">
+        style="@style/Widget.REPLATE.Card.Header">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="18dp">
+            android:padding="@dimen/space_2_5">
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -53,6 +51,10 @@
                     android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"
                     android:background="@drawable/badge_outline_white"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:gravity="center"
+                    android:clickable="true"
+                    android:focusable="true"
                     android:fontFamily="@font/poppins_semibold"
                     android:paddingHorizontal="@dimen/space_1_5"
                     android:paddingVertical="@dimen/space_1"
