@@ -50,6 +50,7 @@
     <string name="map_items_load_failed">Unable to load items right now.</string>
     <string name="map_items_tap_marker">Tap marker to load hotel menu...</string>
     <string name="map_deals_rating_template">%1$s • ★%2$.1f</string>
+    <string name="map_deals_new_template">%1$s • New</string>
     <string name="map_calculating_route">Calculating best route...</string>
     <string name="map_waiting_current_location">Waiting for current location...</string>
     <string name="map_select_destination_first">Select destination first</string>

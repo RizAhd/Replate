@@ -54,6 +54,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.replate.app.R;
 import com.replate.app.map.data.FirebasePlacesDataSource;
+import com.replate.app.map.data.MapRules;
 import com.replate.app.map.data.PlacesDataSource;
 import com.replate.app.map.model.FoodPlace;
 import com.replate.app.map.routing.DirectionsApiClient;
@@ -779,11 +780,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
         tvRestaurantName.setText(place.getName());
         tvRestaurantAddress.setText(place.getAddress());
-        tvDealsCount.setText(getString(
-                R.string.map_deals_rating_template,
-                place.getCategory(),
-                place.getRating()
-        ));
+        tvDealsCount.setText(place.getRating() > 0
+                ? getString(R.string.map_deals_rating_template, place.getCategory(), place.getRating())
+                : getString(R.string.map_deals_new_template, place.getCategory()));
         // Routes are fetched only from the "Show route" button (each one is a paid API call),
         // so a marker tap just shows the straight-line distance.
         clearRouteOnly();
@@ -946,9 +945,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
                 for (DataSnapshot child : snapshot.getChildren()) {
 
+                    // Same definition of "available" as the pin's item count on the map
                     String status = asString(child.child("status").getValue());
-                    int quantity = asInt(child.child("quantity").getValue());
-                    if ((!status.isEmpty() && !"available".equalsIgnoreCase(status)) || quantity <= 0) {
+                    if (!MapRules.isListableItem(status, readQuantity(child))) {
                         continue;
                     }
 
@@ -991,6 +990,22 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 }
             }
         });
+    }
+
+    /** Quantity under any of the names listings use, or null when none is set. */
+    @Nullable
+    private Integer readQuantity(@NonNull DataSnapshot item) {
+        for (String key : new String[]{"quantity", "qty", "stock"}) {
+            Object value = item.child(key).getValue();
+            if (value == null) continue;
+            if (value instanceof Number) return ((Number) value).intValue();
+            try {
+                return Integer.parseInt(String.valueOf(value).trim());
+            } catch (NumberFormatException ignored) {
+                // try the next name
+            }
+        }
+        return null;
     }
 
     private String asString(Object value) {
