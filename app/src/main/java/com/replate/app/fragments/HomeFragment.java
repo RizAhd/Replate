@@ -136,6 +136,7 @@ public class HomeFragment extends Fragment implements
     // can never overwrite a newer one. Shut down in onDestroyView.
     private java.util.concurrent.ExecutorService foodParseExecutor;
     private DatabaseReference favoritesRef;
+    private androidx.swiperefreshlayout.widget.SwipeRefreshLayout swipeRefresh;
     private ValueEventListener favoritesListener;
 
     private final Handler bannerHandler = new Handler(Looper.getMainLooper());
@@ -183,6 +184,11 @@ public class HomeFragment extends Fragment implements
         rvFoodItems = view.findViewById(R.id.rvDeals);
         rvFavorites = view.findViewById(R.id.rvFavorites);
         progressBar = view.findViewById(R.id.progressBar);
+        swipeRefresh = view.findViewById(R.id.swipeRefresh);
+        if (swipeRefresh != null) {
+            swipeRefresh.setColorSchemeResources(R.color.green_primary);
+            swipeRefresh.setOnRefreshListener(this::refreshData);
+        }
 
         rvCategories.setLayoutManager(new LinearLayoutManager(getContext(),
                 LinearLayoutManager.HORIZONTAL, false));
@@ -639,7 +645,21 @@ public class HomeFragment extends Fragment implements
      * Public method for shake-to-refresh from MainActivity.
      */
     public void refreshData() {
+        if (!com.replate.app.utils.NetworkUtils.isOnline(getContext())) {
+            // Nothing to fetch; keep showing the saved listings instead of spinning forever
+            if (swipeRefresh != null) {
+                swipeRefresh.setRefreshing(false);
+            }
+            ToastUtils.showCustomToast(getContext(), "You're offline. Showing saved listings.");
+            return;
+        }
         loadFoodItems();
+        // Safety net: never leave the pull-to-refresh spinner running if the server stays silent
+        uiHandler.postDelayed(() -> {
+            if (swipeRefresh != null) {
+                swipeRefresh.setRefreshing(false);
+            }
+        }, 8000);
     }
 
     private void loadFoodItems() {
@@ -965,6 +985,10 @@ public class HomeFragment extends Fragment implements
     private void showLoading(boolean show) {
         if (progressBar != null) {
             progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
+        }
+        // Whenever loading ends (data arrived or failed), also stop the pull-to-refresh spinner
+        if (!show && swipeRefresh != null) {
+            swipeRefresh.setRefreshing(false);
         }
     }
 
