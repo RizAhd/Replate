@@ -128,7 +128,11 @@ public class ProfileFragment extends Fragment {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user == null) return;
 
-        tvUserEmail.setText(user.getEmail());
+        // Phone and social sign-ins can have no email or display name, which left the hero card blank
+        tvUserEmail.setText(contactLine(user));
+        if (tvUserName.getText() == null || tvUserName.getText().toString().trim().isEmpty()) {
+            tvUserName.setText(fallbackName(user));
+        }
 
         mDatabase.child("users").child(user.getUid())
                 .addListenerForSingleValueEvent(new ValueEventListener() {
@@ -146,6 +150,8 @@ public class ProfileFragment extends Fragment {
 
                             if (name != null && !name.isEmpty()) {
                                 tvUserName.setText(name);
+                            } else if (isAdded()) {
+                                tvUserName.setText(fallbackName(user));
                             }
 
                             if (profileImage != null && !profileImage.isEmpty() && getContext() != null) {
@@ -177,6 +183,19 @@ public class ProfileFragment extends Fragment {
                 });
     }
 
+    private String contactLine(FirebaseUser user) {
+        if (user.getEmail() != null && !user.getEmail().trim().isEmpty()) return user.getEmail();
+        if (user.getPhoneNumber() != null && !user.getPhoneNumber().trim().isEmpty()) return user.getPhoneNumber();
+        return "";
+    }
+
+    private String fallbackName(FirebaseUser user) {
+        if (user.getDisplayName() != null && !user.getDisplayName().trim().isEmpty()) return user.getDisplayName();
+        String email = user.getEmail();
+        if (email != null && email.indexOf('@') > 0) return email.substring(0, email.indexOf('@'));
+        return getString(R.string.profile_guest_name);
+    }
+
     private void loadStats() {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user == null) return;
@@ -192,15 +211,21 @@ public class ProfileFragment extends Fragment {
                         double totalSavings = 0;
 
                         for (DataSnapshot orderSnapshot : snapshot.getChildren()) {
-                            orderCount++;
-                            // Calculate savings (original - discounted)
-                            Object originalObj = orderSnapshot.child("originalTotal").getValue();
-                            Object discountedObj = orderSnapshot.child("totalAmount").getValue();
-                            double original = toDouble(originalObj);
-                            double discounted = toDouble(discountedObj);
-                            if (original > 0 && discounted > 0) {
-                                totalSavings += (original - discounted);
+                            // A cancelled order was never bought, so it counts for neither stat
+                            if ("cancelled".equals(orderSnapshot.child("orderStatus").getValue(String.class))) {
+                                continue;
                             }
+                            orderCount++;
+                            // Prefer the saving recorded at checkout; fall back to original minus paid for old orders
+                            double saved = toDouble(orderSnapshot.child("savingsAmount").getValue());
+                            if (saved <= 0) {
+                                double original = toDouble(orderSnapshot.child("originalTotal").getValue());
+                                double discounted = toDouble(orderSnapshot.child("totalAmount").getValue());
+                                if (original > 0 && discounted > 0 && original > discounted) {
+                                    saved = original - discounted;
+                                }
+                            }
+                            totalSavings += saved;
                         }
 
                         tvOrdersCount.setText(String.valueOf(orderCount));

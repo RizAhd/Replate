@@ -480,6 +480,7 @@ Total: LKR %1$.2f</string>
     <string name="order_success_order">Order</string>
     <string name="order_success_hotel">Hotel</string>
     <string name="hotel_name_fallback">Hotel</string>
+    <string name="profile_guest_name">Guest</string>
     <string name="order_detail_items_title">Your order</string>
     <string name="order_detail_item_line">%1$d × %2$s</string>
     <string name="order_detail_item_fallback">Item</string>
