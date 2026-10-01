@@ -1805,3 +1805,23 @@ main > h2 {
 .status-notice.status-pending { background: var(--warning-light); border-color: #fcd9a1; }
 .status-notice.status-rejected { background: var(--danger-light); border-color: #f6b8b8; }
 .status-notice.status-warning { background: var(--warning-light); border-color: #fcd9a1; }
+
+/* The login card is a <main> landmark, so undo the panel layout rules that target <main> */
+main.auth-card {
+    margin: 0 !important;
+    width: 100% !important;
+    min-height: 0;
+    overflow: visible;
+    padding: 40px 36px !important;
+}
+
+.social-btn {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-primary);
+}
+
+.social-btn:hover:not(:disabled) {
+    border-color: var(--primary);
+    background: var(--primary-50);
+}
