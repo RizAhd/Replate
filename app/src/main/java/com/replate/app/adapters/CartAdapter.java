@@ -75,16 +75,19 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
 
         void bind(CartItem item) {
             tvFoodName.setText(item.getFoodName());
-            tvHotelName.setText(item.getHotelName());
+            String hotelName = item.getHotelName();
+            tvHotelName.setText(hotelName != null && !hotelName.trim().isEmpty()
+                    ? hotelName : context.getString(R.string.hotel_name_fallback));
             tvPrice.setText(Money.format(item.getPrice()));
             tvQuantity.setText(String.valueOf(item.getQuantity()));
             tvSubtotal.setText(Money.format(item.getSubtotal()));
 
-            if (item.getImageUrl() != null && !item.getImageUrl().isEmpty()) {
-                Glide.with(context).load(item.getImageUrl())
-                        .placeholder(R.drawable.placeholder_food)
-                        .into(ivFoodImage);
-            }
+            // Always load (falling back to the placeholder) so a recycled row never keeps the previous dish's photo
+            String imageUrl = item.getImageUrl();
+            Glide.with(context).load(imageUrl != null && !imageUrl.isEmpty() ? imageUrl : null)
+                    .placeholder(R.drawable.placeholder_food)
+                    .error(R.drawable.placeholder_food)
+                    .into(ivFoodImage);
 
             btnMinus.setOnClickListener(v -> {
                 if (item.getQuantity() > 1 && listener != null) {
