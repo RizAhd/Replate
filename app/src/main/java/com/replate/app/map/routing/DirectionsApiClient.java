@@ -2,6 +2,7 @@ package com.replate.app.map.routing;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -13,9 +14,12 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.ConnectException;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +32,8 @@ public class DirectionsApiClient {
         void onSuccess(RouteResult result);
         void onError(String message);
     }
+
+    private static final String TAG = "DirectionsApiClient";
 
     private final String mapsApiKey;
     private final ExecutorService executorService;
@@ -74,7 +80,9 @@ public class DirectionsApiClient {
                 JSONObject root = new JSONObject(responseBody);
                 String status = root.optString("status", "UNKNOWN");
                 if (!"OK".equals(status)) {
-                    postError(callback, "Directions failed: " + status);
+                    String errorMessage = root.optString("error_message", "");
+                    Log.w(TAG, "Directions status=" + status + " error_message=" + errorMessage);
+                    postError(callback, describeStatus(status));
                     return;
                 }
 
@@ -106,8 +114,13 @@ public class DirectionsApiClient {
                 RouteResult routeResult = new RouteResult(points, distanceText, durationText);
                 mainHandler.post(() -> callback.onSuccess(routeResult));
 
+            } catch (UnknownHostException | ConnectException e) {
+                postError(callback, "No internet connection. Check your network and try again.");
+            } catch (SocketTimeoutException e) {
+                postError(callback, "The route request timed out. Please try again.");
             } catch (Exception e) {
-                postError(callback, "Route fetch error: " + e.getMessage());
+                Log.w(TAG, "Route fetch failed", e);
+                postError(callback, "Couldn't load the route. Please try again.");
             } finally {
                 if (connection != null) {
                     connection.disconnect();
@@ -120,18 +133,41 @@ public class DirectionsApiClient {
         mainHandler.post(() -> callback.onError(message));
     }
 
+    /** Turns a Directions API status code into text a customer can act on. */
+    static String describeStatus(String status) {
+        if (status == null) {
+            return "Route unavailable. Please try again.";
+        }
+        switch (status) {
+            case "ZERO_RESULTS":
+                return "No driving route was found to this place.";
+            case "NOT_FOUND":
+                return "This location couldn't be found.";
+            case "OVER_QUERY_LIMIT":
+            case "OVER_DAILY_LIMIT":
+                return "Too many route requests right now. Please try again shortly.";
+            case "REQUEST_DENIED":
+                return "Directions are unavailable right now.";
+            case "INVALID_REQUEST":
+                return "That route request wasn't valid.";
+            default:
+                return "Route unavailable. Please try again.";
+        }
+    }
+
     private String readStream(InputStream inputStream) throws Exception {
         if (inputStream == null) {
             return "";
         }
-        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-        StringBuilder builder = new StringBuilder();
-        String line;
-        while ((line = reader.readLine()) != null) {
-            builder.append(line);
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+            StringBuilder builder = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                builder.append(line);
+            }
+            return builder.toString();
         }
-        reader.close();
-        return builder.toString();
     }
 
     private List<LatLng> decodePolyline(@NonNull String encoded) {
