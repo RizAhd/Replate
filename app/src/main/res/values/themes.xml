@@ -61,8 +61,8 @@
         <item name="android:windowAnimationStyle">@style/WindowAnimationTransition</item>
 
         <!-- Typography system -->
-        <item name="android:fontFamily">@font/poppins_regular</item>
-        <item name="fontFamily">@font/poppins_regular</item>
+        <item name="android:fontFamily">@font/poppins</item>
+        <item name="fontFamily">@font/poppins</item>
         <item name="textAppearanceTitleLarge">@style/TextAppearance.REPLATE.Headline</item>
         <item name="textAppearanceTitleMedium">@style/TextAppearance.REPLATE.Subheading</item>
         <item name="textAppearanceBodyMedium">@style/TextAppearance.REPLATE.Body</item>
@@ -109,7 +109,7 @@
         <item name="colorSecondary">@color/orange_accent</item>
         <item name="android:colorBackground">@color/background_cream</item>
         <item name="colorSurface">@color/surface_white</item>
-        <item name="android:fontFamily">@font/poppins_regular</item>
+        <item name="android:fontFamily">@font/poppins</item>
     </style>
 
     <!-- Circular FAB shape for chat send button -->
