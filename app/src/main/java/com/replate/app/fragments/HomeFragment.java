@@ -545,7 +545,15 @@ public class HomeFragment extends Fragment implements
                     List<FoodItem> newItems = new ArrayList<>();
 
                     for (DataSnapshot itemSnapshot : snapshot.getChildren()) {
-                        FoodItem item = itemSnapshot.getValue(FoodItem.class);
+                        FoodItem item;
+                        try {
+                            item = itemSnapshot.getValue(FoodItem.class);
+                        } catch (Exception e) {
+                            // One malformed listing (e.g. wrong field type from the web panel)
+                            // must not kill this thread and take the whole app down.
+                            android.util.Log.w("HomeFragment", "Skipping malformed food item " + itemSnapshot.getKey(), e);
+                            continue;
+                        }
                         if (item == null) continue;
 
                         item.setFoodId(itemSnapshot.getKey());
