@@ -6,20 +6,19 @@
          ========================================== -->
 
     <!-- Primary — Leaf -->
-    <color name="md_theme_primary">#1A6B3C</color>
+    <color name="md_theme_primary">@color/leaf</color>
     <color name="md_theme_onPrimary">#FFFFFF</color>
     <color name="md_theme_primaryContainer">#E0F5E8</color>
     <color name="md_theme_onPrimaryContainer">#0D3B1E</color>
 
     <!-- Secondary — Leaf2 -->
-    <color name="md_theme_secondary">#25A55A</color>
+    <color name="md_theme_secondary">@color/leaf2</color>
     <color name="md_theme_onSecondary">#FFFFFF</color>
     <color name="md_theme_secondaryContainer">#E0F5E8</color>
     <color name="md_theme_onSecondaryContainer">#0D3B1E</color>
 
     <!-- Tertiary — Ember -->
-    <color name="md_theme_tertiary">#E8521A</color>
-    <color name="secondary">#E8521A</color>
+    <color name="md_theme_tertiary">@color/ember</color>
     <color name="md_theme_onTertiary">#FFFFFF</color>
     <color name="md_theme_tertiaryContainer">#FFDBC9</color>
     <color name="md_theme_onTertiaryContainer">#5C1A00</color>
@@ -48,7 +47,7 @@
     <color name="md_theme_inversePrimary">#4FCB7D</color>
 
     <!-- Surface Tint -->
-    <color name="md_theme_surfaceTint">#1A6B3C</color>
+    <color name="md_theme_surfaceTint">@color/leaf</color>
 
     <!-- Surface Containers (M3 Elevation Tones) -->
     <color name="md_theme_surfaceContainerLowest">#FFFFFF</color>
@@ -62,36 +61,30 @@
          ========================================== -->
     <color name="leaf">#1A6B3C</color>
     <color name="leaf2">#25A55A</color>
-    <color name="leaf3">#4FCB7D</color>
     <color name="leaf_pale">#E0F5E8</color>
     <color name="ember">#E8521A</color>
     <color name="ember2">#F97316</color>
     <color name="cream">#FAFAFA</color>
-    <color name="charcoal">#1C1C1E</color>
 
     <!-- ==========================================
          Legacy color names (backward compat)
          ========================================== -->
-    <color name="primary">#1A6B3C</color>
+    <color name="primary">@color/leaf</color>
     <color name="primary_dark">#0D3B1E</color>
-    <color name="primary_light">#E0F5E8</color>
-    <color name="accent">#4FCB7D</color>
+    <color name="primary_light">@color/leaf_pale</color>
     <color name="text_primary">#1C1C1E</color>
     <color name="text_secondary">#6C6C6E</color>
-    <color name="text_hint">#9E9E9E</color>
+    <!-- 4.6:1 on white; the old #9E9E9E was 2.7:1 and failed AA for dates and hints -->
+    <color name="text_hint">#757575</color>
 
     <!-- Basic Colors -->
-    <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="grey">#6B7E6F</color>
-    <color name="gray">#6B7E6F</color>
-    <color name="light_gray">#FAFAFA</color>
+    <color name="light_gray">@color/cream</color>
     <color name="error">#BA1A1A</color>
-    <color name="success">#1A6B3C</color>
-    <color name="warning">#F97316</color>
+    <color name="success">@color/leaf</color>
+    <color name="warning">@color/ember2</color>
 
     <!-- Specific UI Colors -->
-    <color name="card_background">#FFFFFF</color>
     <color name="divider">#EAEAEA</color>
     <color name="ripple_primary">#1A1A6B3C</color>
     <color name="indicator_inactive">#C5CFC8</color>
@@ -99,24 +92,21 @@
     <color name="splash_track">#14FFFFFF</color>
     <color name="splash_bg">#0D3B1E</color>
     <color name="status_bar">@color/splash_bg</color>
-    <color name="bottom_nav_background">#FFFFFF</color>
-    <color name="search_bar_bg">#F0F0F0</color>
-    <color name="badge_discount">#E8521A</color>
-    <color name="badge_distance">#25A55A</color>
-    <color name="price_original">#9E9E9E</color>
-    <color name="price_discounted">#1A6B3C</color>
+    <color name="badge_discount">@color/ember</color>
+    <color name="badge_distance">@color/leaf2</color>
+    <color name="price_discounted">@color/leaf</color>
 
     <!-- Distance marker colors -->
-    <color name="marker_near">#25A55A</color>
-    <color name="marker_medium">#F97316</color>
-    <color name="marker_far">#E8521A</color>
+    <color name="marker_near">@color/leaf2</color>
+    <color name="marker_medium">@color/ember2</color>
+    <color name="marker_far">@color/ember</color>
 
     <!-- Prompt Specific Colors -->
-    <color name="green_primary">#1A6B3C</color>
-    <color name="green_light">#25A55A</color>
-    <color name="green_pale">#E0F5E8</color>
-    <color name="orange_accent">#F97316</color>
-    <color name="background_cream">#FAFAFA</color>
+    <color name="green_primary">@color/leaf</color>
+    <color name="green_light">@color/leaf2</color>
+    <color name="green_pale">@color/leaf_pale</color>
+    <color name="orange_accent">@color/ember2</color>
+    <color name="background_cream">@color/cream</color>
     <color name="surface_white">#FFFFFF</color>
 
     <!-- Semantic High-Contrast Helper Colors -->
@@ -127,10 +117,8 @@
 
     <!-- Shimmer / Loading -->
     <color name="shimmer_base">#F0F0F0</color>
-    <color name="shimmer_highlight">#FAFAFA</color>
 
-    <!-- Scrim & overlays -->
-    <color name="scrim">#52000000</color>
+    <!-- Overlays -->
     <color name="nav_divider">#EAEAEA</color>
 
     <!-- Translucent overlays used on the green headers and for soft dividers -->
