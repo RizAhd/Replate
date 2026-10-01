@@ -87,13 +87,17 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
         void bind(Order order) {
             // Order ID (show last 8 characters)
             String orderId = order.getOrderId();
-            if (orderId != null && orderId.length() > 8) {
-                orderId = "#" + orderId.substring(orderId.length() - 8).toUpperCase();
+            if (orderId == null || orderId.isEmpty()) {
+                orderId = "";
+            } else {
+                orderId = "#" + orderId.substring(Math.max(0, orderId.length() - 8)).toUpperCase(Locale.ROOT);
             }
             tvOrderId.setText(orderId);
 
             // Hotel name
-            tvHotelName.setText(order.getHotelName() != null ? order.getHotelName() : "Restaurant");
+            String hotelName = order.getHotelName();
+            tvHotelName.setText(hotelName != null && !hotelName.trim().isEmpty()
+                    ? hotelName : context.getString(R.string.hotel_name_fallback));
 
             // Items count
             int itemCount = 0;
@@ -103,7 +107,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
                 itemCount = ((java.util.Map<?, ?>) order.getItems()).size();
             }
             if (itemCount <= 0) itemCount = 1;
-            tvItemsCount.setText(itemCount + " item" + (itemCount != 1 ? "s" : ""));
+            tvItemsCount.setText(context.getResources().getQuantityString(R.plurals.order_items_count, itemCount, itemCount));
 
             // Total amount
             tvTotalAmount.setText(Money.format(order.getTotalAmountValue()));
@@ -111,26 +115,33 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
             // Order status — include order type prefix for delivery orders
             String statusText = order.getStatusDisplay();
             if (order.isDelivery()) {
-                statusText = "🚚 " + statusText;
+                statusText = context.getString(R.string.order_status_delivery_prefix, statusText);
             }
             tvOrderStatus.setText(statusText);
             setStatusColor(order.getOrderStatus());
 
             // Order date
-            SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy • hh:mm a", Locale.getDefault());
-            tvOrderDate.setText(sdf.format(new Date(order.getCreatedAtValue())));
+            // Orders without a timestamp used to show 1 January 1970
+            long createdAt = order.getCreatedAtValue();
+            if (createdAt > 0) {
+                SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy • hh:mm a", Locale.getDefault());
+                tvOrderDate.setText(sdf.format(new Date(createdAt)));
+                tvOrderDate.setVisibility(View.VISIBLE);
+            } else {
+                tvOrderDate.setVisibility(View.GONE);
+            }
 
             // Pickup time / delivery info
             if (order.isDelivery()) {
                 String addr = order.getDeliveryAddress();
                 if (addr != null && !addr.isEmpty() && !"Pickup at Hotel".equalsIgnoreCase(addr)) {
-                    tvPickupTime.setText("📍 Delivery: " + addr);
+                    tvPickupTime.setText(context.getString(R.string.order_delivery_to, addr));
                 } else {
                     tvPickupTime.setText(R.string.order_delivery_order);
                 }
                 tvPickupTime.setVisibility(View.VISIBLE);
             } else if (order.getPickupTime() != null && !order.getPickupTime().isEmpty() && !"N/A".equalsIgnoreCase(order.getPickupTime())) {
-                tvPickupTime.setText("Pickup " + order.getPickupTime());
+                tvPickupTime.setText(context.getString(R.string.order_pickup_at, order.getPickupTime()));
                 tvPickupTime.setVisibility(View.VISIBLE);
             } else {
                 tvPickupTime.setVisibility(View.GONE);

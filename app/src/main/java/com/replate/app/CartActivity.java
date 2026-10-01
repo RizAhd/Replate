@@ -162,7 +162,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
                     tvTotalAmount.setText(Money.format(total));
                 }
                 if (tvItemCount != null) {
-                    tvItemCount.setText(itemCount == 1 ? "1 item" : itemCount + " items");
+                    tvItemCount.setText(getResources().getQuantityString(R.plurals.order_items_count, itemCount, itemCount));
                 }
                 if (tvSavingsValue != null) {
                     tvSavingsValue.setText(Money.format(Math.max(savings, 0)));
