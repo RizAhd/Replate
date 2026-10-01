@@ -208,4 +208,13 @@
         <item name="android:background">@color/divider</item>
     </style>
 
+    <!-- White sheet with rounded top corners only (login, bottom panels) -->
+    <style name="ShapeAppearance.REPLATE.TopSheet" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">@dimen/space_4</item>
+        <item name="cornerSizeTopRight">@dimen/space_4</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
+    </style>
+
 </resources>

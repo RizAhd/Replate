@@ -7,7 +7,10 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Patterns;
+import android.transition.AutoTransition;
+import android.transition.TransitionManager;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -107,6 +110,8 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        // The top of the page is the green brand section, so the status bar takes its colour (no hard edge)
+        getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.green_primary));
 
         // Initialize Firebase
         mAuth = FirebaseAuth.getInstance();
@@ -206,6 +211,13 @@ public class LoginActivity extends AppCompatActivity {
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
+                // Smooth height/fade change between the two forms instead of an instant swap
+                ViewGroup forms = findViewById(R.id.formsContainer);
+                if (forms != null) {
+                    AutoTransition transition = new AutoTransition();
+                    transition.setDuration(200);
+                    TransitionManager.beginDelayedTransition(forms, transition);
+                }
                 if (tab.getPosition() == 0) {
                     // Show Login form
                     loginForm.setVisibility(View.VISIBLE);
@@ -1086,7 +1098,8 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void showLoading(boolean show) {
-        progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
+        // INVISIBLE (not GONE) so the card does not jump when the bar appears
+        progressBar.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
         btnLogin.setEnabled(!show);
         btnRegister.setEnabled(!show);
         if (btnGoogleLogin != null) btnGoogleLogin.setEnabled(!show);

@@ -697,4 +697,7 @@ Total: LKR %1$.2f</string>
     <string name="search_error_loading_data">Error loading data</string>
     <string name="search_couldn_t_add_this_item">Couldn\'t add this item to your cart</string>
     <string name="food_detail_add_to_cart_total">Add to Cart - %1$s</string>
+    <string name="auth_cd_google">Continue with Google</string>
+    <string name="auth_cd_facebook">Continue with Facebook</string>
+    <string name="auth_cd_phone">Continue with phone number</string>
 </resources>
