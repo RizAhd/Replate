@@ -29,6 +29,7 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.REPLATE"
+        tools:replace="android:allowBackup"
         tools:targetApi="31">
 
         <!-- Google Maps API Key -->
