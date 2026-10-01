@@ -450,6 +450,12 @@ public class CheckoutActivity extends AppCompatActivity {
     }
 
     private void submitOrder(String paymentMethod, String paymentStatus) {
+        if (mAuth.getCurrentUser() == null) {
+            showLoading(false);
+            ToastUtils.showCustomToast(this, "Your session has expired. Please log in again to place your order.");
+            return;
+        }
+
         showLoading(true);
 
         String customerName = etCustomerName.getText().toString().trim();
