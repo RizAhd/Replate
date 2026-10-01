@@ -583,7 +583,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                         return;
                     }
 
+                    boolean firstFix = currentUserLatLng == null;
                     currentUserLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+                    if (firstFix) {
+                        refreshMarkerColors();
+                    }
                     if (!hasCenteredOnUser) {
                         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentUserLatLng, 14f));
                         hasCenteredOnUser = true;
@@ -634,7 +638,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             return;
         }
 
+        boolean firstFix = currentUserLatLng == null;
         currentUserLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+        if (firstFix) {
+            refreshMarkerColors();
+        }
         if (!hasCenteredOnUser) {
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentUserLatLng, 14f));
             hasCenteredOnUser = true;
@@ -991,6 +999,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
         if (tvAvailableItems != null) {
             tvAvailableItems.setText(getString(R.string.map_items_tap_marker));
+        }
+    }
+
+    /** Re-colours existing markers by distance once the user's position becomes known. */
+    private void refreshMarkerColors() {
+        for (Marker marker : markerByHotelId.values()) {
+            if (marker == null) continue;
+            marker.setIcon(BitmapDescriptorFactory.defaultMarker(markerColorForDistance(marker.getPosition())));
         }
     }
 
