@@ -44,6 +44,7 @@ import com.replate.app.helpers.FoodItemCacheManager;
 import com.replate.app.helpers.ReplateDatabaseHelper;
 import com.replate.app.models.FoodItem;
 import com.replate.app.utils.LocationUtils;
+import com.replate.app.utils.SafeSnapshot;
 import com.replate.app.utils.ToastUtils;
 
 import java.util.ArrayList;
@@ -532,7 +533,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
                 allFoodItems.clear();
 
                 for (DataSnapshot itemSnapshot : snapshot.getChildren()) {
-                    FoodItem item = itemSnapshot.getValue(FoodItem.class);
+                    FoodItem item = SafeSnapshot.getValue(itemSnapshot, FoodItem.class);
                     if (item == null) continue;
 
                     item.setFoodId(itemSnapshot.getKey());
