@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- All traffic must use HTTPS. Android 9+ already defaults to this; stating it here keeps it
+     that way if someone later lowers targetSdk, and documents the intent. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>
