@@ -29,8 +29,6 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.MutableData;
-import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 import com.replate.app.helpers.CartDatabaseHelper;
 import com.replate.app.models.CartItem;
@@ -617,13 +615,8 @@ public class CheckoutActivity extends AppCompatActivity {
                     pendingPaymentStatus = null;
                     showLoading(false);
 
-                    // Decrement food quantity & auto-deactivate if sold out
-                    for (CartItem ci : cartItems) {
-                        if (ci.getFoodId() != null && !ci.getFoodId().trim().isEmpty()) {
-                            decreaseFoodQuantity(ci.getFoodId(), ci.getQuantity());
-                        }
-                    }
-
+                    // Stock is adjusted by the onOrderCreatedNotify Cloud Function (server side, exactly
+                    // once); customers are not allowed to write foodItems quantity.
                     cartDb.clearCart();
                     saveReceipt(orderId, otpCode, customerName, totalAmount);
                     playPaymentSound();
@@ -734,60 +727,6 @@ public class CheckoutActivity extends AppCompatActivity {
         progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
         btnPlaceOrder.setEnabled(!show);
         btnPlaceOrder.setAlpha(show ? 0.65f : 1f);
-    }
-
-    /**
-     * Decrease food item quantity in Firebase after successful order.
-     * Auto-marks item as sold_out when quantity reaches 0 to prevent overselling.
-     */
-    private void decreaseFoodQuantity(String foodId, int orderedQty) {
-        // A transaction makes the decrement atomic: two customers ordering the last portion at the
-        // same moment can no longer both read "1" and both write "0".
-        DatabaseReference qtyRef = mDatabase.child("foodItems").child(foodId).child("quantity");
-        qtyRef.runTransaction(new Transaction.Handler() {
-            @NonNull
-            @Override
-            public Transaction.Result doTransaction(@NonNull MutableData data) {
-                Object raw = data.getValue();
-                if (raw == null) {
-                    // Not cached locally yet (or the item was removed): leave it unchanged. For a
-                    // real item Firebase re-runs this with the server value; for a deleted item
-                    // nothing is written, so no ghost node is created.
-                    return Transaction.success(data);
-                }
-                int current = 0;
-                if (raw instanceof Number) {
-                    current = ((Number) raw).intValue();
-                } else {
-                    try {
-                        current = Integer.parseInt(String.valueOf(raw).trim());
-                    } catch (NumberFormatException ignored) {
-                        // unreadable quantity: treat as 0 rather than failing the whole order
-                    }
-                }
-                data.setValue(Math.max(0, current - orderedQty));
-                return Transaction.success(data);
-            }
-
-            @Override
-            public void onComplete(@Nullable DatabaseError error, boolean committed,
-                                   @Nullable DataSnapshot snapshot) {
-                if (error != null || !committed || snapshot == null) {
-                    Log.w(TAG, "Failed to decrease food quantity for " + foodId,
-                            error != null ? error.toException() : null);
-                    return;
-                }
-                Object value = snapshot.getValue();
-                int newQty = value instanceof Number ? ((Number) value).intValue() : -1;
-                if (newQty == 0) {
-                    mDatabase.child("foodItems").child(foodId).child("status").setValue("sold_out");
-                    mDatabase.child("foodItems").child(foodId).child("isAvailable").setValue(false);
-                    Log.d(TAG, "Food sold out, auto-deactivated: " + foodId);
-                } else {
-                    Log.d(TAG, "Food quantity updated: " + foodId + " -> " + newQty);
-                }
-            }
-        });
     }
 
     private void createOrderNotifications(String orderId,
