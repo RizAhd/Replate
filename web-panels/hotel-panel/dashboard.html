@@ -31,7 +31,7 @@
                     <h1 class="panel-title">Dashboard</h1>
                     <p class="panel-subtitle mb-0">Track orders, active listings, and revenue in real time.</p>
                 </div>
-                <div class="status-badge badge-approved" id="approvalStatus">Approved ✅</div>
+                <div class="status-badge bg-secondary" id="approvalStatus" role="status">Checking status&hellip;</div>
             </div>
 
             <!-- Stats Cards -->
@@ -101,31 +101,36 @@
 <script src="../js/hotel-shell-config.js"></script>
 
 <script>
+    const esc = ReplateUI.esc;
     let hotelIds = new Set();
 
+    function setApprovalBadge(status) {
+        const badge = document.getElementById('approvalStatus');
+        const s = ReplateSchema.normalizeHotelStatus(status);
+        const label = { approved: 'Approved', pending: 'Pending approval', rejected: 'Not approved' }[s] || 'Status unknown';
+        badge.className = 'status-badge ' + ({ approved: 'badge-approved', pending: 'badge-pending', rejected: 'badge-rejected' }[s] || 'bg-secondary');
+        badge.textContent = label;
+    }
 
-    auth.onAuthStateChanged(async (user) => {
-        ReplateUI.renderSidebar('appShellSidebar', {
-            title: '<img src="../assets/replate-icon.svg" alt="REPLATE" class="brand-logo-sm">REPLATE',
-            activeKey: 'dashboard',
-            links: hotelShellLinks,
-        });
-        if (!user) {
-            window.location.href = 'login.html';
-            return;
-        }
+    (async () => {
+        const user = await ReplateUI.requireRole('hotel');
+        if (!user) return;
 
+        hotelIds = new Set([user.uid]);
         try {
             const hotelRecord = await ReplateSchema.findHotelByUserId(database, user.uid);
-            hotelIds = new Set([user.uid]);
             if (hotelRecord && hotelRecord.key) hotelIds.add(hotelRecord.key);
-            loadDashboard();
+            setApprovalBadge(hotelRecord && hotelRecord.value && hotelRecord.value.status);
         } catch (e) {
             console.error('Failed to resolve hotel identity:', e);
-            hotelIds = new Set([user.uid]);
-            loadDashboard();
+            const badge = document.getElementById('approvalStatus');
+            badge.className = 'status-badge bg-secondary';
+            badge.textContent = 'Status unavailable';
         }
-    });
+        document.getElementById('recentOrdersTable').innerHTML =
+            '<tr><td colspan="5">' + ReplateUI.skeleton('rows', 3) + '</td></tr>';
+        loadDashboard();
+    })();
 
     function loadDashboard() {
         ReplateSchema.hotelOrders(database, hotelIds).on((snapshot) => {
@@ -136,9 +141,6 @@
 
             snapshot.forEach((child) => {
                 const order = child.val() || {};
-                const orderHotelId = String(order.hotelId || '').trim();
-                if (!hotelIds.has(orderHotelId)) return;
-
                 total++;
                 const status = ReplateSchema.normalizeOrderStatus(order.orderStatus);
                 if (status === 'completed') {
@@ -149,51 +151,45 @@
                 recentOrders.push({ key: child.key, ...order });
             });
 
-            document.getElementById('statRevenue').innerText = 'LKR ' + revenue.toLocaleString('en-LK', { minimumFractionDigits: 2 });
-            document.getElementById('statPending').innerText = pending;
-            document.getElementById('statTotal').innerText = total;
+            document.getElementById('statRevenue').textContent = 'LKR ' + revenue.toLocaleString('en-LK', { minimumFractionDigits: 2 });
+            document.getElementById('statPending').textContent = pending;
+            document.getElementById('statTotal').textContent = total;
 
             recentOrders.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
             const tableBody = document.getElementById('recentOrdersTable');
-            tableBody.innerHTML = '';
 
             if (recentOrders.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">No orders yet</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="5">' +
+                    ReplateUI.emptyState('No orders yet', 'New reservations will show up here the moment customers place them.', 'fa-receipt') + '</td></tr>';
                 return;
             }
 
-            const rows = recentOrders.slice(0, 5).map(order => {
-                const items = ReplateSchema.extractItemNames(order);
+            tableBody.innerHTML = recentOrders.slice(0, 5).map((order) => {
                 const status = ReplateSchema.normalizeOrderStatus(order.orderStatus);
-                const bgClass = ReplateSchema.statusBgClass(status);
-                const label = ReplateSchema.statusLabel(status);
-                const amount = ReplateSchema.formatAmount(order.totalAmount || order.totalPrice);
-                const dispId = ReplateSchema.shortOrderId(order, order.key);
                 return `
                     <tr>
-                        <td data-label="Order ID"><code>#${dispId}</code></td>
-                        <td data-label="Customer">${order.customerName || '—'}</td>
-                        <td data-label="Items">${items}</td>
-                        <td data-label="Total">LKR ${amount}</td>
-                        <td data-label="Status"><span class="badge ${bgClass}">${label}</span></td>
+                        <td data-label="Order ID"><code>#${esc(ReplateSchema.shortOrderId(order, order.key))}</code></td>
+                        <td data-label="Customer">${esc(order.customerName || '—')}</td>
+                        <td data-label="Items">${esc(ReplateSchema.extractItemNames(order))}</td>
+                        <td data-label="Total" class="num">LKR ${esc(ReplateSchema.formatAmount(order.totalAmount || order.totalPrice))}</td>
+                        <td data-label="Status"><span class="badge ${esc(ReplateSchema.statusBadgeClass(status))}">${esc(ReplateSchema.statusLabel(status))}</span></td>
                     </tr>`;
-            });
-            tableBody.innerHTML = rows.join('');
+            }).join('');
+        }, (error) => {
+            console.error('Could not load orders', error);
+            document.getElementById('recentOrdersTable').innerHTML = '<tr><td colspan="5">' +
+                ReplateUI.errorState('Orders could not be loaded. Check your connection and try again.') + '</td></tr>';
         });
 
-        database.ref('foodItems').on('value', (snapshot) => {
+        ReplateSchema.hotelFoodItems(database, hotelIds).on((snapshot) => {
             let active = 0;
             snapshot.forEach((child) => {
                 const item = child.val() || {};
-                const itemHotelId = String(item.hotelId || item.hotelKey || item.hotelUserId || '').trim();
-                if (!hotelIds.has(itemHotelId)) return;
-
-                const avail = item.isAvailable === true ||
-                              String(item.status || '').toLowerCase() === 'available';
-                if (avail) active++;
+                const available = item.isAvailable === true || String(item.status || '').toLowerCase() === 'available';
+                if (available) active++;
             });
-            document.getElementById('statActive').innerText = active;
-        });
+            document.getElementById('statActive').textContent = active;
+        }, (error) => console.error('Could not load listings', error));
     }
 </script>
 

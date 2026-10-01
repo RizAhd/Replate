@@ -164,15 +164,16 @@ const ReplateSchema = (() => {
     }
 
     /**
-     * Orders that belong to a hotel. The database rules only let a hotel read orders by running a
-     * hotelId query for its own ids (never the whole orders list), so this runs one query per id and
-     * merges the results into an object that behaves like a snapshot (forEach / exists / numChildren).
-     *   hotelOrders(database, ids).on(cb[, errCb]) -> returns a function that stops listening
-     *   hotelOrders(database, ids).once()          -> Promise of the merged snapshot
+     * Rows under `path` whose `childKey` equals one of the given ids (one query per id, merged).
+     * The database rules only let a hotel read its own orders and listings by running these queries,
+     * never by downloading the whole list. The result behaves like a snapshot
+     * (forEach / exists / numChildren).
+     *   scopedList(database, 'orders', 'hotelId', ids).on(cb[, errCb]) -> function that stops listening
+     *   scopedList(database, 'orders', 'hotelId', ids).once()          -> Promise of the merged snapshot
      */
-    function hotelOrders(database, ids) {
+    function scopedList(database, path, childKey, ids) {
         const list = Array.from(new Set(Array.from(ids || []).map(String).filter(Boolean)));
-        const queries = list.map((id) => database.ref('orders').orderByChild('hotelId').equalTo(id));
+        const queries = list.map((id) => database.ref(path).orderByChild(childKey).equalTo(id));
 
         function merge(snaps) {
             const seen = new Set();
@@ -217,8 +218,20 @@ const ReplateSchema = (() => {
         };
     }
 
+    /** A hotel's own orders. */
+    function hotelOrders(database, ids) {
+        return scopedList(database, 'orders', 'hotelId', ids);
+    }
+
+    /** A hotel's own food listings. */
+    function hotelFoodItems(database, ids) {
+        return scopedList(database, 'foodItems', 'hotelId', ids);
+    }
+
     return {
+        scopedList,
         hotelOrders,
+        hotelFoodItems,
         normalizeOrderStatus,
         statusBadgeClass,
         statusLabel,
