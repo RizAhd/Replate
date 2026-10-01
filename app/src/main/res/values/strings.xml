@@ -202,6 +202,7 @@
     <string name="delete_account_failed">Failed to delete account. Please try again.</string>
     <string name="delete_account_reauth_failed">Re-authentication failed. Please try again.</string>
     <string name="delete_account_confirm_btn">Delete</string>
+    <string name="delete_account_recent_login">For your security, please log out, sign in again, then delete your account.</string>
 
     <!-- Chat -->
     <string name="chat_title">Chat</string>
@@ -224,6 +225,28 @@
     <string name="settings_hint_pickup_address">Pickup Address</string>
     <string name="settings_pick_from_map">Pick from map</string>
     <string name="settings_save_changes">Save changes</string>
+    <string name="settings_notify_about">Notify me about</string>
+    <string name="settings_notify_orders">Order updates</string>
+    <string name="settings_notify_deals">New deals nearby</string>
+    <string name="settings_notify_pickup">Pickup reminders</string>
+    <string name="settings_system_notifications">Open system notification settings</string>
+    <string name="settings_location_off_hint">Location is managed in your phone settings</string>
+    <string name="settings_help_about">Help and about</string>
+    <string name="settings_row_help">Help and FAQ</string>
+    <string name="settings_row_contact">Contact support</string>
+    <string name="settings_row_rate">Rate REPLATE</string>
+    <string name="settings_row_share">Share REPLATE with friends</string>
+    <string name="settings_row_licenses">Open-source libraries</string>
+    <string name="settings_account">Account</string>
+    <string name="settings_row_logout">Log out</string>
+    <string name="settings_row_delete_account">Delete my account</string>
+    <string name="settings_support_email">support@replate.app</string>
+    <string name="settings_contact_subject">REPLATE support (v%1$s)</string>
+    <string name="settings_share_text">I use REPLATE to rescue good food from nearby hotels at a discount. Give it a try!</string>
+    <string name="settings_share_title">Share REPLATE</string>
+    <string name="settings_no_app_available">No app available to do that</string>
+    <string name="settings_licenses_title">Built with</string>
+    <string name="settings_licenses_body">REPLATE is built with these open-source and third-party libraries. Each one is used under its own licence; see the project pages for the full terms.\n\n• AndroidX and Material Components (Google)\n• Firebase and Google Play Services (Google)\n• Glide (Bump Technologies)\n• Gson (Google)\n• ZXing (ZXing authors)\n• CircleImageView (Henning Dodenhof)\n• CircleIndicator (ongakuer)\n• PayHere Android SDK (PayHere)\n• Facebook Login SDK (Meta)</string>
     <string name="settings_preferences">Preferences</string>
     <string name="settings_push_notifications">Push Notifications</string>
     <string name="settings_location_services">Location Services</string>

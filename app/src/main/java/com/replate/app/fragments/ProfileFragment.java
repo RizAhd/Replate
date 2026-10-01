@@ -2,13 +2,11 @@ package com.replate.app.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -25,16 +23,14 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.replate.app.utils.AccountActions;
 import com.replate.app.utils.Money;
 import com.replate.app.FavoritesActivity;
-import com.replate.app.LoginActivity;
 import com.replate.app.MainActivity;
 import com.replate.app.NotificationsActivity;
 import com.replate.app.R;
 import com.replate.app.SettingsActivity;
 import com.replate.app.helpers.ReplateDatabaseHelper;
-import com.replate.app.utils.AccountDeletionManager;
-import com.replate.app.utils.LocalDataCleaner;
 import com.replate.app.utils.ToastUtils;
 
 import java.util.Locale;
@@ -286,106 +282,10 @@ public class ProfileFragment extends Fragment {
     }
 
     private void showLogoutDialog() {
-        new AlertDialog.Builder(requireContext())
-                .setTitle(R.string.profile_logout_2)
-                .setMessage(R.string.profile_are_you_sure_you_want)
-                .setPositiveButton(R.string.profile_logout_2, (dialog, which) -> {
-                    if (getActivity() instanceof MainActivity) {
-                        ((MainActivity) getActivity()).logoutToLogin();
-                    } else {
-                        try {
-                            mAuth.signOut();
-                            LocalDataCleaner.clearAll(requireContext());
-                            Intent intent = new Intent(requireContext(), LoginActivity.class);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                            startActivity(intent);
-                            requireActivity().finish();
-                        } catch (Exception e) {
-                            Log.e("Logout", "Logout fallback error", e);
-                            ToastUtils.showCustomToast(getContext(), R.string.profile_logout_failed);
-                        }
-                    }
-                })
-                .setNegativeButton(R.string.profile_cancel, null)
-                .show();
+        AccountActions.confirmLogout(requireActivity());
     }
 
     private void showDeleteAccountDialog() {
-        // Step 1: Warning confirmation dialog
-        new AlertDialog.Builder(requireContext())
-                .setTitle(getString(R.string.delete_account_confirm_title))
-                .setMessage(getString(R.string.delete_account_confirm_message))
-                .setPositiveButton(getString(R.string.delete_account_confirm_btn), (d, w) ->
-                        showPasswordConfirmDialog())
-                .setNegativeButton(android.R.string.cancel, null)
-                .show();
-    }
-
-    private void showPasswordConfirmDialog() {
-        // Step 2: Password entry dialog
-        EditText etPassword = new EditText(requireContext());
-        etPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        etPassword.setHint(getString(R.string.delete_account_password_hint));
-        int pad = (int) (16 * requireContext().getResources().getDisplayMetrics().density);
-        etPassword.setPadding(pad, pad, pad, pad);
-
-        new AlertDialog.Builder(requireContext())
-                .setTitle(getString(R.string.delete_account_password_title))
-                .setView(etPassword)
-                .setPositiveButton(getString(R.string.delete_account_confirm_btn), (d, w) -> {
-                    String password = etPassword.getText() == null ? "" : etPassword.getText().toString().trim();
-                    if (password.isEmpty()) {
-                        ToastUtils.showCustomToast(getContext(), getString(R.string.delete_account_password_hint));
-                        return;
-                    }
-                    performDeletion(password);
-                })
-                .setNegativeButton(android.R.string.cancel, null)
-                .show();
-    }
-
-    private void performDeletion(@NonNull String password) {
-        if (getContext() == null) return;
-
-        // Show non-cancelable progress dialog
-        AlertDialog progress = new AlertDialog.Builder(requireContext())
-                .setMessage(getString(R.string.delete_account_deleting))
-                .setCancelable(false)
-                .create();
-        progress.show();
-
-        AccountDeletionManager.deleteAccount(requireContext(), password,
-                new AccountDeletionManager.DeletionCallback() {
-                    @Override
-                    public void onSuccess() {
-                        if (progress.isShowing()) progress.dismiss();
-                        // Sign out and navigate to login
-                        try {
-                            mAuth.signOut();
-                        } catch (Exception ignored) {}
-                        ToastUtils.showCustomToast(getContext(), getString(R.string.delete_account_success));
-                        try {
-                            Intent intent = new Intent(requireContext(), LoginActivity.class);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                            startActivity(intent);
-                        } catch (Exception e) {
-                            Log.e("DeleteAccount", "Navigation error after deletion", e);
-                        }
-                    }
-
-                    @Override
-                    public void onWrongPassword() {
-                        if (progress.isShowing()) progress.dismiss();
-                        ToastUtils.showCustomToast(getContext(), getString(R.string.delete_account_wrong_password));
-                        showPasswordConfirmDialog(); // Let user retry
-                    }
-
-                    @Override
-                    public void onFailure(@NonNull String reason) {
-                        if (progress.isShowing()) progress.dismiss();
-                        ToastUtils.showCustomToast(getContext(), getString(R.string.delete_account_failed));
-                        Log.e("DeleteAccount", "Deletion failed: " + reason);
-                    }
-                });
+        AccountActions.confirmDelete(requireActivity());
     }
 }
