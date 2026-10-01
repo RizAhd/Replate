@@ -27,6 +27,8 @@
     <!-- Home -->
     <string name="home_explore_nearby">Delivering to</string>
     <string name="default_location">Fetching location…</string>
+    <string name="home_location_enable">Tap to enable location</string>
+    <string name="home_location_retry">Location unavailable · tap to retry</string>
     <string name="home_hero_title">Rescue fresh meals before they go to waste</string>
     <string name="home_hero_subtitle">Find nearby offers from trusted hotels and pick up in minutes.</string>
     <string name="home_search_hint">Search food, hotels, cuisines…</string>

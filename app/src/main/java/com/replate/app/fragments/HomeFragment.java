@@ -507,9 +507,7 @@ public class HomeFragment extends Fragment implements
                 == PackageManager.PERMISSION_GRANTED;
 
         if (!fineGranted && !coarseGranted) {
-            if (tvCurrentLocation != null) {
-                tvCurrentLocation.setText(getString(R.string.default_location));
-            }
+            showLocationNeedsAttention(true);
             return;
         }
 
@@ -535,9 +533,7 @@ public class HomeFragment extends Fragment implements
         boolean coarseGranted = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED;
         if (!fineGranted && !coarseGranted) {
-            if (tvCurrentLocation != null) {
-                tvCurrentLocation.setText(getString(R.string.default_location));
-            }
+            showLocationNeedsAttention(true);
             return;
         }
 
@@ -550,18 +546,35 @@ public class HomeFragment extends Fragment implements
                         currentLongitude = location.getLongitude();
                         updateCurrentLocationLabel(currentLatitude, currentLongitude);
                         applyDistanceSortAndRefresh();
-                    } else if (tvCurrentLocation != null) {
-                        tvCurrentLocation.setText(getString(R.string.default_location));
+                    } else {
+                        showLocationNeedsAttention(false);
                     }
                 })
                 .addOnFailureListener(e -> {
-                    if (!isAdded() || tvCurrentLocation == null) return;
-                    tvCurrentLocation.setText(getString(R.string.default_location));
+                    if (!isAdded()) return;
+                    showLocationNeedsAttention(false);
                 });
+    }
+
+    /** Replaces the endless "Fetching location..." with a tappable hint when there is no permission or no fix. */
+    private void showLocationNeedsAttention(boolean permissionMissing) {
+        if (!isAdded() || tvCurrentLocation == null) return;
+        tvCurrentLocation.setText(permissionMissing ? R.string.home_location_enable : R.string.home_location_retry);
+        tvCurrentLocation.setOnClickListener(v -> {
+            tvCurrentLocation.setText(R.string.default_location);
+            tvCurrentLocation.setOnClickListener(null);
+            if (permissionMissing) {
+                locationPermissionLauncher.launch(new String[]{
+                        Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION});
+            } else {
+                getUserLocation();
+            }
+        });
     }
 
     private void updateCurrentLocationLabel(double latitude, double longitude) {
         if (!isAdded() || tvCurrentLocation == null) return;
+        tvCurrentLocation.setOnClickListener(null);
         if (!Geocoder.isPresent()) {
             tvCurrentLocation.setText(String.format(Locale.getDefault(), "%.3f, %.3f", latitude, longitude));
             return;
