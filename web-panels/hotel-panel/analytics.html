@@ -94,13 +94,13 @@
                 <div class="col-lg-8">
                     <div class="card p-4 mb-4 chart-card">
                         <h5><i class="fas fa-chart-area"></i> Revenue (Last 7 Days)</h5>
-                        <canvas id="revenueChart"></canvas>
+                        <div class="chart-wrap"><canvas id="revenueChart" role="img" aria-label="revenueChart chart"></canvas></div>
                     </div>
                 </div>
                 <div class="col-lg-4">
                     <div class="card p-4 mb-4 chart-card">
                         <h5><i class="fas fa-chart-pie"></i> Order Status</h5>
-                        <canvas id="statusChart"></canvas>
+                        <div class="chart-wrap"><canvas id="statusChart" role="img" aria-label="statusChart chart"></canvas></div>
                     </div>
                 </div>
             </div>
@@ -110,13 +110,13 @@
                 <div class="col-lg-6">
                     <div class="card p-4 mb-4 chart-card">
                         <h5><i class="fas fa-chart-line"></i> Orders per Day (Last 14 Days)</h5>
-                        <canvas id="ordersLineChart"></canvas>
+                        <div class="chart-wrap"><canvas id="ordersLineChart" role="img" aria-label="ordersLineChart chart"></canvas></div>
                     </div>
                 </div>
                 <div class="col-lg-6">
                     <div class="card p-4 mb-4 chart-card">
                         <h5><i class="fas fa-tags"></i> Top Selling Items</h5>
-                        <canvas id="topItemsChart"></canvas>
+                        <div class="chart-wrap"><canvas id="topItemsChart" role="img" aria-label="topItemsChart chart"></canvas></div>
                     </div>
                 </div>
             </div>
@@ -169,13 +169,9 @@
     let ordersLineInstance = null;
     let topItemsInstance = null;
 
-    auth.onAuthStateChanged(async (user) => {
-        ReplateUI.renderSidebar('appShellSidebar', {
-            title: '<img src="../assets/replate-icon.svg" alt="REPLATE" class="brand-logo-sm">REPLATE',
-            activeKey: 'analytics',
-            links: hotelShellLinks,
-        });
-        if (!user) { window.location.href = 'login.html'; return; }
+    (async () => {
+        const user = await ReplateUI.requireRole('hotel');
+        if (!user) return;
 
         // Resolve all hotel IDs that belong to this user
         resolvedHotelIds.add(user.uid);
@@ -189,7 +185,7 @@
 
         loadAnalytics(user.uid);
         loadActiveListings(user.uid);
-    });
+    })();
 
     // ── Helpers ─────────────────────────────────────────────
     function getDayKey(ts) {
@@ -230,16 +226,14 @@
 
     // ── Active listings count ───────────────────────────────
     function loadActiveListings(uid) {
-        database.ref('foodItems').on('value', (snap) => {
+        ReplateSchema.hotelFoodItems(database, resolvedHotelIds).on((snap) => {
             let count = 0;
             snap.forEach(child => {
                 const item = child.val() || {};
-                if (isMyOrder({ hotelId: item.hotelId || item.hotelKey }) && item.isAvailable !== false && item.status !== 'sold_out') {
-                    count++;
-                }
+                if (item.isAvailable !== false && item.status !== 'sold_out') count++;
             });
             document.getElementById('statListings').textContent = count;
-        });
+        }, (error) => console.error('Could not load listings', error));
     }
 
     // ── Main analytics loader (real-time) ───────────────────
@@ -348,6 +342,7 @@
                     }]
                 },
                 options: {
+                    maintainAspectRatio: false,
                     responsive: true,
                     plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => 'LKR ' + ctx.parsed.y.toLocaleString() } } },
                     scales: { y: { beginAtZero: true, ticks: { callback: v => 'LKR ' + (v >= 1000 ? (v/1000).toFixed(0) + 'k' : v) }, grid: { color: 'rgba(0,0,0,0.04)' } }, x: { grid: { display: false } } }
@@ -369,6 +364,7 @@
                     }]
                 },
                 options: {
+                    maintainAspectRatio: false,
                     responsive: true,
                     cutout: '65%',
                     plugins: {
@@ -391,11 +387,11 @@
                     datasets: [{
                         label: 'Orders',
                         data: ordData,
-                        borderColor: '#2563eb',
-                        backgroundColor: 'rgba(37, 99, 235, 0.08)',
+                        borderColor: '#f97316',
+                        backgroundColor: 'rgba(249, 115, 22, 0.10)',
                         fill: true,
                         tension: 0.4,
-                        pointBackgroundColor: '#2563eb',
+                        pointBackgroundColor: '#f97316',
                         pointBorderColor: '#fff',
                         pointBorderWidth: 2,
                         pointRadius: 4,
@@ -403,6 +399,7 @@
                     }]
                 },
                 options: {
+                    maintainAspectRatio: false,
                     responsive: true,
                     plugins: { legend: { display: false } },
                     scales: { y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,0.04)' } }, x: { grid: { display: false } } }
@@ -412,7 +409,7 @@
             // ── Top selling items horizontal bar ──
             const sortedItems = Object.entries(itemSales).sort((a, b) => b[1] - a[1]).slice(0, 6);
             if (topItemsInstance) topItemsInstance.destroy();
-            const itemColors = ['#1a6b3c', '#059669', '#2563eb', '#d97706', '#e8521a', '#7c3aed'];
+            const itemColors = ['#1a6b3c', '#059669', '#f97316', '#d97706', '#fb923c', '#0f4d2b'];
             if (sortedItems.length > 0) {
                 topItemsInstance = new Chart(document.getElementById('topItemsChart'), {
                     type: 'bar',
@@ -428,6 +425,7 @@
                         }]
                     },
                     options: {
+                    maintainAspectRatio: false,
                         indexAxis: 'y',
                         responsive: true,
                         plugins: { legend: { display: false } },
@@ -443,7 +441,7 @@
             const tbody = document.getElementById('recentOrdersBody');
             const top10 = recentOrders.slice(0, 10);
             if (top10.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4" style="color:var(--text-tertiary);">No orders yet.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5">' + ReplateUI.emptyState('No orders yet', 'Your recent orders will be listed here.', 'fa-receipt') + '</td></tr>';
             } else {
                 tbody.innerHTML = top10.map(({ key, order, ts }) => {
                     const status = ReplateSchema.normalizeOrderStatus(order.orderStatus);
@@ -452,11 +450,11 @@
                     const amount = ReplateSchema.formatAmount(order.totalAmount || order.totalPrice);
                     const displayId = ReplateSchema.shortOrderId(order, key);
                     return `<tr>
-                        <td data-label="Order ID"><code>#${displayId}</code></td>
-                        <td data-label="Customer">${order.customerName || order.userName || '—'}</td>
-                        <td data-label="Amount">LKR ${amount}</td>
-                        <td data-label="Status"><span class="badge ${bgClass}">${label}</span></td>
-                        <td data-label="Time">${timeAgo(ts)}</td>
+                        <td data-label="Order ID"><code>#${ReplateUI.esc(displayId)}</code></td>
+                        <td data-label="Customer">${ReplateUI.esc(order.customerName || order.userName || '—')}</td>
+                        <td data-label="Amount" class="num">LKR ${ReplateUI.esc(amount)}</td>
+                        <td data-label="Status"><span class="badge ${ReplateUI.esc(ReplateSchema.statusBadgeClass(status))}">${ReplateUI.esc(label)}</span></td>
+                        <td data-label="Time">${ReplateUI.esc(timeAgo(ts))}</td>
                     </tr>`;
                 }).join('');
             }

@@ -100,13 +100,13 @@
                 <div class="col-lg-8">
                     <div class="card p-4 mb-4 chart-card">
                         <h5><i class="fas fa-chart-area"></i> Platform Growth (Orders per Week)</h5>
-                        <canvas id="growthChart"></canvas>
+                        <div class="chart-wrap"><canvas id="growthChart" role="img" aria-label="growthChart chart"></canvas></div>
                     </div>
                 </div>
                 <div class="col-lg-4">
                     <div class="card p-4 mb-4 chart-card">
                         <h5><i class="fas fa-chart-pie"></i> Order Status</h5>
-                        <canvas id="statusChart"></canvas>
+                        <div class="chart-wrap"><canvas id="statusChart" role="img" aria-label="statusChart chart"></canvas></div>
                     </div>
                 </div>
             </div>
@@ -116,13 +116,13 @@
                 <div class="col-lg-6">
                     <div class="card p-4 mb-4 chart-card">
                         <h5><i class="fas fa-chart-bar"></i> Revenue Trend (Weekly)</h5>
-                        <canvas id="revenueChart"></canvas>
+                        <div class="chart-wrap"><canvas id="revenueChart" role="img" aria-label="revenueChart chart"></canvas></div>
                     </div>
                 </div>
                 <div class="col-lg-6">
                     <div class="card p-4 mb-4 chart-card">
                         <h5><i class="fas fa-tags"></i> Orders by Category</h5>
-                        <canvas id="categoryChart"></canvas>
+                        <div class="chart-wrap"><canvas id="categoryChart" role="img" aria-label="categoryChart chart"></canvas></div>
                     </div>
                 </div>
             </div>
@@ -140,7 +140,7 @@
                 <div class="col-lg-4">
                     <div class="card p-4 mb-4 chart-card">
                         <h5><i class="fas fa-credit-card"></i> Payment Methods</h5>
-                        <canvas id="paymentChart"></canvas>
+                        <div class="chart-wrap"><canvas id="paymentChart" role="img" aria-label="paymentChart chart"></canvas></div>
                     </div>
                 </div>
                 <div class="col-lg-3">
@@ -360,6 +360,7 @@
                     }]
                 },
                 options: {
+                    maintainAspectRatio: false,
                     responsive: true,
                     cutout: '65%',
                     plugins: {
@@ -377,12 +378,13 @@
                     labels: ['Cash', 'Online'],
                     datasets: [{
                         data: hasPayData ? [cash, online] : [1],
-                        backgroundColor: hasPayData ? ['#1a6b3c', '#2563eb'] : ['#e5e7eb'],
+                        backgroundColor: hasPayData ? ['#1a6b3c', '#f97316'] : ['#e5e7eb'],
                         borderWidth: 0,
                         hoverOffset: 6
                     }]
                 },
                 options: {
+                    maintainAspectRatio: false,
                     responsive: true,
                     cutout: '60%',
                     plugins: {
@@ -412,6 +414,7 @@
                     }]
                 },
                 options: {
+                    maintainAspectRatio: false,
                     responsive: true,
                     plugins: { legend: { display: false } },
                     scales: { y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,0.04)' } }, x: { grid: { display: false } } }
@@ -434,6 +437,7 @@
                     }]
                 },
                 options: {
+                    maintainAspectRatio: false,
                     responsive: true,
                     plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => 'LKR ' + ctx.parsed.y.toLocaleString() } } },
                     scales: { y: { beginAtZero: true, ticks: { callback: v => 'LKR ' + (v >= 1000 ? (v/1000).toFixed(0) + 'k' : v) }, grid: { color: 'rgba(0,0,0,0.04)' } }, x: { grid: { display: false } } }
@@ -442,7 +446,7 @@
 
             // ── Category bar chart ──
             const sortedCats = Object.entries(categoryOrders).sort((a, b) => b[1] - a[1]).slice(0, 8);
-            const catColors = ['#1a6b3c', '#059669', '#2563eb', '#d97706', '#e8521a', '#7c3aed', '#dc2626', '#0891b2'];
+            const catColors = ['#1a6b3c', '#059669', '#f97316', '#d97706', '#fb923c', '#0f4d2b', '#dc2626', '#6ee7b7'];
             if (sortedCats.length > 0) {
                 categoryChartInstance = new Chart(document.getElementById('categoryChart'), {
                     type: 'bar',
@@ -458,6 +462,7 @@
                         }]
                     },
                     options: {
+                    maintainAspectRatio: false,
                         responsive: true,
                         plugins: { legend: { display: false } },
                         scales: { y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,0.04)' } }, x: { grid: { display: false } } }
@@ -468,7 +473,8 @@
                 categoryChartInstance = new Chart(ctx, {
                     type: 'bar',
                     data: { labels: ['No data'], datasets: [{ data: [0], backgroundColor: '#e5e7eb' }] },
-                    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+                    options: {
+                    maintainAspectRatio: false, responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
                 });
             }
 
