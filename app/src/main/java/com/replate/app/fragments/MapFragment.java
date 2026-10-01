@@ -986,6 +986,30 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         currentRoutePolyline = null;
         liveLocationCallback = null;
         isLocationUpdatesRunning = false;
+
+        // MainActivity keeps this fragment instance alive between tab visits, so anything tied
+        // to the destroyed view/map must be reset or it points at objects that no longer exist.
+        hasCenteredOnUser = false;
+        markerPlaceMap.clear();
+        markerByHotelId.clear();
+        currentSelectedMarker = null;
+        searchMarker = null;
+        selectedPlace = null;
+        selectedDestinationLatLng = null;
+        lastRouteInfoOrigin = null;
+
+        loadingOverlay = null;
+        bottomSheet = null;
+        ivRestaurantImage = null;
+        ivMyLocation = null;
+        tvRestaurantName = null;
+        tvRestaurantAddress = null;
+        tvDealsCount = null;
+        tvRouteInfo = null;
+        tvAvailableItems = null;
+        btnViewDeals = null;
+        searchView = null;
+        topPanel = null;
         super.onDestroyView();
     }
 }
