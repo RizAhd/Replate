@@ -36,6 +36,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.common.BitMatrix;
+import com.replate.app.utils.Money;
 import com.replate.app.models.Order;
 import com.replate.app.utils.SafeSnapshot;
 import com.replate.app.utils.TelephonyUtils;
@@ -240,7 +241,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
             tvPickupTime.setText("Pickup: " + (order.getPickupTime() != null ? order.getPickupTime() : "N/A"));
         }
 
-        tvTotalAmount.setText(String.format(Locale.getDefault(), "LKR %.2f", order.getTotalAmountValue()));
+        tvTotalAmount.setText(Money.format(order.getTotalAmountValue()));
         tvPaymentMethod.setText(order.getPaymentMethod() != null ? order.getPaymentMethod() : "N/A");
         tvPaymentStatus.setText(order.getPaymentStatus() != null ? order.getPaymentStatus() : "N/A");
 

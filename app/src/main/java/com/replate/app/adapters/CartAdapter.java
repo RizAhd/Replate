@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.replate.app.utils.Money;
 import com.replate.app.R;
 import com.replate.app.models.CartItem;
 
@@ -75,9 +76,9 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
         void bind(CartItem item) {
             tvFoodName.setText(item.getFoodName());
             tvHotelName.setText(item.getHotelName());
-            tvPrice.setText(String.format("LKR %.2f", item.getPrice()));
+            tvPrice.setText(Money.format(item.getPrice()));
             tvQuantity.setText(String.valueOf(item.getQuantity()));
-            tvSubtotal.setText(String.format("LKR %.2f", item.getSubtotal()));
+            tvSubtotal.setText(Money.format(item.getSubtotal()));
 
             if (item.getImageUrl() != null && !item.getImageUrl().isEmpty()) {
                 Glide.with(context).load(item.getImageUrl())

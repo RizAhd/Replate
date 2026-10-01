@@ -13,6 +13,7 @@ import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.replate.app.utils.Money;
 import com.replate.app.R;
 import com.replate.app.models.Order;
 
@@ -105,7 +106,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
             tvItemsCount.setText(itemCount + " item" + (itemCount != 1 ? "s" : ""));
 
             // Total amount
-            tvTotalAmount.setText(String.format(Locale.getDefault(), "LKR %.2f", order.getTotalAmountValue()));
+            tvTotalAmount.setText(Money.format(order.getTotalAmountValue()));
 
             // Order status — include order type prefix for delivery orders
             String statusText = order.getStatusDisplay();

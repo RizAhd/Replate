@@ -38,6 +38,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.common.BitMatrix;
+import com.replate.app.utils.Money;
 import com.replate.app.models.Order;
 import com.replate.app.utils.SafeSnapshot;
 import com.replate.app.utils.ToastUtils;
@@ -172,7 +173,7 @@ public class OrderSuccessActivity extends AppCompatActivity {
         String id = order.getOrderId();
         tvOrderId.setText("#" + (id != null ? id.substring(Math.max(0, id.length() - 8)) : "N/A"));
         tvHotelName.setText(order.getHotelName() != null ? order.getHotelName() : "Restaurant");
-        tvTotal.setText(String.format(Locale.getDefault(), "LKR %.2f", order.getTotalAmountValue()));
+        tvTotal.setText(Money.format(order.getTotalAmountValue()));
 
         // If already completed (user returns to screen), show review directly
         if (order.isCompleted()) {

@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.replate.app.utils.Money;
 import com.replate.app.adapters.CartAdapter;
 import com.replate.app.helpers.CartDatabaseHelper;
 import com.replate.app.models.CartItem;
@@ -158,13 +159,13 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
                 }
 
                 if (tvTotalAmount != null) {
-                    tvTotalAmount.setText(String.format(Locale.getDefault(), "LKR %.2f", total));
+                    tvTotalAmount.setText(Money.format(total));
                 }
                 if (tvItemCount != null) {
                     tvItemCount.setText(itemCount == 1 ? "1 item" : itemCount + " items");
                 }
                 if (tvSavingsValue != null) {
-                    tvSavingsValue.setText(String.format(Locale.getDefault(), "LKR %.2f", Math.max(savings, 0)));
+                    tvSavingsValue.setText(Money.format(Math.max(savings, 0)));
                 }
                 if (tvCartSummary != null) {
                     tvCartSummary.setText(itemCount == 1

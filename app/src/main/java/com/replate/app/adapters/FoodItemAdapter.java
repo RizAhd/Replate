@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.google.firebase.storage.FirebaseStorage;
+import com.replate.app.utils.Money;
 import com.replate.app.R;
 import com.replate.app.models.FoodItem;
 import com.replate.app.utils.GlideSafe;
@@ -180,11 +181,11 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
             if (tvHotelName != null) tvHotelName.setText(item.getHotelName());
 
             if (tvOriginalPrice != null) {
-                tvOriginalPrice.setText(String.format(Locale.getDefault(), "LKR %.2f", item.getOriginalPriceValue()));
+                tvOriginalPrice.setText(Money.format(item.getOriginalPriceValue()));
                 tvOriginalPrice.setPaintFlags(tvOriginalPrice.getPaintFlags() | android.graphics.Paint.STRIKE_THRU_TEXT_FLAG);
             }
             if (tvDiscountedPrice != null) {
-                tvDiscountedPrice.setText(String.format(Locale.getDefault(), "LKR %.2f", item.getDiscountedPriceValue()));
+                tvDiscountedPrice.setText(Money.format(item.getDiscountedPriceValue()));
             }
 
             if (tvDiscount != null) {

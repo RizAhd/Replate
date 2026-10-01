@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.google.firebase.storage.FirebaseStorage;
+import com.replate.app.utils.Money;
 import com.replate.app.R;
 import com.replate.app.models.FoodItem;
 import com.replate.app.utils.GlideSafe;
@@ -72,7 +73,7 @@ public class RelatedFoodAdapter extends RecyclerView.Adapter<RelatedFoodAdapter.
 
         void bind(FoodItem item) {
             tvName.setText(item.getFoodName());
-            tvPrice.setText(String.format(Locale.getDefault(), "LKR %.2f", item.getDiscountedPriceValue()));
+            tvPrice.setText(Money.format(item.getDiscountedPriceValue()));
             loadImage(item.getImageUrl());
             itemView.setOnClickListener(v -> {
                 if (listener != null) listener.onRelatedFoodClick(item);

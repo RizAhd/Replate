@@ -25,6 +25,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.replate.app.utils.Money;
 import com.replate.app.FavoritesActivity;
 import com.replate.app.LoginActivity;
 import com.replate.app.MainActivity;
@@ -203,7 +204,7 @@ public class ProfileFragment extends Fragment {
                         }
 
                         tvOrdersCount.setText(String.valueOf(orderCount));
-                        tvSavings.setText(String.format(Locale.getDefault(), "LKR %.0f", totalSavings));
+                        tvSavings.setText(Money.formatWhole(totalSavings));
                     }
 
                     @Override

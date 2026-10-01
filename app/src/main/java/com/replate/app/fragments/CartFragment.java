@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.replate.app.utils.Money;
 import com.replate.app.CartActivity;
 import com.replate.app.R;
 import com.replate.app.helpers.CartDatabaseHelper;
@@ -83,7 +84,7 @@ public class CartFragment extends Fragment {
                 }
 
                 if (tvCartTotal != null) {
-                    tvCartTotal.setText(String.format(Locale.getDefault(), "LKR %.2f", total));
+                    tvCartTotal.setText(Money.format(total));
                 }
 
                 if (btnOpenCart != null) {

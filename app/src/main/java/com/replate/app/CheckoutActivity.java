@@ -30,6 +30,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.replate.app.utils.Money;
 import com.replate.app.helpers.CartDatabaseHelper;
 import com.replate.app.models.CartItem;
 import com.replate.app.utils.CheckoutValidator;
@@ -226,7 +227,7 @@ public class CheckoutActivity extends AppCompatActivity {
             title.setTypeface(title.getTypeface(), android.graphics.Typeface.BOLD);
 
             TextView subtitle = new TextView(this);
-            subtitle.setText(item.getHotelName() + " • LKR " + String.format(Locale.getDefault(), "%.2f", item.getSubtotal()));
+            subtitle.setText(item.getHotelName() + " • " + Money.format(item.getSubtotal()));
             subtitle.setTextSize(13f);
             subtitle.setTextColor(getColor(R.color.text_secondary));
             subtitle.setPadding(0, 4, 0, 0);
@@ -247,12 +248,12 @@ public class CheckoutActivity extends AppCompatActivity {
         deliveryFee = isDelivery ? DELIVERY_FEE_LKR : 0;
         totalAmount = subtotalAmount + deliveryFee;
 
-        tvSubtotal.setText(String.format(Locale.getDefault(), "LKR %.2f", subtotalAmount));
-        tvSavings.setText(String.format(Locale.getDefault(), "-LKR %.2f", totalSavings));
+        tvSubtotal.setText(Money.format(subtotalAmount));
+        tvSavings.setText("-" + Money.format(totalSavings));
         if (tvDeliveryFee != null) {
-            tvDeliveryFee.setText(String.format(Locale.getDefault(), "LKR %.2f", deliveryFee));
+            tvDeliveryFee.setText(Money.format(deliveryFee));
         }
-        tvTotal.setText(String.format(Locale.getDefault(), "LKR %.2f", totalAmount));
+        tvTotal.setText(Money.format(totalAmount));
     }
 
     private void updatePlaceOrderButton() {

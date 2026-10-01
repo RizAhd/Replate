@@ -31,6 +31,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.replate.app.utils.Money;
 import com.replate.app.adapters.RelatedFoodAdapter;
 import com.replate.app.adapters.ReviewAdapter;
 import com.replate.app.helpers.CartDatabaseHelper;
@@ -178,9 +179,9 @@ public class FoodDetailActivity extends AppCompatActivity {
                 ? foodItem.getDescription()
                 : "Fresh rescue meal from a nearby hotel.");
 
-        tvOriginalPrice.setText(String.format(Locale.getDefault(), "LKR %.2f", foodItem.getOriginalPriceValue()));
+        tvOriginalPrice.setText(Money.format(foodItem.getOriginalPriceValue()));
         tvOriginalPrice.setPaintFlags(tvOriginalPrice.getPaintFlags() | android.graphics.Paint.STRIKE_THRU_TEXT_FLAG);
-        tvDiscountedPrice.setText(String.format(Locale.getDefault(), "LKR %.2f", foodItem.getDiscountedPriceValue()));
+        tvDiscountedPrice.setText(Money.format(foodItem.getDiscountedPriceValue()));
         tvDiscount.setText(String.format(Locale.getDefault(), "-%d%%", foodItem.getDiscountPercentValue()));
 
         tvPickupTime.setText(foodItem.getPickupTimeFormatted());
@@ -258,7 +259,7 @@ public class FoodDetailActivity extends AppCompatActivity {
     private void updateQuantityDisplay() {
         tvQuantity.setText(String.valueOf(quantity));
         double total = foodItem.getDiscountedPriceValue() * quantity;
-        btnAddToCart.setText(String.format(Locale.getDefault(), "Add to Cart - LKR %.2f", total));
+        btnAddToCart.setText(getString(R.string.food_detail_add_to_cart_total, Money.format(total)));
     }
 
     private void addToCart() {
