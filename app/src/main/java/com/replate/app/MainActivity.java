@@ -2,14 +2,12 @@ package com.replate.app;
 
 import android.Manifest;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.provider.Settings;
 import android.os.Bundle;
@@ -50,11 +48,12 @@ import com.replate.app.fragments.HomeFragment;
 import com.replate.app.fragments.MapFragment;
 import com.replate.app.fragments.OrdersFragment;
 import com.replate.app.fragments.ProfileFragment;
-import com.replate.app.receivers.NetworkChangeReceiver;
 import com.replate.app.services.OrderSyncWorker;
 import com.replate.app.utils.FcmTokenManager;
 import com.replate.app.utils.LocalDataCleaner;
+import com.replate.app.utils.NetworkMonitor;
 import com.replate.app.utils.NotificationPermissionHelper;
+import com.replate.app.utils.ToastUtils;
 import com.replate.app.utils.UserRoleHelper;
 
 import java.util.concurrent.TimeUnit;
@@ -75,7 +74,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private OrdersFragment ordersFragment;
     private ProfileFragment profileFragment;
 
-    private NetworkChangeReceiver networkReceiver;
+    private NetworkMonitor networkMonitor;
     private View mainContent;
 
     // Accelerometer shake detection
@@ -226,7 +225,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         // Defer non-critical operations to after first frame for faster startup
         mainContent.post(() -> {
-            registerNetworkReceiver();
+            startNetworkMonitor();
             FirebaseMessaging.getInstance().subscribeToTopic("all_users");
             scheduleBackgroundSync();
             checkNotificationPermissions();
@@ -334,10 +333,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
-    private void registerNetworkReceiver() {
-        networkReceiver = new NetworkChangeReceiver();
-        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
-        registerReceiver(networkReceiver, filter);
+    private void startNetworkMonitor() {
+        networkMonitor = new NetworkMonitor(this);
+        networkMonitor.start(online -> {
+            if (isFinishing() || isDestroyed()) {
+                return;
+            }
+            ToastUtils.showCustomToast(this, online
+                    ? "Back online"
+                    : "No internet connection. Some features may not work.");
+        });
     }
 
     private void scheduleBackgroundSync() {
@@ -413,12 +418,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (networkReceiver != null) {
-            try {
-                unregisterReceiver(networkReceiver);
-            } catch (IllegalArgumentException ignored) {
-                // Receiver was already unregistered or never registered
-            }
+        if (networkMonitor != null) {
+            networkMonitor.stop();
+            networkMonitor = null;
         }
     }
 
