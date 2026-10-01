@@ -19,6 +19,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
+import androidx.core.app.TaskStackBuilder;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 
@@ -28,6 +29,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 import com.replate.app.BuildConfig;
+import com.replate.app.MainActivity;
 import com.replate.app.R;
 import com.replate.app.helpers.ReplateDatabaseHelper;
 import com.replate.app.models.AppNotification;
@@ -210,12 +212,25 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         Intent intent = buildIntentForNotification(data);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
 
-        PendingIntent pendingIntent = PendingIntent.getActivity(
-                this,
-                (int) System.currentTimeMillis(),
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-        );
+        int requestCode = (int) System.currentTimeMillis();
+        int pendingFlags = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE;
+        PendingIntent pendingIntent = null;
+        // Screens opened from a notification (order, notifications list) get Home underneath them,
+        // so Back lands on the app instead of closing it.
+        if (intent.getComponent() != null && intent.getAction() == null
+                && !MainActivity.class.getName().equals(intent.getComponent().getClassName())) {
+            try {
+                pendingIntent = TaskStackBuilder.create(this)
+                        .addNextIntentWithParentStack(intent)
+                        .getPendingIntent(requestCode, pendingFlags);
+            } catch (Exception e) {
+                // Target has no declared parent screen; fall back to opening it directly
+                Log.w(TAG, "Could not build a back stack for the notification", e);
+            }
+        }
+        if (pendingIntent == null) {
+            pendingIntent = PendingIntent.getActivity(this, requestCode, intent, pendingFlags);
+        }
 
         Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         // 192px brand icon; the old 500px logo cost about 1 MB of memory per notification

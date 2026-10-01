@@ -74,17 +74,17 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".MainActivity" android:exported="false" />
+        <activity android:name=".MainActivity" android:exported="false" android:launchMode="singleTop" />
         <activity android:name=".OnboardingActivity" android:exported="false" />
         <activity android:name=".LoginActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
         <activity android:name=".FoodDetailActivity" android:exported="false" />
         <activity android:name=".FavoritesActivity" android:exported="false" />
         <activity android:name=".CartActivity" android:exported="false" />
         <activity android:name=".CheckoutActivity" android:exported="false" />
-        <activity android:name=".NotificationsActivity" android:exported="false" />
+        <activity android:name=".NotificationsActivity" android:exported="false" android:parentActivityName=".MainActivity" />
         <activity android:name=".SettingsActivity" android:exported="false" />
         <activity android:name=".SearchActivity" android:exported="false" />
-        <activity android:name=".OrderDetailActivity" android:exported="false" />
+        <activity android:name=".OrderDetailActivity" android:exported="false" android:parentActivityName=".MainActivity" />
         <activity android:name=".OrderSuccessActivity" android:exported="false" />
         <activity android:name=".ChatActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
         <activity
