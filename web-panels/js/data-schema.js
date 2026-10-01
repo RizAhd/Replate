@@ -163,7 +163,62 @@ const ReplateSchema = (() => {
         };
     }
 
+    /**
+     * Orders that belong to a hotel. The database rules only let a hotel read orders by running a
+     * hotelId query for its own ids (never the whole orders list), so this runs one query per id and
+     * merges the results into an object that behaves like a snapshot (forEach / exists / numChildren).
+     *   hotelOrders(database, ids).on(cb[, errCb]) -> returns a function that stops listening
+     *   hotelOrders(database, ids).once()          -> Promise of the merged snapshot
+     */
+    function hotelOrders(database, ids) {
+        const list = Array.from(new Set(Array.from(ids || []).map(String).filter(Boolean)));
+        const queries = list.map((id) => database.ref('orders').orderByChild('hotelId').equalTo(id));
+
+        function merge(snaps) {
+            const seen = new Set();
+            const items = [];
+            snaps.forEach((snap) => {
+                if (!snap) return;
+                snap.forEach((child) => {
+                    if (!seen.has(child.key)) {
+                        seen.add(child.key);
+                        items.push(child);
+                    }
+                });
+            });
+            return {
+                forEach(fn) {
+                    for (const child of items) {
+                        if (fn(child) === true) return true;
+                    }
+                    return false;
+                },
+                exists() { return items.length > 0; },
+                numChildren() { return items.length; }
+            };
+        }
+
+        return {
+            once() {
+                return Promise.all(queries.map((q) => q.once('value'))).then(merge);
+            },
+            on(callback, errorCallback) {
+                if (queries.length === 0) {
+                    callback(merge([]));
+                    return () => {};
+                }
+                const latest = new Array(queries.length).fill(null);
+                const handlers = queries.map((q, i) => q.on('value', (snap) => {
+                    latest[i] = snap;
+                    if (latest.every(Boolean)) callback(merge(latest));
+                }, errorCallback));
+                return () => queries.forEach((q, i) => q.off('value', handlers[i]));
+            }
+        };
+    }
+
     return {
+        hotelOrders,
         normalizeOrderStatus,
         statusBadgeClass,
         statusLabel,

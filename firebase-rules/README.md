@@ -37,7 +37,7 @@ The rules assume how the app and web panels use the data **today**. Do these fir
   "my orders" query is the only way to list orders); cancel a pending order; review a completed one;
   read/write their own profile, notifications and chats.
 - **Hotels** (approved by an admin) manage their own listings, update the status of their own orders,
-  read orders (the panel filters them in the browser), and chat with customers.
+  read **only their own** orders (a `hotelId` query, never the whole list), and chat with customers.
 - **Admins** (`users/<uid>/role == "admin"`) approve hotels and manage categories, banners, users,
   notifications and logs.
 - **Cloud Functions** use the admin SDK and bypass all of these rules.
@@ -49,9 +49,6 @@ The rules assume how the app and web panels use the data **today**. Do these fir
 
 - **Payment is still decided by the app.** A customer can write `paymentStatus: "paid"` on their own
   order. Fixing this needs a PayHere `notify_url` handled by a Cloud Function; the rules cannot do it.
-- **Approved hotels can read every order**, because the hotel panel loads the whole `orders` node and
-  filters it in the browser. To tighten this, change the panel to `orderByChild('hotelId').equalTo(...)`
-  and replace the node-level read for hotels with a query rule.
 - **Customers can read the whole `hotels` node** (the map needs it), which includes each hotel's phone,
   email and FCM token. Moving private fields to a separate node would fix this.
 - `avgRating` / `reviewCount` on food items are still written by the customer app (validated to a sane

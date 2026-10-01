@@ -115,8 +115,12 @@ async function check(name, promise) {
   await check('customer cannot rewrite a completed order', assertFails(set(ref(cust1, 'orders/oDone'), { ...order, orderStatus: 'pending_pickup' })));
   await check('customer reviews a completed order', assertSucceeds(update(ref(cust1, 'orders/oDone'), { reviewRating: 5, reviewComment: 'great', reviewAt: 9, hasReview: true })));
   await check('customer anonymizes own order on account deletion', assertSucceeds(update(ref(cust1, 'orders/oDone'), { userId: '[deleted]', customerName: '[deleted]', accountDeleted: true })));
-  await check('hotel reads all orders (panel scan)', assertSucceeds(get(ref(owner1, 'orders'))));
-  await check('pending hotel cannot read all orders', assertFails(get(ref(env.authenticatedContext('stillPending').database(), 'orders'))));
+  await check('hotel cannot list all orders', assertFails(get(ref(owner1, 'orders'))));
+  await check('hotel queries orders by its hotel key', assertSucceeds(get(query(ref(owner1, 'orders'), orderByChild('hotelId'), equalTo('hotelA')))));
+  await check('hotel queries orders by its owner uid (legacy)', assertSucceeds(get(query(ref(owner1, 'orders'), orderByChild('hotelId'), equalTo('hotelOwner1')))));
+  await check('hotel cannot query another hotel orders', assertFails(get(query(ref(owner1, 'orders'), orderByChild('hotelId'), equalTo('hotelB')))));
+  await check('hotel cannot query orders by customer', assertFails(get(query(ref(owner1, 'orders'), orderByChild('userId'), equalTo('cust1')))));
+  await check('pending hotel cannot query orders', assertFails(get(query(ref(env.authenticatedContext('stillPending').database(), 'orders'), orderByChild('hotelId'), equalTo('hotelQ')))));
   await check('hotel reads one of its orders', assertSucceeds(get(ref(owner1, 'orders/o1'))));
   await check('hotel A updates status of its own order', assertSucceeds(update(ref(owner1, 'orders/o1'), { orderStatus: 'completed', completedAt: 7, updatedAt: 7 })));
   await check('hotel A cannot update hotel B order', assertFails(update(ref(owner1, 'orders/o2'), { orderStatus: 'completed' })));

@@ -187,7 +187,7 @@
         const tableBody = document.getElementById('ordersTable');
         tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Loading orders...</td></tr>';
 
-        database.ref('orders').on('value', (snapshot) => {
+        ReplateSchema.hotelOrders(database, hotelIds).on((snapshot) => {
             tableBody.innerHTML = '';
 
             const rows = [];
@@ -297,7 +297,7 @@
         }
         const otp = raw.padStart(6, '0');
 
-        database.ref('orders').once('value').then(snapshot => {
+        ReplateSchema.hotelOrders(database, hotelIds).once().then(snapshot => {
             let foundKey = null;
             let foundOrder = null;
 
@@ -338,7 +338,7 @@
                 }
             }
 
-            database.ref('orders').once('value').then(snap => {
+            ReplateSchema.hotelOrders(database, hotelIds).once().then(snap => {
                 let foundKey = null;
                 let foundOrder = null;
 

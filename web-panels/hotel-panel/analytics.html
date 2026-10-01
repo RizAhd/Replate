@@ -238,7 +238,7 @@
 
     // ── Main analytics loader (real-time) ───────────────────
     function loadAnalytics(uid) {
-        database.ref('orders').on('value', (snap) => {
+        ReplateSchema.hotelOrders(database, resolvedHotelIds).on((snap) => {
             const now = Date.now();
             const DAY = 86400000;
             const sevenDaysAgo = now - 7 * DAY;

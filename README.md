@@ -107,6 +107,6 @@ to grant others permission to use or contribute to the code.
 ## Roadmap (known gaps)
 
 - Server-side payment verification and server-generated pickup codes.
-- Translations (Sinhala, Tamil): move the remaining hard-coded screen text into `strings.xml`.
+- Translations (Sinhala, Tamil): the screen text is now in `strings.xml`; add `values-si` and `values-ta` and have a native speaker review them.
 - Dark theme (the app is intentionally light-only for now).
-- Hotel panel: query orders by hotel instead of loading all of them, then tighten the order read rule.
+- Customers can still read each hotel's phone, email and push token from the `hotels` node (the map needs the rest); split the private fields out.

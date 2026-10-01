@@ -100,9 +100,12 @@ const rules = {
 
     // --------------------------------------------------------------- orders
     orders: {
-      // Admins and approved hotels read the whole node (the hotel panel filters client-side).
-      // Customers may only run the "my orders" query: orderByChild('userId').equalTo(<my uid>).
-      '.read': `auth != null && (${ADMIN} || ${APPROVED_HOTEL} || (query.orderByChild === 'userId' && query.equalTo === auth.uid))`,
+      // Only admins can read the whole node. Everyone else must run a query for their own orders:
+      //   customers: orderByChild('userId').equalTo(<my uid>)
+      //   approved hotels: orderByChild('hotelId').equalTo(<my hotel key or uid>)
+      // A single order can also be read directly (see $orderId below).
+      '.read': `auth != null && (${ADMIN} || (query.orderByChild === 'userId' && query.equalTo === auth.uid)` +
+        ` || ((${APPROVED_HOTEL}) && query.orderByChild === 'hotelId' && (query.equalTo === auth.uid || query.equalTo === ${MY_HOTEL_KEY})))`,
       '.indexOn': ['userId', 'createdAt', 'hotelId'],
       $orderId: {
         '.read': `auth != null && (data.child('userId').val() === auth.uid || ${ADMIN} || ${OWNS("data.child('hotelId').val()")})`,

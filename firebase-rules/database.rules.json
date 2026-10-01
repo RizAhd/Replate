@@ -60,7 +60,7 @@
       }
     },
     "orders": {
-      ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('hotelId').val() != null && root.child('hotels').child(root.child('users').child(auth.uid).child('hotelId').val()).child('userId').val() === auth.uid && root.child('hotels').child(root.child('users').child(auth.uid).child('hotelId').val()).child('status').val() === 'approved') || root.child('hotels').child(auth.uid).child('status').val() === 'approved' || (query.orderByChild === 'userId' && query.equalTo === auth.uid))",
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (query.orderByChild === 'userId' && query.equalTo === auth.uid) || (((root.child('users').child(auth.uid).child('hotelId').val() != null && root.child('hotels').child(root.child('users').child(auth.uid).child('hotelId').val()).child('userId').val() === auth.uid && root.child('hotels').child(root.child('users').child(auth.uid).child('hotelId').val()).child('status').val() === 'approved') || root.child('hotels').child(auth.uid).child('status').val() === 'approved') && query.orderByChild === 'hotelId' && (query.equalTo === auth.uid || query.equalTo === root.child('users').child(auth.uid).child('hotelId').val())))",
       ".indexOn": [
         "userId",
         "createdAt",
