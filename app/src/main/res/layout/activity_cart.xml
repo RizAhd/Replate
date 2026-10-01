@@ -170,7 +170,7 @@
                     android:id="@+id/tvItemCount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/badge_distance"
+                    android:background="@drawable/badge_pale"
                     android:paddingHorizontal="10dp"
                     android:paddingVertical="6dp"
                     tools:text="@string/cart_items_count_placeholder"
