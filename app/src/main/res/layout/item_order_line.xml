@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One label / amount row in the order detail items and price breakdown card -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="top"
+    android:orientation="horizontal"
+    android:paddingVertical="@dimen/space_0_5">
+
+    <TextView
+        android:id="@+id/tvLineLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/space_1"
+        android:layout_weight="1"
+        android:textAppearance="@style/TextAppearance.REPLATE.Body"
+        android:textColor="@color/text_primary" />
+
+    <TextView
+        android:id="@+id/tvLineValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="@style/TextAppearance.REPLATE.Body"
+        android:textColor="@color/text_primary" />
+</LinearLayout>

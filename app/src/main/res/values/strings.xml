@@ -480,6 +480,13 @@ Total: LKR %1$.2f</string>
     <string name="order_success_order">Order</string>
     <string name="order_success_hotel">Hotel</string>
     <string name="hotel_name_fallback">Hotel</string>
+    <string name="order_detail_items_title">Your order</string>
+    <string name="order_detail_item_line">%1$d × %2$s</string>
+    <string name="order_detail_item_fallback">Item</string>
+    <string name="order_detail_subtotal">Subtotal</string>
+    <string name="order_detail_delivery_fee">Delivery fee</string>
+    <string name="order_detail_you_saved">You saved</string>
+    <string name="order_detail_order_total">Total</string>
     <string name="order_success_total">Total</string>
     <string name="order_success_waiting_for_pickup_scan">Waiting for pickup scan…</string>
     <string name="order_success_how_was_your_experience">How was your experience?</string>

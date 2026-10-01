@@ -65,6 +65,8 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
     private TextInputEditText etReviewComment;
     private View reviewSection;
 
+    private boolean reviewFormPrepared;
+
     private DatabaseReference mDatabase;
     private Order order;
     private ValueEventListener orderListener;
@@ -187,7 +189,10 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         tvOrderId.setText("Order #" + (id != null ? id.substring(Math.max(0, id.length() - 8)) : "N/A"));
 
         String status = order.getOrderStatus();
-        if (status != null) {
+        if (status == null) {
+            // Without this the layout's placeholder "Order Confirmed" would stay on screen
+            tvOrderStatus.setText(order.getStatusDisplay());
+        } else {
             switch (status) {
                 case "pending":
                     tvOrderStatus.setText(R.string.order_detail_pending_confirmation);
@@ -248,9 +253,96 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         String otp = order.getOtpCode();
         tvOTP.setText(otp != null ? otp : "------");
 
-        String qrData = order.getQrCode() != null ? order.getQrCode() : order.getOrderId();
-        generateQRCode(qrData);
+        // The pickup QR and OTP are only useful while the order can still be collected
+        boolean showQr = order.isActive();
+        if (cardQR != null) cardQR.setVisibility(showQr ? View.VISIBLE : View.GONE);
+        if (showQr) {
+            String qrData = order.getQrCode() != null ? order.getQrCode() : order.getOrderId();
+            generateQRCode(qrData);
+        }
+
+        // Cancelled orders get a red banner; the route to the hotel makes no sense for delivery orders
+        View statusBanner = findViewById(R.id.statusBanner);
+        if (statusBanner != null) {
+            statusBanner.setBackgroundColor(getColor(order.isCancelled()
+                    ? R.color.md_theme_error : R.color.overlay_white_10));
+        }
+        if (btnOpenPickupRoute != null) {
+            btnOpenPickupRoute.setVisibility(order.isDelivery() ? View.GONE : View.VISIBLE);
+        }
+
+        showOrderItems();
         updateReviewSection();
+    }
+
+    private void showOrderItems() {
+        View card = findViewById(R.id.cardOrderItems);
+        LinearLayout list = findViewById(R.id.layoutOrderItems);
+        if (card == null || list == null) return;
+        list.removeAllViews();
+
+        Object rawItems = order.getItems();
+        java.util.Collection<?> entries = rawItems instanceof java.util.List
+                ? (java.util.List<?>) rawItems
+                : rawItems instanceof Map ? ((Map<?, ?>) rawItems).values() : null;
+        if (entries == null || entries.isEmpty()) {
+            card.setVisibility(View.GONE);
+            return;
+        }
+
+        for (Object entry : entries) {
+            if (!(entry instanceof Map)) continue;
+            Map<?, ?> item = (Map<?, ?>) entry;
+            Object nameValue = item.get("foodName");
+            String name = nameValue != null && !String.valueOf(nameValue).trim().isEmpty()
+                    ? String.valueOf(nameValue) : getString(R.string.order_detail_item_fallback);
+            int quantity = Math.max(1, (int) numberOf(item.get("quantity")));
+            double price = numberOf(item.get("price"));
+            addOrderLine(list, getString(R.string.order_detail_item_line, quantity, name),
+                    Money.format(price * quantity), false, 0);
+        }
+
+        double subtotal = order.getSubtotalAmountValue();
+        double deliveryFee = order.getDeliveryFeeValue();
+        double savings = order.getSavingsAmountValue();
+        if (subtotal > 0) {
+            addOrderLine(list, getString(R.string.order_detail_subtotal), Money.format(subtotal), false, 0);
+        }
+        if (deliveryFee > 0) {
+            addOrderLine(list, getString(R.string.order_detail_delivery_fee), Money.format(deliveryFee), false, 0);
+        }
+        if (savings > 0) {
+            addOrderLine(list, getString(R.string.order_detail_you_saved), "-" + Money.format(savings), false,
+                    getColor(R.color.primary));
+        }
+        addOrderLine(list, getString(R.string.order_detail_order_total),
+                Money.format(order.getTotalAmountValue()), true, 0);
+        card.setVisibility(View.VISIBLE);
+    }
+
+    private void addOrderLine(LinearLayout list, String label, String value, boolean emphasised, int color) {
+        View row = getLayoutInflater().inflate(R.layout.item_order_line, list, false);
+        TextView tvLabel = row.findViewById(R.id.tvLineLabel);
+        TextView tvValue = row.findViewById(R.id.tvLineValue);
+        tvLabel.setText(label);
+        tvValue.setText(value);
+        if (color != 0) {
+            tvValue.setTextColor(color);
+        }
+        if (emphasised) {
+            tvLabel.setTypeface(tvLabel.getTypeface(), android.graphics.Typeface.BOLD);
+            tvValue.setTypeface(tvValue.getTypeface(), android.graphics.Typeface.BOLD);
+        }
+        list.addView(row);
+    }
+
+    private static double numberOf(Object value) {
+        if (value instanceof Number) return ((Number) value).doubleValue();
+        try {
+            return value == null ? 0 : Double.parseDouble(String.valueOf(value));
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
     private void updateReviewSection() {
@@ -280,9 +372,13 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
             tvReviewSummary.setText(String.format(Locale.getDefault(), "Your rating: %.1f / 5", rating));
         } else {
             ratingReview.setIsIndicator(false);
-            ratingReview.setRating(0f);
+            // Live order updates call this again; only clear the form once so a half-typed review survives
+            if (!reviewFormPrepared) {
+                ratingReview.setRating(0f);
+                etReviewComment.setText("");
+                reviewFormPrepared = true;
+            }
             etReviewComment.setEnabled(true);
-            etReviewComment.setText("");
             btnSubmitReview.setEnabled(true);
             btnSubmitReview.setAlpha(1f);
             tvReviewHint.setText(R.string.order_detail_rate_your_pickup_experience_to);
