@@ -153,28 +153,10 @@
                (b.endAt ? 'Until ' + fmt(b.endAt) : '');
     }
 
-    auth.onAuthStateChanged(async (user) => {
-        ReplateUI.renderSidebar('appShellSidebar', {
-            title: '<img src="../assets/replate-icon.svg" alt="REPLATE" class="brand-logo-sm">ADMIN',
-            activeKey: 'banners',
-            links: adminShellLinks,
-        });
-        if (!user) {
-            window.location.href = 'login.html';
-            return;
-        }
-        try {
-            const role = await resolveUserRole(user.uid);
-            if (role !== 'admin') {
-                window.location.href = 'login.html';
-                return;
-            }
-        } catch (e) {
-            window.location.href = 'login.html';
-            return;
-        }
-        loadBanners();
-    });
+    (async () => {
+        const user = await ReplateUI.requireRole('admin');
+        if (user) loadBanners();
+    })();
 
     function loadBanners() {
         database.ref('banners').orderByChild('order').on('value', (snapshot) => {
@@ -275,7 +257,9 @@
     };
 
     window.deleteBanner = async function (key) {
-        if (!confirm('Delete this banner?')) return;
+        const ok = await ReplateUI.confirmAction('The banner will stop showing in the app.', {
+            title: 'Delete this banner?', confirmText: 'Delete', danger: true });
+        if (!ok) return;
         try {
             const snap = await database.ref('banners/' + key).once('value');
             const imageUrl = (snap.val() || {}).imageUrl;

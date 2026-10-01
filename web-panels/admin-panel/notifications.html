@@ -391,12 +391,8 @@
         return map[cls] || 'fa-circle';
     }
 
-    function escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
+    // Escapes quotes as well as angle brackets, so it is safe inside attributes too
+    function escapeHtml(text) { return ReplateUI.esc(text); }
 
     window.clearActivityFeed = function() {
         const feed = document.getElementById('activityFeed');
@@ -649,23 +645,13 @@
     }
 
     // ── Init ───────────────────────────────────────────────
-    function logout() { auth.signOut().then(() => { window.location.href = 'login.html'; }); }
-
-    auth.onAuthStateChanged((user) => {
-        ReplateUI.renderSidebar('appShellSidebar', {
-            title: '<img src="../assets/replate-icon.svg" alt="REPLATE" class="brand-logo-sm">ADMIN',
-            activeKey: 'notifications',
-            links: adminShellLinks,
-        });
-        if (!user) {
-            window.location.href = 'login.html';
-            return;
-        }
-
+    (async () => {
+        const user = await ReplateUI.requireRole('admin');
+        if (!user) return;
         loadQuickStats();
         loadNotificationHistory();
         attachRealtimeListeners();
-    });
+    })();
 
     // ── Firebase Direct Fallback ─────────────────────────
     // When Cloud Functions aren't deployed or fail, write notifications
@@ -728,6 +714,11 @@
     // ── Send Form Handlers ─────────────────────────────────
     document.getElementById('broadcastForm').addEventListener('submit', async (e) => {
         e.preventDefault();
+        const targetLabel = document.getElementById('broadcastTarget').selectedOptions[0].textContent.trim();
+        const confirmed = await ReplateUI.confirmAction(
+            'This notification goes to: ' + targetLabel + '. It cannot be recalled once sent.',
+            { title: 'Send this broadcast?', confirmText: 'Send now' });
+        if (!confirmed) return;
         ReplateUI.setButtonLoading('btnBroadcastSend', true, 'Sending...');
         try {
             const target = document.getElementById('broadcastTarget').value;
@@ -752,12 +743,12 @@
                 await logNotificationSend('broadcast', target, { title, body }, result);
             }
 
-            ReplateUI.showAlert(`✅ Broadcast sent (${method === 'firebase_direct' ? 'saved to ' + (result.written || 0) + ' users via Firebase' : 'via Cloud Function'}) to <strong>${escapeHtml(target)}</strong>`, 'success');
+            ReplateUI.showAlert(`Broadcast sent (${method === 'firebase_direct' ? 'saved to ' + (result.written || 0) + ' users via Firebase' : 'via Cloud Function'}) to ${target}`, 'success');
             document.getElementById('broadcastForm').reset();
             document.getElementById('broadcastType').value = 'announcement';
             document.getElementById('broadcastRoute').value = 'notifications';
         } catch (err) {
-            ReplateUI.showAlert('❌ Broadcast failed: ' + escapeHtml(err.message), 'danger');
+            ReplateUI.showAlert('Broadcast failed: ' + err.message, 'danger');
         } finally {
             ReplateUI.setButtonLoading('btnBroadcastSend', false);
         }
@@ -812,10 +803,10 @@
                 await logNotificationSend('targeted', userIds.length + ' users', { title, body }, result);
             }
 
-            ReplateUI.showAlert(`✅ Targeted notification sent to <strong>${userIds.length} user(s)</strong> (${method === 'firebase_direct' ? 'via Firebase' : 'via Cloud Function'})`, 'success');
+            ReplateUI.showAlert(`Targeted notification sent to ${userIds.length} user(s) (${method === 'firebase_direct' ? 'via Firebase' : 'via Cloud Function'})`, 'success');
             document.getElementById('targetedForm').reset();
         } catch (err) {
-            ReplateUI.showAlert('❌ Targeted send failed: ' + escapeHtml(err.message), 'danger');
+            ReplateUI.showAlert('Targeted send failed: ' + err.message, 'danger');
         } finally {
             ReplateUI.setButtonLoading('btnTargetSend', false);
         }
@@ -850,10 +841,10 @@
                 await logNotificationSend('deal', 'all customers', { title, body }, result);
             }
 
-            ReplateUI.showAlert(`✅ Deal notification sent (${method === 'firebase_direct' ? 'to ' + (result.written || 0) + ' users via Firebase' : 'via Cloud Function'})`, 'success');
+            ReplateUI.showAlert(`Deal notification sent (${method === 'firebase_direct' ? 'to ' + (result.written || 0) + ' users via Firebase' : 'via Cloud Function'})`, 'success');
             document.getElementById('dealForm').reset();
         } catch (err) {
-            ReplateUI.showAlert('❌ Deal send failed: ' + escapeHtml(err.message), 'danger');
+            ReplateUI.showAlert('Deal send failed: ' + err.message, 'danger');
         } finally {
             ReplateUI.setButtonLoading('btnDealSend', false);
         }

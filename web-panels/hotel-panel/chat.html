@@ -555,8 +555,6 @@
         loadConversations();
     });
 
-    function logout() { auth.signOut().then(() => { window.location.href = 'login.html'; }); }
-
     function updateConnectionStatus() {
         const badge = document.getElementById('chatStatus');
         if (!badge) return;
@@ -910,7 +908,8 @@
         return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
     }
 
-    function esc(t) { const d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML; }
+    // Escapes quotes as well as angle brackets, so it is safe inside attributes too
+    function esc(t) { return ReplateUI.esc(t); }
     function cssEsc(value) {
         if (window.CSS && typeof window.CSS.escape === 'function') return window.CSS.escape(value || '');
         return String(value || '').replace(/["\\]/g, '\\$&');
