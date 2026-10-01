@@ -137,21 +137,27 @@ public class CartDatabaseHelper extends SQLiteOpenHelper {
 
         Cursor cursor = db.query(TABLE_CART, null, null, null, null, null, null);
 
-        if (cursor != null && cursor.moveToFirst()) {
-            do {
-                CartItem item = new CartItem();
-                item.setId(cursor.getInt(cursor.getColumnIndexOrThrow(COL_ID)));
-                item.setFoodId(cursor.getString(cursor.getColumnIndexOrThrow(COL_FOOD_ID)));
-                item.setFoodName(cursor.getString(cursor.getColumnIndexOrThrow(COL_FOOD_NAME)));
-                item.setHotelName(cursor.getString(cursor.getColumnIndexOrThrow(COL_HOTEL_NAME)));
-                item.setHotelId(cursor.getString(cursor.getColumnIndexOrThrow(COL_HOTEL_ID)));
-                item.setImageUrl(cursor.getString(cursor.getColumnIndexOrThrow(COL_IMAGE_URL)));
-                item.setPrice(cursor.getDouble(cursor.getColumnIndexOrThrow(COL_PRICE)));
-                item.setOriginalPrice(cursor.getDouble(cursor.getColumnIndexOrThrow(COL_ORIGINAL_PRICE)));
-                item.setQuantity(cursor.getInt(cursor.getColumnIndexOrThrow(COL_QUANTITY)));
-                item.setDiscountPercent(cursor.getInt(cursor.getColumnIndexOrThrow(COL_DISCOUNT)));
-                items.add(item);
-            } while (cursor.moveToNext());
+        if (cursor == null) {
+            return items;
+        }
+        try {
+            if (cursor.moveToFirst()) {
+                do {
+                    CartItem item = new CartItem();
+                    item.setId(cursor.getInt(cursor.getColumnIndexOrThrow(COL_ID)));
+                    item.setFoodId(cursor.getString(cursor.getColumnIndexOrThrow(COL_FOOD_ID)));
+                    item.setFoodName(cursor.getString(cursor.getColumnIndexOrThrow(COL_FOOD_NAME)));
+                    item.setHotelName(cursor.getString(cursor.getColumnIndexOrThrow(COL_HOTEL_NAME)));
+                    item.setHotelId(cursor.getString(cursor.getColumnIndexOrThrow(COL_HOTEL_ID)));
+                    item.setImageUrl(cursor.getString(cursor.getColumnIndexOrThrow(COL_IMAGE_URL)));
+                    item.setPrice(cursor.getDouble(cursor.getColumnIndexOrThrow(COL_PRICE)));
+                    item.setOriginalPrice(cursor.getDouble(cursor.getColumnIndexOrThrow(COL_ORIGINAL_PRICE)));
+                    item.setQuantity(cursor.getInt(cursor.getColumnIndexOrThrow(COL_QUANTITY)));
+                    item.setDiscountPercent(cursor.getInt(cursor.getColumnIndexOrThrow(COL_DISCOUNT)));
+                    items.add(item);
+                } while (cursor.moveToNext());
+            }
+        } finally {
             cursor.close();
         }
 
@@ -176,9 +182,14 @@ public class CartDatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT SUM(" + COL_QUANTITY + ") FROM " + TABLE_CART, null);
         int count = 0;
-        if (cursor != null && cursor.moveToFirst()) {
-            count = cursor.getInt(0);
-            cursor.close();
+        if (cursor != null) {
+            try {
+                if (cursor.moveToFirst()) {
+                    count = cursor.getInt(0);
+                }
+            } finally {
+                cursor.close();
+            }
         }
         return count;
     }
