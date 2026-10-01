@@ -40,6 +40,7 @@ import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.common.BitMatrix;
 import com.replate.app.utils.Money;
 import com.replate.app.models.Order;
+import com.replate.app.utils.ReviewWriter;
 import com.replate.app.utils.SafeSnapshot;
 import com.replate.app.utils.ToastUtils;
 
@@ -367,15 +368,7 @@ public class OrderSuccessActivity extends AppCompatActivity {
                     // Also save to reviews node
                     String userId = FirebaseAuth.getInstance().getUid();
                     if (userId != null) {
-                        Map<String, Object> reviewData = new HashMap<>();
-                        reviewData.put("orderId", orderId);
-                        reviewData.put("userId", userId);
-                        reviewData.put("hotelId", order.getHotelId() != null ? order.getHotelId() : "");
-                        reviewData.put("hotelName", order.getHotelName() != null ? order.getHotelName() : "");
-                        reviewData.put("rating", rating);
-                        reviewData.put("comment", comment);
-                        reviewData.put("createdAt", System.currentTimeMillis());
-                        mDatabase.child("reviews").child(orderId).setValue(reviewData);
+                        ReviewWriter.saveOrderReview(mDatabase, order, userId, rating, comment);
                     }
 
                     // Send notification to hotel

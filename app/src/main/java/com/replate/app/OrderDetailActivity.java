@@ -560,15 +560,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
                 .addOnSuccessListener(unused -> {
                     String userId = com.google.firebase.auth.FirebaseAuth.getInstance().getUid();
                     if (userId != null) {
-                        Map<String, Object> reviewData = new java.util.HashMap<>();
-                        reviewData.put("orderId", order.getOrderId());
-                        reviewData.put("userId", userId);
-                        reviewData.put("hotelId", order.getHotelId() != null ? order.getHotelId() : "");
-                        reviewData.put("hotelName", order.getHotelName() != null ? order.getHotelName() : "");
-                        reviewData.put("rating", rating);
-                        reviewData.put("comment", comment);
-                        reviewData.put("createdAt", System.currentTimeMillis());
-                        mDatabase.child("reviews").child(order.getOrderId()).setValue(reviewData);
+                        com.replate.app.utils.ReviewWriter.saveOrderReview(mDatabase, order, userId, rating, comment);
                     }
 
                     pushReviewNotificationToHotel(rating, comment);
@@ -583,7 +575,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
                 })
                 .addOnFailureListener(e -> {
                     btnSubmitReview.setEnabled(true);
-                    ToastUtils.showCustomToast(this, "Failed to save review: " + e.getMessage());
+                    ToastUtils.showCustomToast(this, R.string.order_success_failed_to_submit_review);
                 });
     }
 
