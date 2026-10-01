@@ -44,6 +44,7 @@
 
                 <ImageView
                     android:id="@+id/ivIcon"
+                    android:importantForAccessibility="no"
                     android:layout_width="46dp"
                     android:layout_height="46dp"
                     android:background="@drawable/circle_primary_light"

@@ -125,6 +125,7 @@
 
                     <ImageView
                         android:id="@+id/ivQRCode"
+                        android:contentDescription="@string/cd_pickup_qr"
                         android:layout_width="240dp"
                         android:layout_height="240dp"
                         android:scaleType="fitCenter" />

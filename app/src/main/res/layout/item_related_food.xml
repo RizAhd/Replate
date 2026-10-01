@@ -17,6 +17,7 @@
 
         <ImageView
             android:id="@+id/ivRelatedImage"
+            android:contentDescription="@string/cd_food_image"
             android:layout_width="match_parent"
             android:layout_height="100dp"
             android:scaleType="centerCrop"

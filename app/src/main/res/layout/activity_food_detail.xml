@@ -21,6 +21,7 @@
 
             <ImageView
                 android:id="@+id/ivFoodImage"
+                android:contentDescription="@string/cd_food_image"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scaleType="centerCrop"
@@ -34,6 +35,7 @@
             <!-- Back Button -->
             <ImageView
                 android:id="@+id/ivBack"
+                android:contentDescription="@string/cd_back"
                 android:layout_width="@dimen/touch_target_min"
                 android:layout_height="@dimen/touch_target_min"
                 android:layout_margin="@dimen/space_2"

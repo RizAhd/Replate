@@ -8,6 +8,7 @@
 
     <!-- Common accessibility -->
     <string name="cd_back">Go back</string>
+    <string name="cd_pickup_qr">Pickup QR code. Show it to the hotel to collect your order.</string>
     <string name="cd_open_menu">Open menu</string>
     <string name="cd_open_notifications">Open notifications</string>
     <string name="cd_location_icon">Location icon</string>

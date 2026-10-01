@@ -31,6 +31,7 @@
 
                         <ImageView
                             android:id="@+id/ivBack"
+                            android:contentDescription="@string/cd_back"
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:layout_centerVertical="true"
@@ -102,6 +103,7 @@
 
                 <ImageView
                     android:id="@+id/ivQRCode"
+                    android:contentDescription="@string/cd_pickup_qr"
                     android:layout_width="220dp"
                     android:layout_height="220dp"
                     android:layout_marginTop="14dp"

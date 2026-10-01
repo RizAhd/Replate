@@ -116,6 +116,7 @@
                 android:layout_height="64dp"
                 android:alpha="0.4"
                 android:src="@drawable/ic_email"
+                android:importantForAccessibility="no"
                 app:tint="@color/text_secondary" />
 
             <TextView

@@ -113,6 +113,7 @@
                 android:layout_height="56dp"
                 android:layout_gravity="center"
                 android:src="@drawable/ic_empty_orders"
+                android:importantForAccessibility="no"
                 app:tint="@color/green_primary" />
         </com.google.android.material.card.MaterialCardView>
 
