@@ -52,6 +52,7 @@ import com.replate.app.services.OrderSyncWorker;
 import com.replate.app.utils.FcmTokenManager;
 import com.replate.app.utils.LocalDataCleaner;
 import com.replate.app.utils.NetworkMonitor;
+import com.replate.app.utils.ScrollToTop;
 import com.replate.app.utils.NotificationPermissionHelper;
 import com.replate.app.utils.ToastUtils;
 import com.replate.app.utils.UserRoleHelper;
@@ -154,6 +155,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             if (itemId == R.id.nav_profile) return switchFragment(getProfileFragment());
             return false;
         });
+
+        // Tapping the tab you're already on scrolls it back to the top
+        bottomNavigation.setOnItemReselectedListener(item ->
+                ScrollToTop.apply(activeFragment != null ? activeFragment.getView() : null));
 
         String openTab = getIntent().getStringExtra("open_tab");
         if (openTab == null || openTab.trim().isEmpty()) {
