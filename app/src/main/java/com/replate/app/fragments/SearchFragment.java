@@ -117,7 +117,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         initViews(view);
         loadSavedFilterPreference();
         applyLaunchOverrides();
-        setupSearch();
+        setupSearch(view);
         setupFilterChips();
         setupAdvancedFilterAction();
 
@@ -239,7 +239,29 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         return Math.min(span, 3);
     }
 
-    private void setupSearch() {
+    private void setupSearch(@NonNull View root) {
+        // Back arrow only when Search is its own screen (opened from Home), not when it is a tab
+        View back = root.findViewById(R.id.ivSearchBack);
+        if (back != null && requireActivity() instanceof com.replate.app.SearchActivity) {
+            back.setVisibility(View.VISIBLE);
+            back.setOnClickListener(v -> requireActivity().getOnBackPressedDispatcher().onBackPressed());
+        }
+
+        // The keyboard's search key: hide the keyboard, run the search and remember it
+        etSearch.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId != android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) return false;
+            String submitted = etSearch.getText().toString().trim();
+            filterItems(submitted);
+            if (localDb != null && submitted.length() >= 2) {
+                localDb.saveSearchQuery(submitted);
+            }
+            android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager)
+                    requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE);
+            if (imm != null) imm.hideSoftInputFromWindow(etSearch.getWindowToken(), 0);
+            etSearch.clearFocus();
+            return true;
+        });
+
         // Show recent searches when search field is focused and empty
         etSearch.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus && etSearch.getText().toString().trim().isEmpty()) {
@@ -607,13 +629,9 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         if (searchRunnable != null) {
             searchDebounceHandler.removeCallbacks(searchRunnable);
         }
-        searchRunnable = () -> {
-            filterItems(query);
-            // Save meaningful queries (3+ chars) to SQLite search history
-            if (localDb != null && query != null && query.trim().length() >= 3) {
-                localDb.saveSearchQuery(query.trim());
-            }
-        };
+        // History is saved when the user submits the search (see setupSearch), not on every pause while typing,
+        // which used to store partial words like "piz", "pizz", "pizza".
+        searchRunnable = () -> filterItems(query);
         // Reduced debounce time for instant search results (80ms instead of 130ms)
         searchDebounceHandler.postDelayed(searchRunnable, 80);
     }

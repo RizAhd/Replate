@@ -29,6 +29,19 @@
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
+                    <!-- Only shown when Search is opened as its own screen, not as a tab -->
+                    <ImageView
+                        android:id="@+id/ivSearchBack"
+                        android:layout_width="@dimen/touch_target_min"
+                        android:layout_height="@dimen/touch_target_min"
+                        android:layout_marginStart="-12dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="@string/cd_back"
+                        android:padding="@dimen/space_1_5"
+                        android:src="@drawable/ic_back"
+                        android:visibility="gone"
+                        app:tint="@color/white" />
+
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -74,7 +87,7 @@
                         <ImageView
                             android:layout_width="22dp"
                             android:layout_height="22dp"
-                            android:contentDescription="@string/cd_arrow_right"
+                            android:importantForAccessibility="no"
                             android:src="@drawable/ic_search"
                             app:tint="@color/text_secondary" />
 
@@ -158,7 +171,7 @@
                     android:layout_height="18dp"
                     android:src="@drawable/ic_time"
                     app:tint="@color/text_secondary"
-                    android:contentDescription="@string/cd_arrow_right" />
+                    android:importantForAccessibility="no" />
 
                 <TextView
                     android:layout_width="0dp"
@@ -178,8 +191,10 @@
                     android:fontFamily="@font/poppins_medium"
                     android:textColor="@color/green_primary"
                     android:textSize="@dimen/text_caption"
-                    android:paddingHorizontal="@dimen/space_1"
-                    android:paddingVertical="@dimen/space_0_5" />
+                    android:background="?attr/selectableItemBackground"
+                    android:gravity="center"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:paddingHorizontal="@dimen/space_1" />
             </LinearLayout>
 
             <com.google.android.material.chip.ChipGroup
