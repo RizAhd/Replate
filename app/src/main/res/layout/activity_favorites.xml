@@ -115,6 +115,14 @@
             android:gravity="center"
             android:text="@string/favorites_empty_subtitle"
             android:textAppearance="@style/TextAppearance.REPLATE.Body" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnFindDishes"
+            style="@style/Widget.REPLATE.Button.Primary"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/button_height"
+            android:layout_marginTop="@dimen/space_3"
+            android:text="@string/favorites_empty_cta" />
     </LinearLayout>
 </LinearLayout>
 

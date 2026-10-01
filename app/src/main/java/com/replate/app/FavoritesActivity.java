@@ -15,11 +15,17 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.replate.app.adapters.FoodItemAdapter;
 import com.replate.app.helpers.CartDatabaseHelper;
 import com.replate.app.helpers.ReplateDatabaseHelper;
 import com.replate.app.models.CartItem;
 import com.replate.app.models.FoodItem;
+import com.replate.app.utils.DatabaseErrorLogger;
+import com.replate.app.utils.SafeSnapshot;
 import com.replate.app.utils.ToastUtils;
 
 import java.util.ArrayList;
@@ -66,6 +72,8 @@ public class FavoritesActivity extends AppCompatActivity implements FoodItemAdap
         rvFavorites = findViewById(R.id.rvFavorites);
         emptyState = findViewById(R.id.emptyState);
         progressBar = findViewById(R.id.progressBar);
+        findViewById(R.id.btnFindDishes).setOnClickListener(v ->
+                startActivity(new Intent(this, SearchActivity.class)));
     }
 
     private void setupRecyclerView() {
@@ -114,6 +122,53 @@ public class FavoritesActivity extends AppCompatActivity implements FoodItemAdap
             progressBar.setVisibility(View.GONE);
         }
         updateUi();
+        refreshFromServer();
+    }
+
+    /**
+     * Favorites are saved copies, so a price, stock level or listing can change after saving.
+     * Pull each dish's current state and mark dishes that are gone as unavailable.
+     */
+    private void refreshFromServer() {
+        for (FoodItem saved : new ArrayList<>(favoriteItems)) {
+            final String foodId = saved.getFoodId();
+            if (foodId == null || foodId.trim().isEmpty()) continue;
+
+            FirebaseDatabase.getInstance().getReference("foodItems").child(foodId)
+                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            if (isFinishing() || isDestroyed()) return;
+                            int index = indexOfFavorite(foodId);
+                            if (index < 0) return;
+
+                            FoodItem fresh = snapshot.exists() ? SafeSnapshot.getValue(snapshot, FoodItem.class) : null;
+                            if (fresh == null) {
+                                // Removed by the hotel: keep it listed, but it can't be ordered
+                                favoriteItems.get(index).setStatus("unavailable");
+                            } else {
+                                fresh.setFoodId(foodId);
+                                // Distance comes from the phone's location, not from Firebase
+                                fresh.setDistance(favoriteItems.get(index).getDistance());
+                                favoriteItems.set(index, fresh);
+                            }
+                            adapter.updateData(new ArrayList<>(favoriteItems));
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+                            // Offline or denied: the saved copy stays on screen
+                            DatabaseErrorLogger.log("FavoritesActivity", "refresh favorite", error);
+                        }
+                    });
+        }
+    }
+
+    private int indexOfFavorite(String foodId) {
+        for (int i = 0; i < favoriteItems.size(); i++) {
+            if (foodId.equals(favoriteItems.get(i).getFoodId())) return i;
+        }
+        return -1;
     }
 
     private void updateUi() {
@@ -177,8 +232,19 @@ public class FavoritesActivity extends AppCompatActivity implements FoodItemAdap
         if (foodItem == null) {
             return;
         }
+        if (!foodItem.isAvailableValue() || !foodItem.hasStock()) {
+            ToastUtils.showCustomToast(this, R.string.food_detail_sold_out);
+            return;
+        }
 
         CartDatabaseHelper cartDb = CartDatabaseHelper.getInstance(this);
+        // The cart sums repeated adds, so don't go past the stock that is left
+        if (foodItem.getQuantity() != null
+                && cartDb.getQuantityInCart(foodItem.getFoodId()) >= foodItem.getQuantityValue()) {
+            ToastUtils.showCustomToast(this,
+                    getString(R.string.food_detail_cart_limit_reached, foodItem.getQuantityValue()));
+            return;
+        }
         CartItem cartItem = new CartItem(
                 foodItem.getFoodId(),
                 foodItem.getFoodName() != null ? foodItem.getFoodName() : getString(R.string.cart_item_fallback),
@@ -192,9 +258,7 @@ public class FavoritesActivity extends AppCompatActivity implements FoodItemAdap
         );
         cartDb.addItem(cartItem);
 
-        ToastUtils.showCustomToast(
-                this,
-                String.format(Locale.getDefault(), "%s added to cart", foodItem.getFoodName())
-        );
+        ToastUtils.showCustomToast(this,
+                getString(R.string.food_detail_added_to_cart_toast, 1, cartItem.getFoodName()));
     }
 }
