@@ -377,13 +377,24 @@ public class CheckoutActivity extends AppCompatActivity {
         String lastName = parts.length > 1 ? parts[1] : "User";
 
         FirebaseUser user = mAuth.getCurrentUser();
-        String email = (user != null && user.getEmail() != null) ? user.getEmail() : "test@example.com";
+        String email = user != null ? user.getEmail() : null;
+        if (email == null || email.trim().isEmpty()) {
+            // PayHere needs a real email for the receipt; don't invent one
+            ToastUtils.showCustomToast(this,
+                    "Card payment needs an email on your account. Add one in Settings, or choose cash.");
+            return;
+        }
+
+        String typedAddress = etAddress.getText() != null ? etAddress.getText().toString().trim() : "";
+        String hotelLabel = (cartItems != null && !cartItems.isEmpty() && cartItems.get(0).getHotelName() != null)
+                ? cartItems.get(0).getHotelName() : "hotel";
+        String billingAddress = !typedAddress.isEmpty() ? typedAddress : "Pickup at " + hotelLabel;
 
         req.getCustomer().setFirstName(firstName);
         req.getCustomer().setLastName(lastName);
         req.getCustomer().setEmail(email);
         req.getCustomer().setPhone(etCustomerPhone.getText().toString().trim());
-        req.getCustomer().getAddress().setAddress(etAddress.getText() != null && etAddress.getText().length() > 0 ? etAddress.getText().toString() : "Colombo");
+        req.getCustomer().getAddress().setAddress(billingAddress);
         req.getCustomer().getAddress().setCity("Colombo");
         req.getCustomer().getAddress().setCountry("Sri Lanka");
 
