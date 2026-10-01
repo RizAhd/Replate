@@ -215,6 +215,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         rvSearchResults.setItemAnimator(null);
         rvSearchResults.setItemViewCacheSize(12);
         adapter = new FoodItemAdapter(getContext(), filteredItems, this);
+        adapter.setStyle(defaultSpan >= 2 ? FoodItemAdapter.Style.GRID : FoodItemAdapter.Style.LIST);
         rvSearchResults.setAdapter(adapter);
 
         rvSearchResults.post(() -> {
@@ -223,6 +224,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
             if (gridLayoutManager.getSpanCount() != adaptiveSpan) {
                 gridLayoutManager.setSpanCount(adaptiveSpan);
             }
+            adapter.setStyle(adaptiveSpan >= 2 ? FoodItemAdapter.Style.GRID : FoodItemAdapter.Style.LIST);
         });
     }
 

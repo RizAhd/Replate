@@ -39,6 +39,18 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
     private static final Executor DIFF_EXECUTOR = Executors.newSingleThreadExecutor();
     private int diffGeneration = 0;
 
+    /** How a card is laid out: full-width list row, ~78%-width carousel card, or compact grid cell. */
+    public enum Style { LIST, CAROUSEL, GRID }
+
+    private Style style = Style.LIST;
+
+    public void setStyle(Style newStyle) {
+        if (newStyle != null && newStyle != style) {
+            style = newStyle;
+            notifyDataSetChanged();
+        }
+    }
+
     // Click listener interface
     public interface OnFoodItemClickListener {
         void onFoodItemClick(FoodItem foodItem);
@@ -55,8 +67,24 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
     @NonNull
     @Override
     public FoodViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_food, parent, false);
+        Style viewStyle = Style.values()[viewType];
+        int layout = viewStyle == Style.GRID ? R.layout.item_food_grid : R.layout.item_food;
+        View view = LayoutInflater.from(context).inflate(layout, parent, false);
+        if (viewStyle == Style.CAROUSEL) {
+            // Horizontal lists show a card at ~78% of the screen so the next one peeks in
+            ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) view.getLayoutParams();
+            int screenWidth = context.getResources().getDisplayMetrics().widthPixels;
+            lp.width = (int) (screenWidth * 0.78f);
+            int gap = context.getResources().getDimensionPixelSize(R.dimen.space_1);
+            lp.setMargins(gap, lp.topMargin, gap, lp.bottomMargin);
+            view.setLayoutParams(lp);
+        }
         return new FoodViewHolder(view);
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        return style.ordinal();
     }
 
     @Override

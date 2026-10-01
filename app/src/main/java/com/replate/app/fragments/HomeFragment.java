@@ -208,10 +208,18 @@ public class HomeFragment extends Fragment implements
         rvFoodItems.setHasFixedSize(true);
         rvFavorites.setHasFixedSize(true);
 
+        // Cards slide when favorites or deals are added and removed; categories stay static
         rvCategories.setItemAnimator(null);
-        rvHotDeals.setItemAnimator(null);
-        rvFoodItems.setItemAnimator(null);
-        rvFavorites.setItemAnimator(null);
+        // Insert/remove motion is welcome; cross-fading a card on every data refresh just makes images flicker
+        for (RecyclerView list : new RecyclerView[]{rvHotDeals, rvFoodItems, rvFavorites}) {
+            RecyclerView.ItemAnimator animator = list.getItemAnimator();
+            if (animator instanceof androidx.recyclerview.widget.SimpleItemAnimator) {
+                ((androidx.recyclerview.widget.SimpleItemAnimator) animator).setSupportsChangeAnimations(false);
+            }
+        }
+        // Carousels settle on a card instead of stopping half-way between two
+        new androidx.recyclerview.widget.LinearSnapHelper().attachToRecyclerView(rvHotDeals);
+        new androidx.recyclerview.widget.LinearSnapHelper().attachToRecyclerView(rvFavorites);
 
         rvFoodItems.setItemViewCacheSize(10);
         rvHotDeals.setItemViewCacheSize(8);
@@ -232,9 +240,11 @@ public class HomeFragment extends Fragment implements
         rvFoodItems.setAdapter(foodItemAdapter);
 
         hotDealsAdapter = new FoodItemAdapter(getContext(), hotDeals, this);
+        hotDealsAdapter.setStyle(FoodItemAdapter.Style.CAROUSEL);
         rvHotDeals.setAdapter(hotDealsAdapter);
 
         favoritesAdapter = new FoodItemAdapter(getContext(), favoriteItems, this);
+        favoritesAdapter.setStyle(FoodItemAdapter.Style.CAROUSEL);
         rvFavorites.setAdapter(favoritesAdapter);
 
         // Setup banner

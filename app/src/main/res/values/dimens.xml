@@ -44,6 +44,7 @@
     <!-- Named image heights -->
     <dimen name="image_height_detail">300dp</dimen>
     <dimen name="image_height_card">200dp</dimen>
+    <dimen name="image_height_grid">140dp</dimen>
     <dimen name="banner_height">180dp</dimen>
 
     <!-- Drawer dimensions -->
