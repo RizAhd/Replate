@@ -729,7 +729,7 @@ public class CheckoutActivity extends AppCompatActivity {
     }
 
     private void showLoading(boolean show) {
-        progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
+        progressBar.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
         btnPlaceOrder.setEnabled(!show);
         btnPlaceOrder.setAlpha(show ? 0.65f : 1f);
     }
