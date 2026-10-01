@@ -17,6 +17,10 @@ import java.util.Map;
 
 public class FirebasePlacesDataSource implements PlacesDataSource {
 
+    private static final java.util.concurrent.ExecutorService PARSE_EXECUTOR =
+            java.util.concurrent.Executors.newSingleThreadExecutor();
+    private static final android.os.Handler MAIN = new android.os.Handler(android.os.Looper.getMainLooper());
+
     private final DatabaseReference hotelsRef;
     private final DatabaseReference foodItemsRef;
 
@@ -41,16 +45,12 @@ public class FirebasePlacesDataSource implements PlacesDataSource {
                     String hotelId = hotelNode.getKey();
                     if (hotelId == null || hotelId.trim().isEmpty()) continue;
 
-                    String status = readString(hotelNode, "status");
-                    boolean isApproved = status.isEmpty()
-                            || "approved".equalsIgnoreCase(status)
-                            || "active".equalsIgnoreCase(status)
-                            || "available".equalsIgnoreCase(status);
-                    if (!isApproved) continue;
+                    // Empty status has always meant "fine"; pending/rejected hotels stay off the map
+                    if (!MapRules.isActiveStatus(readString(hotelNode, "status"))) continue;
 
                     double lat = readDoubleAny(hotelNode, "latitude", "lat", "hotelLatitude");
                     double lng = readDoubleAny(hotelNode, "longitude", "lng", "hotelLongitude", "long");
-                    if (lat == 0 || lng == 0) continue;
+                    if (!MapRules.isValidCoordinate(lat, lng)) continue;
 
                     String hotelName = readString(hotelNode, "hotelName");
                     if (hotelName.isEmpty()) hotelName = readString(hotelNode, "name");
@@ -61,8 +61,8 @@ public class FirebasePlacesDataSource implements PlacesDataSource {
                         address = String.format(Locale.getDefault(), "Lat %.4f, Lng %.4f", lat, lng);
                     }
 
-                    float rating = (float) readDouble(hotelNode, "rating");
-                    if (rating <= 0f) rating = 4.0f;
+                    // 0 means "no rating yet"; the screen shows "New" instead of an invented 4.0
+                    float rating = MapRules.ratingOrZero(readDouble(hotelNode, "rating"));
 
                     approvedHotels.put(hotelId, new HotelSeed(hotelId, hotelName, address, lat, lng, rating));
 
@@ -80,20 +80,16 @@ public class FirebasePlacesDataSource implements PlacesDataSource {
                 foodItemsRef.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot foodSnapshot) {
+                        // Scanning every listing can be slow on a big catalogue, so keep it off the UI thread
+                        PARSE_EXECUTOR.execute(() -> {
                         Map<String, Integer> hotelDealCount = new HashMap<>();
                         Map<String, String> hotelCategory = new HashMap<>();
 
                         for (DataSnapshot itemSnapshot : foodSnapshot.getChildren()) {
                             String itemStatus = readString(itemSnapshot, "status");
-                            if (!itemStatus.isEmpty()
-                                    && !"available".equalsIgnoreCase(itemStatus)
-                                    && !"active".equalsIgnoreCase(itemStatus)
-                                    && !"approved".equalsIgnoreCase(itemStatus)) {
-                                continue;
-                            }
-
                             Integer quantity = readNullableInt(itemSnapshot, "quantity", "qty", "stock");
-                            if (quantity != null && quantity <= 0) continue;
+                            // Same definition of "available" as the bottom card's item list
+                            if (!MapRules.isListableItem(itemStatus, quantity)) continue;
 
                             String hotelId = readString(itemSnapshot, "hotelId");
                             if (hotelId.isEmpty()) hotelId = readString(itemSnapshot, "hotelKey");
@@ -137,7 +133,8 @@ public class FirebasePlacesDataSource implements PlacesDataSource {
                             ));
                         }
 
-                        callback.onSuccess(places);
+                        MAIN.post(() -> callback.onSuccess(places));
+                        });
                     }
 
                     @Override
