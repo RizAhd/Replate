@@ -123,6 +123,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private String pendingFocusHotelId;
     private LocationCallback liveLocationCallback;
     private boolean hasCenteredOnUser;
+    private long lastPlacesLoadAt;
+    // The tab is kept alive between visits, so hotels are re-read when you return after a while
+    private static final long PLACES_REFRESH_MS = 2 * 60 * 1000L;
     private int lastTopInset;
     private int lastBottomInset;
     private long lastRouteInfoUpdateAt;
@@ -513,6 +516,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 }
                 allPlaces.clear();
                 allPlaces.addAll(places);
+                lastPlacesLoadAt = System.currentTimeMillis();
                 if (places.isEmpty()) {
                     showNoRegisteredHotelsState();
                     return;
@@ -847,6 +851,20 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
         renderSearchPin();
         maybeFocusDeepLinkedHotel();
+    }
+
+    /**
+     * Called by MainActivity when a notification or order screen asks to show a hotel while this
+     * tab already exists. If the pins aren't drawn yet it is applied as soon as they are.
+     */
+    public void focusHotel(@Nullable String hotelId) {
+        if (hotelId == null || hotelId.trim().isEmpty()) {
+            return;
+        }
+        pendingFocusHotelId = hotelId.trim();
+        if (mMap != null && !markerByHotelId.isEmpty()) {
+            maybeFocusDeepLinkedHotel();
+        }
     }
 
     private void maybeFocusDeepLinkedHotel() {
@@ -1201,6 +1219,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         super.onResume();
         if (mMap != null) {
             startLiveLocationUpdates();
+            // Not while a hotel is selected: reloading would wipe the route being looked at
+            if (selectedPlace == null && lastPlacesLoadAt > 0
+                    && System.currentTimeMillis() - lastPlacesLoadAt > PLACES_REFRESH_MS) {
+                loadAndRenderPlaceMarkers();
+            }
         }
     }
 
@@ -1229,6 +1252,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         // MainActivity keeps this fragment instance alive between tab visits, so anything tied
         // to the destroyed view/map must be reset or it points at objects that no longer exist.
         hasCenteredOnUser = false;
+        lastPlacesLoadAt = 0;
         markerPlaceMap.clear();
         markerByHotelId.clear();
         currentSelectedMarker = null;

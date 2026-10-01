@@ -130,9 +130,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         applySystemInsets();
         bindDrawerHeader();
 
-        // After a rotation the FragmentManager restores the visible tab by itself, so only the first
-        // launch loads Home (and applies a requested tab / notification deep link below).
-        // Other tabs are created lazily when first opened.
+        // After a rotation the FragmentManager restores every tab fragment that was created; pick the
+        // restored instances up again instead of creating duplicates.
+        if (savedInstanceState != null) {
+            restoreFragmentReferences();
+        }
+        // Only the first launch loads Home (and applies a requested tab / notification deep link
+        // below). Other tabs are created lazily when first opened.
         if (savedInstanceState == null) {
             homeFragment = new HomeFragment();
             loadFragment(homeFragment);
@@ -313,14 +317,58 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         return profileFragment;
     }
 
+    /** The tab fragment currently on screen. */
+    private Fragment activeFragment;
+
+    /** Re-link the tab fields to the fragments the FragmentManager restored (after rotation). */
+    private void restoreFragmentReferences() {
+        for (Fragment restored : getSupportFragmentManager().getFragments()) {
+            if (restored instanceof HomeFragment) {
+                homeFragment = (HomeFragment) restored;
+            } else if (restored instanceof MapFragment) {
+                mapFragment = (MapFragment) restored;
+            } else if (restored instanceof CartFragment) {
+                cartFragment = (CartFragment) restored;
+            } else if (restored instanceof OrdersFragment) {
+                ordersFragment = (OrdersFragment) restored;
+            } else if (restored instanceof ProfileFragment) {
+                profileFragment = (ProfileFragment) restored;
+            } else {
+                continue;
+            }
+            if (!restored.isHidden()) {
+                activeFragment = restored;
+            }
+        }
+    }
+
+    /**
+     * Shows a tab. Tabs are added once and then hidden/shown, so the map (and every other tab) keeps
+     * its state and isn't rebuilt on each visit, which is what made the map feel slow to open.
+     * Hidden tabs are capped at STARTED so they pause (location updates, banner timer, sensors).
+     */
     private void loadFragment(Fragment fragment) {
+        if (fragment == activeFragment && fragment.isAdded() && !fragment.isHidden()) {
+            return;
+        }
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.setReorderingAllowed(true);
         transaction.setCustomAnimations(
                 android.R.anim.fade_in,
                 android.R.anim.fade_out
         );
-        transaction.replace(R.id.fragmentContainer, fragment);
+        if (activeFragment != null && activeFragment != fragment && activeFragment.isAdded()) {
+            transaction.hide(activeFragment);
+            transaction.setMaxLifecycle(activeFragment, androidx.lifecycle.Lifecycle.State.STARTED);
+        }
+        if (fragment.isAdded()) {
+            transaction.show(fragment);
+        } else {
+            transaction.add(R.id.fragmentContainer, fragment);
+        }
+        transaction.setMaxLifecycle(fragment, androidx.lifecycle.Lifecycle.State.RESUMED);
         transaction.commit();
+        activeFragment = fragment;
     }
 
     public void switchToTab(int tabId) {
@@ -497,7 +545,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     private void refreshCurrentFragment() {
-        Fragment current = getSupportFragmentManager().findFragmentById(R.id.fragmentContainer);
+        Fragment current = activeFragment;
         if (current instanceof HomeFragment) {
             ((HomeFragment) current).refreshData();
         } else if (current != null) {
@@ -526,6 +574,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             bottomNavigation.setSelectedItemId(R.id.nav_cart);
         } else {
             bottomNavigation.setSelectedItemId(R.id.nav_home);
+        }
+
+        // The map tab now survives between visits, so a hotel to focus has to be handed to it directly
+        String focusHotelId = intent.getStringExtra("focus_hotel_id");
+        if (focusHotelId != null && !focusHotelId.trim().isEmpty() && mapFragment != null && mapFragment.isAdded()) {
+            mapFragment.focusHotel(focusHotelId);
+            intent.removeExtra("focus_hotel_id");
         }
 
         handleDeepLinkFromNotification(intent);
