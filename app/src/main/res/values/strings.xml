@@ -57,6 +57,7 @@
     <string name="map_route_template_clear">Distance %1$s · ETA %2$s</string>
     <string name="map_distance_hint_template">About %1$.1f km away · tap Show route for directions</string>
     <string name="map_route_hint">Tap Show route for directions</string>
+    <string name="location_picker_live_unavailable">Could not find your location. Move the map to your address, or search for it.</string>
     <string name="map_gps_off">Location is off, so distances to hotels can't be shown.</string>
     <string name="map_location_denied">Location permission denied. Allow it to see hotels near you.</string>
     <string name="map_location_needed_title">Location is turned off for REPLATE</string>

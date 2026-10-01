@@ -189,20 +189,44 @@ public class LocationPickerActivity extends AppCompatActivity implements OnMapRe
             }
         }
 
-        fusedLocationClient.getLastLocation().addOnSuccessListener(this::handleLocationResult);
+        fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(location -> {
+                    if (location != null) {
+                        handleLocationResult(location);
+                    } else {
+                        requestFreshLocation();
+                    }
+                })
+                .addOnFailureListener(e -> requestFreshLocation());
         if (!silent) {
             ToastUtils.showCustomToast(this, getString(R.string.location_picker_use_live));
         }
     }
 
+    /** No saved position (GPS was off or just started): ask for a new one before giving up. */
+    @android.annotation.SuppressLint("MissingPermission")
+    private void requestFreshLocation() {
+        try {
+            fusedLocationClient.getCurrentLocation(
+                            com.google.android.gms.location.Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+                            new com.google.android.gms.tasks.CancellationTokenSource().getToken())
+                    .addOnSuccessListener(this::handleLocationResult)
+                    .addOnFailureListener(e -> handleLocationResult(null));
+        } catch (SecurityException e) {
+            handleLocationResult(null);
+        }
+    }
+
     private void handleLocationResult(Location location) {
-        if (mMap == null) return;
+        if (mMap == null || isFinishing() || isDestroyed()) return;
 
         LatLng target;
         if (location != null) {
             target = new LatLng(location.getLatitude(), location.getLongitude());
         } else {
             target = new LatLng(6.9271, 79.8612); // Colombo fallback
+            // Do not silently pick a place for the customer
+            ToastUtils.showCustomToast(this, getString(R.string.location_picker_live_unavailable));
         }
 
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(target, 15f));
