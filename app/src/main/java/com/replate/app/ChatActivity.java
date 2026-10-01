@@ -100,16 +100,6 @@ public class ChatActivity extends AppCompatActivity {
     private ChatAdapter chatAdapter;
     private ChatDatabaseHelper chatDb;
 
-    private String pendingCallNumber;
-    private final ActivityResultLauncher<String> callPermissionLauncher =
-            registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
-                if (granted && pendingCallNumber != null) {
-                    TelephonyUtils.callNow(this, pendingCallNumber);
-                } else if (!granted && pendingCallNumber != null) {
-                    TelephonyUtils.openDialer(this, pendingCallNumber);
-                }
-            });
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -573,12 +563,11 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void initiateCall(String phone) {
-        pendingCallNumber = phone;
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE)
-                == PackageManager.PERMISSION_GRANTED) {
-            TelephonyUtils.callNow(this, phone);
-        } else {
-            callPermissionLauncher.launch(Manifest.permission.CALL_PHONE);
+        // The dialer needs no CALL_PHONE permission; the customer taps once to place the call.
+        try {
+            TelephonyUtils.openDialer(this, phone);
+        } catch (android.content.ActivityNotFoundException e) {
+            ToastUtils.showCustomToast(this, "No phone app available");
         }
     }
 
