@@ -1,6 +1,7 @@
 package com.replate.app.adapters;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,68 +9,107 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DecodeFormat;
 import com.replate.app.R;
+import com.replate.app.models.BannerItem;
+import com.replate.app.utils.GlideSafe;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Adapter for banner/promo carousel
+ * Adapter for the Home promo carousel. Each banner is either a server image (URL) or one of the
+ * bundled photos, with an optional tap action.
  */
 public class BannerAdapter extends RecyclerView.Adapter<BannerAdapter.BannerViewHolder> {
 
-    private final Context context;
-    private final List<Integer> bannerImages;
+    public interface OnBannerClickListener {
+        void onBannerClick(@NonNull BannerItem banner);
+    }
 
-    private static final String[] BANNER_BADGES = {
-            "HOT DEAL", "FOOD RESCUE", "SMART SAVINGS"
-    };
+    private final List<BannerItem> banners = new ArrayList<>();
+    @Nullable
+    private final OnBannerClickListener listener;
 
-    private static final String[] BANNER_TITLES = {
-            "Low Prices, Big Smiles",
-            "Don't Waste Good Food",
-            "Rescue Meals Near You"
-    };
+    public BannerAdapter(@Nullable OnBannerClickListener listener) {
+        this.listener = listener;
+    }
 
-    private static final String[] BANNER_SUBTITLES = {
-            "Get hotel-quality food at rescue prices today.",
-            "Every order helps reduce food waste in Sri Lanka.",
-            "Fresh surplus meals are waiting around your location."
-    };
-
-    public BannerAdapter(Context context, List<Integer> bannerImages) {
-        this.context = context;
-        this.bannerImages = bannerImages;
+    /** Replaces the whole list (used when server banners replace the bundled ones). */
+    public void submit(@NonNull List<BannerItem> items) {
+        banners.clear();
+        banners.addAll(items);
+        notifyDataSetChanged();
     }
 
     @NonNull
     @Override
     public BannerViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_banner, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_banner, parent, false);
         return new BannerViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull BannerViewHolder holder, int position) {
-        try {
-            holder.ivBanner.setImageResource(bannerImages.get(position));
-        } catch (Exception ignored) {
+        BannerItem banner = banners.get(position);
+        Context context = holder.itemView.getContext();
+
+        setTextOrHide(holder.tvBannerBadge, banner.getBadge());
+        setTextOrHide(holder.tvBannerTitle, banner.getTitle());
+        setTextOrHide(holder.tvBannerSubtitle, banner.getSubtitle());
+
+        holder.ivBanner.setImageDrawable(null);
+        Object source = null;
+        if (!TextUtils.isEmpty(banner.getImageUrl())) {
+            source = banner.getImageUrl().trim();
+        } else if (banner.getLocalImageRes() != 0) {
+            source = banner.getLocalImageRes();
+        }
+
+        if (source != null && GlideSafe.canLoad(context)) {
+            Glide.with(context)
+                    .load(source)
+                    .format(DecodeFormat.PREFER_ARGB_8888)
+                    .placeholder(R.drawable.bg_gradient_green)
+                    .error(R.drawable.bg_gradient_green)
+                    .centerCrop()
+                    .into(holder.ivBanner);
+        } else {
             holder.ivBanner.setImageResource(R.drawable.bg_gradient_green);
         }
 
-        int index = position % BANNER_TITLES.length;
-        holder.tvBannerBadge.setText(BANNER_BADGES[index]);
-        holder.tvBannerTitle.setText(BANNER_TITLES[index]);
-        holder.tvBannerSubtitle.setText(BANNER_SUBTITLES[index]);
+        String title = banner.getTitle() == null ? "" : banner.getTitle();
+        String subtitle = banner.getSubtitle() == null ? "" : banner.getSubtitle();
+        holder.bannerCard.setContentDescription(
+                context.getString(R.string.banner_content_description, title, subtitle));
+
+        holder.bannerCard.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onBannerClick(banner);
+            }
+        });
+    }
+
+    private static void setTextOrHide(TextView view, @Nullable String text) {
+        if (TextUtils.isEmpty(text)) {
+            view.setVisibility(View.GONE);
+        } else {
+            view.setVisibility(View.VISIBLE);
+            view.setText(text);
+        }
     }
 
     @Override
     public int getItemCount() {
-        return bannerImages.size();
+        return banners.size();
     }
 
     static class BannerViewHolder extends RecyclerView.ViewHolder {
+        View bannerCard;
         ImageView ivBanner;
         TextView tvBannerBadge;
         TextView tvBannerTitle;
@@ -77,6 +117,7 @@ public class BannerAdapter extends RecyclerView.Adapter<BannerAdapter.BannerView
 
         BannerViewHolder(@NonNull View itemView) {
             super(itemView);
+            bannerCard = itemView.findViewById(R.id.bannerCard);
             ivBanner = itemView.findViewById(R.id.ivBanner);
             tvBannerBadge = itemView.findViewById(R.id.tvBannerBadge);
             tvBannerTitle = itemView.findViewById(R.id.tvBannerTitle);

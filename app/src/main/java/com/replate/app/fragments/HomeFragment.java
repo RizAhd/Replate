@@ -45,11 +45,14 @@ import com.replate.app.SearchActivity;
 import com.replate.app.adapters.BannerAdapter;
 import com.replate.app.adapters.CategoryAdapter;
 import com.replate.app.adapters.FoodItemAdapter;
+import com.replate.app.helpers.BannerRepository;
 import com.replate.app.helpers.CartDatabaseHelper;
 import com.replate.app.helpers.FoodItemCacheManager;
 import com.replate.app.helpers.ReplateDatabaseHelper;
+import com.replate.app.models.BannerItem;
 import com.replate.app.models.Category;
 import com.replate.app.models.FoodItem;
+import com.replate.app.notifications.NotificationRouter;
 import com.replate.app.utils.ShakeDetector;
 import com.replate.app.utils.ToastUtils;
 
@@ -139,7 +142,7 @@ public class HomeFragment extends Fragment implements
                 return;
             }
             int nextItem = (bannerViewPager.getCurrentItem() + 1) % bannerAdapter.getItemCount();
-            bannerViewPager.setCurrentItem(nextItem, true);
+            bannerViewPager.setCurrentItem(nextItem, animationsEnabled());
             bannerHandler.postDelayed(this, BANNER_AUTO_SCROLL_MS);
         }
     };
@@ -268,20 +271,131 @@ public class HomeFragment extends Fragment implements
     }
 
     private void setupBanner() {
-        List<Integer> bannerImages = new ArrayList<>();
-        bannerImages.add(R.drawable.banner_1);
-        bannerImages.add(R.drawable.banner_2);
-        bannerImages.add(R.drawable.banner_3);
+        bannerAdapter = new BannerAdapter(this::onBannerClicked);
 
-        bannerAdapter = new BannerAdapter(getContext(), bannerImages);
+        // Show something immediately: the last banners fetched from the server if we have them,
+        // otherwise the photos bundled with the app. Fresh server banners replace these below.
+        List<BannerItem> cached = BannerRepository.filterLiveAndSort(
+                BannerRepository.getCached(requireContext()), System.currentTimeMillis());
+        bannerAdapter.submit(cached.isEmpty() ? BannerRepository.defaultBanners(requireContext()) : cached);
+
         bannerViewPager.setAdapter(bannerAdapter);
         bannerIndicator.setViewPager(bannerViewPager);
+        // Keeps the dots in sync when the list is swapped after the server responds
+        bannerAdapter.registerAdapterDataObserver(bannerIndicator.getAdapterDataObserver());
 
-        bannerViewPager.setOffscreenPageLimit(3);
+        bannerViewPager.setOffscreenPageLimit(1);
         bannerViewPager.setPageTransformer((page, position) -> {
             page.setAlpha(0.9f + (1 - Math.abs(position)) * 0.1f);
             page.setScaleY(0.96f + (1 - Math.abs(position)) * 0.04f);
         });
+
+        // Don't fight the user: pause auto-scroll while swiping, and restart the timer afterwards
+        bannerViewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageScrollStateChanged(int state) {
+                if (state == ViewPager2.SCROLL_STATE_DRAGGING) {
+                    bannerHandler.removeCallbacks(bannerAutoScrollRunnable);
+                } else if (state == ViewPager2.SCROLL_STATE_IDLE) {
+                    bannerHandler.removeCallbacks(bannerAutoScrollRunnable);
+                    bannerHandler.postDelayed(bannerAutoScrollRunnable, BANNER_AUTO_SCROLL_MS);
+                }
+            }
+        });
+
+        loadServerBanners();
+    }
+
+    private void loadServerBanners() {
+        if (getContext() == null) {
+            return;
+        }
+        BannerRepository.load(requireContext(), new BannerRepository.Callback() {
+            @Override
+            public void onLoaded(@NonNull List<BannerItem> banners) {
+                if (!isAdded() || bannerAdapter == null || bannerViewPager == null) {
+                    return;
+                }
+                // No server banners configured: keep whatever is already showing
+                if (banners.isEmpty()) {
+                    return;
+                }
+                bannerAdapter.submit(banners);
+                bannerViewPager.setCurrentItem(0, false);
+            }
+
+            @Override
+            public void onError() {
+                // Offline or denied: the cached/bundled banners stay on screen
+            }
+        });
+    }
+
+    private void onBannerClicked(@NonNull BannerItem banner) {
+        String link = banner.getDeepLink() == null ? "" : banner.getDeepLink().trim();
+        if (link.isEmpty() || !isAdded()) {
+            return;
+        }
+        String lower = link.toLowerCase(Locale.US);
+        if (lower.startsWith("category:")) {
+            openCategoryFromBanner(link.substring("category:".length()).trim());
+        } else if (lower.startsWith("tab:")) {
+            openTabFromBanner(link.substring("tab:".length()).trim());
+        } else if (NotificationRouter.isSafeDeepLink(link)) {
+            try {
+                startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(link)));
+            } catch (android.content.ActivityNotFoundException e) {
+                ToastUtils.showCustomToast(getContext(), "No app available to open this link");
+            }
+        }
+    }
+
+    private void openCategoryFromBanner(@NonNull String categoryName) {
+        for (int i = 0; i < categories.size(); i++) {
+            Category category = categories.get(i);
+            if (category.getName().equalsIgnoreCase(categoryName)) {
+                categoryAdapter.setSelectedPosition(i);
+                rvCategories.scrollToPosition(i);
+                onCategoryClick(category);
+                return;
+            }
+        }
+    }
+
+    private void openTabFromBanner(@NonNull String tabName) {
+        if (!(getActivity() instanceof MainActivity)) {
+            return;
+        }
+        MainActivity main = (MainActivity) getActivity();
+        switch (tabName.toLowerCase(Locale.US)) {
+            case "map":
+                main.switchToTab(R.id.nav_map);
+                break;
+            case "orders":
+                main.switchToTab(R.id.nav_orders);
+                break;
+            case "cart":
+                main.switchToTab(R.id.nav_cart);
+                break;
+            case "profile":
+                main.switchToTab(R.id.nav_profile);
+                break;
+            case "home":
+                main.switchToTab(R.id.nav_home);
+                break;
+            default:
+                break;
+        }
+    }
+
+    /** False when the user turned animations off, so the carousel shouldn't slide on its own. */
+    private boolean animationsEnabled() {
+        if (getContext() == null) {
+            return true;
+        }
+        return android.provider.Settings.Global.getFloat(
+                getContext().getContentResolver(),
+                android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f) != 0f;
     }
 
     private void setupClickListeners() {
