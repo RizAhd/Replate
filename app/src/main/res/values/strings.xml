@@ -753,6 +753,13 @@ Total: LKR %1$.2f</string>
     <string name="menu_help">Help</string>
     <string name="menu_logout">Logout</string>
 
+    <string name="map_status_permission">Allow location to see deals near you</string>
+    <string name="map_status_allow">Allow</string>
+    <string name="map_status_gps_off">Location is turned off</string>
+    <string name="map_status_turn_on">Turn on</string>
+    <string name="map_status_load_failed">Couldn\'t load pickup spots</string>
+    <string name="map_status_retry">Retry</string>
+    <string name="map_status_no_places">No pickup spots are listed yet</string>
     <string name="checkout_mixed_hotels_title">One hotel at a time</string>
     <string name="checkout_mixed_hotels_message">Your cart has dishes from more than one hotel. Each order goes to a single hotel, so please remove the extra items or order them separately.</string>
     <string name="checkout_back_to_cart">Back to cart</string>

@@ -3,7 +3,9 @@ package com.replate.app.fragments;
 import android.Manifest;
 import android.app.Activity;
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
+import android.location.LocationManager;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -28,6 +30,7 @@ import androidx.appcompat.widget.SearchView;
 import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.location.LocationManagerCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
@@ -103,6 +106,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private Button btnViewDeals;
     private SearchView searchView;
     private View topPanel;
+    private View cardMapStatus;
+    private TextView tvMapStatus;
+    private Button btnMapStatusAction;
+    private boolean placesLoadFailed;
 
     // State
     private LatLng currentUserLatLng;
@@ -147,6 +154,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 } else {
                     onLocationPermissionDenied();
                 }
+                updateMapStatus();
             });
 
     // "Turn on location?" dialog from Google Play services (shown when GPS is switched off)
@@ -160,7 +168,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                     requestFreshMapLocation();
                     startLiveLocationUpdates();
                 } else {
-                    ToastUtils.showCustomToast(getContext(), getString(R.string.map_gps_off));
+                    updateMapStatus();
                 }
             });
 
@@ -196,6 +204,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private void initViews(View view) {
         loadingOverlay = view.findViewById(R.id.loadingOverlay);
         topPanel = view.findViewById(R.id.topPanel);
+        cardMapStatus = view.findViewById(R.id.cardMapStatus);
+        tvMapStatus = view.findViewById(R.id.tvMapStatus);
+        btnMapStatusAction = view.findViewById(R.id.btnMapStatusAction);
         bottomSheet = view.findViewById(R.id.bottomSheet);
         ivRestaurantImage = view.findViewById(R.id.ivRestaurantImage);
         ivMyLocation = view.findViewById(R.id.ivMyLocation);
@@ -528,6 +539,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 allPlaces.clear();
                 allPlaces.addAll(places);
                 lastPlacesLoadAt = System.currentTimeMillis();
+                placesLoadFailed = false;
+                updateMapStatus();
                 if (places.isEmpty()) {
                     showNoRegisteredHotelsState();
                     return;
@@ -545,7 +558,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                     loadingOverlay.setVisibility(View.GONE);
                 }
                 showNoRegisteredHotelsState();
-                ToastUtils.showCustomToast(getContext(), "Could not load hotel locations: " + message);
+                // Shown as a banner with a Retry button; the raw error text isn't useful to the user
+                placesLoadFailed = true;
+                updateMapStatus();
             }
         });
     }
@@ -574,6 +589,54 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         } catch (IllegalStateException e) {
             // Map isn't laid out yet; the default camera stays in place
         }
+    }
+
+    /** One persistent hint at the top of the map: location denied or off, hotels failed to load, or none listed. */
+    private void updateMapStatus() {
+        if (!isViewActive() || cardMapStatus == null) {
+            return;
+        }
+        Context context = requireContext();
+        boolean hasLocationPermission =
+                ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
+                        == PackageManager.PERMISSION_GRANTED
+                || ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION)
+                        == PackageManager.PERMISSION_GRANTED;
+        LocationManager lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        boolean gpsOn = lm != null && LocationManagerCompat.isLocationEnabled(lm);
+
+        int message;
+        int action = 0;
+        View.OnClickListener onAction = null;
+        if (!hasLocationPermission) {
+            message = R.string.map_status_permission;
+            action = R.string.map_status_allow;
+            onAction = v -> locationPermissionLauncher.launch(new String[]{
+                    Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION});
+        } else if (!gpsOn) {
+            message = R.string.map_status_gps_off;
+            action = R.string.map_status_turn_on;
+            onAction = v -> startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+        } else if (placesLoadFailed) {
+            message = R.string.map_status_load_failed;
+            action = R.string.map_status_retry;
+            onAction = v -> loadAndRenderPlaceMarkers();
+        } else if (lastPlacesLoadAt > 0 && allPlaces.isEmpty()) {
+            message = R.string.map_status_no_places;
+        } else {
+            cardMapStatus.setVisibility(View.GONE);
+            return;
+        }
+
+        tvMapStatus.setText(message);
+        if (onAction != null) {
+            btnMapStatusAction.setText(action);
+            btnMapStatusAction.setOnClickListener(onAction);
+            btnMapStatusAction.setVisibility(View.VISIBLE);
+        } else {
+            btnMapStatusAction.setVisibility(View.GONE);
+        }
+        cardMapStatus.setVisibility(View.VISIBLE);
     }
 
     private void showNoRegisteredHotelsState() {
@@ -1294,6 +1357,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public void onResume() {
         super.onResume();
+        // The user may have changed location access or turned GPS on from the phone settings
+        updateMapStatus();
         if (mMap != null) {
             startLiveLocationUpdates();
             // Not while a hotel is selected: reloading would wipe the route being looked at
