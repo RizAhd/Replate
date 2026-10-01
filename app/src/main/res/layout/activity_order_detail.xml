@@ -42,7 +42,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_centerInParent="true"
-                            android:text="Order Details"
+                            android:text="@string/order_detail_order_details"
                             android:textAppearance="@style/TextAppearance.REPLATE.Subheading"
                             android:textColor="@color/white" />
                     </RelativeLayout>
@@ -61,7 +61,7 @@
                             android:id="@+id/tvOrderStatus"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Order Confirmed ✅"
+                            android:text="@string/order_detail_order_confirmed"
                             android:textAppearance="@style/TextAppearance.REPLATE.Headline"
                             android:textColor="@color/white"
                             android:textSize="@dimen/text_xl" />
@@ -97,7 +97,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Show this QR Code at Pickup"
+                    android:text="@string/order_detail_show_this_qr_code_at"
                     android:textAppearance="@style/TextAppearance.REPLATE.Label"
                     android:textColor="@color/text_primary" />
 
@@ -113,7 +113,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/space_2"
-                    android:text="Or share this pickup OTP"
+                    android:text="@string/order_detail_or_share_this_pickup_otp"
                     android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
                 <TextView
@@ -149,7 +149,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Hotel details"
+                    android:text="@string/order_detail_hotel_details"
                     android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
                 <TextView
@@ -196,7 +196,7 @@
                         android:layout_height="@dimen/button_height"
                         android:layout_weight="1"
                         android:layout_marginEnd="6dp"
-                        android:text="Call Hotel"
+                        android:text="@string/order_detail_call_hotel"
                         android:textSize="@dimen/text_xs"
                         app:icon="@drawable/ic_phone"
                         app:iconGravity="textStart"
@@ -209,7 +209,7 @@
                         android:layout_height="@dimen/button_height"
                         android:layout_weight="1"
                         android:layout_marginStart="6dp"
-                        android:text="SMS Hotel"
+                        android:text="@string/order_detail_sms_hotel"
                         android:textSize="@dimen/text_xs"
                         app:icon="@drawable/ic_email"
                         app:iconGravity="textStart"
@@ -222,7 +222,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/button_height"
                     android:layout_marginTop="@dimen/space_1_5"
-                    android:text="Open Pickup Route" />
+                    android:text="@string/order_detail_open_pickup_route" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -242,7 +242,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Payment"
+                    android:text="@string/order_detail_payment"
                     android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
                 <LinearLayout
@@ -254,7 +254,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Total Amount"
+                        android:text="@string/order_detail_total_amount"
                         android:textColor="@color/text_secondary" />
 
                     <TextView
@@ -276,7 +276,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Payment Method"
+                        android:text="@string/order_detail_payment_method"
                         android:textColor="@color/text_secondary" />
 
                     <TextView
@@ -296,7 +296,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Payment Status"
+                        android:text="@string/order_detail_payment_status"
                         android:textColor="@color/text_secondary" />
 
                     <TextView

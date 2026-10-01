@@ -28,7 +28,7 @@
                     android:layout_height="wrap_content"
                     android:layout_below="@id/textSkip"
                     android:layout_marginTop="7dp"
-                    android:text="Fresh meals, smarter savings, and less food waste."
+                    android:text="@string/onboarding_fresh_meals_smarter_savings_and"
                     android:textAppearance="@style/TextAppearance.REPLATE.Headline"
                     android:textColor="@color/white"
                     android:textSize="@dimen/text_display" />
@@ -48,7 +48,7 @@
                     android:background="@drawable/badge_distance"
                     android:paddingHorizontal="14dp"
                     android:paddingVertical="8dp"
-                    android:text="Skip"
+                    android:text="@string/onboarding_skip"
                     android:textColor="@color/green_primary"
                     android:textSize="@dimen/text_sm"
                     android:textStyle="bold" />
@@ -59,7 +59,7 @@
                     android:layout_below="@id/textSkip"
                     android:layout_marginTop="97dp"
                     android:lineSpacingExtra="3dp"
-                    android:text="Swipe through to see how REPLATE helps you find nearby rescue deals in seconds."
+                    android:text="@string/onboarding_swipe_through_to_see_how"
                     android:textAppearance="@style/TextAppearance.REPLATE.Body"
                     android:textColor="@color/text_on_primary_muted" />
             </RelativeLayout>
@@ -108,7 +108,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/button_height"
                 android:layout_marginTop="@dimen/space_1_5"
-                android:text="Next" />
+                android:text="@string/onboarding_next" />
 
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>

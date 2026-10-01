@@ -51,7 +51,7 @@
             android:fontFamily="@font/poppins_medium"
             android:paddingHorizontal="@dimen/space_1_5"
             android:paddingVertical="@dimen/space_0_5"
-            android:text="✓ Verified pickup"
+            android:text="@string/review_verified_pickup"
             android:textColor="@color/green_primary"
             android:textSize="@dimen/text_caption"
             android:visibility="gone" />
@@ -92,7 +92,7 @@
                 android:fontFamily="@font/poppins_medium"
                 android:paddingHorizontal="@dimen/space_1_5"
                 android:paddingVertical="@dimen/space_1"
-                android:text="Edit"
+                android:text="@string/review_edit"
                 android:textColor="@color/green_primary"
                 android:textSize="@dimen/text_sm" />
 
@@ -104,7 +104,7 @@
                 android:fontFamily="@font/poppins_medium"
                 android:paddingHorizontal="@dimen/space_1_5"
                 android:paddingVertical="@dimen/space_1"
-                android:text="Delete"
+                android:text="@string/review_delete"
                 android:textColor="@color/error"
                 android:textSize="@dimen/text_sm" />
         </LinearLayout>

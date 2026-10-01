@@ -104,7 +104,7 @@
                         android:layout_height="wrap_content"
                         android:background="@drawable/bg_category_chip"
                         android:fontFamily="@font/poppins_medium"
-                        android:text="Order"
+                        android:text="@string/notification_order"
                         android:textColor="@color/green_primary"
                         android:textSize="10sp"
                         android:visibility="gone" />
@@ -128,7 +128,7 @@
                 android:layout_height="32dp"
                 android:layout_marginStart="6dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Delete notification"
+                android:contentDescription="@string/notification_delete_notification_cd"
                 android:padding="7dp"
                 android:src="@drawable/ic_close"
                 app:tint="@color/text_hint" />

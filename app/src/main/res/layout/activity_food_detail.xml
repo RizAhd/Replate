@@ -56,7 +56,7 @@
                 android:elevation="@dimen/elevation_card_raised"
                 android:padding="@dimen/space_1_5"
                 android:src="@android:drawable/btn_star_big_off"
-                android:contentDescription="Add to favorites" />
+                android:contentDescription="@string/food_detail_add_to_favorites_cd" />
 
             <!-- Discount Badge -->
             <TextView
@@ -285,7 +285,7 @@
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:layout_gravity="center"
-                            android:contentDescription="Call hotel"
+                            android:contentDescription="@string/food_detail_call_hotel_cd"
                             android:src="@drawable/ic_phone"
                             app:tint="@color/white" />
                     </com.google.android.material.card.MaterialCardView>
@@ -303,7 +303,7 @@
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:layout_gravity="center"
-                            android:contentDescription="SMS hotel"
+                            android:contentDescription="@string/food_detail_sms_hotel_cd"
                             android:src="@drawable/ic_email"
                             app:tint="@color/white" />
                     </com.google.android.material.card.MaterialCardView>
@@ -313,7 +313,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="@dimen/space_1_5"
                         android:layout_weight="1"
-                        android:text="Contact hotel quickly for pickup updates"
+                        android:text="@string/food_detail_contact_hotel_quickly_for_pickup"
                         android:textAppearance="@style/TextAppearance.REPLATE.Body"
                         android:textSize="@dimen/text_xs" />
                 </LinearLayout>
@@ -348,7 +348,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="User Reviews"
+                    android:text="@string/food_detail_user_reviews"
                     android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
                 <TextView
@@ -366,7 +366,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="40dp"
                     android:layout_marginTop="10dp"
-                    android:text="Write a review"
+                    android:text="@string/food_detail_write_a_review"
                     android:textSize="@dimen/text_xs" />
 
                 <LinearLayout
@@ -398,7 +398,7 @@
                             android:id="@+id/etReviewComment"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:hint="Share your experience"
+                            android:hint="@string/food_detail_share_your_experience_hint"
                             android:inputType="textMultiLine"
                             android:maxLines="3" />
                     </com.google.android.material.textfield.TextInputLayout>
@@ -409,7 +409,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="46dp"
                         android:layout_marginTop="@dimen/space_1"
-                        android:text="Submit Review"
+                        android:text="@string/food_detail_submit_review"
                         android:textSize="@dimen/text_sm"
                         app:icon="@drawable/ic_add_white"
                         app:iconGravity="textStart"
@@ -423,7 +423,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:gravity="center"
-                    android:text="No reviews yet"
+                    android:text="@string/food_detail_no_reviews_yet"
                     android:textColor="@color/text_secondary"
                     android:visibility="gone" />
 
@@ -454,7 +454,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Recommended for you"
+                    android:text="@string/food_detail_recommended_for_you"
                     android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
                 <TextView
@@ -462,7 +462,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
-                    android:text="No related products right now"
+                    android:text="@string/food_detail_no_related_products_right_now"
                     android:textColor="@color/text_secondary"
                     android:visibility="gone" />
 

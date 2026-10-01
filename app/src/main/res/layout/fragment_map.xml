@@ -53,7 +53,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/poppins_semibold"
-                            android:text="Map explorer"
+                            android:text="@string/map_map_explorer"
                             android:textColor="@color/ember2"
                             android:textSize="@dimen/text_xs" />
 
@@ -61,7 +61,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/space_0_5"
-                            android:text="Find pickup deals around you"
+                            android:text="@string/map_find_pickup_deals_around_you"
                             android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
                     </LinearLayout>
 
@@ -194,7 +194,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp"
-                android:text="Available now"
+                android:text="@string/map_available_now"
                 android:textAppearance="@style/TextAppearance.REPLATE.Label" />
 
             <TextView

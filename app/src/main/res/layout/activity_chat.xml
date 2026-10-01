@@ -74,7 +74,7 @@
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Call"
+                    android:contentDescription="@string/chat_call_cd"
                     android:src="@drawable/ic_phone"
                     app:tint="@color/white" />
 
@@ -123,7 +123,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:text="Start a conversation"
+                android:text="@string/chat_start_a_conversation"
                 android:textColor="@color/text_secondary"
                 android:textSize="15sp"
                 android:fontFamily="@font/poppins_semibold" />
@@ -134,7 +134,7 @@
                 android:layout_marginTop="4dp"
                 android:gravity="center"
                 android:paddingHorizontal="40dp"
-                android:text="Send a message to start chatting"
+                android:text="@string/chat_send_a_message_to_start"
                 android:textColor="@color/text_hint"
                 android:textSize="13sp"
                 android:fontFamily="@font/poppins_regular" />
@@ -173,7 +173,7 @@
             android:layout_weight="1"
             android:layout_marginStart="4dp"
             android:background="@drawable/bg_chat_input"
-            android:hint="Type a message..."
+            android:hint="@string/chat_type_a_message_hint"
             android:inputType="textMultiLine|textCapSentences"
             android:maxLines="4"
             android:paddingHorizontal="18dp"
@@ -188,7 +188,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:contentDescription="Send"
+            android:contentDescription="@string/chat_send_cd"
             android:src="@drawable/ic_send"
             app:backgroundTint="@color/green_primary"
             app:fabCustomSize="44dp"

@@ -33,7 +33,7 @@
                     android:layout_centerVertical="true"
                     android:layout_alignParentStart="true"
                     android:fontFamily="@font/poppins_semibold"
-                    android:text="Order Confirmation"
+                    android:text="@string/order_success_order_confirmation"
                     android:textColor="@color/text_primary"
                     android:textSize="16sp" />
 
@@ -47,7 +47,7 @@
                     android:fontFamily="@font/poppins_semibold"
                     android:paddingHorizontal="12dp"
                     android:paddingVertical="8dp"
-                    android:text="Skip"
+                    android:text="@string/order_success_skip"
                     android:textColor="@color/text_secondary"
                     android:textSize="14sp" />
             </RelativeLayout>
@@ -77,7 +77,7 @@
                         android:layout_width="36dp"
                         android:layout_height="36dp"
                         android:layout_gravity="center"
-                        android:contentDescription="Success"
+                        android:contentDescription="@string/order_success_success_cd"
                         android:src="@drawable/ic_checkmark_white" />
                 </FrameLayout>
 
@@ -87,7 +87,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
                     android:fontFamily="@font/poppins_bold"
-                    android:text="Order Placed!"
+                    android:text="@string/order_success_order_placed"
                     android:textColor="@color/text_primary"
                     android:textSize="24sp" />
 
@@ -98,7 +98,7 @@
                     android:layout_marginTop="4dp"
                     android:fontFamily="@font/poppins_regular"
                     android:gravity="center"
-                    android:text="Show this QR at pickup"
+                    android:text="@string/order_success_show_this_qr_at_pickup"
                     android:textColor="@color/text_secondary"
                     android:textSize="14sp" />
             </LinearLayout>
@@ -141,7 +141,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
                         android:fontFamily="@font/poppins_regular"
-                        android:text="Or share pickup OTP"
+                        android:text="@string/order_success_or_share_pickup_otp"
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp" />
 
@@ -188,7 +188,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:fontFamily="@font/poppins_regular"
-                            android:text="Order"
+                            android:text="@string/order_success_order"
                             android:textColor="@color/text_secondary"
                             android:textSize="13sp" />
 
@@ -211,7 +211,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:fontFamily="@font/poppins_regular"
-                            android:text="Hotel"
+                            android:text="@string/order_success_hotel"
                             android:textColor="@color/text_secondary"
                             android:textSize="13sp" />
 
@@ -234,7 +234,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:fontFamily="@font/poppins_regular"
-                            android:text="Total"
+                            android:text="@string/order_success_total"
                             android:textColor="@color/text_secondary"
                             android:textSize="13sp" />
 
@@ -276,7 +276,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginStart="8dp"
                             android:fontFamily="@font/poppins_semibold"
-                            android:text="Waiting for pickup scan…"
+                            android:text="@string/order_success_waiting_for_pickup_scan"
                             android:textColor="@color/primary"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -305,7 +305,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/poppins_semibold"
-                        android:text="How was your experience?"
+                        android:text="@string/order_success_how_was_your_experience"
                         android:textColor="@color/text_primary"
                         android:textSize="15sp" />
 
@@ -314,7 +314,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:fontFamily="@font/poppins_regular"
-                        android:text="Your feedback helps the community"
+                        android:text="@string/order_success_your_feedback_helps_the_community"
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp" />
 
@@ -335,7 +335,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
-                        android:hint="Add a comment (optional)"
+                        android:hint="@string/order_success_add_a_comment_optional_hint"
                         app:boxCornerRadiusBottomEnd="12dp"
                         app:boxCornerRadiusBottomStart="12dp"
                         app:boxCornerRadiusTopEnd="12dp"
@@ -356,7 +356,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
                         android:layout_marginTop="12dp"
-                        android:text="Submit Review" />
+                        android:text="@string/order_success_submit_review" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -368,7 +368,7 @@
                 android:layout_height="48dp"
                 android:layout_marginHorizontal="20dp"
                 android:layout_marginTop="18dp"
-                android:text="View Order Details" />
+                android:text="@string/order_success_view_order_details" />
 
         </LinearLayout>
     </ScrollView>
@@ -405,7 +405,7 @@
                     android:layout_width="48dp"
                     android:layout_height="48dp"
                     android:layout_gravity="center"
-                    android:contentDescription="Complete"
+                    android:contentDescription="@string/order_success_complete_cd"
                     android:src="@drawable/ic_checkmark_white" />
             </FrameLayout>
 
@@ -414,7 +414,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:fontFamily="@font/poppins_bold"
-                android:text="Pickup Confirmed!"
+                android:text="@string/order_success_pickup_confirmed"
                 android:textColor="@color/green_primary"
                 android:textSize="26sp" />
 
@@ -425,7 +425,7 @@
                 android:fontFamily="@font/poppins_regular"
                 android:gravity="center"
                 android:lineSpacingExtra="3dp"
-                android:text="Your order has been picked up.\nEnjoy your meal! 🎉"
+                android:text="@string/order_success_your_order_has_been_picked"
                 android:textColor="@color/text_secondary"
                 android:textSize="14sp" />
         </LinearLayout>

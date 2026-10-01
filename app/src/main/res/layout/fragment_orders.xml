@@ -24,7 +24,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="My Orders"
+                android:text="@string/orders_my_orders"
                 android:textAppearance="@style/TextAppearance.REPLATE.Headline"
                 android:textColor="@color/white"
                 android:textSize="@dimen/text_display" />
@@ -33,7 +33,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="Track active pickups, completed orders, and cancelled requests in one place."
+                android:text="@string/orders_track_active_pickups_completed_orders"
                 android:textAppearance="@style/TextAppearance.REPLATE.Body"
                 android:textColor="@color/text_on_primary_muted" />
         </LinearLayout>
@@ -63,17 +63,17 @@
             <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Active" />
+                android:text="@string/orders_active" />
 
             <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Completed" />
+                android:text="@string/orders_completed" />
 
             <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Cancelled" />
+                android:text="@string/orders_cancelled" />
 
         </com.google.android.material.tabs.TabLayout>
     </com.google.android.material.card.MaterialCardView>
@@ -122,7 +122,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_3"
-            android:text="No orders yet"
+            android:text="@string/orders_no_orders_yet"
             android:textAppearance="@style/TextAppearance.REPLATE.Headline"
             android:textColor="@color/text_primary" />
 
@@ -131,7 +131,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_1"
             android:gravity="center"
-            android:text="When you reserve a rescue meal, it will appear here with pickup details and QR access."
+            android:text="@string/orders_when_you_reserve_a_rescue"
             android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
         <com.google.android.material.button.MaterialButton
@@ -142,7 +142,7 @@
             android:layout_marginTop="@dimen/space_3"
             android:minWidth="160dp"
             android:paddingHorizontal="@dimen/space_4"
-            android:text="Browse Deals" />
+            android:text="@string/orders_browse_deals" />
 
     </LinearLayout>
 

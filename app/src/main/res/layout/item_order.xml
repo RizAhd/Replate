@@ -131,7 +131,7 @@
                     android:layout_height="@dimen/button_height"
                     android:layout_weight="1"
                     android:layout_marginEnd="@dimen/space_1"
-                    android:text="View QR"
+                    android:text="@string/order_view_qr"
                     android:textSize="@dimen/text_xs"
                     android:visibility="gone" />
 
@@ -142,7 +142,7 @@
                     android:layout_height="@dimen/button_height"
                     android:layout_weight="1"
                     android:layout_marginStart="@dimen/space_1"
-                    android:text="Cancel"
+                    android:text="@string/order_cancel"
                     android:textSize="@dimen/text_xs"
                     android:visibility="gone" />
             </LinearLayout>

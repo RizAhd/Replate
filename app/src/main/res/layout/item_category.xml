@@ -53,7 +53,7 @@
             android:ellipsize="end"
             android:gravity="center"
             android:maxLines="2"
-            android:text="All"
+            android:text="@string/category_all"
             android:textAppearance="@style/TextAppearance.REPLATE.Label"
             android:textColor="@color/text_primary" />
 

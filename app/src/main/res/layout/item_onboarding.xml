@@ -27,7 +27,7 @@
             android:layout_height="match_parent"
             android:layout_gravity="center"
             android:adjustViewBounds="true"
-            android:contentDescription="Onboarding illustration"
+            android:contentDescription="@string/onboarding_onboarding_illustration_cd"
             android:padding="32dp"
             android:scaleType="fitCenter" />
     </com.google.android.material.card.MaterialCardView>
