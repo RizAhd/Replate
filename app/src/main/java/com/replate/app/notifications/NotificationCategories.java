@@ -15,6 +15,7 @@ public final class NotificationCategories {
     public static final String ADMIN_ANNOUNCEMENT = "admin_announcement";
     public static final String ADMIN_BROADCAST = "admin_broadcast";
     public static final String HOTEL_NEW_ORDER = "hotel_new_order";
+    public static final String REVIEW_RECEIVED = "review_received";
     public static final String HOTEL_APPROVED = "hotel_approved";
     public static final String PROFILE_UPDATED = "profile_updated";
     public static final String LOGIN_SUCCESS = "login_success";
@@ -39,6 +40,7 @@ public final class NotificationCategories {
             case ADMIN_ANNOUNCEMENT:
             case ADMIN_BROADCAST:
             case HOTEL_NEW_ORDER:
+            case REVIEW_RECEIVED:
             case HOTEL_APPROVED:
             case PROFILE_UPDATED:
             case LOGIN_SUCCESS:
@@ -56,6 +58,7 @@ public final class NotificationCategories {
                 if (category.contains("announce") || category.contains("broadcast") || category.contains("admin")) {
                     return ADMIN_ANNOUNCEMENT;
                 }
+                if (category.contains("review")) return REVIEW_RECEIVED;
                 if (category.contains("profile")) return PROFILE_UPDATED;
                 if (category.contains("login")) return LOGIN_SUCCESS;
                 if (category.contains("welcome")) return WELCOME;

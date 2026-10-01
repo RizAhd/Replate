@@ -753,6 +753,9 @@ Total: LKR %1$.2f</string>
     <string name="menu_help">Help</string>
     <string name="menu_logout">Logout</string>
 
+    <string name="notifications_deleted_snackbar">Notification deleted</string>
+    <string name="notifications_undo">Undo</string>
+    <string name="notifications_confirm_delete_all">Are you sure you want to delete all %1$d notifications? This cannot be undone.</string>
     <string name="favorites_empty_cta">Find dishes</string>
     <string name="map_status_permission">Allow location to see deals near you</string>
     <string name="map_status_allow">Allow</string>

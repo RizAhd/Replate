@@ -39,7 +39,9 @@ import com.replate.app.utils.ToastUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Notifications Activity - Shows push notification history
@@ -280,8 +282,8 @@ public class NotificationsActivity extends AppCompatActivity
         adapter.notifyDataSetChanged();
         updateUI();
 
-        Snackbar snackbar = Snackbar.make(rvNotifications, "Notification deleted", Snackbar.LENGTH_LONG);
-        snackbar.setAction("Undo", v -> {
+        Snackbar snackbar = Snackbar.make(rvNotifications, R.string.notifications_deleted_snackbar, Snackbar.LENGTH_LONG);
+        snackbar.setAction(R.string.notifications_undo, v -> {
             allNotifications.add(notification);
             Collections.sort(allNotifications, (a, b) ->
                     Long.compare(b.getTimestampValue(), a.getTimestampValue()));
@@ -474,12 +476,15 @@ public class NotificationsActivity extends AppCompatActivity
         String userId = FirebaseAuth.getInstance().getUid();
         if (userId == null) return;
 
+        // One write for all of them instead of one round trip per notification
+        Map<String, Object> updates = new HashMap<>();
         for (AppNotification notif : allNotifications) {
             if (!notif.isRead() && notif.getNotificationId() != null) {
-                mDatabase.child("notifications").child(userId)
-                        .child(notif.getNotificationId())
-                        .child("read").setValue(true);
+                updates.put(notif.getNotificationId() + "/read", true);
             }
+        }
+        if (!updates.isEmpty()) {
+            mDatabase.child("notifications").child(userId).updateChildren(updates);
         }
         ToastUtils.showCustomToast(this, R.string.notifications_all_notifications_marked_as_read);
     }
@@ -488,12 +493,8 @@ public class NotificationsActivity extends AppCompatActivity
     public void onNotificationDelete(AppNotification notification) {
         if (notification == null || notification.getNotificationId() == null) return;
 
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.notifications_delete_notification)
-                .setMessage(R.string.notifications_remove_this_notification)
-                .setPositiveButton(R.string.notifications_delete, (d, w) -> deleteSingleNotification(notification))
-                .setNegativeButton(R.string.notifications_cancel, null)
-                .show();
+        // Same undo flow as swiping, instead of a second, different confirmation dialog
+        deleteNotificationWithUndo(notification);
     }
 
     private void deleteSingleNotification(AppNotification notification) {
@@ -519,7 +520,7 @@ public class NotificationsActivity extends AppCompatActivity
 
         new AlertDialog.Builder(this)
                 .setTitle(R.string.notifications_delete_all_notifications)
-                .setMessage("Are you sure you want to delete all " + allNotifications.size() + " notifications? This cannot be undone.")
+                .setMessage(getString(R.string.notifications_confirm_delete_all, allNotifications.size()))
                 .setPositiveButton(R.string.notifications_delete_all_2, (d, w) -> deleteAllNotifications())
                 .setNegativeButton(R.string.notifications_cancel, null)
                 .show();

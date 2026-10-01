@@ -136,6 +136,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 return R.color.primary_dark;
             case "hotel_approved":
             case "welcome":
+            case "review_received":
                 return R.color.leaf2;
             default:
                 return R.color.green_primary;
@@ -289,6 +290,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 return R.drawable.ic_admin_announce;
             case "hotel_approved":
             case "welcome":
+            case "review_received":
                 return R.drawable.ic_welcome;
             default:
                 return R.drawable.ic_notification;
@@ -312,6 +314,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             case "admin_broadcast": return "System";
             case "hotel_approved": return "Approved";
             case "welcome": return "Welcome";
+            case "review_received": return "Review";
             default: return "";
         }
     }
