@@ -22,7 +22,9 @@ public class FoodItemCacheManager {
     private static final String PREFS_NAME = "REPLATE_FOOD_CACHE";
     private static final String KEY_FOOD_ITEMS = "cached_food_items";
     private static final String KEY_CACHE_TIMESTAMP = "cache_timestamp";
-    private static final long CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+    // The cache is only a first paint / offline fallback: live Firebase data replaces it as soon as it
+    // arrives. So it may be old, but not forever - listings from days ago would be misleading.
+    private static final long MAX_STALE_MS = 24L * 60 * 60 * 1000; // 24 hours
 
     private final SharedPreferences prefs;
     private final Gson gson;
@@ -48,8 +50,8 @@ public class FoodItemCacheManager {
     }
 
     /**
-     * Get cached food items if available and not expired
-     * Returns empty list if cache is expired or missing
+     * Get cached food items if available and not older than {@link #MAX_STALE_MS}
+     * Returns empty list if the cache is too old or missing
      */
     @NonNull
     public List<FoodItem> getCachedFoodItems() {
@@ -58,8 +60,8 @@ public class FoodItemCacheManager {
             long cacheTime = prefs.getLong(KEY_CACHE_TIMESTAMP, 0);
             long age = System.currentTimeMillis() - cacheTime;
 
-            if (age > CACHE_TTL_MS) {
-                // Cache expired
+            if (age > MAX_STALE_MS) {
+                // Too old to be useful even as an offline fallback
                 clearCache();
                 return new ArrayList<>();
             }
@@ -86,7 +88,7 @@ public class FoodItemCacheManager {
             long cacheTime = prefs.getLong(KEY_CACHE_TIMESTAMP, 0);
             long age = System.currentTimeMillis() - cacheTime;
 
-            if (age > CACHE_TTL_MS) {
+            if (age > MAX_STALE_MS) {
                 clearCache();
                 return false;
             }
