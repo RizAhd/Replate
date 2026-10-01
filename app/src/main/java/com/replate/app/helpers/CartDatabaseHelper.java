@@ -70,6 +70,11 @@ public class CartDatabaseHelper extends SQLiteOpenHelper {
      * Add item to cart or update quantity if it already exists
      */
     public void addItem(CartItem item) {
+        // Items without an id can't be matched or bound as a query argument
+        if (item == null || item.getFoodId() == null || item.getFoodId().isEmpty()) {
+            return;
+        }
+
         SQLiteDatabase db = getWritableDatabase();
 
         // Check if item already exists
@@ -77,26 +82,28 @@ public class CartDatabaseHelper extends SQLiteOpenHelper {
                 COL_FOOD_ID + "=?", new String[]{item.getFoodId()},
                 null, null, null);
 
-        if (cursor != null && cursor.moveToFirst()) {
-            // Item exists, update quantity
-            int currentQty = cursor.getInt(cursor.getColumnIndexOrThrow(COL_QUANTITY));
-            ContentValues values = new ContentValues();
-            values.put(COL_QUANTITY, currentQty + item.getQuantity());
-            db.update(TABLE_CART, values, COL_FOOD_ID + "=?", new String[]{item.getFoodId()});
-            cursor.close();
-        } else {
-            // New item
-            ContentValues values = new ContentValues();
-            values.put(COL_FOOD_ID, item.getFoodId());
-            values.put(COL_FOOD_NAME, item.getFoodName());
-            values.put(COL_HOTEL_NAME, item.getHotelName());
-            values.put(COL_HOTEL_ID, item.getHotelId());
-            values.put(COL_IMAGE_URL, item.getImageUrl());
-            values.put(COL_PRICE, item.getPrice());
-            values.put(COL_ORIGINAL_PRICE, item.getOriginalPrice());
-            values.put(COL_QUANTITY, item.getQuantity());
-            values.put(COL_DISCOUNT, item.getDiscountPercent());
-            db.insert(TABLE_CART, null, values);
+        try {
+            if (cursor != null && cursor.moveToFirst()) {
+                // Item exists, update quantity
+                int currentQty = cursor.getInt(cursor.getColumnIndexOrThrow(COL_QUANTITY));
+                ContentValues values = new ContentValues();
+                values.put(COL_QUANTITY, currentQty + item.getQuantity());
+                db.update(TABLE_CART, values, COL_FOOD_ID + "=?", new String[]{item.getFoodId()});
+            } else {
+                // New item
+                ContentValues values = new ContentValues();
+                values.put(COL_FOOD_ID, item.getFoodId());
+                values.put(COL_FOOD_NAME, item.getFoodName());
+                values.put(COL_HOTEL_NAME, item.getHotelName());
+                values.put(COL_HOTEL_ID, item.getHotelId());
+                values.put(COL_IMAGE_URL, item.getImageUrl());
+                values.put(COL_PRICE, item.getPrice());
+                values.put(COL_ORIGINAL_PRICE, item.getOriginalPrice());
+                values.put(COL_QUANTITY, item.getQuantity());
+                values.put(COL_DISCOUNT, item.getDiscountPercent());
+                db.insert(TABLE_CART, null, values);
+            }
+        } finally {
             if (cursor != null) cursor.close();
         }
     }
@@ -105,6 +112,7 @@ public class CartDatabaseHelper extends SQLiteOpenHelper {
      * Update item quantity
      */
     public void updateQuantity(String foodId, int quantity) {
+        if (foodId == null) return;
         SQLiteDatabase db = getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COL_QUANTITY, quantity);
@@ -115,6 +123,7 @@ public class CartDatabaseHelper extends SQLiteOpenHelper {
      * Remove item from cart
      */
     public void removeItem(String foodId) {
+        if (foodId == null) return;
         SQLiteDatabase db = getWritableDatabase();
         db.delete(TABLE_CART, COL_FOOD_ID + "=?", new String[]{foodId});
     }
@@ -186,6 +195,7 @@ public class CartDatabaseHelper extends SQLiteOpenHelper {
      * Check if item is in cart
      */
     public boolean isInCart(String foodId) {
+        if (foodId == null) return false;
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.query(TABLE_CART, null,
                 COL_FOOD_ID + "=?", new String[]{foodId},
