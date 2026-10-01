@@ -353,17 +353,21 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         if (loadingOverlay != null) {
             loadingOverlay.setVisibility(View.VISIBLE);
         }
+        // Grab these on the main thread; requireContext()/requireActivity() can throw if the
+        // fragment detaches while the lookup is running on the background thread.
+        final android.content.Context appContext = requireContext().getApplicationContext();
+        final androidx.fragment.app.FragmentActivity hostActivity = requireActivity();
         new Thread(() -> {
-            if (!isAdded() || requestId != searchRequestVersion) {
+            if (requestId != searchRequestVersion) {
                 return;
             }
-            Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
+            Geocoder geocoder = new Geocoder(appContext, Locale.getDefault());
             try {
                 List<Address> result = geocoder.getFromLocationName(locationName, 1);
-                if (!isAdded() || requestId != searchRequestVersion) {
+                if (requestId != searchRequestVersion) {
                     return;
                 }
-                requireActivity().runOnUiThread(() -> {
+                hostActivity.runOnUiThread(() -> {
                     if (!isViewActive() || requestId != searchRequestVersion) {
                         return;
                     }
@@ -383,11 +387,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                         ToastUtils.showCustomToast(getContext(), "Location not found");
                     }
                 });
-            } catch (IOException ioException) {
-                if (!isAdded() || requestId != searchRequestVersion) {
+            } catch (IOException | IllegalArgumentException lookupError) {
+                if (requestId != searchRequestVersion) {
                     return;
                 }
-                requireActivity().runOnUiThread(() -> {
+                hostActivity.runOnUiThread(() -> {
                     if (!isViewActive() || requestId != searchRequestVersion) {
                         return;
                     }
