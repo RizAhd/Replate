@@ -111,13 +111,13 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:background="@drawable/button_outline_primary"
+                            android:background="@drawable/bg_choice_segment"
                             android:button="@null"
                             android:gravity="center"
                             android:minHeight="@dimen/touch_target_min"
                             android:paddingHorizontal="@dimen/space_1_5"
                             android:text="@string/checkout_pickup"
-                            android:textColor="@color/green_primary"
+                            android:textColor="@color/choice_segment_text"
                             android:textStyle="bold" />
 
                         <Space
@@ -129,13 +129,13 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:background="@drawable/button_outline_primary"
+                            android:background="@drawable/bg_choice_segment"
                             android:button="@null"
                             android:gravity="center"
                             android:minHeight="@dimen/touch_target_min"
                             android:paddingHorizontal="@dimen/space_1_5"
                             android:text="@string/checkout_delivery"
-                            android:textColor="@color/green_primary"
+                            android:textColor="@color/choice_segment_text"
                             android:textStyle="bold" />
                     </RadioGroup>
                 </LinearLayout>
