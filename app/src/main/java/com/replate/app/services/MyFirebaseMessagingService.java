@@ -218,14 +218,15 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         );
 
         Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-        Bitmap largeIcon = BitmapFactory.decodeResource(getResources(), R.drawable.replate);
+        // 192px brand icon; the old 500px logo cost about 1 MB of memory per notification
+        Bitmap largeIcon = BitmapFactory.decodeResource(getResources(), R.drawable.ic_replate_large);
 
         // Strip emoji characters so they don't appear in the popup title/body
         String cleanTitle = stripEmoji(title);
         String cleanBody  = stripEmoji(body);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_notif_replate)
+                .setSmallIcon(R.drawable.ic_stat_replate)
                 .setLargeIcon(largeIcon)
                 .setContentTitle(cleanTitle)
                 .setContentText(cleanBody)
