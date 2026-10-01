@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Banners - REPLATE Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+    <style>
+        .banner-thumb { width: 96px; height: 48px; object-fit: cover; border-radius: 8px; background: #e9ecef; }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar rendered by ui-shell.js -->
+        <nav id="appShellSidebar" class="sidebar"></nav>
+
+        <main>
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <div>
+                    <h1 class="panel-title">Manage Home Banners</h1>
+                    <p class="panel-subtitle mb-0">Photo banners shown at the top of the app's Home screen. Use a wide image (about 2:1, e.g. 1080&times;540).</p>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-4">
+                    <div class="card p-4">
+                        <h5 class="mb-3"><i class="fas fa-plus-circle me-2"></i>Add New Banner</h5>
+                        <form id="addBannerForm">
+                            <div class="mb-3">
+                                <label class="form-label" for="bnTitle">Title</label>
+                                <input type="text" class="form-control" id="bnTitle" maxlength="60" placeholder="e.g. Fresh Bakes, Fair Prices" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" for="bnSubtitle">Subtitle</label>
+                                <input type="text" class="form-control" id="bnSubtitle" maxlength="120" placeholder="Short supporting line">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" for="bnBadge">Badge</label>
+                                <input type="text" class="form-control" id="bnBadge" maxlength="20" placeholder="e.g. HOT DEAL">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" for="bnImage">Image</label>
+                                <input type="file" class="form-control" id="bnImage" accept="image/jpeg,image/png,image/webp" required>
+                                <div class="form-text">JPG, PNG or WebP, up to 2 MB.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" for="bnLink">Tap action (optional)</label>
+                                <input type="text" class="form-control" id="bnLink" placeholder="category:Bakery &nbsp;|&nbsp; tab:map &nbsp;|&nbsp; https://...">
+                                <div class="form-text">
+                                    <code>category:Bakery</code> opens that category, <code>tab:map</code> opens a tab
+                                    (home, map, orders, cart, profile), or paste an <code>https://</code> link.
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6 mb-3">
+                                    <label class="form-label" for="bnOrder">Order</label>
+                                    <input type="number" class="form-control" id="bnOrder" value="1" min="0" required>
+                                </div>
+                                <div class="col-6 mb-3 d-flex align-items-end">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="bnActive" checked>
+                                        <label class="form-check-label" for="bnActive">Active</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" for="bnStart">Show from (optional)</label>
+                                <input type="datetime-local" class="form-control" id="bnStart">
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label" for="bnEnd">Show until (optional)</label>
+                                <input type="datetime-local" class="form-control" id="bnEnd">
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100" id="bnSubmit">
+                                <i class="fas fa-plus me-2"></i>Add Banner
+                            </button>
+                            <div id="bnMessage" class="small mt-3" role="status"></div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="col-lg-8">
+                    <div class="card p-3">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-stack align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Preview</th>
+                                        <th>Banner</th>
+                                        <th>Order</th>
+                                        <th>Active</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bannerTable">
+                                    <!-- Loaded via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<script src="../js/env-config.js"></script>
+<script src="../js/firebase-config.js"></script>
+<script src="../js/ui-shell.js"></script>
+
+<script>
+    const adminShellLinks = [
+        { key: 'approve-hotels', href: 'approve-hotels.html', icon: 'fas fa-hotel', label: 'Approve Hotels' },
+        { key: 'transactions', href: 'transactions.html', icon: 'fas fa-money-bill-wave', label: 'Transactions' },
+        { key: 'categories', href: 'categories.html', icon: 'fas fa-tags', label: 'Categories' },
+        { key: 'banners', href: 'banners.html', icon: 'fas fa-images', label: 'Banners' },
+        { key: 'analytics', href: 'analytics.html', icon: 'fas fa-chart-line', label: 'Analytics' },
+        { key: 'notifications', href: 'notifications.html', icon: 'fas fa-bell', label: 'Notifications' },
+        { key: 'logout', href: '#', icon: 'fas fa-sign-out-alt', label: 'Logout', logout: true }
+    ];
+
+    const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
+    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+    // Anything coming from the database is escaped before it goes into innerHTML
+    function esc(value) {
+        return String(value ?? '').replace(/[&<>"']/g, (c) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
+    }
+
+    function showMessage(text, isError) {
+        const el = document.getElementById('bnMessage');
+        el.textContent = text;
+        el.className = 'small mt-3 ' + (isError ? 'text-danger' : 'text-success');
+    }
+
+    function formatWindow(b) {
+        const fmt = (ms) => new Date(ms).toLocaleString();
+        if (!b.startAt && !b.endAt) return 'Always';
+        return (b.startAt ? 'From ' + fmt(b.startAt) : '') + (b.startAt && b.endAt ? '<br>' : '') +
+               (b.endAt ? 'Until ' + fmt(b.endAt) : '');
+    }
+
+    auth.onAuthStateChanged(async (user) => {
+        ReplateUI.renderSidebar('appShellSidebar', {
+            title: '<img src="../assets/replate-icon.svg" alt="REPLATE" class="brand-logo-sm">ADMIN',
+            activeKey: 'banners',
+            links: adminShellLinks,
+        });
+        if (!user) {
+            window.location.href = 'login.html';
+            return;
+        }
+        try {
+            const role = await resolveUserRole(user.uid);
+            if (role !== 'admin') {
+                window.location.href = 'login.html';
+                return;
+            }
+        } catch (e) {
+            window.location.href = 'login.html';
+            return;
+        }
+        loadBanners();
+    });
+
+    function loadBanners() {
+        database.ref('banners').orderByChild('order').on('value', (snapshot) => {
+            const tbody = document.getElementById('bannerTable');
+            const rows = [];
+            snapshot.forEach((child) => {
+                const b = child.val() || {};
+                const key = child.key;
+                const thumb = b.imageUrl && /^https:\/\//i.test(b.imageUrl)
+                    ? `<img class="banner-thumb" src="${esc(b.imageUrl)}" alt="">`
+                    : '<div class="banner-thumb"></div>';
+                rows.push(`
+                    <tr>
+                        <td data-label="Preview">${thumb}</td>
+                        <td data-label="Banner">
+                            <strong>${esc(b.title)}</strong>
+                            ${b.badge ? `<span class="badge bg-warning text-dark ms-1">${esc(b.badge)}</span>` : ''}
+                            <div class="small text-muted">${esc(b.subtitle)}</div>
+                            <div class="small text-muted">${b.deepLink ? 'Action: ' + esc(b.deepLink) : 'No action'}</div>
+                            <div class="small text-muted">${formatWindow(b)}</div>
+                        </td>
+                        <td data-label="Order">${esc(b.order)}</td>
+                        <td data-label="Active">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" ${b.active !== false ? 'checked' : ''}
+                                       onchange="toggleBanner('${esc(key)}', this.checked)" aria-label="Active">
+                            </div>
+                        </td>
+                        <td data-label="Actions" class="actions-cell">
+                            <button class="btn btn-sm btn-danger" onclick="deleteBanner('${esc(key)}')" aria-label="Delete banner">🗑️</button>
+                        </td>
+                    </tr>
+                `);
+            });
+            tbody.innerHTML = rows.length ? rows.join('')
+                : '<tr><td colspan="5" class="text-center text-muted py-4">No banners yet. The app shows its built-in banners until you add one.</td></tr>';
+        }, (error) => {
+            showMessage('Could not load banners: ' + error.message, true);
+        });
+    }
+
+    document.getElementById('addBannerForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submit = document.getElementById('bnSubmit');
+        const file = document.getElementById('bnImage').files[0];
+
+        if (!file) { showMessage('Please choose an image.', true); return; }
+        if (!ALLOWED_TYPES.includes(file.type)) { showMessage('Image must be a JPG, PNG or WebP file.', true); return; }
+        if (file.size > MAX_IMAGE_BYTES) { showMessage('Image is larger than 2 MB. Please compress it first.', true); return; }
+
+        const link = document.getElementById('bnLink').value.trim();
+        const linkOk = link === '' || /^category:\S.*/i.test(link) || /^tab:(home|map|orders|cart|profile)$/i.test(link) || /^https:\/\//i.test(link);
+        if (!linkOk) { showMessage('Tap action must be category:Name, tab:map (home/map/orders/cart/profile) or an https:// link.', true); return; }
+
+        const startVal = document.getElementById('bnStart').value;
+        const endVal = document.getElementById('bnEnd').value;
+        const startAt = startVal ? new Date(startVal).getTime() : 0;
+        const endAt = endVal ? new Date(endVal).getTime() : 0;
+        if (startAt && endAt && endAt <= startAt) { showMessage('"Show until" must be after "Show from".', true); return; }
+
+        submit.disabled = true;
+        showMessage('Uploading image…', false);
+
+        try {
+            const newRef = database.ref('banners').push();
+            const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+            const storageRef = storage.ref('banners/' + newRef.key + '_' + safeName);
+            await storageRef.put(file, { contentType: file.type });
+            const imageUrl = await storageRef.getDownloadURL();
+
+            await newRef.set({
+                title: document.getElementById('bnTitle').value.trim(),
+                subtitle: document.getElementById('bnSubtitle').value.trim(),
+                badge: document.getElementById('bnBadge').value.trim(),
+                imageUrl: imageUrl,
+                deepLink: link,
+                order: parseInt(document.getElementById('bnOrder').value, 10) || 0,
+                active: document.getElementById('bnActive').checked,
+                startAt: startAt,
+                endAt: endAt,
+                createdAt: firebase.database.ServerValue.TIMESTAMP
+            });
+
+            document.getElementById('addBannerForm').reset();
+            document.getElementById('bnActive').checked = true;
+            showMessage('Banner added.', false);
+        } catch (err) {
+            showMessage('Could not add the banner: ' + (err && err.message ? err.message : err), true);
+        } finally {
+            submit.disabled = false;
+        }
+    });
+
+    window.toggleBanner = function (key, active) {
+        database.ref('banners/' + key + '/active').set(!!active).catch((err) => {
+            showMessage('Could not update the banner: ' + err.message, true);
+        });
+    };
+
+    window.deleteBanner = async function (key) {
+        if (!confirm('Delete this banner?')) return;
+        try {
+            const snap = await database.ref('banners/' + key).once('value');
+            const imageUrl = (snap.val() || {}).imageUrl;
+            await database.ref('banners/' + key).remove();
+            if (imageUrl) {
+                // Best effort: remove the uploaded file too; ignore if it was an external URL
+                try { await storage.refFromURL(imageUrl).delete(); } catch (ignored) { }
+            }
+        } catch (err) {
+            showMessage('Could not delete the banner: ' + err.message, true);
+        }
+    };
+</script>
+</body>
+</html>
