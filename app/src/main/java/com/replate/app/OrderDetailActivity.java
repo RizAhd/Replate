@@ -94,12 +94,17 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         String orderId = getIntent().getStringExtra("orderId");
         Order intentOrder = (Order) getIntent().getSerializableExtra("order");
 
-        if (orderId != null) {
-            loadOrderFromFirebase(orderId);
-        } else if (intentOrder != null) {
+        // Show a passed-in order straight away, then follow it live so the status never goes stale
+        if (intentOrder != null) {
             order = intentOrder;
             displayOrderDetails();
-        } else {
+            if (orderId == null) {
+                orderId = intentOrder.getOrderId();
+            }
+        }
+        if (orderId != null && !orderId.trim().isEmpty()) {
+            loadOrderFromFirebase(orderId);
+        } else if (intentOrder == null) {
             finish();
         }
     }

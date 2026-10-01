@@ -205,8 +205,12 @@ public class ChatActivity extends AppCompatActivity {
             }
         }
 
-        // Call button
-        btnCall.setOnClickListener(v -> makeCall());
+        // The call button dials the hotel's phone, which makes no sense when the hotel is the one chatting
+        if (isHotelView) {
+            btnCall.setVisibility(View.GONE);
+        } else {
+            btnCall.setOnClickListener(v -> makeCall());
+        }
     }
 
     private void setupRecyclerView() {

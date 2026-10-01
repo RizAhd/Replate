@@ -199,7 +199,7 @@
             android:contentDescription="@string/chat_send_cd"
             android:src="@drawable/ic_send"
             app:backgroundTint="@color/green_primary"
-            app:fabCustomSize="44dp"
+            app:fabCustomSize="48dp"
             app:maxImageSize="20dp"
             app:tint="@color/white"
             app:elevation="2dp" />
