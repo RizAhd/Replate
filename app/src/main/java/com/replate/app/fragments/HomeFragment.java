@@ -456,7 +456,10 @@ public class HomeFragment extends Fragment implements
         }
 
         for (FoodItem item : allFoodItems) {
-            if (item == null || !item.hasValidCoordinates()) {
+            if (item == null) {
+                continue;
+            }
+            if (!item.hasValidCoordinates()) {
                 item.setDistance(0);
                 continue;
             }
