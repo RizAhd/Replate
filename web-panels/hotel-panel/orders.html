@@ -318,14 +318,19 @@
                 return;
             }
             showVerificationModal(foundKey, foundOrder);
+        }).catch(err => {
+            console.error('OTP lookup failed', err);
+            alert('Could not check the OTP right now. Please check your connection and try again.');
         });
     }
 
     function checkOrderByCode(code) {
         if (!code) return;
 
-        database.ref('orders/' + code).once('value').then(snapshot => {
-            if (snapshot.exists()) {
+        // A code that belongs to another hotel is refused by the database rules (permission denied).
+        // Treat that like "not found here" and carry on to the search below, which reports it.
+        database.ref('orders/' + code).once('value').catch(() => null).then(snapshot => {
+            if (snapshot && snapshot.exists()) {
                 const order = snapshot.val() || {};
                 if (orderBelongsToHotel(order)) {
                     showVerificationModal(code, order);
@@ -360,6 +365,9 @@
                     return;
                 }
                 showVerificationModal(foundKey, foundOrder);
+            }).catch(err => {
+                console.error('Order search failed', err);
+                alert('Could not look up this order right now. Please check your connection and try again.');
             });
         });
     }
