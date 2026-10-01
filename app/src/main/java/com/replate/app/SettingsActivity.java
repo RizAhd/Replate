@@ -183,6 +183,11 @@ public class SettingsActivity extends AppCompatActivity {
 
     private void initViews() {
         ImageView ivBack = findViewById(R.id.ivBack);
+        // Always show the real build version instead of a hard-coded number that drifts
+        android.widget.TextView tvAppVersion = findViewById(R.id.tvAppVersion);
+        if (tvAppVersion != null) {
+            tvAppVersion.setText(getString(R.string.settings_version, BuildConfig.VERSION_NAME));
+        }
         ivProfileImage = findViewById(R.id.ivProfileImage);
         etName = findViewById(R.id.etName);
         etPhone = findViewById(R.id.etPhone);
