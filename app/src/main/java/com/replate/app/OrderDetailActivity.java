@@ -66,6 +66,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
     private View reviewSection;
 
     private boolean reviewFormPrepared;
+    private String lastQrData;
 
     private DatabaseReference mDatabase;
     private Order order;
@@ -396,19 +397,25 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
      * REQUIREMENT: QR Code generation
      */
     private void generateQRCode(String data) {
+        // Live order updates call this on every change; the code only needs rebuilding when its data changes
+        if (data == null || data.equals(lastQrData)) return;
         try {
             int size = 400;
             MultiFormatWriter writer = new MultiFormatWriter();
             BitMatrix matrix = writer.encode(data, BarcodeFormat.QR_CODE, size, size);
 
-            Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.RGB_565);
-            for (int x = 0; x < size; x++) {
-                for (int y = 0; y < size; y++) {
-                    bitmap.setPixel(x, y, matrix.get(x, y) ? Color.BLACK : Color.WHITE);
+            // One bulk write instead of size*size setPixel calls, which was noticeably slow on the main thread
+            int[] pixels = new int[size * size];
+            for (int y = 0; y < size; y++) {
+                int row = y * size;
+                for (int x = 0; x < size; x++) {
+                    pixels[row + x] = matrix.get(x, y) ? Color.BLACK : Color.WHITE;
                 }
             }
+            Bitmap bitmap = Bitmap.createBitmap(pixels, size, size, Bitmap.Config.RGB_565);
 
             ivQRCode.setImageBitmap(bitmap);
+            lastQrData = data;
         } catch (Exception e) {
             android.util.Log.w("OrderDetail", "QR generation failed", e);
             ToastUtils.showCustomToast(this, R.string.order_detail_qr_code_generation_failed);

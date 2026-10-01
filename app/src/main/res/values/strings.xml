@@ -513,6 +513,7 @@ Total: LKR %1$.2f</string>
     <string name="order_detail_order_total">Total</string>
     <string name="order_success_total">Total</string>
     <string name="order_success_waiting_for_pickup_scan">Waiting for pickup scan…</string>
+    <string name="order_success_waiting_for_delivery">Waiting for delivery…</string>
     <string name="order_success_how_was_your_experience">How was your experience?</string>
     <string name="order_success_your_feedback_helps_the_community">Your feedback helps the community</string>
     <string name="order_success_add_a_comment_optional_hint">Add a comment (optional)</string>

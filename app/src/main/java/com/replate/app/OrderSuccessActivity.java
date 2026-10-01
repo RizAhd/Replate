@@ -172,8 +172,14 @@ public class OrderSuccessActivity extends AppCompatActivity {
         // Summary
         String id = order.getOrderId();
         tvOrderId.setText("#" + (id != null ? id.substring(Math.max(0, id.length() - 8)) : "N/A"));
-        tvHotelName.setText(order.getHotelName() != null ? order.getHotelName() : "Restaurant");
+        tvHotelName.setText(order.getHotelName() != null && !order.getHotelName().trim().isEmpty()
+                ? order.getHotelName() : getString(R.string.hotel_name_fallback));
         tvTotal.setText(Money.format(order.getTotalAmountValue()));
+
+        // The layout's wording is about pickup; a delivery order is waiting for the courier instead
+        if (order.isDelivery() && !order.isCompleted()) {
+            tvStatus.setText(R.string.order_success_waiting_for_delivery);
+        }
 
         // If already completed (user returns to screen), show review directly
         if (order.isCompleted()) {
@@ -291,12 +297,15 @@ public class OrderSuccessActivity extends AppCompatActivity {
             MultiFormatWriter writer = new MultiFormatWriter();
             BitMatrix matrix = writer.encode(data, BarcodeFormat.QR_CODE, size, size);
 
-            Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.RGB_565);
-            for (int x = 0; x < size; x++) {
-                for (int y = 0; y < size; y++) {
-                    bitmap.setPixel(x, y, matrix.get(x, y) ? Color.BLACK : Color.WHITE);
+            // One bulk write instead of size*size setPixel calls, which was noticeably slow on the main thread
+            int[] pixels = new int[size * size];
+            for (int y = 0; y < size; y++) {
+                int row = y * size;
+                for (int x = 0; x < size; x++) {
+                    pixels[row + x] = matrix.get(x, y) ? Color.BLACK : Color.WHITE;
                 }
             }
+            Bitmap bitmap = Bitmap.createBitmap(pixels, size, size, Bitmap.Config.RGB_565);
             ivQRCode.setImageBitmap(bitmap);
         } catch (Exception e) {
             Log.e(TAG, "QR generation failed", e);
