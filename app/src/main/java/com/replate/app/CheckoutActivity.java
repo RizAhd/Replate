@@ -33,6 +33,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.replate.app.helpers.CartDatabaseHelper;
 import com.replate.app.models.CartItem;
 import com.replate.app.utils.CheckoutValidator;
+import com.replate.app.utils.NetworkUtils;
 import com.replate.app.utils.ToastUtils;
 
 import java.io.FileOutputStream;
@@ -46,7 +47,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Random;
 
 import lk.payhere.androidsdk.PHConfigs;
 import lk.payhere.androidsdk.PHConstants;
@@ -90,6 +90,21 @@ public class CheckoutActivity extends AppCompatActivity {
     private double deliveryFee = 0;
     private double selectedDeliveryLat = 0;
     private double selectedDeliveryLng = 0;
+
+    // One order id / pickup code per checkout attempt, so a retry overwrites the same order
+    // instead of creating a duplicate (and charging twice).
+    private String pendingOrderId;
+    private String pendingOtp;
+    // Set once a card payment succeeded but the order isn't saved yet; the next tap must retry
+    // saving, never start another payment.
+    private String pendingPaymentMethod;
+    private String pendingPaymentStatus;
+    private boolean orderCompleted;
+    private boolean orderWriteInFlight;
+    private static final long SUBMIT_TIMEOUT_MS = 25_000L;
+    private final android.os.Handler submitTimeoutHandler =
+            new android.os.Handler(android.os.Looper.getMainLooper());
+    private Runnable submitTimeoutRunnable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -280,6 +295,13 @@ public class CheckoutActivity extends AppCompatActivity {
     }
 
     private void placeOrder() {
+        // A card payment already went through but saving the order failed: only retry saving.
+        // Starting another payment here would charge the customer twice.
+        if (pendingPaymentStatus != null) {
+            submitOrder(pendingPaymentMethod, pendingPaymentStatus);
+            return;
+        }
+
         String customerName = etCustomerName.getText().toString().trim();
         String customerPhone = etCustomerPhone.getText().toString().trim();
         String pickupTime = etPickupTime.getText().toString().trim();
@@ -466,9 +488,22 @@ public class CheckoutActivity extends AppCompatActivity {
     }
 
     private void submitOrder(String paymentMethod, String paymentStatus) {
+        if (orderCompleted) {
+            return;
+        }
+        if ("paid".equals(paymentStatus)) {
+            // Remember that money has been taken, so every retry path knows not to charge again
+            pendingPaymentMethod = paymentMethod;
+            pendingPaymentStatus = paymentStatus;
+        }
         if (mAuth.getCurrentUser() == null) {
-            showLoading(false);
-            ToastUtils.showCustomToast(this, "Your session has expired. Please log in again to place your order.");
+            handleSubmitFailure(paymentMethod, paymentStatus,
+                    "Your session has expired. Please log in again.");
+            return;
+        }
+        if (!NetworkUtils.isOnline(this)) {
+            handleSubmitFailure(paymentMethod, paymentStatus,
+                    "You're offline. Connect to the internet and try again.");
             return;
         }
 
@@ -481,11 +516,15 @@ public class CheckoutActivity extends AppCompatActivity {
         String pickupTime = isDelivery ? "N/A" : etPickupTime.getText().toString().trim();
         String address = etAddress.getText().toString().trim();
 
-        String otpCode = String.format(Locale.US, "%06d", new Random().nextInt(999999));
-        String orderId = mDatabase.child("orders").push().getKey();
+        if (pendingOrderId == null) {
+            pendingOrderId = mDatabase.child("orders").push().getKey();
+            pendingOtp = String.format(Locale.US, "%06d", new java.security.SecureRandom().nextInt(1_000_000));
+        }
+        final String otpCode = pendingOtp;
+        final String orderId = pendingOrderId;
 
         if (orderId == null) {
-            showLoading(false);
+            handleSubmitFailure(paymentMethod, paymentStatus, "Couldn't create the order.");
             return;
         }
 
@@ -540,8 +579,29 @@ public class CheckoutActivity extends AppCompatActivity {
         final String finalHotelId = hotelId;
         final String finalHotelName = hotelName;
 
+        // If the write never answers (poor signal), stop the spinner and let the user retry.
+        // Retrying is safe: it reuses the same order id, so it can't create a second order.
+        orderWriteInFlight = true;
+        cancelSubmitTimeout();
+        submitTimeoutRunnable = () -> {
+            if (!isFinishing() && !isDestroyed() && orderWriteInFlight && !orderCompleted) {
+                orderWriteInFlight = false;
+                handleSubmitFailure(paymentMethod, paymentStatus,
+                        "Saving your order is taking longer than expected.");
+            }
+        };
+        submitTimeoutHandler.postDelayed(submitTimeoutRunnable, SUBMIT_TIMEOUT_MS);
+
         mDatabase.child("orders").child(orderId).setValue(orderData)
                 .addOnSuccessListener(unused -> {
+                    cancelSubmitTimeout();
+                    orderWriteInFlight = false;
+                    if (orderCompleted) {
+                        return; // a late success after a retry already finished the order
+                    }
+                    orderCompleted = true;
+                    pendingPaymentMethod = null;
+                    pendingPaymentStatus = null;
                     showLoading(false);
 
                     // Decrement food quantity & auto-deactivate if sold out
@@ -580,9 +640,51 @@ public class CheckoutActivity extends AppCompatActivity {
                     ToastUtils.showCustomToast(this, "Order placed successfully");
                 })
                 .addOnFailureListener(e -> {
-                    showLoading(false);
-                    ToastUtils.showCustomToast(this, "Failed to place order: " + e.getMessage());
+                    cancelSubmitTimeout();
+                    orderWriteInFlight = false;
+                    if (orderCompleted) {
+                        return;
+                    }
+                    Log.w(TAG, "Order write failed", e);
+                    handleSubmitFailure(paymentMethod, paymentStatus, "We couldn't save your order.");
                 });
+    }
+
+    private void cancelSubmitTimeout() {
+        if (submitTimeoutRunnable != null) {
+            submitTimeoutHandler.removeCallbacks(submitTimeoutRunnable);
+            submitTimeoutRunnable = null;
+        }
+    }
+
+    /**
+     * Cash orders just show the problem. After a successful card payment the money is already
+     * taken, so the dialog only offers to retry saving, never to pay again.
+     */
+    private void handleSubmitFailure(String paymentMethod, String paymentStatus, String reason) {
+        showLoading(false);
+        if ("paid".equals(paymentStatus)) {
+            btnPlaceOrder.setText("Retry saving order");
+            if (isFinishing() || isDestroyed()) {
+                return;
+            }
+            new AlertDialog.Builder(this)
+                    .setTitle("Payment received")
+                    .setMessage(reason + "\n\nYour card payment went through. Tap Retry to save your order. "
+                            + "You will not be charged again.")
+                    .setPositiveButton("Retry", (d, w) -> submitOrder(paymentMethod, paymentStatus))
+                    .setNegativeButton("Not now", null)
+                    .setCancelable(false)
+                    .show();
+        } else {
+            ToastUtils.showCustomToast(this, reason + " Please try again.");
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        cancelSubmitTimeout();
+        super.onDestroy();
     }
 
     private void saveReceipt(String orderId, String otp, String name, double total) {
