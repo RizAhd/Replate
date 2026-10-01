@@ -253,8 +253,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         TextView tvDrawerEmail = header.findViewById(R.id.tvDrawerEmail);
         ImageView ivDrawerAvatar = header.findViewById(R.id.ivDrawerAvatar);
 
+        // Phone and social sign-ins can have no email; keep the tagline then instead of blanking the line
         if (tvDrawerEmail != null) {
-            tvDrawerEmail.setText(mAuth.getCurrentUser().getEmail());
+            String email = mAuth.getCurrentUser().getEmail();
+            String phone = mAuth.getCurrentUser().getPhoneNumber();
+            if (email != null && !email.trim().isEmpty()) {
+                tvDrawerEmail.setText(email);
+            } else if (phone != null && !phone.trim().isEmpty()) {
+                tvDrawerEmail.setText(phone);
+            }
         }
 
         FirebaseDatabase.getInstance().getReference("users")
@@ -273,9 +280,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                                 profileImage = snapshot.child("profileImageUrl").getValue(String.class);
                             }
                             if (profileImage != null && !profileImage.trim().isEmpty()) {
+                                // The logo sits inside a padded white circle; a real photo should fill the circle
+                                ivDrawerAvatar.setPadding(0, 0, 0, 0);
                                 Glide.with(MainActivity.this)
                                         .load(profileImage)
+                                        .circleCrop()
                                         .placeholder(R.drawable.ic_replate_logo)
+                                        .error(R.drawable.ic_replate_logo)
                                         .into(ivDrawerAvatar);
                             }
                         }
