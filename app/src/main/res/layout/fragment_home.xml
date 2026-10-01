@@ -77,7 +77,7 @@
                             <LinearLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
+                                android:layout_marginTop="@dimen/space_0_5"
                                 android:gravity="center_vertical"
                                 android:orientation="horizontal">
 
@@ -172,7 +172,7 @@
                             android:id="@+id/searchView"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:paddingHorizontal="4dp"
+                            android:paddingHorizontal="@dimen/space_0_5"
                             app:iconifiedByDefault="false"
                             app:queryHint="@string/home_search_hint"
                             app:queryBackground="@android:color/transparent"/>

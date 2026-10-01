@@ -26,7 +26,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="24dp">
+                android:padding="@dimen/space_3">
 
                 <!-- Profile Image -->
                 <de.hdodenhof.circleimageview.CircleImageView
@@ -56,7 +56,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="@dimen/space_0_5"
                     android:text="@string/profile_user_email_placeholder"
                     android:textAppearance="@style/TextAppearance.REPLATE.Body"
                     android:textColor="@color/white_85" />
@@ -69,7 +69,7 @@
                     android:layout_height="40dp"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="@dimen/space_2"
-                    android:paddingHorizontal="24dp"
+                    android:paddingHorizontal="@dimen/space_3"
                     android:text="@string/profile_edit_profile"
                     android:textAllCaps="false"
                     android:textColor="@color/white"
@@ -83,7 +83,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/space_2"
             android:orientation="horizontal">
 
             <!-- Orders Count Card -->
@@ -91,7 +91,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginEnd="8dp"
+                android:layout_marginEnd="@dimen/space_1"
                 app:cardBackgroundColor="@color/surface_white"
                 app:cardCornerRadius="@dimen/radius_xl"
                 app:cardElevation="@dimen/elevation_card">
@@ -114,7 +114,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
+                        android:layout_marginTop="@dimen/space_0_5"
                         android:text="@string/profile_orders"
                         android:textAppearance="@style/TextAppearance.REPLATE.Caption" />
                 </LinearLayout>
@@ -125,7 +125,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="@dimen/space_1"
                 app:cardBackgroundColor="@color/surface_white"
                 app:cardCornerRadius="@dimen/radius_xl"
                 app:cardElevation="@dimen/elevation_card">
@@ -148,7 +148,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
+                        android:layout_marginTop="@dimen/space_0_5"
                         android:text="@string/profile_saved"
                         android:textAppearance="@style/TextAppearance.REPLATE.Caption" />
                 </LinearLayout>
@@ -159,7 +159,7 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/space_2"
             app:cardBackgroundColor="@color/surface_white"
             app:cardCornerRadius="@dimen/radius_xl"
             app:cardElevation="@dimen/elevation_card">
@@ -182,7 +182,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="18dp"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="@dimen/space_0_5"
                     android:text="@string/profile_account_subtitle"
                     android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
@@ -206,7 +206,7 @@
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
+                        android:layout_marginStart="@dimen/space_2"
                         android:layout_weight="1"
                         android:text="@string/profile_my_orders"
                         android:textAppearance="@style/TextAppearance.REPLATE.Label" />
@@ -239,7 +239,7 @@
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
+                        android:layout_marginStart="@dimen/space_2"
                         android:layout_weight="1"
                         android:text="@string/profile_favorites"
                         android:textAppearance="@style/TextAppearance.REPLATE.Label" />
@@ -272,7 +272,7 @@
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
+                        android:layout_marginStart="@dimen/space_2"
                         android:layout_weight="1"
                         android:text="@string/profile_notifications"
                         android:textAppearance="@style/TextAppearance.REPLATE.Label" />
@@ -305,7 +305,7 @@
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
+                        android:layout_marginStart="@dimen/space_2"
                         android:layout_weight="1"
                         android:text="@string/profile_settings"
                         android:textAppearance="@style/TextAppearance.REPLATE.Label" />
@@ -338,7 +338,7 @@
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
+                        android:layout_marginStart="@dimen/space_2"
                         android:layout_weight="1"
                         android:text="@string/profile_help_support"
                         android:textAppearance="@style/TextAppearance.REPLATE.Label" />
@@ -368,7 +368,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="@dimen/space_0_5"
             android:text="@string/profile_delete_account"
             android:textAllCaps="false"
             android:textColor="@color/md_theme_error"

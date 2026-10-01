@@ -4,8 +4,8 @@
     android:id="@+id/cardOrder"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="16dp"
-    android:layout_marginVertical="8dp"
+    android:layout_marginHorizontal="@dimen/space_2"
+    android:layout_marginVertical="@dimen/space_1"
     app:cardBackgroundColor="@color/surface_white"
     app:cardCornerRadius="@dimen/radius_lg"
     app:cardElevation="@dimen/elevation_card">
@@ -25,7 +25,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="@dimen/space_2">
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -45,7 +45,7 @@
                     android:layout_alignParentEnd="true"
                     android:background="@drawable/badge_status_active"
                     android:fontFamily="@font/poppins_semibold"
-                    android:paddingHorizontal="12dp"
+                    android:paddingHorizontal="@dimen/space_1_5"
                     android:paddingVertical="6dp"
                     android:text="Confirmed"
                     android:textColor="@color/primary"
@@ -110,7 +110,7 @@
                 android:layout_marginTop="@dimen/space_1"
                 android:background="@drawable/badge_status_pending"
                 android:fontFamily="@font/poppins_medium"
-                android:paddingHorizontal="12dp"
+                android:paddingHorizontal="@dimen/space_1_5"
                 android:paddingVertical="6dp"
                 android:text="Pickup 6PM"
                 android:textColor="@color/ember2"

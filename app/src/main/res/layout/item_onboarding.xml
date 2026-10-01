@@ -4,8 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:paddingHorizontal="20dp"
-    android:paddingTop="8dp"
+    android:paddingHorizontal="@dimen/space_2_5"
+    android:paddingTop="@dimen/space_1"
     android:paddingBottom="160dp"
     android:gravity="center_horizontal"
     android:background="@color/cream">
@@ -14,8 +14,8 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginTop="@dimen/space_1"
+        android:layout_marginBottom="@dimen/space_2"
         app:cardBackgroundColor="@color/green_pale"
         app:cardCornerRadius="32dp"
         app:cardElevation="2dp"
@@ -28,7 +28,7 @@
             android:layout_gravity="center"
             android:adjustViewBounds="true"
             android:contentDescription="@string/onboarding_onboarding_illustration_cd"
-            android:padding="32dp"
+            android:padding="@dimen/space_4"
             android:scaleType="fitCenter" />
     </com.google.android.material.card.MaterialCardView>
 
@@ -36,7 +36,7 @@
         android:id="@+id/textTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="@dimen/space_1_5"
         android:fontFamily="@font/poppins_bold"
         android:gravity="center"
         android:lineSpacingExtra="2dp"

@@ -9,12 +9,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingBottom="24dp">
+        android:paddingBottom="@dimen/space_3">
 
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
+            android:layout_margin="@dimen/space_2"
             app:cardBackgroundColor="@color/green_primary"
             app:cardCornerRadius="28dp"
             app:cardElevation="0dp">
@@ -82,8 +82,8 @@
             android:id="@+id/cardQR"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginBottom="16dp"
+            android:layout_marginHorizontal="@dimen/space_2"
+            android:layout_marginBottom="@dimen/space_2"
             app:cardCornerRadius="24dp"
             app:cardElevation="4dp">
 
@@ -92,7 +92,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:orientation="vertical"
-                android:padding="20dp">
+                android:padding="@dimen/space_2_5">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -123,8 +123,8 @@
                     android:layout_marginTop="10dp"
                     android:background="@color/md_theme_surfaceContainerHigh"
                     android:letterSpacing="0.35"
-                    android:paddingHorizontal="26dp"
-                    android:paddingVertical="12dp"
+                    android:paddingHorizontal="@dimen/space_3"
+                    android:paddingVertical="@dimen/space_1_5"
                     android:text="123456"
                     android:textColor="@color/primary"
                     android:textSize="@dimen/text_display"
@@ -135,8 +135,8 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginBottom="16dp"
+            android:layout_marginHorizontal="@dimen/space_2"
+            android:layout_marginBottom="@dimen/space_2"
             app:cardCornerRadius="24dp"
             app:cardElevation="3dp">
 
@@ -229,7 +229,7 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
+            android:layout_marginHorizontal="@dimen/space_2"
             app:cardCornerRadius="24dp"
             app:cardElevation="3dp">
 
@@ -248,7 +248,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp">
+                    android:layout_marginTop="@dimen/space_1_5">
 
                     <TextView
                         android:layout_width="0dp"
@@ -270,7 +270,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp">
+                    android:layout_marginTop="@dimen/space_1">
 
                     <TextView
                         android:layout_width="0dp"
@@ -290,7 +290,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp">
+                    android:layout_marginTop="@dimen/space_1">
 
                     <TextView
                         android:layout_width="0dp"
@@ -314,8 +314,8 @@
             android:id="@+id/reviewSection"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginHorizontal="@dimen/space_2"
+            android:layout_marginTop="@dimen/space_2"
             app:cardCornerRadius="24dp"
             app:cardElevation="3dp"
             android:visibility="gone">
@@ -336,7 +336,7 @@
                     android:id="@+id/tvReviewHint"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="@dimen/space_1"
                     android:text="@string/order_review_hint"
                     android:textAppearance="@style/TextAppearance.REPLATE.Body"
                     android:textColor="@color/text_secondary" />

@@ -66,7 +66,7 @@
                     android:layout_height="54dp"
                     android:background="@color/white"
                     android:gravity="center_vertical"
-                    android:paddingHorizontal="16dp">
+                    android:paddingHorizontal="@dimen/space_2">
 
                     <ImageView
                         android:layout_width="22dp"
@@ -155,7 +155,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_marginStart="8dp"
+                    android:layout_marginStart="@dimen/space_1"
                     android:text="@string/search_recent_title"
                     android:fontFamily="@font/poppins_semibold"
                     android:textColor="@color/text_primary"
@@ -169,15 +169,15 @@
                     android:fontFamily="@font/poppins_medium"
                     android:textColor="@color/green_primary"
                     android:textSize="@dimen/text_caption"
-                    android:paddingHorizontal="8dp"
-                    android:paddingVertical="4dp" />
+                    android:paddingHorizontal="@dimen/space_1"
+                    android:paddingVertical="@dimen/space_0_5" />
             </LinearLayout>
 
             <com.google.android.material.chip.ChipGroup
                 android:id="@+id/chipGroupRecentSearches"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="@dimen/space_1"
                 app:chipSpacingHorizontal="8dp"
                 app:chipSpacingVertical="4dp" />
 
@@ -274,8 +274,8 @@
             android:orientation="vertical"
             android:gravity="center"
             android:background="@color/white"
-            android:paddingHorizontal="20dp"
-            android:paddingVertical="16dp"
+            android:paddingHorizontal="@dimen/space_2_5"
+            android:paddingVertical="@dimen/space_2"
             android:elevation="6dp">
 
             <ProgressBar

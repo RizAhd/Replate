@@ -13,7 +13,7 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
+            android:layout_margin="@dimen/space_2"
             app:cardBackgroundColor="@color/green_primary"
             app:cardCornerRadius="28dp"
             app:cardElevation="0dp">
@@ -21,13 +21,13 @@
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="20dp">
+                android:padding="@dimen/space_2_5">
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_below="@id/textSkip"
-                    android:layout_marginTop="7dp"
+                    android:layout_marginTop="@dimen/space_1"
                     android:text="@string/onboarding_fresh_meals_smarter_savings_and"
                     android:textAppearance="@style/TextAppearance.REPLATE.Headline"
                     android:textColor="@color/white"
@@ -47,7 +47,7 @@
                     android:layout_alignParentEnd="true"
                     android:background="@drawable/badge_distance"
                     android:paddingHorizontal="14dp"
-                    android:paddingVertical="8dp"
+                    android:paddingVertical="@dimen/space_1"
                     android:text="@string/onboarding_skip"
                     android:textColor="@color/green_primary"
                     android:textSize="@dimen/text_sm"
@@ -70,9 +70,9 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="@dimen/space_1"
             android:clipToPadding="false"
-            android:paddingHorizontal="8dp" />
+            android:paddingHorizontal="@dimen/space_1" />
     </LinearLayout>
 
     <com.google.android.material.card.MaterialCardView
@@ -80,7 +80,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_margin="16dp"
+        android:layout_margin="@dimen/space_2"
         app:cardBackgroundColor="@color/surface_white"
         app:cardCornerRadius="28dp"
         app:cardElevation="8dp">
@@ -89,7 +89,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:padding="@dimen/space_2_5">
 
             <me.relex.circleindicator.CircleIndicator3
                 android:id="@+id/circleIndicator"

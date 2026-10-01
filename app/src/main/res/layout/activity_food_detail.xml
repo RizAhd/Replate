@@ -88,7 +88,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="20dp">
+                android:padding="@dimen/space_2_5">
 
                 <!-- Food Name -->
                 <TextView
@@ -115,7 +115,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
+                    android:layout_marginTop="@dimen/space_1_5"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
@@ -125,8 +125,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:background="@drawable/badge_distance"
-                        android:paddingHorizontal="12dp"
-                        android:paddingVertical="7dp"
+                        android:paddingHorizontal="@dimen/space_1_5"
+                        android:paddingVertical="@dimen/space_1"
                         android:text="@string/food_detail_default_distance"
                         android:textColor="@color/green_primary"
                         android:textSize="@dimen/text_xs"
@@ -142,8 +142,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:background="@drawable/badge_distance"
-                        android:paddingHorizontal="12dp"
-                        android:paddingVertical="7dp"
+                        android:paddingHorizontal="@dimen/space_1_5"
+                        android:paddingVertical="@dimen/space_1"
                         android:text="@string/food_detail_default_pickup_window"
                         android:textColor="@color/ember2"
                         android:textSize="@dimen/text_xs"
@@ -154,7 +154,7 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:layout_marginVertical="16dp"
+                    android:layout_marginVertical="@dimen/space_2"
                     android:background="@color/divider" />
 
                 <!-- Price and Quantity Section -->
@@ -182,7 +182,7 @@
                             android:id="@+id/tvOriginalPrice"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
+                            android:layout_marginTop="@dimen/space_0_5"
                             android:text="LKR 800.00"
                             android:textColor="@color/text_secondary"
                             android:textSize="@dimen/text_sm" />
@@ -191,7 +191,7 @@
                             android:id="@+id/tvDiscountedPrice"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
+                            android:layout_marginTop="@dimen/space_0_5"
                             android:text="LKR 500.00"
                             android:textColor="@color/green_primary"
                             android:textSize="@dimen/text_display"
@@ -205,7 +205,7 @@
                         android:background="@drawable/badge_distance"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:paddingHorizontal="8dp"
+                        android:paddingHorizontal="@dimen/space_1"
                         android:paddingVertical="6dp">
 
                         <com.google.android.material.button.MaterialButton
@@ -355,7 +355,7 @@
                     android:id="@+id/tvReviewSummary"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="@dimen/space_0_5"
                     android:text="0.0 (0 reviews)"
                     android:textColor="@color/text_secondary"
                     android:textSize="@dimen/text_sm_compact" />
@@ -373,7 +373,7 @@
                     android:id="@+id/layoutReviewComposer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="@dimen/space_1"
                     android:orientation="vertical"
                     android:visibility="gone">
 
@@ -392,7 +392,7 @@
                     <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp">
+                        android:layout_marginTop="@dimen/space_1">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etReviewComment"
@@ -421,7 +421,7 @@
                     android:id="@+id/tvNoReviews"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
+                    android:layout_marginTop="@dimen/space_1_5"
                     android:gravity="center"
                     android:text="@string/food_detail_no_reviews_yet"
                     android:textColor="@color/text_secondary"
@@ -431,7 +431,7 @@
                     android:id="@+id/rvReviews"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="@dimen/space_1"
                     android:nestedScrollingEnabled="false" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

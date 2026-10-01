@@ -10,7 +10,7 @@
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
+        android:layout_margin="@dimen/space_2"
         app:cardBackgroundColor="@color/green_primary"
         app:cardCornerRadius="28dp"
         app:cardElevation="6dp">
@@ -33,7 +33,7 @@
                     android:layout_centerVertical="true"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="@string/cd_back"
-                    android:padding="4dp"
+                    android:padding="@dimen/space_0_5"
                     android:src="@drawable/ic_back"
                     app:tint="@color/white" />
 
@@ -55,13 +55,13 @@
                         android:id="@+id/tvUnreadCount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
+                        android:layout_marginStart="@dimen/space_1"
                         android:background="@drawable/circle_primary_light"
                         android:fontFamily="@font/poppins_semibold"
                         android:gravity="center"
                         android:minWidth="24dp"
-                        android:paddingHorizontal="7dp"
-                        android:paddingVertical="3dp"
+                        android:paddingHorizontal="@dimen/space_1"
+                        android:paddingVertical="@dimen/space_0_5"
                         android:text="0"
                         android:textColor="@color/green_primary"
                         android:textSize="@dimen/text_caption"
@@ -93,7 +93,7 @@
                     android:id="@+id/tvMarkAllRead"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
+                    android:layout_marginStart="@dimen/space_1"
                     android:background="@drawable/badge_outline_white"
                     android:fontFamily="@font/poppins_semibold"
                     android:paddingHorizontal="@dimen/space_1_5"
@@ -218,7 +218,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="@dimen/space_1"
         android:indeterminateTint="@color/green_primary"
         android:visibility="gone" />
 
@@ -234,8 +234,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp" />
+            android:paddingTop="@dimen/space_1"
+            android:paddingBottom="@dimen/space_1" />
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
@@ -269,7 +269,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="@dimen/space_2_5"
             android:text="@string/notifications_empty_title"
             android:textAppearance="@style/TextAppearance.REPLATE.Headline"
             android:textColor="@color/text_primary"
@@ -278,7 +278,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="@dimen/space_1"
             android:gravity="center"
             android:lineSpacingMultiplier="1.4"
             android:text="@string/notifications_empty_subtitle"
@@ -290,7 +290,7 @@
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="@dimen/space_2_5"
             android:fontFamily="@font/poppins_semibold"
             android:text="@string/notifications_browse_deals"
             android:textColor="@color/green_primary"
