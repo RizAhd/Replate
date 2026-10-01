@@ -124,12 +124,11 @@
             <!-- Delete button -->
             <ImageView
                 android:id="@+id/ivDelete"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_marginStart="6dp"
+                android:layout_width="@dimen/touch_target_min"
+                android:layout_height="@dimen/touch_target_min"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/notification_delete_notification_cd"
-                android:padding="@dimen/space_1"
+                android:padding="@dimen/space_2"
                 android:src="@drawable/ic_close"
                 app:tint="@color/text_hint" />
         </LinearLayout>

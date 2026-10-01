@@ -28,12 +28,13 @@
 
                 <ImageView
                     android:id="@+id/ivBack"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
+                    android:layout_marginStart="-12dp"
+                    android:padding="@dimen/space_1_5"
+                    android:layout_width="@dimen/touch_target_min"
+                    android:layout_height="@dimen/touch_target_min"
                     android:layout_centerVertical="true"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="@string/cd_back"
-                    android:padding="@dimen/space_0_5"
                     android:src="@drawable/ic_back"
                     app:tint="@color/white" />
 

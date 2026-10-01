@@ -71,10 +71,12 @@
                 <!-- Call button -->
                 <ImageButton
                     android:id="@+id/btnCall"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="@dimen/touch_target_min"
+                    android:layout_height="@dimen/touch_target_min"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="@string/chat_call_cd"
+                    android:padding="@dimen/space_1_5"
+                    android:scaleType="fitCenter"
                     android:src="@drawable/ic_phone"
                     app:tint="@color/white" />
 
