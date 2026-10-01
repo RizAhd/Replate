@@ -17,13 +17,13 @@
         app:layout_constraintStart_toStartOf="@id/ivEmoji"
         app:layout_constraintTop_toTopOf="@id/ivEmoji" />
 
-    <!-- Logo — 240dp for premium presence -->
+    <!-- Logo: vector mark (sharp at any density) in its light variant for the dark-green background -->
     <ImageView
         android:id="@+id/ivEmoji"
-        android:layout_width="240dp"
-        android:layout_height="240dp"
+        android:layout_width="220dp"
+        android:layout_height="220dp"
         android:contentDescription="@string/app_name"
-        android:src="@drawable/ic_replate_logo"
+        android:src="@drawable/ic_replate_logo_light"
         app:layout_constraintBottom_toTopOf="@id/appName"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
