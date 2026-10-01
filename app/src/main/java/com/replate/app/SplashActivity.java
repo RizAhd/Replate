@@ -5,13 +5,19 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 import android.view.animation.OvershootInterpolator;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.splashscreen.SplashScreen;
 
+import com.google.firebase.auth.FirebaseAuth;
+
 public class SplashActivity extends AppCompatActivity {
+
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private Runnable proceedTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,10 +72,21 @@ public class SplashActivity extends AppCompatActivity {
 
         SharedPreferences prefs = getSharedPreferences("REPLATE_PREFS", MODE_PRIVATE);
         boolean returningUser = prefs.getString("userId", null) != null;
-        long splashDelayMs = returningUser ? 900L : 1800L;
+        // The system splash has already covered the cold start, so returning users only need a beat
+        long splashDelayMs = returningUser ? 400L : 1500L;
 
-        // Shorter delay for returning users to improve startup speed.
-        new Handler().postDelayed(() -> proceedToNextScreen(launchIntent), splashDelayMs);
+        proceedTask = () -> {
+            if (!isFinishing() && !isDestroyed()) {
+                proceedToNextScreen(launchIntent);
+            }
+        };
+        handler.postDelayed(proceedTask, splashDelayMs);
+    }
+
+    @Override
+    protected void onDestroy() {
+        handler.removeCallbacksAndMessages(null);
+        super.onDestroy();
     }
 
     private void proceedToNextScreen(Intent launchIntent) {
@@ -78,6 +95,11 @@ public class SplashActivity extends AppCompatActivity {
         String savedRole = prefs.getString("role", null);
         if (savedRole == null || savedRole.trim().isEmpty()) {
             savedRole = prefs.getString("userType", "customer");
+        }
+
+        // A saved id without a live Firebase session (signed out elsewhere, account removed) means login
+        if (savedUserId != null && FirebaseAuth.getInstance().getCurrentUser() == null) {
+            savedUserId = null;
         }
 
         Intent nextIntent;
