@@ -8,6 +8,7 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -597,8 +598,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             };
         }
 
-        LocationRequest request = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000)
-                .setMinUpdateIntervalMillis(2500)
+        // The map only needs a rough position to centre and colour markers, so balanced accuracy
+        // every 15 s (and only after moving 30 m) is plenty and far easier on the battery.
+        LocationRequest request = new LocationRequest.Builder(Priority.PRIORITY_BALANCED_POWER_ACCURACY, 15000)
+                .setMinUpdateIntervalMillis(8000)
+                .setMinUpdateDistanceMeters(30f)
                 .build();
 
         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
@@ -607,7 +611,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
 
         try {
-            fusedLocationClient.requestLocationUpdates(request, liveLocationCallback, getActivity().getMainLooper());
+            fusedLocationClient.requestLocationUpdates(request, liveLocationCallback, Looper.getMainLooper());
             isLocationUpdatesRunning = true;
         } catch (SecurityException ignored) {
         }
