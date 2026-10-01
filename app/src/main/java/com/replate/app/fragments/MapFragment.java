@@ -1,6 +1,7 @@
 package com.replate.app.fragments;
 
 import android.Manifest;
+import android.app.Activity;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -18,6 +19,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -29,10 +31,12 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.Priority;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -133,7 +137,22 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 if (fineGranted || coarseGranted) {
                     enableMyLocationAndCenter();
                 } else {
-                    ToastUtils.showCustomToast(getContext(), "Location permission denied. Enable location for live map updates.");
+                    onLocationPermissionDenied();
+                }
+            });
+
+    // "Turn on location?" dialog from Google Play services (shown when GPS is switched off)
+    private boolean askedToEnableGps;
+    private final ActivityResultLauncher<IntentSenderRequest> locationSettingsLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartIntentSenderForResult(), result -> {
+                if (!isAdded()) {
+                    return;
+                }
+                if (result.getResultCode() == Activity.RESULT_OK) {
+                    requestFreshMapLocation();
+                    startLiveLocationUpdates();
+                } else {
+                    ToastUtils.showCustomToast(getContext(), getString(R.string.map_gps_off));
                 }
             });
 
@@ -564,6 +583,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             return;
         }
 
+        ensureLocationSettings();
+
         fusedLocationClient.getLastLocation()
                 .addOnSuccessListener(location -> {
                     handleLocation(location);
@@ -682,6 +703,65 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentUserLatLng, 14f));
             hasCenteredOnUser = true;
         }
+    }
+
+    /**
+     * After a first "no" Android will ask again; after "don't ask again" the system dialog never
+     * appears, so the only way forward is the app's settings page. Say so instead of doing nothing.
+     */
+    private void onLocationPermissionDenied() {
+        if (!isAdded()) {
+            return;
+        }
+        boolean canAskAgain = shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)
+                || shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_COARSE_LOCATION);
+        if (canAskAgain) {
+            ToastUtils.showCustomToast(getContext(), getString(R.string.map_location_denied));
+        } else {
+            showOpenSettingsDialog();
+        }
+    }
+
+    private void showOpenSettingsDialog() {
+        if (!isAdded() || getContext() == null) {
+            return;
+        }
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle(R.string.map_location_needed_title)
+                .setMessage(R.string.map_location_needed_message)
+                .setPositiveButton(R.string.map_open_settings, (d, w) -> {
+                    Intent intent = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                            android.net.Uri.fromParts("package", requireContext().getPackageName(), null));
+                    try {
+                        startActivity(intent);
+                    } catch (android.content.ActivityNotFoundException ignored) {
+                        // no settings app to open; nothing more we can do
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    /** Offers the standard "Turn on location" prompt when GPS is off. Asked once per screen visit. */
+    private void ensureLocationSettings() {
+        if (!isAdded() || askedToEnableGps) {
+            return;
+        }
+        LocationRequest request = new LocationRequest.Builder(Priority.PRIORITY_BALANCED_POWER_ACCURACY, 15000).build();
+        LocationSettingsRequest settings = new LocationSettingsRequest.Builder().addLocationRequest(request).build();
+        LocationServices.getSettingsClient(requireActivity()).checkLocationSettings(settings)
+                .addOnFailureListener(e -> {
+                    if (!isAdded() || askedToEnableGps || !(e instanceof ResolvableApiException)) {
+                        return;
+                    }
+                    askedToEnableGps = true;
+                    try {
+                        locationSettingsLauncher.launch(
+                                new IntentSenderRequest.Builder(((ResolvableApiException) e).getResolution()).build());
+                    } catch (RuntimeException ignored) {
+                        // the prompt could not be shown; the user can still use the map without location
+                    }
+                });
     }
 
     private void moveToCurrentLocation() {
