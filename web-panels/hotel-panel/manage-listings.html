@@ -67,108 +67,109 @@
 <script src="../js/hotel-shell-config.js"></script>
 
 <script>
+    const esc = ReplateUI.esc;
     let hotelIds = new Set();
+    const tableBody = document.getElementById('listingsTable');
 
+    (async () => {
+        const user = await ReplateUI.requireRole('hotel');
+        if (!user) return;
 
-    auth.onAuthStateChanged(async (user) => {
-        ReplateUI.renderSidebar('appShellSidebar', {
-            title: '<img src="../assets/replate-icon.svg" alt="REPLATE" class="brand-logo-sm">REPLATE',
-            activeKey: 'listings',
-            links: hotelShellLinks,
-        });
-
-        if (!user) {
-            window.location.href = 'login.html';
-            return;
-        }
-
+        hotelIds = new Set([user.uid]);
         try {
             const hotelRecord = await ReplateSchema.findHotelByUserId(database, user.uid);
-            hotelIds = new Set([user.uid]);
             if (hotelRecord && hotelRecord.key) hotelIds.add(hotelRecord.key);
-            loadListings();
         } catch (e) {
             console.error('Failed to resolve hotel identity:', e);
-            hotelIds = new Set([user.uid]);
-            loadListings();
         }
-    });
+        tableBody.innerHTML = '<tr><td colspan="6">' + ReplateUI.skeleton('rows', 4) + '</td></tr>';
+        loadListings();
+    })();
 
     function loadListings() {
-        const tableBody = document.getElementById('listingsTable');
-        tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4">Loading...</td></tr>';
-
-        database.ref('foodItems').on('value', (snapshot) => {
-            tableBody.innerHTML = '';
+        ReplateSchema.hotelFoodItems(database, hotelIds).on((snapshot) => {
             const rows = [];
-
-            snapshot.forEach((child) => {
-                const item = child.val() || {};
-                const itemHotelId = String(item.hotelId || item.hotelKey || item.hotelUserId || '').trim();
-                if (hotelIds.has(itemHotelId)) {
-                    rows.push({ key: child.key, item });
-                }
-            });
+            snapshot.forEach((child) => rows.push({ key: child.key, item: child.val() || {} }));
 
             if (rows.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4">No items found</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="6">' +
+                    ReplateUI.emptyState('No listings yet', 'Add your first surplus dish and customers nearby will see it.', 'fa-utensils') + '</td></tr>';
                 return;
             }
 
             rows.sort((a, b) => (b.item.createdAt || 0) - (a.item.createdAt || 0));
 
-            const htmlRows = rows.map(({ key, item }) => {
+            tableBody.innerHTML = rows.map(({ key, item }) => {
                 const isAvailable = item.isAvailable === true || String(item.status || '').toLowerCase() === 'available';
                 const pickupStart = item.pickupTimeStart || item.pickupStart || '--:--';
                 const pickupEnd = item.pickupTimeEnd || item.pickupEnd || '--:--';
-                const imageUrl = item.imageUrl || '';
+                const imageUrl = ReplateUI.safeUrl(item.imageUrl);
+                const name = item.foodName || 'Untitled';
 
                 return `
                     <tr>
-                        <td data-label="Image">${imageUrl ? `<img src="${imageUrl}" width="50" height="50" class="rounded" style="object-fit:cover;max-width:50px;height:50px;">` : '<span class="text-muted">No image</span>'}</td>
+                        <td data-label="Image">${imageUrl
+                            ? `<img src="${esc(imageUrl)}" alt="${esc(name)}" width="50" height="50" loading="lazy" class="rounded listing-thumb">`
+                            : '<span class="text-muted">No image</span>'}</td>
                         <td data-label="Food Name">
-                            <div class="fw-bold">${item.foodName || 'Untitled'}</div>
-                            <small class="text-muted">${pickupStart} - ${pickupEnd}</small>
+                            <div class="fw-bold">${esc(name)}</div>
+                            <small class="text-muted">${esc(pickupStart)} - ${esc(pickupEnd)}</small>
                         </td>
-                        <td data-label="Price">
-                            <span class="text-decoration-line-through text-muted small">LKR ${item.originalPrice || 0}</span><br>
-                            <span class="text-success fw-bold">LKR ${item.discountedPrice || 0}</span>
+                        <td data-label="Price" class="num">
+                            <span class="text-decoration-line-through text-muted small">LKR ${esc(item.originalPrice || 0)}</span><br>
+                            <span class="text-success fw-bold">LKR ${esc(item.discountedPrice || 0)}</span>
                         </td>
-                        <td data-label="Qty">${item.quantity || 0}</td>
+                        <td data-label="Qty">${esc(item.quantity || 0)}</td>
                         <td data-label="Status">
-                            <span class="badge ${isAvailable ? 'bg-success' : 'bg-secondary'}">
-                                ${isAvailable ? 'Active' : 'Sold Out'}
-                            </span>
+                            <span class="badge ${isAvailable ? 'badge-success' : 'bg-secondary'}">${isAvailable ? 'Active' : 'Sold Out'}</span>
                         </td>
                         <td data-label="Actions" class="actions-cell">
-                            <button class="btn btn-sm btn-outline-danger" onclick="deleteItem('${key}')">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-primary" onclick="toggleStatus('${key}', ${isAvailable})">
-                                ${isAvailable ? 'Mark Sold' : 'Activate'}
+                            <button class="btn btn-sm btn-outline-danger" data-action="delete" data-key="${esc(key)}" data-name="${esc(name)}"
+                                    aria-label="Delete ${esc(name)}"><i class="fas fa-trash" aria-hidden="true"></i></button>
+                            <button class="btn btn-sm btn-outline-primary" data-action="toggle" data-key="${esc(key)}" data-active="${isAvailable}">
+                                ${isAvailable ? 'Mark sold' : 'Activate'}
                             </button>
                         </td>
-                    </tr>
-                `;
+                    </tr>`;
             }).join('');
-
-            tableBody.innerHTML = htmlRows;
+        }, (error) => {
+            console.error('Could not load listings', error);
+            tableBody.innerHTML = '<tr><td colspan="6">' +
+                ReplateUI.errorState('Your listings could not be loaded. Check your connection and try again.') + '</td></tr>';
         });
     }
 
-    window.deleteItem = function(key) {
-        if (confirm('Delete this item?')) {
-            database.ref('foodItems/' + key).remove();
-        }
-    };
+    tableBody.addEventListener('click', async (event) => {
+        const button = event.target.closest('button[data-action]');
+        if (!button) return;
+        const key = button.dataset.key;
 
-    window.toggleStatus = function(key, currentStatus) {
-        database.ref('foodItems/' + key).update({
-            isAvailable: !currentStatus,
-            available: !currentStatus,
-            status: !currentStatus ? 'available' : 'sold_out'
-        });
-    };
+        if (button.dataset.action === 'delete') {
+            const ok = await ReplateUI.confirmAction(`"${button.dataset.name}" will be removed from the app.`, {
+                title: 'Delete this listing?', confirmText: 'Delete', danger: true });
+            if (!ok) return;
+            try {
+                await database.ref('foodItems/' + key).remove();
+                ReplateUI.toast('Listing deleted.', 'success');
+            } catch (error) {
+                console.error(error);
+                ReplateUI.toast('Could not delete the listing. Please try again.', 'danger');
+            }
+        } else if (button.dataset.action === 'toggle') {
+            const wasActive = button.dataset.active === 'true';
+            try {
+                await database.ref('foodItems/' + key).update({
+                    isAvailable: !wasActive,
+                    available: !wasActive,
+                    status: !wasActive ? 'available' : 'sold_out'
+                });
+                ReplateUI.toast(wasActive ? 'Marked as sold out.' : 'Listing is active again.', 'success');
+            } catch (error) {
+                console.error(error);
+                ReplateUI.toast('Could not update the listing. Please try again.', 'danger');
+            }
+        }
+    });
 </script>
 </body>
 </html>

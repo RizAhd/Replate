@@ -1825,3 +1825,5 @@ main.auth-card {
     border-color: var(--primary);
     background: var(--primary-50);
 }
+
+.listing-thumb { width: 50px; height: 50px; object-fit: cover; }
