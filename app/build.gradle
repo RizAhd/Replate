@@ -33,15 +33,16 @@ android {
         buildConfigField "String", "GOOGLE_WEB_CLIENT_ID",
             '"' + (localProps.getProperty("GOOGLE_WEB_CLIENT_ID") ?: "") + '"'
 
-        // The only secrets compiled into the app. Anything shipped in an APK can be extracted, so
-        // never put server keys (FCM server key, payment secrets) here.
+        // Anything compiled into an APK can be extracted, so never add server keys here (for example
+        // an FCM server key). The Maps key must be restricted to this app in Google Cloud Console.
         resValue "string", "google_maps_key",
             (localProps.getProperty("GOOGLE_MAPS_API_KEY") ?: "")
     }
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -81,12 +82,9 @@ dependencies {
     implementation 'de.hdodenhof:circleimageview:3.1.0'
 
     implementation 'com.github.PayHereDevs:payhere-android-sdk:v3.0.18'
-    implementation 'com.google.code.gson:gson:2.8.0'
+    implementation 'com.google.code.gson:gson:2.10.1'
 
     implementation 'com.google.zxing:core:3.5.2'
-    implementation 'com.journeyapps:zxing-android-embedded:4.3.0'
-
-    implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
 
     implementation 'androidx.core:core-splashscreen:1.0.1'
 
@@ -97,4 +95,12 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+}
+
+// A release build without a Maps key would ship a blank grey map. Fail early instead.
+gradle.taskGraph.whenReady { graph ->
+    def building = graph.allTasks.any { it.path.startsWith(':app:') && it.name.toLowerCase().contains('release') && (it.name.startsWith('assemble') || it.name.startsWith('bundle')) }
+    if (building && !(localProps.getProperty("GOOGLE_MAPS_API_KEY") ?: "").trim()) {
+        throw new GradleException("GOOGLE_MAPS_API_KEY is missing from local.properties; a release build would have a blank map.")
+    }
 }
