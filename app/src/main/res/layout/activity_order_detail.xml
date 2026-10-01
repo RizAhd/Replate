@@ -91,8 +91,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/space_2"
                 android:layout_marginBottom="@dimen/space_2"
-                app:cardCornerRadius="24dp"
-                app:cardElevation="4dp">
+                app:cardCornerRadius="@dimen/radius_xl"
+                app:cardElevation="@dimen/elevation_card">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -128,7 +128,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
-                        android:background="@color/md_theme_surfaceContainerHigh"
+                        android:background="@drawable/bg_otp_badge"
                         android:letterSpacing="0.35"
                         android:paddingHorizontal="@dimen/space_3"
                         android:paddingVertical="@dimen/space_1_5"
@@ -144,8 +144,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/space_2"
                 android:layout_marginBottom="@dimen/space_2"
-                app:cardCornerRadius="24dp"
-                app:cardElevation="3dp">
+                app:cardCornerRadius="@dimen/radius_xl"
+                app:cardElevation="@dimen/elevation_card">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -241,8 +241,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/space_2"
-                app:cardCornerRadius="24dp"
-                app:cardElevation="3dp">
+                app:cardCornerRadius="@dimen/radius_xl"
+                app:cardElevation="@dimen/elevation_card">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -327,8 +327,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/space_2"
                 android:layout_marginTop="@dimen/space_2"
-                app:cardCornerRadius="24dp"
-                app:cardElevation="3dp"
+                app:cardCornerRadius="@dimen/radius_xl"
+                app:cardElevation="@dimen/elevation_card"
                 android:visibility="gone">
 
                 <LinearLayout
