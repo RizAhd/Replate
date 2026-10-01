@@ -30,6 +30,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.replate.app.utils.AppAnalytics;
 import com.replate.app.utils.Money;
 import com.replate.app.helpers.CartDatabaseHelper;
 import com.replate.app.models.CartItem;
@@ -621,6 +622,7 @@ public class CheckoutActivity extends AppCompatActivity {
                     // Stock is adjusted by the onOrderCreatedNotify Cloud Function (server side, exactly
                     // once); customers are not allowed to write foodItems quantity.
                     cartDb.clearCart();
+                    AppAnalytics.purchase(this, orderId, totalAmount, paymentMethod);
                     saveReceipt(orderId, otpCode, customerName, totalAmount);
                     playPaymentSound();
                     createOrderNotifications(orderId, finalHotelId, finalHotelName, customerName, totalAmount);

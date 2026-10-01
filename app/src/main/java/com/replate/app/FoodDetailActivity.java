@@ -31,6 +31,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.replate.app.utils.AppAnalytics;
 import com.replate.app.utils.Money;
 import com.replate.app.adapters.RelatedFoodAdapter;
 import com.replate.app.adapters.ReviewAdapter;
@@ -281,6 +282,7 @@ public class FoodDetailActivity extends AppCompatActivity {
                 foodItem.getDiscountPercentValue()
         );
         cartDb.addItem(cartItem);
+        AppAnalytics.addToCart(this, foodItem.getFoodId(), foodItem.getFoodName(), foodItem.getDiscountedPriceValue(), quantity);
 
         ToastUtils.showCustomToast(this, quantity + " x " + foodItem.getFoodName() + " added to cart!");
         startActivity(new Intent(this, CartActivity.class));

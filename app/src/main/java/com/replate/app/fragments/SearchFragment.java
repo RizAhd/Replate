@@ -37,6 +37,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.replate.app.utils.AppAnalytics;
 import com.replate.app.FoodDetailActivity;
 import com.replate.app.R;
 import com.replate.app.adapters.FoodItemAdapter;
@@ -757,6 +758,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
                 foodItem.getDiscountPercentValue()
         );
         CartDatabaseHelper.getInstance(requireContext()).addItem(cartItem);
+        AppAnalytics.addToCart(getContext(), foodItem.getFoodId(), foodItem.getFoodName(), foodItem.getDiscountedPriceValue(), 1);
         ToastUtils.showCustomToast(getContext(), foodItem.getFoodName() + " added to cart!");
     }
 
