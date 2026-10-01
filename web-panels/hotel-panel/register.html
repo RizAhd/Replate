@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="description" content="Register Hotel - REPLATE - REPLATE food rescue.">
+    <meta name="description" content="Register your hotel or restaurant on REPLATE food rescue.">
     <meta name="theme-color" content="#1a6b3c">
     <meta name="robots" content="noindex, nofollow">
-    <title>Register Hotel - REPLATE</title>
+    <title>Register Your Hotel - REPLATE</title>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -18,88 +18,106 @@
     <link rel="manifest" href="../manifest.webmanifest">
 </head>
 <body class="auth-page">
+<a class="skip-link" href="#mainContent">Skip to content</a>
 
-<div class="auth-card auth-card-wide">
-    <div class="text-center mb-4">
-        <img src="../assets/replate-icon.svg" alt="REPLATE" class="brand-logo-auth">
-        <h2 class="auth-title mb-1">Register Hotel</h2>
-        <p class="auth-subtext">Join REPLATE and start rescuing surplus food.</p>
+<main class="auth-card auth-card-wide" id="mainContent">
+    <div class="auth-brand text-center mb-4">
+        <img src="../assets/replate-icon.svg" alt="" width="64" height="64" class="brand-logo-auth">
+        <div class="auth-wordmark">REPLATE</div>
+        <h1 class="auth-title mb-1">Register your hotel</h1>
+        <p class="auth-subtext mb-0">Join REPLATE and start rescuing surplus food. An admin reviews every registration.</p>
     </div>
 
-    <form id="registerForm">
+    <form id="registerForm" novalidate>
         <div class="row">
             <div class="col-md-6 mb-3">
-                <label class="form-label">Hotel Name</label>
-                <input type="text" class="form-control" id="hotelName" required>
+                <label class="form-label" for="hotelName">Hotel or restaurant name</label>
+                <input type="text" class="form-control" id="hotelName" maxlength="80" autocomplete="organization" required>
             </div>
             <div class="col-md-6 mb-3">
-                <label class="form-label">Owner Name</label>
-                <input type="text" class="form-control" id="ownerName" required>
+                <label class="form-label" for="ownerName">Owner name</label>
+                <input type="text" class="form-control" id="ownerName" maxlength="80" autocomplete="name" required>
             </div>
         </div>
 
         <div class="row">
             <div class="col-md-6 mb-3">
-                <label class="form-label">Email</label>
-                <input type="email" class="form-control" id="email" required>
+                <label class="form-label" for="email">Email</label>
+                <input type="email" class="form-control" id="email" autocomplete="email" inputmode="email" required>
             </div>
             <div class="col-md-6 mb-3">
-                <label class="form-label">Phone</label>
-                <input type="tel" class="form-control" id="phone" required>
+                <label class="form-label" for="phone">Phone</label>
+                <input type="tel" class="form-control" id="phone" autocomplete="tel" inputmode="tel" placeholder="e.g. 0771234567" required>
             </div>
         </div>
 
         <div class="row">
             <div class="col-md-6 mb-3">
-                <label class="form-label">Password</label>
+                <label class="form-label" for="password">Password</label>
                 <div class="input-with-icon">
-                    <input type="password" class="form-control" id="password" required>
+                    <input type="password" class="form-control" id="password" autocomplete="new-password" minlength="8" aria-describedby="passwordHelp" required>
                     <button type="button" class="password-toggle" id="toggleRegPassword" aria-label="Show password">
-                        <i class="fas fa-eye" id="toggleRegPasswordIcon"></i>
+                        <i class="fas fa-eye" id="toggleRegPasswordIcon" aria-hidden="true"></i>
                     </button>
                 </div>
+                <div class="form-text" id="passwordHelp">At least 8 characters.</div>
             </div>
             <div class="col-md-6 mb-3">
-                <label class="form-label">Confirm Password</label>
+                <label class="form-label" for="confirmPassword">Confirm password</label>
                 <div class="input-with-icon">
-                    <input type="password" class="form-control" id="confirmPassword" required>
+                    <input type="password" class="form-control" id="confirmPassword" autocomplete="new-password" required>
                     <button type="button" class="password-toggle" id="toggleRegConfirmPassword" aria-label="Show password">
-                        <i class="fas fa-eye" id="toggleRegConfirmPasswordIcon"></i>
+                        <i class="fas fa-eye" id="toggleRegConfirmPasswordIcon" aria-hidden="true"></i>
                     </button>
                 </div>
             </div>
         </div>
 
         <div class="mb-3">
-            <label class="form-label">Address</label>
-            <input type="text" class="form-control" id="address" required>
+            <label class="form-label" for="address">Address</label>
+            <input type="text" class="form-control" id="address" autocomplete="street-address" required>
         </div>
 
-        <div class="row">
-            <div class="col-md-6 mb-3">
-                <label class="form-label">Latitude</label>
-                <input type="number" step="any" class="form-control" id="latitude" required placeholder="e.g. 6.9271">
+        <div class="row align-items-end">
+            <div class="col-md-4 mb-3">
+                <label class="form-label" for="latitude">Latitude</label>
+                <input type="number" step="any" class="form-control" id="latitude" inputmode="decimal" required placeholder="e.g. 6.9271">
             </div>
-            <div class="col-md-6 mb-3">
-                <label class="form-label">Longitude</label>
-                <input type="number" step="any" class="form-control" id="longitude" required placeholder="e.g. 79.8612">
+            <div class="col-md-4 mb-3">
+                <label class="form-label" for="longitude">Longitude</label>
+                <input type="number" step="any" class="form-control" id="longitude" inputmode="decimal" required placeholder="e.g. 79.8612">
+            </div>
+            <div class="col-md-4 mb-3">
+                <button type="button" class="btn btn-outline-primary w-100" id="btnUseLocation">
+                    <i class="fas fa-location-crosshairs me-1" aria-hidden="true"></i> Use my location
+                </button>
             </div>
         </div>
+        <p class="form-text mt-0 mb-3">Stand at your hotel and tap &ldquo;Use my location&rdquo; so customers can find you on the map.</p>
 
-        <div class="mb-4">
-            <label class="form-label">Business License (PDF/Image)</label>
-            <input type="file" class="form-control" id="license" required>
+        <div class="mb-3">
+            <label class="form-label" for="license">Business licence (PDF or image, up to 10 MB)</label>
+            <input type="file" class="form-control" id="license" accept="application/pdf,image/jpeg,image/png,image/webp" required>
+        </div>
+
+        <div class="form-check mb-4">
+            <input class="form-check-input" type="checkbox" id="agree" required>
+            <label class="form-check-label" for="agree">
+                I agree to the <a href="../terms.html" target="_blank" rel="noopener">Terms of Use</a> and
+                <a href="../privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.
+            </label>
         </div>
 
         <div class="d-grid gap-2">
-            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">REGISTER HOTEL</button>
+            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">Register hotel</button>
         </div>
 
-        <p class="text-center mt-3 mb-0">Already have an account? <a href="login.html" class="fw-semibold">Login</a></p>
+        <p class="text-center mt-3 mb-0">Already registered? <a href="login.html" class="fw-semibold">Sign in</a></p>
+        <p class="text-center mt-2 mb-0"><a href="../index.html" class="auth-link">&larr; Back to home</a></p>
 
-        <p class="text-secondary small mt-3 mb-0">REPLATE V1.1.0 • Built by Riflan Mohamed • 2026</p>
+        <p class="text-secondary small text-center mt-3 mb-0">REPLATE V1.1.0 &bull; Built by Riflan Mohamed &bull; 2026</p>
     </form>
-</div>
+</main>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -112,43 +130,100 @@
 <script src="../js/ui-shell.js"></script>
 
 <script>
+    const MAX_LICENSE_BYTES = 10 * 1024 * 1024;
+    const LICENSE_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+
     ReplateUI.attachPasswordToggle('password', 'toggleRegPassword', 'toggleRegPasswordIcon');
     ReplateUI.attachPasswordToggle('confirmPassword', 'toggleRegConfirmPassword', 'toggleRegConfirmPasswordIcon');
 
-    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    function field(id) { return document.getElementById(id); }
+
+    function friendlyAuthError(error) {
+        switch (error && error.code) {
+            case 'auth/email-already-in-use': return 'An account with this email already exists. Sign in instead.';
+            case 'auth/invalid-email': return 'That email address does not look right.';
+            case 'auth/weak-password': return 'Choose a stronger password (at least 8 characters).';
+            case 'auth/network-request-failed': return 'No connection. Check your internet and try again.';
+            default: return 'Could not create your account. Please try again.';
+        }
+    }
+
+    field('btnUseLocation').addEventListener('click', () => {
+        if (!navigator.geolocation) {
+            ReplateUI.toast('Your browser cannot share its location. Type the coordinates instead.', 'warning');
+            return;
+        }
+        const button = field('btnUseLocation');
+        button.disabled = true;
+        navigator.geolocation.getCurrentPosition((pos) => {
+            field('latitude').value = pos.coords.latitude.toFixed(6);
+            field('longitude').value = pos.coords.longitude.toFixed(6);
+            button.disabled = false;
+            ReplateUI.toast('Location filled in.', 'success');
+        }, () => {
+            button.disabled = false;
+            ReplateUI.toast('Could not get your location. Allow location access or type the coordinates.', 'warning');
+        }, { enableHighAccuracy: true, timeout: 15000 });
+    });
+
+    /** Everything is checked BEFORE the account is created, so a typo never leaves a half-made account behind. */
+    function validate() {
+        const lat = parseFloat(field('latitude').value);
+        const lng = parseFloat(field('longitude').value);
+        const file = field('license').files[0];
+
+        if (!field('hotelName').value.trim() || !field('ownerName').value.trim()) return 'Enter the hotel name and the owner name.';
+        if (!/^\S+@\S+\.\S+$/.test(field('email').value.trim())) return 'Enter a valid email address.';
+        if (!/^[+0-9()\s-]{7,20}$/.test(field('phone').value.trim())) return 'Enter a valid phone number, for example 0771234567.';
+        if (field('password').value.length < 8) return 'The password must be at least 8 characters.';
+        if (field('password').value !== field('confirmPassword').value) return 'The two passwords do not match.';
+        if (!field('address').value.trim()) return 'Enter the hotel address.';
+        if (!Number.isFinite(lat) || lat < -90 || lat > 90 || !Number.isFinite(lng) || lng < -180 || lng > 180) {
+            return 'Enter valid map coordinates, or tap "Use my location".';
+        }
+        if (!file) return 'Attach your business licence.';
+        if (!LICENSE_TYPES.includes(file.type)) return 'The licence must be a PDF, JPG, PNG or WebP file.';
+        if (file.size > MAX_LICENSE_BYTES) return 'The licence file is larger than 10 MB.';
+        if (!field('agree').checked) return 'Please accept the Terms of Use and Privacy Policy.';
+        return null;
+    }
+
+    field('registerForm').addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        const confirm = document.getElementById('confirmPassword').value;
+        const problem = validate();
+        if (problem) {
+            ReplateUI.toast(problem, 'warning');
+            return;
+        }
 
-        if (password !== confirm) return alert('Passwords do not match');
-
+        const email = field('email').value.trim();
+        const password = field('password').value;
+        const file = field('license').files[0];
         ReplateUI.setButtonLoading('submitBtn', true, 'Creating account...');
 
+        let createdUser = null;
         try {
-            const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-            const uid = userCredential.user.uid;
+            const credential = await auth.createUserWithEmailAndPassword(email, password);
+            createdUser = credential.user;
+            const uid = createdUser.uid;
 
-            const file = document.getElementById('license').files[0];
-            if (!file) throw new Error('Please select a license file');
-
-            const storageRef = storage.ref('licenses/' + uid + '_' + Date.now() + '_' + file.name);
-            await storageRef.put(file);
+            const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-60);
+            const storageRef = storage.ref('licenses/' + uid + '_' + Date.now() + '_' + safeName);
+            await storageRef.put(file, { contentType: file.type });
             const licenseUrl = await storageRef.getDownloadURL();
 
             const hotelFormData = {
-                hotelName: document.getElementById('hotelName').value,
-                ownerName: document.getElementById('ownerName').value,
+                hotelName: field('hotelName').value.trim(),
+                ownerName: field('ownerName').value.trim(),
                 email,
-                phone: document.getElementById('phone').value,
-                address: document.getElementById('address').value,
-                latitude: document.getElementById('latitude').value,
-                longitude: document.getElementById('longitude').value
+                phone: field('phone').value.trim(),
+                address: field('address').value.trim(),
+                latitude: field('latitude').value,
+                longitude: field('longitude').value
             };
 
             const hotelData = ReplateSchema.buildHotelPayload(hotelFormData, uid, licenseUrl);
-
             const newHotelRef = database.ref('hotels').push();
             await newHotelRef.set(hotelData);
 
@@ -162,16 +237,22 @@
                 fcmEnabled: true,
                 createdAt: Date.now(),
                 lastActive: Date.now(),
-                emailVerified: !!auth.currentUser?.emailVerified,
+                emailVerified: !!createdUser.emailVerified,
                 hotelId: newHotelRef.key
             });
 
-            alert('Registration successful! Please wait for admin approval.');
+            // Registration is complete but not yet approved, so do not leave the visitor signed in
+            await auth.signOut();
+            ReplateUI.flash('Registration received. We will email you once an admin has approved your hotel.', 'success');
             window.location.href = 'login.html';
-
         } catch (error) {
             console.error(error);
-            alert(error.message);
+            // Remove a half-created account so the same email can be used again
+            if (createdUser) {
+                try { await createdUser.delete(); } catch (ignored) { /* best effort */ }
+            }
+            const fromAuth = error && String(error.code || '').startsWith('auth/');
+            ReplateUI.toast(fromAuth ? friendlyAuthError(error) : 'Could not finish the registration. Check your connection and try again.', 'danger');
         } finally {
             ReplateUI.setButtonLoading('submitBtn', false);
         }
