@@ -84,7 +84,16 @@
     </style>
 
     <!-- Splash Screen Theme -->
-    <style name="Theme.REPLATE.Splash" parent="Theme.REPLATE">
+    <!-- Shown by the system (Android 12+ native splash, older versions via the compat library)
+         while the app starts, then handed over to Theme.REPLATE.PostSplash. -->
+    <style name="Theme.REPLATE.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#0D3B1E</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_icon</item>
+        <item name="postSplashScreenTheme">@style/Theme.REPLATE.PostSplash</item>
+    </style>
+
+    <!-- What the custom splash screen itself runs under -->
+    <style name="Theme.REPLATE.PostSplash" parent="Theme.REPLATE">
         <item name="android:statusBarColor">@color/leaf</item>
         <item name="android:windowBackground">@color/leaf</item>
     </style>

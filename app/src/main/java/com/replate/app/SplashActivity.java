@@ -9,11 +9,14 @@ import android.view.View;
 import android.view.animation.OvershootInterpolator;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.splashscreen.SplashScreen;
 
 public class SplashActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Must run before super.onCreate: swaps the system splash theme for Theme.REPLATE.PostSplash
+        SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
