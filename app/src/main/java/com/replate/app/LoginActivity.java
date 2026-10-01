@@ -529,15 +529,20 @@ public class LoginActivity extends AppCompatActivity {
                 conn.setConnectTimeout(10000);
                 conn.setReadTimeout(10000);
 
-                String jsonBody = "{\"email\":\"" + email + "\",\"name\":\"" + (name != null ? name : "") + "\"}";
-                conn.getOutputStream().write(jsonBody.getBytes("UTF-8"));
-                conn.getOutputStream().close();
+                // Build the body with JSONObject so quotes or backslashes in a name can't break it
+                org.json.JSONObject body = new org.json.JSONObject();
+                body.put("email", email);
+                body.put("name", name != null ? name : "");
+                try (java.io.OutputStream out = conn.getOutputStream()) {
+                    out.write(body.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                }
 
                 int responseCode = conn.getResponseCode();
                 cloudSuccess = (responseCode >= 200 && responseCode < 300);
                 conn.disconnect();
             } catch (Exception e) {
-                // Cloud Function call failed, will fallback
+                // Cloud Function call failed; the Firebase default email below is the fallback
+                android.util.Log.w("LoginActivity", "Branded verification email failed, using fallback", e);
             }
 
             final boolean success = cloudSuccess;
