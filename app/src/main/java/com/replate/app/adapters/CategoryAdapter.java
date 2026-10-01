@@ -35,6 +35,19 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
         this.listener = listener;
     }
 
+    /** Highlights a category chip from code (for example when a banner opens a category). */
+    public void setSelectedPosition(int position) {
+        if (position < 0 || position >= categories.size() || position == selectedPosition) {
+            return;
+        }
+        int previous = selectedPosition;
+        selectedPosition = position;
+        if (previous >= 0 && previous < categories.size()) {
+            notifyItemChanged(previous);
+        }
+        notifyItemChanged(position);
+    }
+
     @NonNull
     @Override
     public CategoryViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
