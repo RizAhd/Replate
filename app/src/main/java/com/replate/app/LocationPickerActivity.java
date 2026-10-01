@@ -44,6 +44,8 @@ public class LocationPickerActivity extends AppCompatActivity implements OnMapRe
     private LatLng selectedLatLng;
     private String selectedAddress;
     private final ExecutorService geocoderExecutor = Executors.newSingleThreadExecutor();
+    private final android.os.Handler uiHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private int addressRequestId;
 
     private final ActivityResultLauncher<String[]> locationPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
@@ -78,11 +80,15 @@ public class LocationPickerActivity extends AppCompatActivity implements OnMapRe
         btnUseLiveLocation.setOnClickListener(v -> moveToLiveLocation(false));
 
         btnConfirmLocation.setOnClickListener(v -> {
-            if (selectedLatLng != null && selectedAddress != null) {
+            if (selectedLatLng != null) {
+                // The address lookup may still be running; fall back to the coordinates
+                String address = selectedAddress != null && !selectedAddress.trim().isEmpty()
+                        ? selectedAddress
+                        : coordinatesText(selectedLatLng);
                 Intent resultIntent = new Intent();
                 resultIntent.putExtra("lat", selectedLatLng.latitude);
                 resultIntent.putExtra("lng", selectedLatLng.longitude);
-                resultIntent.putExtra("address", selectedAddress);
+                resultIntent.putExtra("address", address);
                 setResult(RESULT_OK, resultIntent);
                 finish();
             } else {
@@ -117,11 +123,12 @@ public class LocationPickerActivity extends AppCompatActivity implements OnMapRe
             return;
         }
 
-        geocoderExecutor.execute(() -> {
+        runGeocoderTask(() -> {
             Geocoder geocoder = new Geocoder(this, Locale.getDefault());
             try {
                 List<Address> addresses = geocoder.getFromLocationName(query, 1);
                 runOnUiThread(() -> {
+                    if (isFinishing() || isDestroyed()) return;
                     if (addresses != null && !addresses.isEmpty()) {
                         Address address = addresses.get(0);
                         LatLng target = new LatLng(address.getLatitude(), address.getLongitude());
@@ -134,8 +141,12 @@ public class LocationPickerActivity extends AppCompatActivity implements OnMapRe
                         ToastUtils.showCustomToast(this, getString(R.string.location_picker_not_found));
                     }
                 });
-            } catch (IOException e) {
-                runOnUiThread(() -> ToastUtils.showCustomToast(this, getString(R.string.location_picker_search_failed)));
+            } catch (IOException | IllegalArgumentException e) {
+                runOnUiThread(() -> {
+                    if (!isFinishing() && !isDestroyed()) {
+                        ToastUtils.showCustomToast(this, getString(R.string.location_picker_search_failed));
+                    }
+                });
             }
         });
     }
@@ -151,7 +162,9 @@ public class LocationPickerActivity extends AppCompatActivity implements OnMapRe
 
         mMap.setOnCameraIdleListener(() -> {
             selectedLatLng = mMap.getCameraPosition().target;
-            getAddress(selectedLatLng);
+            // Wait for the map to settle: panning fires many idle events in a row
+            uiHandler.removeCallbacks(lookupRunnable);
+            uiHandler.postDelayed(lookupRunnable, 350);
         });
     }
 
@@ -197,37 +210,62 @@ public class LocationPickerActivity extends AppCompatActivity implements OnMapRe
         getAddress(target);
     }
 
+    private static String coordinatesText(LatLng latLng) {
+        return String.format(Locale.getDefault(), "%.5f, %.5f", latLng.latitude, latLng.longitude);
+    }
+
+    private void applyAddress(String address) {
+        selectedAddress = address;
+        tvSelectedAddress.setText(address);
+    }
+
+    /** Looks up the address of the camera centre once the map has stopped moving. */
+    private final Runnable lookupRunnable = () -> {
+        if (selectedLatLng != null) {
+            getAddress(selectedLatLng);
+        }
+    };
+
     private void getAddress(LatLng latLng) {
         if (!Geocoder.isPresent()) {
-            selectedAddress = String.format(Locale.getDefault(), "%.5f, %.5f", latLng.latitude, latLng.longitude);
-            tvSelectedAddress.setText(selectedAddress);
+            applyAddress(coordinatesText(latLng));
             return;
         }
 
-        geocoderExecutor.execute(() -> {
+        // Only the newest lookup may update the screen; a slow older one must not overwrite it
+        final int requestId = ++addressRequestId;
+
+        runGeocoderTask(() -> {
             Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+            String resolved;
             try {
                 List<Address> addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
-                runOnUiThread(() -> {
-                    if (addresses != null && !addresses.isEmpty()) {
-                        selectedAddress = addresses.get(0).getAddressLine(0);
-                    } else {
-                        selectedAddress = String.format(Locale.getDefault(), "%.5f, %.5f", latLng.latitude, latLng.longitude);
-                    }
-                    tvSelectedAddress.setText(selectedAddress);
-                });
-            } catch (IOException e) {
-                runOnUiThread(() -> {
-                    selectedAddress = String.format(Locale.getDefault(), "%.5f, %.5f", latLng.latitude, latLng.longitude);
-                    tvSelectedAddress.setText(selectedAddress);
-                });
+                String line = (addresses != null && !addresses.isEmpty()) ? addresses.get(0).getAddressLine(0) : null;
+                resolved = (line != null && !line.trim().isEmpty()) ? line : coordinatesText(latLng);
+            } catch (IOException | IllegalArgumentException e) {
+                resolved = coordinatesText(latLng);
             }
+            final String result = resolved;
+            runOnUiThread(() -> {
+                if (isFinishing() || isDestroyed() || requestId != addressRequestId) return;
+                applyAddress(result);
+            });
         });
+    }
+
+    /** Runs a lookup on the background executor; ignored quietly once the screen is closing. */
+    private void runGeocoderTask(Runnable task) {
+        try {
+            geocoderExecutor.execute(task);
+        } catch (java.util.concurrent.RejectedExecutionException e) {
+            // The activity is being destroyed; nothing left to update
+        }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        uiHandler.removeCallbacksAndMessages(null);
         geocoderExecutor.shutdownNow();
     }
 }
