@@ -282,16 +282,17 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
         String normalized = query.trim().toLowerCase(Locale.US);
         if (normalized.isEmpty()) {
-            renderPlaceMarkers(allPlaces);
+            showOnlyPlaces(allPlaces);
             return true;
         }
 
+        // Match on name and address only. "category" holds display text like "Food • 5 items",
+        // which made queries such as "items" match every hotel.
         List<FoodPlace> filtered = new ArrayList<>();
         for (FoodPlace place : allPlaces) {
             String name = place.getName() == null ? "" : place.getName().toLowerCase(Locale.US);
             String address = place.getAddress() == null ? "" : place.getAddress().toLowerCase(Locale.US);
-            String category = place.getCategory() == null ? "" : place.getCategory().toLowerCase(Locale.US);
-            if (name.contains(normalized) || address.contains(normalized) || category.contains(normalized)) {
+            if (name.contains(normalized) || address.contains(normalized)) {
                 filtered.add(place);
             }
         }
@@ -300,7 +301,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             return false;
         }
 
-        renderPlaceMarkers(filtered);
+        showOnlyPlaces(filtered);
         if (moveCameraToFirst && mMap != null) {
             FoodPlace first = filtered.get(0);
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
@@ -309,6 +310,32 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             ));
         }
         return true;
+    }
+
+    /**
+     * Shows only the given places by toggling existing markers, so typing in the search box
+     * doesn't rebuild the whole map or wipe a route that is already drawn.
+     */
+    private void showOnlyPlaces(@NonNull List<FoodPlace> visiblePlaces) {
+        if (markerByHotelId.isEmpty()) {
+            renderPlaceMarkers(visiblePlaces);
+            return;
+        }
+
+        java.util.Set<String> visibleIds = new java.util.HashSet<>();
+        for (FoodPlace place : visiblePlaces) {
+            visibleIds.add(place.getId());
+        }
+        for (Map.Entry<String, Marker> entry : markerByHotelId.entrySet()) {
+            Marker marker = entry.getValue();
+            if (marker != null) {
+                marker.setVisible(visibleIds.contains(entry.getKey()));
+            }
+        }
+
+        if (selectedPlace != null && !visibleIds.contains(selectedPlace.getId())) {
+            clearSelectedState();
+        }
     }
 
     private void searchLocation(@NonNull String locationName) {
