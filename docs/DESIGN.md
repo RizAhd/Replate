@@ -49,3 +49,31 @@ Sinhala and Tamil can be added as `values-si` / `values-ta`. Show money with `Mo
 - Opening an order or the inbox from a notification builds a back stack (`parentActivityName` +
   `TaskStackBuilder`), so Back lands on Home, not the launcher.
 - `MainActivity` is `singleTop`; login, logout and onboarding clear the task.
+
+## Screens (app)
+- **Green header** (`Widget.REPLATE.Card.Header`): floating rounded card with a 48dp back arrow (negative start
+  margin keeps the icon aligned), a centred title and an optional muted subtitle. It stays pinned above the
+  scrolling content on every screen (cart, favorites, notifications, checkout, order detail, settings, search).
+- **List rows** (`Widget.REPLATE.Card.Row`): food, order, cart, notification and conversation items share radius,
+  elevation, outline and a 16dp side gutter. Carousels use `FoodItemAdapter.Style.CAROUSEL` (78% width, peeks the
+  next card); the two-column search grid uses `Style.GRID` (`item_food_grid.xml`).
+- **Pinned actions**: the primary action of a long screen (Place order, Add to cart) lives in a bar under the
+  scroll area, never inside it.
+- **Empty states**: 128dp pale circle, 56dp decorative icon, Headline title, Body text, optional primary button.
+- **Placeholders**: sample text in layouts is `tools:text` so it can never show to a user.
+- **Splash**: the custom splash starts as an exact continuation of the system splash (same `@color/splash_bg`,
+  176dp logo at the screen centre) and only then fades the wordmark in. Returning users skip it entirely.
+- **Motion**: matched slide in/out (`fast_out_slow_in`, 320ms); every custom animation is skipped when the user
+  turned animations off (`ValueAnimator.areAnimatorsEnabled()`).
+
+## Website (`web-panels/`)
+- Public pages (`index.html`, `privacy.html`, `terms.html`, `404.html`) use `css/site.css`; the signed-in panels use
+  `css/style.css`. Both self-host Poppins from `assets/fonts/`.
+- Use the helpers in `js/ui-shell.js`, never raw browser dialogs or unescaped HTML:
+  `ReplateUI.esc()` / `safeUrl()` for anything that comes from the database, `toast()` instead of `alert()`,
+  `confirmAction()` / `askText()` instead of `confirm()` / `prompt()`, `requireRole('admin'|'hotel')` at the top of
+  every panel page, `skeleton()` / `emptyState()` / `errorState()` for lists and tables, `flash()` for a message
+  that should appear after a redirect.
+- Hotel pages read their own data with `ReplateSchema.hotelOrders()` / `hotelFoodItems()` (queries by `hotelId`);
+  the database rules do not allow reading the whole list.
+- `node scripts/check-web.js` checks that every script parses, local links exist and no page calls `alert()`.
