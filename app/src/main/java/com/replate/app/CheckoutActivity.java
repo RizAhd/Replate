@@ -281,6 +281,8 @@ public class CheckoutActivity extends AppCompatActivity {
 
                         @Override
                         public void onCancelled(@NonNull DatabaseError error) {
+                            // Prefill is a convenience only; the customer can still type their details
+                            com.replate.app.utils.DatabaseErrorLogger.log(TAG, "prefill user details", error);
                         }
                     });
         }

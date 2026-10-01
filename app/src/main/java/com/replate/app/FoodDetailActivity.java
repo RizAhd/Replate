@@ -301,6 +301,7 @@ public class FoodDetailActivity extends AppCompatActivity {
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
+                        com.replate.app.utils.DatabaseErrorLogger.log("FoodDetailActivity", "load user name", error);
                     }
                 });
     }
@@ -563,6 +564,7 @@ public class FoodDetailActivity extends AppCompatActivity {
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
+                        com.replate.app.utils.DatabaseErrorLogger.log("FoodDetailActivity", "update rating summary", error);
                     }
                 });
     }

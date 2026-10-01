@@ -465,7 +465,9 @@ public class HomeFragment extends Fragment implements
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {}
+            public void onCancelled(@NonNull DatabaseError error) {
+                com.replate.app.utils.DatabaseErrorLogger.log("HomeFragment", "notification badge", error);
+            }
         };
         notifBadgeRef.addValueEventListener(notifBadgeListener);
     }

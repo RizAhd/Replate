@@ -170,7 +170,8 @@ public class ProfileFragment extends Fragment {
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
-                        // Cached data already shown, no action needed
+                        // Cached data is already on screen; just record why the refresh failed
+                        com.replate.app.utils.DatabaseErrorLogger.log("ProfileFragment", "profile refresh", error);
                     }
                 });
     }
@@ -207,7 +208,7 @@ public class ProfileFragment extends Fragment {
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
-                        // Handle error
+                        com.replate.app.utils.DatabaseErrorLogger.log("ProfileFragment", "order stats", error);
                     }
                 });
     }
