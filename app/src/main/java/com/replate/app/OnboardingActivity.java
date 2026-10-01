@@ -1,13 +1,12 @@
 package com.replate.app;
 
-import android.animation.AnimatorSet;
-import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
-import android.view.animation.OvershootInterpolator;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -68,16 +67,16 @@ public class OnboardingActivity extends AppCompatActivity {
         circleIndicator.setViewPager(viewPagerOnboarding);
         viewPagerOnboarding.setPageTransformer(new DepthPageTransformer());
 
-        // Entrance animation for bottom card & header
+        // Bottom card rises into place (skipped when the user turned animations off)
         View bottomLayout = findViewById(R.id.bottomLayout);
-        if (bottomLayout != null) {
-            bottomLayout.setTranslationY(300f);
+        if (bottomLayout != null && animationsEnabled()) {
+            bottomLayout.setTranslationY(getResources().getDisplayMetrics().density * 32f);
             bottomLayout.setAlpha(0f);
             bottomLayout.animate()
                     .translationY(0f)
                     .alpha(1f)
-                    .setDuration(600)
-                    .setStartDelay(200)
+                    .setDuration(450)
+                    .setStartDelay(100)
                     .setInterpolator(new DecelerateInterpolator())
                     .start();
         }
@@ -88,15 +87,10 @@ public class OnboardingActivity extends AppCompatActivity {
             public void onPageSelected(int position) {
                 super.onPageSelected(position);
                 boolean isLast = position == onboardingAdapter.getItemCount() - 1;
-                // Animate button text change
-                if (isLast) {
-                    animateButtonText("Get Started \u2192");
-                    // Fade out Skip on last page
-                    textSkip.animate().alpha(0f).setDuration(200).start();
-                } else {
-                    animateButtonText("Next");
-                    textSkip.animate().alpha(1f).setDuration(200).start();
-                }
+                buttonNext.setText(isLast ? R.string.onboarding_get_started : R.string.onboarding_next);
+                // Skip is pointless on the last page: hide it and stop it taking taps
+                textSkip.setEnabled(!isLast);
+                textSkip.animate().alpha(isLast ? 0f : 1f).setDuration(200).start();
             }
         });
 
@@ -116,36 +110,10 @@ public class OnboardingActivity extends AppCompatActivity {
             saveOnboardingSeen();
             proceedAfterOnboarding();
         });
-
-        // Animate the initial appearance of the button
-        if (buttonNext != null) {
-            buttonNext.setScaleX(0.8f);
-            buttonNext.setScaleY(0.8f);
-            buttonNext.animate()
-                    .scaleX(1f)
-                    .scaleY(1f)
-                    .setDuration(400)
-                    .setStartDelay(500)
-                    .setInterpolator(new OvershootInterpolator())
-                    .start();
-        }
     }
 
-    /**
-     * Animate button text change with a subtle scale pulse.
-     */
-    private void animateButtonText(String newText) {
-        ObjectAnimator scaleDown = ObjectAnimator.ofFloat(buttonNext, "scaleX", 1f, 0.92f);
-        scaleDown.setDuration(100);
-        ObjectAnimator scaleUp = ObjectAnimator.ofFloat(buttonNext, "scaleX", 0.92f, 1f);
-        scaleUp.setDuration(200);
-        scaleUp.setInterpolator(new OvershootInterpolator());
-
-        AnimatorSet set = new AnimatorSet();
-        set.playSequentially(scaleDown, scaleUp);
-        set.start();
-
-        buttonNext.setText(newText);
+    private boolean animationsEnabled() {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.O || ValueAnimator.areAnimatorsEnabled();
     }
 
     /**
@@ -157,22 +125,22 @@ public class OnboardingActivity extends AppCompatActivity {
         // Slide 1 - Discover Deals
         OnboardingItem item1 = new OnboardingItem(
             R.drawable.ic_onboarding_discover,
-            "Discover Amazing Deals",
-            "Find surplus food from hotels and restaurants at up to 50% off. Great meals at great prices!"
+            getString(R.string.onboarding_slide1_title),
+            getString(R.string.onboarding_slide1_body)
         );
 
         // Slide 2 - Find Nearby
         OnboardingItem item2 = new OnboardingItem(
             R.drawable.ic_onboarding_nearby,
-            "Find Food Near You",
-            "Use GPS to discover delicious deals nearby. Pick up fresh food from restaurants in your area."
+            getString(R.string.onboarding_slide2_title),
+            getString(R.string.onboarding_slide2_body)
         );
 
         // Slide 3 - Save Food, Save Planet
         OnboardingItem item3 = new OnboardingItem(
             R.drawable.ic_onboarding_save,
-            "Save Food, Save Planet",
-            "Join the food rescue movement! Every meal you save helps reduce food waste and protect our environment."
+            getString(R.string.onboarding_slide3_title),
+            getString(R.string.onboarding_slide3_body)
         );
 
         onboardingItems.add(item1);

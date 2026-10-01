@@ -4,9 +4,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:paddingHorizontal="@dimen/space_2_5"
+    android:paddingHorizontal="@dimen/space_2"
     android:paddingTop="@dimen/space_1"
-    android:paddingBottom="160dp"
+    android:paddingBottom="@dimen/space_1"
     android:gravity="center_horizontal"
     android:background="@color/cream">
 
@@ -14,11 +14,10 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_marginTop="@dimen/space_1"
         android:layout_marginBottom="@dimen/space_2"
         app:cardBackgroundColor="@color/green_pale"
-        app:cardCornerRadius="32dp"
-        app:cardElevation="2dp"
+        app:cardCornerRadius="@dimen/radius_hero"
+        app:cardElevation="@dimen/elevation_card"
         app:strokeWidth="0dp">
 
         <ImageView
@@ -28,7 +27,7 @@
             android:layout_gravity="center"
             android:adjustViewBounds="true"
             android:contentDescription="@string/onboarding_onboarding_illustration_cd"
-            android:padding="@dimen/space_4"
+            android:padding="@dimen/space_3"
             android:scaleType="fitCenter" />
     </com.google.android.material.card.MaterialCardView>
 
@@ -36,7 +35,6 @@
         android:id="@+id/textTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/space_1_5"
         android:fontFamily="@font/poppins_bold"
         android:gravity="center"
         android:lineSpacingExtra="2dp"
@@ -47,7 +45,7 @@
         android:id="@+id/textDescription"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/space_2"
+        android:layout_marginTop="@dimen/space_1_5"
         android:fontFamily="@font/poppins_regular"
         android:gravity="center"
         android:lineSpacingExtra="4dp"

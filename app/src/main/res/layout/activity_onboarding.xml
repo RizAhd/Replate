@@ -5,75 +5,59 @@
     android:layout_height="match_parent"
     android:background="@color/cream">
 
+    <!-- Slim header: brand on the left, Skip on the right, both on the same centre line -->
     <LinearLayout
+        android:id="@+id/onboardingHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:gravity="center_vertical"
+        android:minHeight="56dp"
+        android:orientation="horizontal"
+        android:paddingHorizontal="@dimen/space_2">
+
+        <ImageView
+            android:id="@+id/ivOnboardingLogo"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_replate_logo" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/space_1"
+            android:layout_weight="1"
+            android:fontFamily="@font/poppins_bold"
+            android:letterSpacing="0.1"
+            android:text="@string/app_name"
+            android:textColor="@color/green_primary"
+            android:textSize="@dimen/text_lg" />
+
+        <TextView
+            android:id="@+id/textSkip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="@font/poppins_semibold"
+            android:gravity="center"
+            android:minWidth="@dimen/touch_target_min"
+            android:minHeight="@dimen/touch_target_min"
+            android:paddingHorizontal="@dimen/space_1_5"
+            android:text="@string/onboarding_skip"
+            android:textColor="@color/green_primary"
+            android:textSize="@dimen/text_sm" />
+    </LinearLayout>
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPagerOnboarding"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
-
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="@dimen/space_2"
-            app:cardBackgroundColor="@color/green_primary"
-            app:cardCornerRadius="28dp"
-            app:cardElevation="0dp">
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="@dimen/space_2_5">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@id/textSkip"
-                    android:layout_marginTop="@dimen/space_1"
-                    android:text="@string/onboarding_fresh_meals_smarter_savings_and"
-                    android:textAppearance="@style/TextAppearance.REPLATE.Headline"
-                    android:textColor="@color/white"
-                    android:textSize="@dimen/text_display" />
-
-                <ImageView
-                    android:id="@+id/ivOnboardingLogo"
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
-                    android:src="@drawable/ic_replate_logo"
-                    android:contentDescription="@string/app_name" />
-
-                <TextView
-                    android:id="@+id/textSkip"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true"
-                    android:background="@drawable/badge_distance"
-                    android:paddingHorizontal="14dp"
-                    android:paddingVertical="@dimen/space_1"
-                    android:text="@string/onboarding_skip"
-                    android:textColor="@color/green_primary"
-                    android:textSize="@dimen/text_sm"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@id/textSkip"
-                    android:layout_marginTop="97dp"
-                    android:lineSpacingExtra="3dp"
-                    android:text="@string/onboarding_swipe_through_to_see_how"
-                    android:textAppearance="@style/TextAppearance.REPLATE.Body"
-                    android:textColor="@color/text_on_primary_muted" />
-            </RelativeLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <androidx.viewpager2.widget.ViewPager2
-            android:id="@+id/viewPagerOnboarding"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:layout_marginTop="@dimen/space_1"
-            android:clipToPadding="false"
-            android:paddingHorizontal="@dimen/space_1" />
-    </LinearLayout>
+        android:layout_above="@id/bottomLayout"
+        android:layout_below="@id/onboardingHeader"
+        android:clipToPadding="false" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/bottomLayout"
@@ -82,8 +66,8 @@
         android:layout_alignParentBottom="true"
         android:layout_margin="@dimen/space_2"
         app:cardBackgroundColor="@color/surface_white"
-        app:cardCornerRadius="28dp"
-        app:cardElevation="8dp">
+        app:cardCornerRadius="@dimen/radius_hero"
+        app:cardElevation="@dimen/elevation_sheet">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -94,12 +78,12 @@
             <me.relex.circleindicator.CircleIndicator3
                 android:id="@+id/circleIndicator"
                 android:layout_width="wrap_content"
-                android:layout_height="40dp"
+                android:layout_height="@dimen/space_4"
                 android:layout_gravity="center"
                 app:ci_drawable="@drawable/indicator_selected"
                 app:ci_drawable_unselected="@drawable/indicator_unselected"
                 app:ci_height="10dp"
-                app:ci_margin="8dp"
+                app:ci_margin="@dimen/space_1"
                 app:ci_width="10dp" />
 
             <com.google.android.material.button.MaterialButton

@@ -94,6 +94,7 @@
     <color name="card_background">#FFFFFF</color>
     <color name="divider">#EAEAEA</color>
     <color name="ripple_primary">#1A1A6B3C</color>
+    <color name="indicator_inactive">#C5CFC8</color>
     <color name="splash_tagline">#B3FFFFFF</color>
     <color name="splash_track">#14FFFFFF</color>
     <color name="splash_bg">#0D3B1E</color>

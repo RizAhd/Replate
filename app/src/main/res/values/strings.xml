@@ -448,10 +448,15 @@ Total: LKR %1$.2f</string>
     <string name="notifications_pickup">Pickup</string>
     <string name="notifications_system">System</string>
     <string name="notifications_browse_deals">Browse Deals</string>
-    <string name="onboarding_fresh_meals_smarter_savings_and">Fresh meals, smarter savings, and less food waste.</string>
     <string name="onboarding_skip">Skip</string>
-    <string name="onboarding_swipe_through_to_see_how">Swipe through to see how REPLATE helps you find nearby rescue deals in seconds.</string>
     <string name="onboarding_next">Next</string>
+    <string name="onboarding_get_started">Get started</string>
+    <string name="onboarding_slide1_title">Discover Amazing Deals</string>
+    <string name="onboarding_slide1_body">Find surplus food from hotels and restaurants at up to 50% off. Great meals at great prices!</string>
+    <string name="onboarding_slide2_title">Find Food Near You</string>
+    <string name="onboarding_slide2_body">Use GPS to discover delicious deals nearby. Pick up fresh food from restaurants in your area.</string>
+    <string name="onboarding_slide3_title">Save Food, Save Planet</string>
+    <string name="onboarding_slide3_body">Join the food rescue movement! Every meal you save helps reduce food waste and protect our environment.</string>
     <string name="order_detail_order_details">Order Details</string>
     <string name="order_detail_order_confirmed">Order Confirmed ✅</string>
     <string name="order_detail_show_this_qr_code_at">Show this QR Code at Pickup</string>
