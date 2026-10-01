@@ -25,7 +25,10 @@ Also: `docs/brand/` (logo files) and `docs/IMAGE_CREDITS.md` (photo credits).
 
 ### Set up
 
-1. Install Android Studio and open this folder.
+Prerequisites: [Android Studio](https://developer.android.com/studio),
+[Node.js and npm](https://nodejs.org/) and the [Firebase CLI](https://firebase.google.com/docs/cli).
+
+1. Open this folder in Android Studio.
 2. Add your Firebase config: download `google-services.json` from the Firebase console
    (project `replate-food-rescue`) into `app/`. It is deliberately **not** in git.
 3. Create `local.properties` (also not in git) next to `settings.gradle` and add:
@@ -53,6 +56,14 @@ Both run automatically on every push through GitHub Actions (`.github/workflows/
 
 ## Firebase
 
+Cloud Functions:
+
+```bash
+cd firebase-functions
+npm install
+firebase deploy --only functions
+```
+
 Read **`firebase-rules/README.md` before deploying rules**. In short:
 
 1. Give your admin account the role: in the Realtime Database set `users/<admin uid>/role` to `"admin"`.
@@ -63,8 +74,10 @@ Banners: add them in the admin panel (Banners page). Without any, the app shows 
 
 ## Admin and hotel panels
 
-Static HTML in `web-panels/`. Copy `web-panels/js/env-config.js` from your Firebase project's web app
-settings (it is git-ignored) and host the folder anywhere static (for example Firebase Hosting).
+Static HTML in `web-panels/`: open the pages in `admin-panel/` or `hotel-panel/` in a browser, or host the
+folder anywhere static (for example Firebase Hosting). Both panels read their Firebase settings from
+`web-panels/js/env-config.js` (git-ignored; copy the values from your Firebase project's web app
+settings) through `js/firebase-config.js`.
 
 ## Brand
 
@@ -80,6 +93,15 @@ they stay sharp at every size and support Android 13 themed icons.
   verification to a Cloud Function with a PayHere `notify_url` before going live with real payments.
 - Restrict the Google Maps key to this app (package + SHA-1) and the two APIs it needs, and set a
   billing alert in Google Cloud Console.
+
+## Contributing
+
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like
+to change. Keep commits small, and make sure `./gradlew testDebugUnitTest` and `npm run rules:test` pass.
+
+## License
+
+This project is licensed. See the LICENSE file for details.
 
 ## Roadmap (known gaps)
 
