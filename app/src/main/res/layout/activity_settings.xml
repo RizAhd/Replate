@@ -251,6 +251,79 @@
                             android:layout_height="wrap_content"
                             android:checked="true" />
                     </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/space_2"
+                        android:text="@string/settings_notify_about"
+                        android:textAppearance="@style/TextAppearance.REPLATE.Caption" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/space_1"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/settings_notify_orders"
+                            android:textAppearance="@style/TextAppearance.REPLATE.Label" />
+
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switchNotifyOrders"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="true" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/space_1"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/settings_notify_deals"
+                            android:textAppearance="@style/TextAppearance.REPLATE.Label" />
+
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switchNotifyDeals"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="true" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/space_1"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/settings_notify_pickup"
+                            android:textAppearance="@style/TextAppearance.REPLATE.Label" />
+
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switchNotifyPickup"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="true" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/rowSystemNotifications"
+                        style="@style/Widget.REPLATE.SettingsRow"
+                        android:layout_marginTop="@dimen/space_1"
+                        android:text="@string/settings_system_notifications" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -298,6 +371,88 @@
                         android:gravity="center_vertical"
                         android:text="@string/settings_clear_cache_row"
                         android:textAppearance="@style/TextAppearance.REPLATE.Label" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_2"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="@dimen/radius_xl"
+                app:cardElevation="@dimen/elevation_card">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/space_2">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_help_about"
+                        android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
+
+                    <TextView
+                        android:id="@+id/rowHelp"
+                        style="@style/Widget.REPLATE.SettingsRow"
+                        android:layout_marginTop="@dimen/space_1"
+                        android:text="@string/settings_row_help" />
+
+                    <TextView
+                        android:id="@+id/rowContact"
+                        style="@style/Widget.REPLATE.SettingsRow"
+                        android:text="@string/settings_row_contact" />
+
+                    <TextView
+                        android:id="@+id/rowRate"
+                        style="@style/Widget.REPLATE.SettingsRow"
+                        android:text="@string/settings_row_rate" />
+
+                    <TextView
+                        android:id="@+id/rowShare"
+                        style="@style/Widget.REPLATE.SettingsRow"
+                        android:text="@string/settings_row_share" />
+
+                    <TextView
+                        android:id="@+id/rowLicenses"
+                        style="@style/Widget.REPLATE.SettingsRow"
+                        android:text="@string/settings_row_licenses" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_2"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="@dimen/radius_xl"
+                app:cardElevation="@dimen/elevation_card">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/space_2">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_account"
+                        android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
+
+                    <TextView
+                        android:id="@+id/rowLogout"
+                        style="@style/Widget.REPLATE.SettingsRow"
+                        android:layout_marginTop="@dimen/space_1"
+                        android:text="@string/settings_row_logout" />
+
+                    <TextView
+                        android:id="@+id/rowDeleteAccount"
+                        style="@style/Widget.REPLATE.SettingsRow"
+                        android:text="@string/settings_row_delete_account"
+                        android:textColor="@color/error" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

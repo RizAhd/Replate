@@ -217,4 +217,15 @@
         <item name="cornerSizeBottomRight">0dp</item>
     </style>
 
+    <!-- A tappable text row inside a Settings card -->
+    <style name="Widget.REPLATE.SettingsRow" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:minHeight">@dimen/touch_target_min</item>
+        <item name="android:textAppearance">@style/TextAppearance.REPLATE.Label</item>
+    </style>
 </resources>

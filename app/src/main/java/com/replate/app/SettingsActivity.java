@@ -41,8 +41,10 @@ import com.google.firebase.storage.StorageException;
 import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
 import com.replate.app.helpers.ReplateDatabaseHelper;
+import com.replate.app.utils.AccountActions;
 import com.replate.app.utils.FcmTokenManager;
 import com.replate.app.utils.NotificationPermissionHelper;
+import com.replate.app.utils.NotificationPrefs;
 import com.replate.app.utils.ToastUtils;
 import com.replate.app.utils.UserRoleHelper;
 
@@ -78,6 +80,7 @@ public class SettingsActivity extends AppCompatActivity {
     private TextInputEditText etName, etPhone, etEmail, etAddress;
     private Button btnChangePhoto, btnSaveProfile, btnPickAddress;
     private SwitchMaterial switchNotifications, switchLocation;
+    private SwitchMaterial switchNotifyOrders, switchNotifyDeals, switchNotifyPickup;
 
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
@@ -242,11 +245,112 @@ public class SettingsActivity extends AppCompatActivity {
                 requestNotificationPermissionFromSettings();
                 return;
             }
-            prefs.edit().putBoolean("notifications_enabled", checked).apply();
+            prefs.edit().putBoolean(NotificationPrefs.KEY_ENABLED, checked).apply();
+            updateNotifyCategoryState(checked);
         });
 
-        switchLocation.setOnCheckedChangeListener((btn, checked) ->
-                prefs.edit().putBoolean("location_enabled", checked).apply());
+        // Per-category switches; the push service reads these through NotificationPrefs
+        switchNotifyOrders = findViewById(R.id.switchNotifyOrders);
+        switchNotifyDeals = findViewById(R.id.switchNotifyDeals);
+        switchNotifyPickup = findViewById(R.id.switchNotifyPickup);
+        switchNotifyOrders.setOnCheckedChangeListener((btn, checked) ->
+                prefs.edit().putBoolean(NotificationPrefs.KEY_ORDERS, checked).apply());
+        switchNotifyDeals.setOnCheckedChangeListener((btn, checked) ->
+                prefs.edit().putBoolean(NotificationPrefs.KEY_DEALS, checked).apply());
+        switchNotifyPickup.setOnCheckedChangeListener((btn, checked) ->
+                prefs.edit().putBoolean(NotificationPrefs.KEY_PICKUP, checked).apply());
+        findViewById(R.id.rowSystemNotifications).setOnClickListener(v -> openSystemNotificationSettings());
+
+        // Location access is a system permission an app can't revoke itself, so this switch shows the
+        // real state and sends the user to the phone's app settings to change it.
+        switchLocation.setOnClickListener(v -> {
+            refreshLocationSwitch();
+            ToastUtils.showCustomToast(this, R.string.settings_location_off_hint);
+            openAppDetailsSettings();
+        });
+
+        findViewById(R.id.rowHelp).setOnClickListener(v -> new AlertDialog.Builder(this)
+                .setTitle(R.string.help_title)
+                .setMessage(R.string.help_body)
+                .setPositiveButton(R.string.help_dismiss, null)
+                .show());
+        findViewById(R.id.rowContact).setOnClickListener(v -> contactSupport());
+        findViewById(R.id.rowRate).setOnClickListener(v -> rateApp());
+        findViewById(R.id.rowShare).setOnClickListener(v -> shareApp());
+        findViewById(R.id.rowLicenses).setOnClickListener(v -> new AlertDialog.Builder(this)
+                .setTitle(R.string.settings_licenses_title)
+                .setMessage(R.string.settings_licenses_body)
+                .setPositiveButton(android.R.string.ok, null)
+                .show());
+        findViewById(R.id.rowLogout).setOnClickListener(v -> AccountActions.confirmLogout(this));
+        findViewById(R.id.rowDeleteAccount).setOnClickListener(v -> AccountActions.confirmDelete(this));
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // The user may have changed location access in the phone settings
+        refreshLocationSwitch();
+    }
+
+    private void refreshLocationSwitch() {
+        boolean granted = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED
+                || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
+        switchLocation.setChecked(granted);
+    }
+
+    private void updateNotifyCategoryState(boolean masterEnabled) {
+        for (SwitchMaterial s : new SwitchMaterial[]{switchNotifyOrders, switchNotifyDeals, switchNotifyPickup}) {
+            if (s != null) s.setEnabled(masterEnabled);
+        }
+    }
+
+    private void startSafely(Intent intent) {
+        try {
+            startActivity(intent);
+        } catch (android.content.ActivityNotFoundException e) {
+            ToastUtils.showCustomToast(this, R.string.settings_no_app_available);
+        }
+    }
+
+    private void openAppDetailsSettings() {
+        startSafely(new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                Uri.fromParts("package", getPackageName(), null)));
+    }
+
+    private void openSystemNotificationSettings() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            startSafely(new Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                    .putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, getPackageName()));
+        } else {
+            openAppDetailsSettings();
+        }
+    }
+
+    private void contactSupport() {
+        Intent intent = new Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:"));
+        intent.putExtra(Intent.EXTRA_EMAIL, new String[]{getString(R.string.settings_support_email)});
+        intent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.settings_contact_subject, BuildConfig.VERSION_NAME));
+        startSafely(intent);
+    }
+
+    private void rateApp() {
+        Intent store = new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + getPackageName()));
+        try {
+            startActivity(store);
+        } catch (android.content.ActivityNotFoundException e) {
+            startSafely(new Intent(Intent.ACTION_VIEW,
+                    Uri.parse("https://play.google.com/store/apps/details?id=" + getPackageName())));
+        }
+    }
+
+    private void shareApp() {
+        Intent send = new Intent(Intent.ACTION_SEND);
+        send.setType("text/plain");
+        send.putExtra(Intent.EXTRA_TEXT, getString(R.string.settings_share_text));
+        startSafely(Intent.createChooser(send, getString(R.string.settings_share_title)));
     }
 
     private void requestNotificationPermissionFromSettings() {
@@ -349,7 +453,11 @@ public class SettingsActivity extends AppCompatActivity {
             notificationsEnabled = false;
         }
         switchNotifications.setChecked(notificationsEnabled);
-        switchLocation.setChecked(prefs.getBoolean("location_enabled", true));
+        switchNotifyOrders.setChecked(prefs.getBoolean(NotificationPrefs.KEY_ORDERS, true));
+        switchNotifyDeals.setChecked(prefs.getBoolean(NotificationPrefs.KEY_DEALS, true));
+        switchNotifyPickup.setChecked(prefs.getBoolean(NotificationPrefs.KEY_PICKUP, true));
+        updateNotifyCategoryState(notificationsEnabled);
+        refreshLocationSwitch();
     }
 
     private void showPhotoPicker() {
