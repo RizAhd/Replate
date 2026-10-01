@@ -308,6 +308,14 @@
                     android:overScrollMode="never"
                     android:paddingBottom="@dimen/space_0_5"/>
 
+                <include
+                    android:id="@+id/skeletonFeed"
+                    layout="@layout/view_home_skeleton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/space_1_5"
+                    android:visibility="gone" />
+
                 <TextView
                     android:id="@+id/tvEmptyFeed"
                     android:layout_width="match_parent"
@@ -357,13 +365,5 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="42dp"
-        android:layout_height="42dp"
-        android:layout_gravity="center"
-        android:indeterminateTint="@color/green_primary"
-        android:visibility="gone" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

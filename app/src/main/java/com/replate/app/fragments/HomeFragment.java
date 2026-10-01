@@ -8,13 +8,15 @@ import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.location.Address;
 import android.location.Geocoder;
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -77,7 +79,9 @@ public class HomeFragment extends Fragment implements
     private ViewPager2 bannerViewPager;
     private RecyclerView rvCategories, rvHotDeals, rvFoodItems, rvFavorites;
     private me.relex.circleindicator.CircleIndicator3 bannerIndicator;
-    private ProgressBar progressBar;
+    private View skeletonFeed;
+    private ObjectAnimator skeletonPulse;
+    private boolean feedLoading;
 
     // Firebase
     private FirebaseAuth mAuth;
@@ -184,7 +188,7 @@ public class HomeFragment extends Fragment implements
         rvHotDeals = view.findViewById(R.id.rvHotDeals);
         rvFoodItems = view.findViewById(R.id.rvDeals);
         rvFavorites = view.findViewById(R.id.rvFavorites);
-        progressBar = view.findViewById(R.id.progressBar);
+        skeletonFeed = view.findViewById(R.id.skeletonFeed);
         swipeRefresh = view.findViewById(R.id.swipeRefresh);
         tvEmptyFeed = view.findViewById(R.id.tvEmptyFeed);
         if (swipeRefresh != null) {
@@ -670,6 +674,12 @@ public class HomeFragment extends Fragment implements
         // Keep cached content visible while refreshing from network.
         if (allFoodItems == null || allFoodItems.isEmpty()) {
             showLoading(true);
+            // If the server never answers (offline, no cache) stop the placeholders and say so
+            uiHandler.postDelayed(() -> {
+                if (feedLoading) {
+                    showLoading(false);
+                }
+            }, 12000);
         }
 
         // Remove previous listener if any (prevents duplicates on re-calls)
@@ -950,8 +960,7 @@ public class HomeFragment extends Fragment implements
         if (tvEmptyFeed == null) {
             return;
         }
-        boolean stillLoading = progressBar != null && progressBar.getVisibility() == View.VISIBLE;
-        if (foodItems.isEmpty() && !stillLoading) {
+        if (foodItems.isEmpty() && !feedLoading) {
             tvEmptyFeed.setText(allFoodItems.isEmpty() ? R.string.home_empty_none : R.string.home_empty_category);
             tvEmptyFeed.setVisibility(View.VISIBLE);
         } else {
@@ -1001,10 +1010,30 @@ public class HomeFragment extends Fragment implements
                 .trim();
     }
 
-    private void showLoading(boolean show) {
-        if (progressBar != null) {
-            progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
+    /** Shows pulsing placeholder rows in the feed while data loads; no-op if the view is gone. */
+    private void setSkeletonVisible(boolean show) {
+        if (skeletonFeed == null) {
+            return;
         }
+        if (skeletonPulse != null) {
+            skeletonPulse.cancel();
+            skeletonPulse = null;
+        }
+        skeletonFeed.setAlpha(1f);
+        skeletonFeed.setVisibility(show ? View.VISIBLE : View.GONE);
+        boolean animationsOff = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !ValueAnimator.areAnimatorsEnabled();
+        if (show && !animationsOff) {
+            skeletonPulse = ObjectAnimator.ofFloat(skeletonFeed, View.ALPHA, 1f, 0.45f);
+            skeletonPulse.setDuration(800);
+            skeletonPulse.setRepeatCount(ValueAnimator.INFINITE);
+            skeletonPulse.setRepeatMode(ValueAnimator.REVERSE);
+            skeletonPulse.start();
+        }
+    }
+
+    private void showLoading(boolean show) {
+        feedLoading = show;
+        setSkeletonVisible(show);
         // Whenever loading ends (data arrived or failed), also stop the pull-to-refresh spinner
         if (!show && swipeRefresh != null) {
             swipeRefresh.setRefreshing(false);
@@ -1075,6 +1104,11 @@ public class HomeFragment extends Fragment implements
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        if (skeletonPulse != null) {
+            skeletonPulse.cancel();
+            skeletonPulse = null;
+        }
+        skeletonFeed = null;
         bannerHandler.removeCallbacksAndMessages(null);
         uiHandler.removeCallbacksAndMessages(null);
         // Remove notification badge listener
