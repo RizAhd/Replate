@@ -56,6 +56,21 @@
     <string name="map_distance_hint_template">About %1$.1f km away · tap Show route for directions</string>
     <string name="map_route_hint">Tap Show route for directions</string>
 
+    <!-- Home banners (bundled fallback set) -->
+    <string name="banner_1_badge">HOT DEAL</string>
+    <string name="banner_1_title">Low Prices, Big Smiles</string>
+    <string name="banner_1_subtitle">Get hotel-quality food at rescue prices today.</string>
+    <string name="banner_2_badge">BAKERY SURPLUS</string>
+    <string name="banner_2_title">Fresh Bakes, Fair Prices</string>
+    <string name="banner_2_subtitle">Rescue bread and pastries before closing time.</string>
+    <string name="banner_3_badge">FOOD RESCUE</string>
+    <string name="banner_3_title">Don\'t Waste Good Food</string>
+    <string name="banner_3_subtitle">Every order helps reduce food waste in Sri Lanka.</string>
+    <string name="banner_4_badge">SMART SAVINGS</string>
+    <string name="banner_4_title">Rescue Meals Near You</string>
+    <string name="banner_4_subtitle">Fresh surplus meals are waiting around your location.</string>
+    <string name="banner_content_description">%1$s. %2$s</string>
+
     <!-- Cart -->
     <string name="cart_title">Your cart</string>
     <string name="cart_summary">Review your rescue meals before checkout</string>
