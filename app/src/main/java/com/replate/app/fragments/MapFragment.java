@@ -472,6 +472,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         // The screen has its own "my location" button; hide Google's duplicate
         mMap.getUiSettings().setMyLocationButtonEnabled(false);
 
+        // Hide Google's own restaurant/shop pins so REPLATE's hotel markers are the ones you see
+        try {
+            mMap.setMapStyle(com.google.android.gms.maps.model.MapStyleOptions
+                    .loadRawResourceStyle(requireContext(), R.raw.map_style_clean));
+        } catch (RuntimeException e) {
+            // The default map style is fine if the custom one can't be applied
+        }
+
         // Start somewhere useful instead of the world view while location and hotels load
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM));
 
