@@ -620,10 +620,21 @@ public class FoodDetailActivity extends AppCompatActivity {
                         String latestOrderId = "";
 
                         for (DataSnapshot child : snapshot.getChildren()) {
-                            String itemId = child.child("foodItemId").getValue(String.class);
                             String status = child.child("orderStatus").getValue(String.class);
-                            if (itemId == null || foodId == null || !itemId.equals(foodId)) continue;
-                            if (status == null) continue;
+                            if (foodId == null || status == null) continue;
+
+                            // Orders keep their dishes in an items list (each with a foodId); the old
+                            // single foodItemId field never exists, so "Verified purchase" was never true.
+                            boolean orderHasFood = foodId.equals(child.child("foodItemId").getValue(String.class));
+                            if (!orderHasFood) {
+                                for (DataSnapshot line : child.child("items").getChildren()) {
+                                    if (foodId.equals(line.child("foodId").getValue(String.class))) {
+                                        orderHasFood = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (!orderHasFood) continue;
 
                             String normalized = status.trim().toLowerCase(Locale.US);
                             if ("completed".equals(normalized) || "delivered".equals(normalized)) {
