@@ -1,13 +1,9 @@
 package com.replate.app.utils;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.text.TextUtils;
-
-import androidx.core.content.ContextCompat;
 
 /**
  * Telephony utility helpers used across food/order screens.
@@ -32,18 +28,12 @@ public final class TelephonyUtils {
         return value;
     }
 
-    public static boolean hasCallPermission(Activity activity) {
-        return ContextCompat.checkSelfPermission(activity, Manifest.permission.CALL_PHONE)
-                == PackageManager.PERMISSION_GRANTED;
-    }
-
+    /**
+     * Opens the phone app with the number filled in. ACTION_DIAL needs no permission, so the app
+     * does not request CALL_PHONE; the customer taps the call button themselves.
+     */
     public static void openDialer(Activity activity, String phone) {
-        Intent intent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + phone));
-        activity.startActivity(intent);
-    }
-
-    public static void callNow(Activity activity, String phone) {
-        Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + phone));
+        Intent intent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + Uri.encode(phone)));
         activity.startActivity(intent);
     }
 
