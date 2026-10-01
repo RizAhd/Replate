@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- REPLATE notification small icon.
-     References density-specific white-silhouette PNGs generated from
-     the splash-screen logo (replate.png). Android requires small icons
-     to be white-on-transparent for the status bar. -->
-<bitmap xmlns:android="http://schemas.android.com/apk/res/android"
-    android:gravity="center"
-    android:src="@drawable/ic_notif_replate" />
+<!-- In-app notification bell glyph (drawer, inbox, profile). This was the brand blob before;
+     the status-bar icon is now @drawable/ic_stat_replate. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/ic_bell" />
+</layer-list>
