@@ -5,77 +5,83 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_splash_premium">
 
-    <!-- Soft radial glow behind logo -->
+    <!-- Soft glow behind the logo; fades in after the hand-over from the system splash -->
     <View
         android:id="@+id/glowRing"
-        android:layout_width="340dp"
-        android:layout_height="340dp"
-        android:alpha="0.18"
+        android:layout_width="360dp"
+        android:layout_height="360dp"
+        android:alpha="0"
         android:background="@drawable/bg_splash_glow"
+        android:importantForAccessibility="no"
         app:layout_constraintBottom_toBottomOf="@id/ivEmoji"
         app:layout_constraintEnd_toEndOf="@id/ivEmoji"
         app:layout_constraintStart_toStartOf="@id/ivEmoji"
         app:layout_constraintTop_toTopOf="@id/ivEmoji" />
 
-    <!-- Logo: vector mark (sharp at any density) in its light variant for the dark-green background -->
+    <!-- Logo: 176dp so the mark is exactly as large and as centred as the system splash icon
+         (122.7dp wide at the screen centre). Decorative: the wordmark below names the app. -->
     <ImageView
         android:id="@+id/ivEmoji"
-        android:layout_width="220dp"
-        android:layout_height="220dp"
-        android:contentDescription="@string/app_name"
+        android:layout_width="176dp"
+        android:layout_height="176dp"
+        android:importantForAccessibility="no"
         android:src="@drawable/ic_replate_logo_light"
-        app:layout_constraintBottom_toTopOf="@id/appName"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.38"
-        app:layout_constraintVertical_chainStyle="packed" />
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- App name — bold, centered, tighter spacing to logo -->
+    <!-- Wordmark sits under the logo; paddingStart cancels the trailing letter-spacing so it is optically centred -->
     <TextView
         android:id="@+id/appName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/space_3"
+        android:layout_marginTop="@dimen/space_1"
+        android:alpha="0"
         android:fontFamily="@font/poppins_bold"
         android:letterSpacing="0.14"
+        android:paddingStart="5dp"
         android:text="@string/app_name"
         android:textColor="@color/white"
-        android:textSize="38sp"
+        android:textSize="@dimen/text_wordmark"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/ivEmoji" />
 
-    <!-- Tagline — subtle, elegant -->
     <TextView
         android:id="@+id/tagline"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:layout_marginHorizontal="@dimen/space_4"
+        android:layout_marginTop="@dimen/space_1_5"
+        android:alpha="0"
         android:fontFamily="@font/poppins_regular"
         android:gravity="center"
         android:letterSpacing="0.04"
         android:text="@string/splash_tagline"
-        android:textColor="#99FFFFFF"
-        android:textSize="15sp"
+        android:textColor="@color/splash_tagline"
+        android:textSize="@dimen/text_md"
+        app:layout_constrainedWidth="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/appName" />
 
-    <!-- Minimal progress indicator pinned to bottom -->
+    <!-- Minimal progress indicator pinned to the bottom; only shown for first-run users -->
     <com.google.android.material.progressindicator.LinearProgressIndicator
         android:id="@+id/progressBar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="56dp"
+        android:layout_marginBottom="@dimen/space_6"
+        android:alpha="0"
+        android:importantForAccessibility="no"
         android:indeterminate="true"
         app:indicatorColor="@color/white"
-        app:trackColor="#14FFFFFF"
-        app:trackCornerRadius="2dp"
-        app:trackThickness="2dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintWidth_percent="0.35" />
+        app:layout_constraintWidth_percent="0.35"
+        app:trackColor="@color/splash_track"
+        app:trackCornerRadius="2dp"
+        app:trackThickness="2dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

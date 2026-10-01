@@ -39,6 +39,7 @@
     <dimen name="text_xl">22sp</dimen>
     <dimen name="text_xxl">26sp</dimen>
     <dimen name="text_display">28sp</dimen>
+    <dimen name="text_wordmark">36sp</dimen>
 
     <!-- Named image heights -->
     <dimen name="image_height_detail">300dp</dimen>

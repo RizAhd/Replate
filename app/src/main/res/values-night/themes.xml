@@ -62,8 +62,8 @@
         <item name="android:windowAnimationStyle">@style/WindowAnimationTransition</item>
 
         <!-- Typography system -->
-        <item name="android:fontFamily">@font/poppins_regular</item>
-        <item name="fontFamily">@font/poppins_regular</item>
+        <item name="android:fontFamily">@font/poppins</item>
+        <item name="fontFamily">@font/poppins</item>
         <item name="textAppearanceTitleLarge">@style/TextAppearance.REPLATE.Headline</item>
         <item name="textAppearanceTitleMedium">@style/TextAppearance.REPLATE.Subheading</item>
         <item name="textAppearanceBodyMedium">@style/TextAppearance.REPLATE.Body</item>
@@ -78,14 +78,15 @@
 
     <!-- Splash Screen Theme -->
     <style name="Theme.REPLATE.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">#0D3B1E</item>
+        <item name="windowSplashScreenBackground">@color/splash_bg</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_icon</item>
         <item name="postSplashScreenTheme">@style/Theme.REPLATE.PostSplash</item>
     </style>
 
     <style name="Theme.REPLATE.PostSplash" parent="Theme.REPLATE">
-        <item name="android:statusBarColor">@color/leaf</item>
-        <item name="android:windowBackground">@color/leaf</item>
+        <item name="android:statusBarColor">@color/splash_bg</item>
+        <item name="android:navigationBarColor">@color/splash_bg</item>
+        <item name="android:windowBackground">@color/splash_bg</item>
     </style>
 
     <!-- Bottom Nav Active Indicator -->

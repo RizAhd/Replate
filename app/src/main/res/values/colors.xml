@@ -94,7 +94,10 @@
     <color name="card_background">#FFFFFF</color>
     <color name="divider">#EAEAEA</color>
     <color name="ripple_primary">#1A1A6B3C</color>
-    <color name="status_bar">#0D3B1E</color>
+    <color name="splash_tagline">#B3FFFFFF</color>
+    <color name="splash_track">#14FFFFFF</color>
+    <color name="splash_bg">#0D3B1E</color>
+    <color name="status_bar">@color/splash_bg</color>
     <color name="bottom_nav_background">#FFFFFF</color>
     <color name="search_bar_bg">#F0F0F0</color>
     <color name="badge_discount">#E8521A</color>
