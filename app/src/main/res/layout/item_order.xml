@@ -6,9 +6,7 @@
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="@dimen/space_2"
     android:layout_marginVertical="@dimen/space_1"
-    app:cardBackgroundColor="@color/surface_white"
-    app:cardCornerRadius="@dimen/radius_lg"
-    app:cardElevation="@dimen/elevation_card">
+    style="@style/Widget.REPLATE.Card.Row">
 
     <LinearLayout
         android:layout_width="match_parent"

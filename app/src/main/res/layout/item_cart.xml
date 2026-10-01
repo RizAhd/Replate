@@ -5,11 +5,7 @@
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="@dimen/space_2"
     android:layout_marginVertical="@dimen/space_1"
-    app:cardBackgroundColor="@color/surface_white"
-    app:cardCornerRadius="@dimen/radius_lg"
-    app:cardElevation="@dimen/elevation_card"
-    app:strokeColor="@color/md_theme_outlineVariant"
-    app:strokeWidth="1dp">
+    style="@style/Widget.REPLATE.Card.Row">
 
     <RelativeLayout
         android:layout_width="match_parent"
