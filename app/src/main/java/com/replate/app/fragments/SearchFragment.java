@@ -40,8 +40,10 @@ import com.google.firebase.database.ValueEventListener;
 import com.replate.app.FoodDetailActivity;
 import com.replate.app.R;
 import com.replate.app.adapters.FoodItemAdapter;
+import com.replate.app.helpers.CartDatabaseHelper;
 import com.replate.app.helpers.FoodItemCacheManager;
 import com.replate.app.helpers.ReplateDatabaseHelper;
+import com.replate.app.models.CartItem;
 import com.replate.app.models.FoodItem;
 import com.replate.app.utils.LocationUtils;
 import com.replate.app.utils.SafeSnapshot;
@@ -738,6 +740,23 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
 
     @Override
     public void onAddToCartClick(FoodItem foodItem) {
+        if (foodItem == null || foodItem.getFoodId() == null || getContext() == null) {
+            ToastUtils.showCustomToast(getContext(), "Couldn't add this item to your cart");
+            return;
+        }
+
+        CartItem cartItem = new CartItem(
+                foodItem.getFoodId(),
+                foodItem.getFoodName(),
+                foodItem.getHotelName(),
+                foodItem.getHotelId(),
+                foodItem.getImageUrl(),
+                foodItem.getDiscountedPriceValue(),
+                foodItem.getOriginalPriceValue(),
+                1,
+                foodItem.getDiscountPercentValue()
+        );
+        CartDatabaseHelper.getInstance(requireContext()).addItem(cartItem);
         ToastUtils.showCustomToast(getContext(), foodItem.getFoodName() + " added to cart!");
     }
 
