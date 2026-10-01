@@ -35,6 +35,9 @@ jobs:
       - name: Cloud Functions syntax check
         run: node --check firebase-functions/index.js
 
+      - name: Website checks (scripts parse, local links exist, no browser dialogs)
+        run: node scripts/check-web.js
+
   android:
     runs-on: ubuntu-latest
     steps:
