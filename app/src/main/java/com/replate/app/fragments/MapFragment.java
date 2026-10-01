@@ -123,6 +123,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private String pendingFocusHotelId;
     private LocationCallback liveLocationCallback;
     private boolean hasCenteredOnUser;
+    private int lastTopInset;
+    private int lastBottomInset;
     private long lastRouteInfoUpdateAt;
     private LatLng lastRouteInfoOrigin;
     private long placesLoadVersion;
@@ -202,6 +204,18 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         if (bottomSheet != null) {
             bottomSheet.setVisibility(View.GONE);
         }
+        // Re-measure the map's padding whenever either overlay changes size or appears
+        View.OnLayoutChangeListener overlayResized = (v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+            if ((bottom - top) != (oldBottom - oldTop)) {
+                updateMapPadding();
+            }
+        };
+        if (topPanel != null) {
+            topPanel.addOnLayoutChangeListener(overlayResized);
+        }
+        if (bottomSheet != null) {
+            bottomSheet.addOnLayoutChangeListener(overlayResized);
+        }
         setupSearch();
     }
 
@@ -225,11 +239,29 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 );
             }
 
-            if (mMap != null) {
-                mMap.setPadding(dp(12), topInset + dp(130), dp(12), bottomInset + dp(180));
-            }
+            lastTopInset = topInset;
+            lastBottomInset = bottomInset;
+            updateMapPadding();
             return insets;
         });
+    }
+
+    /**
+     * Keeps the map's usable area between the search panel at the top and the hotel card at the
+     * bottom, using their real measured heights, so markers and camera moves never land underneath.
+     */
+    private void updateMapPadding() {
+        if (mMap == null || !isAdded() || getContext() == null) {
+            return;
+        }
+        int top = lastTopInset + dp(8)
+                + (topPanel != null && topPanel.getHeight() > 0 ? topPanel.getHeight() : dp(122))
+                + dp(8);
+        int bottom = lastBottomInset + dp(16);
+        if (bottomSheet != null && bottomSheet.getVisibility() == View.VISIBLE && bottomSheet.getHeight() > 0) {
+            bottom += bottomSheet.getHeight();
+        }
+        mMap.setPadding(dp(12), top, dp(12), bottom);
     }
 
     private int dp(int value) {
@@ -445,7 +477,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             WindowInsetsCompat insets = ViewCompat.getRootWindowInsets(root);
             int topInset = insets == null ? 0 : insets.getInsets(WindowInsetsCompat.Type.systemBars()).top;
             int bottomInset = insets == null ? 0 : insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
-            mMap.setPadding(dp(12), topInset + dp(130), dp(12), bottomInset + dp(180));
+            lastTopInset = topInset;
+            lastBottomInset = bottomInset;
+            updateMapPadding();
         }
 
         mMap.setOnMapClickListener(latLng -> clearSelectedState());
