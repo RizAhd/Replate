@@ -752,6 +752,10 @@ Total: LKR %1$.2f</string>
     <string name="menu_help">Help</string>
     <string name="menu_logout">Logout</string>
 
+    <string name="checkout_mixed_hotels_title">One hotel at a time</string>
+    <string name="checkout_mixed_hotels_message">Your cart has dishes from more than one hotel. Each order goes to a single hotel, so please remove the extra items or order them separately.</string>
+    <string name="checkout_back_to_cart">Back to cart</string>
+    <string name="checkout_item_subtitle">%1$s • %2$s</string>
     <string name="messages_title">Messages</string>
     <string name="messages_subtitle">Your chats with hotels</string>
     <string name="messages_empty_title">No conversations yet</string>

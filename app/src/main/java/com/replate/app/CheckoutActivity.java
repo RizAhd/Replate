@@ -212,26 +212,46 @@ public class CheckoutActivity extends AppCompatActivity {
             return;
         }
 
+        // An order goes to one hotel only (the hotel is taken from the first item), so a cart that mixes
+        // hotels would send other hotels' dishes to the wrong kitchen.
+        java.util.Set<String> hotelIds = new java.util.HashSet<>();
+        for (CartItem item : cartItems) {
+            hotelIds.add(item.getHotelId() == null ? "" : item.getHotelId());
+        }
+        if (hotelIds.size() > 1) {
+            btnPlaceOrder.setEnabled(false);
+            new AlertDialog.Builder(this)
+                    .setTitle(R.string.checkout_mixed_hotels_title)
+                    .setMessage(R.string.checkout_mixed_hotels_message)
+                    .setCancelable(false)
+                    .setPositiveButton(R.string.checkout_back_to_cart, (dialog, which) -> finish())
+                    .show();
+        }
+
         subtotalAmount = 0;
         totalSavings = 0;
         orderItemsContainer.removeAllViews();
 
+        final int rowGap = (int) (12 * getResources().getDisplayMetrics().density);
+        final int lineGap = (int) (4 * getResources().getDisplayMetrics().density);
         for (CartItem item : cartItems) {
             LinearLayout itemRow = new LinearLayout(this);
             itemRow.setOrientation(LinearLayout.VERTICAL);
-            itemRow.setPadding(0, 0, 0, 16);
+            itemRow.setPadding(0, 0, 0, rowGap);
 
+            // Theme text styles give these code-built rows the same font and sizes as the rest of the screen
             TextView title = new TextView(this);
-            title.setText(item.getQuantity() + " × " + item.getFoodName());
-            title.setTextSize(15f);
+            title.setTextAppearance(R.style.TextAppearance_REPLATE_Label);
+            title.setText(getString(R.string.order_detail_item_line, item.getQuantity(), item.getFoodName()));
             title.setTextColor(getColor(R.color.text_primary));
-            title.setTypeface(title.getTypeface(), android.graphics.Typeface.BOLD);
 
+            String hotelName = item.getHotelName();
             TextView subtitle = new TextView(this);
-            subtitle.setText(item.getHotelName() + " • " + Money.format(item.getSubtotal()));
-            subtitle.setTextSize(13f);
-            subtitle.setTextColor(getColor(R.color.text_secondary));
-            subtitle.setPadding(0, 4, 0, 0);
+            subtitle.setTextAppearance(R.style.TextAppearance_REPLATE_Caption);
+            subtitle.setText(getString(R.string.checkout_item_subtitle,
+                    hotelName != null && !hotelName.trim().isEmpty() ? hotelName : getString(R.string.hotel_name_fallback),
+                    Money.format(item.getSubtotal())));
+            subtitle.setPadding(0, lineGap, 0, 0);
 
             itemRow.addView(title);
             itemRow.addView(subtitle);
