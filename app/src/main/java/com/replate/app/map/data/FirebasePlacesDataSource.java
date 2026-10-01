@@ -12,7 +12,6 @@ import com.replate.app.map.model.FoodPlace;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 public class FirebasePlacesDataSource implements PlacesDataSource {
@@ -58,7 +57,7 @@ public class FirebasePlacesDataSource implements PlacesDataSource {
 
                     String address = readString(hotelNode, "address");
                     if (address.isEmpty()) {
-                        address = String.format(Locale.getDefault(), "Lat %.4f, Lng %.4f", lat, lng);
+                        address = "Address not provided";
                     }
 
                     // 0 means "no rating yet"; the screen shows "New" instead of an invented 4.0
@@ -120,7 +119,8 @@ public class FirebasePlacesDataSource implements PlacesDataSource {
                         for (HotelSeed hotel : approvedHotels.values()) {
                             int deals = hotelDealCount.getOrDefault(hotel.hotelId, 0);
                             String category = hotelCategory.getOrDefault(hotel.hotelId, "Food");
-                            String categoryWithCount = deals > 0 ? category + " • " + deals + " items" : category + " • No items";
+                            String itemsLabel = deals == 1 ? "1 item" : deals + " items";
+                            String categoryWithCount = deals > 0 ? category + " • " + itemsLabel : category + " • No items";
 
                             places.add(new FoodPlace(
                                     hotel.hotelId,
