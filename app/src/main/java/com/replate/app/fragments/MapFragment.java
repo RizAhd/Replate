@@ -73,6 +73,10 @@ import java.util.Map;
  */
 public class MapFragment extends Fragment implements OnMapReadyCallback {
 
+    // Colombo, used until the user's location or the hotel list is known
+    private static final LatLng DEFAULT_MAP_CENTER = new LatLng(6.9271, 79.8612);
+    private static final float DEFAULT_MAP_ZOOM = 11f;
+
     private GoogleMap mMap;
     private FusedLocationProviderClient fusedLocationClient;
     private DirectionsApiClient directionsApiClient;
@@ -375,6 +379,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         mMap.getUiSettings().setZoomControlsEnabled(false);
         mMap.getUiSettings().setCompassEnabled(true);
         mMap.getUiSettings().setMapToolbarEnabled(false);
+
+        // Start somewhere useful instead of the world view while location and hotels load
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM));
 
         View root = getView();
         if (root != null) {
