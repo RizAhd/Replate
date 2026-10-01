@@ -1,0 +1,7 @@
+# The public home, privacy and terms pages may be indexed; the sign-in areas may not.
+User-agent: *
+Allow: /index.html
+Allow: /privacy.html
+Allow: /terms.html
+Disallow: /admin-panel/
+Disallow: /hotel-panel/
