@@ -67,6 +67,7 @@
         <activity
             android:name=".SplashActivity"
             android:exported="true"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.REPLATE.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -74,19 +75,20 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".MainActivity" android:exported="false" android:launchMode="singleTop" />
-        <activity android:name=".OnboardingActivity" android:exported="false" />
-        <activity android:name=".LoginActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
-        <activity android:name=".FoodDetailActivity" android:exported="false" />
-        <activity android:name=".FavoritesActivity" android:exported="false" />
-        <activity android:name=".CartActivity" android:exported="false" />
-        <activity android:name=".CheckoutActivity" android:exported="false" />
-        <activity android:name=".NotificationsActivity" android:exported="false" android:parentActivityName=".MainActivity" />
-        <activity android:name=".SettingsActivity" android:exported="false" />
-        <activity android:name=".SearchActivity" android:exported="false" />
-        <activity android:name=".OrderDetailActivity" android:exported="false" android:parentActivityName=".MainActivity" />
-        <activity android:name=".OrderSuccessActivity" android:exported="false" />
-        <activity android:name=".ChatActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
+        <!-- Every screen is portrait only: there are no landscape layouts, so rotating clipped the content. -->
+        <activity android:name=".MainActivity" android:exported="false" android:launchMode="singleTop" android:screenOrientation="portrait" />
+        <activity android:name=".OnboardingActivity" android:exported="false" android:screenOrientation="portrait" />
+        <activity android:name=".LoginActivity" android:exported="false" android:screenOrientation="portrait" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".FoodDetailActivity" android:exported="false" android:screenOrientation="portrait" />
+        <activity android:name=".FavoritesActivity" android:exported="false" android:screenOrientation="portrait" />
+        <activity android:name=".CartActivity" android:exported="false" android:screenOrientation="portrait" />
+        <activity android:name=".CheckoutActivity" android:exported="false" android:screenOrientation="portrait" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".NotificationsActivity" android:exported="false" android:screenOrientation="portrait" android:parentActivityName=".MainActivity" />
+        <activity android:name=".SettingsActivity" android:exported="false" android:screenOrientation="portrait" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".SearchActivity" android:exported="false" android:screenOrientation="portrait" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".OrderDetailActivity" android:exported="false" android:screenOrientation="portrait" android:parentActivityName=".MainActivity" />
+        <activity android:name=".OrderSuccessActivity" android:exported="false" android:screenOrientation="portrait" />
+        <activity android:name=".ChatActivity" android:exported="false" android:screenOrientation="portrait" android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".LocationPickerActivity"
             android:screenOrientation="portrait"
