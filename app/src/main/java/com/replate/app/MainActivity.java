@@ -131,10 +131,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         applySystemInsets();
         bindDrawerHeader();
 
-        // Only create home fragment now; others lazy-init on demand
-        homeFragment = new HomeFragment();
-
-        loadFragment(homeFragment);
+        // After a rotation the FragmentManager restores the visible tab by itself, so only the first
+        // launch loads Home (and applies a requested tab / notification deep link below).
+        // Other tabs are created lazily when first opened.
+        if (savedInstanceState == null) {
+            homeFragment = new HomeFragment();
+            loadFragment(homeFragment);
+        }
 
         bottomNavigation.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
@@ -153,7 +156,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if (openTab == null || openTab.trim().isEmpty()) {
             openTab = resolveOpenTabFromNotificationIntent(getIntent());
         }
-        if (bottomNavigation != null) {
+        if (bottomNavigation != null && savedInstanceState == null) {
             if ("map".equalsIgnoreCase(openTab)) {
                 bottomNavigation.setSelectedItemId(R.id.nav_map);
             } else if ("orders".equalsIgnoreCase(openTab)) {
@@ -195,7 +198,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             return true;
         });
 
-        handleDeepLinkFromNotification(getIntent());
+        // Only on first launch: after a rotation this would reopen the order screen again
+        if (savedInstanceState == null) {
+            handleDeepLinkFromNotification(getIntent());
+        }
 
         // Setup accelerometer for shake-to-refresh
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
