@@ -73,6 +73,22 @@ const ReplateUI = (() => {
         return el;
     }
 
+    /** Show a message on the NEXT page (used right before redirecting). */
+    function flash(message, type = 'info') {
+        try { sessionStorage.setItem('replate.flash', JSON.stringify({ message, type })); } catch (e) { /* storage blocked */ }
+    }
+
+    function showPendingFlash() {
+        try {
+            const raw = sessionStorage.getItem('replate.flash');
+            if (!raw) return;
+            sessionStorage.removeItem('replate.flash');
+            const { message, type } = JSON.parse(raw);
+            if (message) toast(message, type || 'info');
+        } catch (e) { /* ignore */ }
+    }
+    document.addEventListener('DOMContentLoaded', showPendingFlash);
+
     /** Kept for older pages: now a toast, so it is never scrolled out of sight. */
     function showAlert(message, type = 'info') {
         return toast(message, type);
@@ -354,6 +370,7 @@ const ReplateUI = (() => {
         esc,
         safeUrl,
         toast,
+        flash,
         showAlert,
         confirmAction,
         askText,
