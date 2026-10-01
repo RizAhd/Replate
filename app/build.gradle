@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'com.google.gms.google-services'
+    id 'com.google.firebase.crashlytics'
 }
 
 def localProps = new Properties()
@@ -68,6 +69,9 @@ dependencies {
     implementation 'com.google.firebase:firebase-database'
     implementation 'com.google.firebase:firebase-storage'
     implementation 'com.google.firebase:firebase-messaging'
+    // Crash reports and basic usage statistics (mention both in your privacy policy)
+    implementation 'com.google.firebase:firebase-crashlytics'
+    implementation 'com.google.firebase:firebase-analytics'
 
     implementation 'com.google.android.gms:play-services-maps:18.2.0'
     implementation 'com.google.android.gms:play-services-location:21.0.1'
