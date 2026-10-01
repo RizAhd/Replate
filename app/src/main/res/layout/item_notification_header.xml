@@ -9,6 +9,6 @@
     android:paddingBottom="6dp"
     android:text="Today"
     android:textColor="@color/text_secondary"
-    android:textSize="13sp"
+    android:textSize="@dimen/text_sm_compact"
     android:letterSpacing="0.04" />
 

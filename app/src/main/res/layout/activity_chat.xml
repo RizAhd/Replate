@@ -54,7 +54,7 @@
                         android:ellipsize="end"
                         android:maxLines="1"
                         android:textColor="@color/white"
-                        android:textSize="16sp"
+                        android:textSize="@dimen/text_md"
                         android:fontFamily="@font/poppins_semibold" />
 
                     <TextView
@@ -64,7 +64,7 @@
                         android:ellipsize="end"
                         android:maxLines="1"
                         android:textColor="@color/white_70"
-                        android:textSize="12sp"
+                        android:textSize="@dimen/text_xs"
                         android:fontFamily="@font/poppins_regular" />
                 </LinearLayout>
 
@@ -125,7 +125,7 @@
                 android:layout_marginTop="12dp"
                 android:text="@string/chat_start_a_conversation"
                 android:textColor="@color/text_secondary"
-                android:textSize="15sp"
+                android:textSize="@dimen/text_md"
                 android:fontFamily="@font/poppins_semibold" />
 
             <TextView
@@ -136,7 +136,7 @@
                 android:paddingHorizontal="40dp"
                 android:text="@string/chat_send_a_message_to_start"
                 android:textColor="@color/text_hint"
-                android:textSize="13sp"
+                android:textSize="@dimen/text_sm_compact"
                 android:fontFamily="@font/poppins_regular" />
         </LinearLayout>
 
@@ -178,7 +178,7 @@
             android:maxLines="4"
             android:paddingHorizontal="18dp"
             android:paddingVertical="11dp"
-            android:textSize="14sp"
+            android:textSize="@dimen/text_sm"
             android:textColorHint="@color/text_hint"
             android:fontFamily="@font/poppins_regular" />
 

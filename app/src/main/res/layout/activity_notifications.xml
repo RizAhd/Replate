@@ -64,7 +64,7 @@
                         android:paddingVertical="3dp"
                         android:text="0"
                         android:textColor="@color/green_primary"
-                        android:textSize="11sp"
+                        android:textSize="@dimen/text_caption"
                         android:visibility="gone" />
                 </LinearLayout>
             </RelativeLayout>
@@ -139,7 +139,7 @@
                 android:text="@string/notifications_all"
                 android:checked="true"
                 android:fontFamily="@font/poppins_medium"
-                android:textSize="12sp"
+                android:textSize="@dimen/text_xs"
                 app:chipBackgroundColor="@color/green_pale"
                 app:checkedIconVisible="false"
                 app:chipStrokeColor="@color/green_primary"
@@ -152,7 +152,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/notifications_orders"
                 android:fontFamily="@font/poppins_medium"
-                android:textSize="12sp"
+                android:textSize="@dimen/text_xs"
                 app:chipIcon="@drawable/ic_orders"
                 app:chipIconSize="16dp"
                 app:chipIconTint="@color/green_primary"
@@ -168,7 +168,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/notifications_deals"
                 android:fontFamily="@font/poppins_medium"
-                android:textSize="12sp"
+                android:textSize="@dimen/text_xs"
                 app:chipIcon="@drawable/ic_deal"
                 app:chipIconSize="16dp"
                 app:chipIconTint="@color/orange_accent"
@@ -184,7 +184,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/notifications_pickup"
                 android:fontFamily="@font/poppins_medium"
-                android:textSize="12sp"
+                android:textSize="@dimen/text_xs"
                 app:chipIcon="@drawable/ic_pickup"
                 app:chipIconSize="16dp"
                 app:chipIconTint="@color/badge_distance"
@@ -200,7 +200,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/notifications_system"
                 android:fontFamily="@font/poppins_medium"
-                android:textSize="12sp"
+                android:textSize="@dimen/text_xs"
                 app:chipIcon="@drawable/ic_admin_announce"
                 app:chipIconSize="16dp"
                 app:chipIconTint="@color/primary_dark"
@@ -273,7 +273,7 @@
             android:text="@string/notifications_empty_title"
             android:textAppearance="@style/TextAppearance.REPLATE.Headline"
             android:textColor="@color/text_primary"
-            android:textSize="20sp" />
+            android:textSize="@dimen/text_title" />
 
         <TextView
             android:layout_width="wrap_content"

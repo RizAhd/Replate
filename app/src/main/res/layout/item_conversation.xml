@@ -50,7 +50,7 @@
                     android:maxLines="1"
                     android:text="Hotel Name"
                     android:textColor="@color/text_primary"
-                    android:textSize="15sp"
+                    android:textSize="@dimen/text_md"
                     android:fontFamily="@font/poppins_semibold" />
 
                 <TextView
@@ -60,7 +60,7 @@
                     android:layout_marginStart="8dp"
                     android:text="10:30 AM"
                     android:textColor="@color/text_hint"
-                    android:textSize="11sp"
+                    android:textSize="@dimen/text_caption"
                     android:fontFamily="@font/poppins_regular" />
             </LinearLayout>
 
@@ -73,7 +73,7 @@
                 android:maxLines="1"
                 android:text="Last message preview..."
                 android:textColor="@color/text_secondary"
-                android:textSize="13sp"
+                android:textSize="@dimen/text_sm_compact"
                 android:fontFamily="@font/poppins_regular" />
 
         </LinearLayout>

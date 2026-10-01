@@ -292,7 +292,7 @@
                 android:layout_marginTop="10dp"
                 android:text="@string/search_loading_fresh"
                 android:textColor="@color/text_primary"
-                android:textSize="13sp"
+                android:textSize="@dimen/text_sm_compact"
                 android:textStyle="bold" />
         </LinearLayout>
     </FrameLayout>

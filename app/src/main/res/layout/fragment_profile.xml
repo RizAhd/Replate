@@ -372,7 +372,7 @@
             android:text="@string/profile_delete_account"
             android:textAllCaps="false"
             android:textColor="@color/md_theme_error"
-            android:textSize="13sp"
+            android:textSize="@dimen/text_sm_compact"
             android:fontFamily="@font/poppins_medium" />
 
         <!-- App Version -->

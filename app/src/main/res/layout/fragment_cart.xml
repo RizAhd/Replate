@@ -34,7 +34,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/cart_title_emoji"
                         android:textColor="@color/white"
-                        android:textSize="14sp"
+                        android:textSize="@dimen/text_sm"
                         android:textStyle="bold"
                         android:alpha="0.9" />
 
@@ -65,7 +65,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/cart_items_label"
                                 android:textColor="#B3FFFFFF"
-                                android:textSize="12sp"
+                                android:textSize="@dimen/text_xs"
                                 android:textStyle="bold" />
 
                             <TextView
@@ -75,7 +75,7 @@
                                 android:layout_marginTop="4dp"
                                 android:text="@string/cart_zero"
                                 android:textColor="@color/white"
-                                android:textSize="22sp"
+                                android:textSize="@dimen/text_xl"
                                 android:textStyle="bold" />
                         </LinearLayout>
 
@@ -97,7 +97,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/cart_total_savings_label"
                                 android:textColor="#B3FFFFFF"
-                                android:textSize="12sp"
+                                android:textSize="@dimen/text_xs"
                                 android:textStyle="bold" />
 
                             <TextView
@@ -107,7 +107,7 @@
                                 android:layout_marginTop="4dp"
                                 android:text="@string/price_zero_lkr"
                                 android:textColor="@color/orange_accent"
-                                android:textSize="22sp"
+                                android:textSize="@dimen/text_xl"
                                 android:textStyle="bold" />
                         </LinearLayout>
 
@@ -129,7 +129,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/cart_amount_label"
                                 android:textColor="#B3FFFFFF"
-                                android:textSize="12sp"
+                                android:textSize="@dimen/text_xs"
                                 android:textStyle="bold" />
 
                             <TextView
@@ -139,7 +139,7 @@
                                 android:layout_marginTop="4dp"
                                 android:text="@string/price_zero_lkr"
                                 android:textColor="@color/white"
-                                android:textSize="22sp"
+                                android:textSize="@dimen/text_xl"
                                 android:textStyle="bold" />
                         </LinearLayout>
                     </LinearLayout>
@@ -237,7 +237,7 @@
                             android:layout_weight="1"
                             android:text="@string/cart_subtotal_label"
                             android:textColor="@color/text_secondary"
-                            android:textSize="14sp" />
+                            android:textSize="@dimen/text_sm" />
 
                         <TextView
                             android:id="@+id/tvSubtotal"
@@ -245,7 +245,7 @@
                             android:layout_height="wrap_content"
                             android:text="@string/price_zero_lkr"
                             android:textColor="@color/text_primary"
-                            android:textSize="14sp"
+                            android:textSize="@dimen/text_sm"
                             android:textStyle="bold" />
                     </LinearLayout>
 
@@ -262,7 +262,7 @@
                             android:layout_weight="1"
                             android:text="@string/cart_you_save"
                             android:textColor="@color/orange_accent"
-                            android:textSize="14sp"
+                            android:textSize="@dimen/text_sm"
                             android:textStyle="bold" />
 
                         <TextView
@@ -271,7 +271,7 @@
                             android:layout_height="wrap_content"
                             android:text="@string/price_zero_lkr"
                             android:textColor="@color/orange_accent"
-                            android:textSize="14sp"
+                            android:textSize="@dimen/text_sm"
                             android:textStyle="bold" />
                     </LinearLayout>
 
@@ -293,7 +293,7 @@
                             android:layout_weight="1"
                             android:text="@string/cart_total_label"
                             android:textColor="@color/text_primary"
-                            android:textSize="16sp"
+                            android:textSize="@dimen/text_md"
                             android:textStyle="bold" />
 
                         <TextView
@@ -302,7 +302,7 @@
                             android:layout_height="wrap_content"
                             android:text="@string/price_zero_lkr"
                             android:textColor="@color/green_primary"
-                            android:textSize="18sp"
+                            android:textSize="@dimen/text_lg"
                             android:textStyle="bold" />
                     </LinearLayout>
                 </LinearLayout>
@@ -329,7 +329,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/cart_pickup_friendly"
-                        android:textSize="20sp" />
+                        android:textSize="@dimen/text_title" />
 
                     <TextView
                         android:layout_width="0dp"
@@ -338,7 +338,7 @@
                         android:layout_marginStart="12dp"
                         android:text="@string/cart_environment_tip"
                         android:textColor="@color/green_primary"
-                        android:textSize="12sp"
+                        android:textSize="@dimen/text_xs"
                         android:textStyle="bold" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

@@ -26,7 +26,7 @@
             android:layout_height="wrap_content"
             android:maxWidth="260dp"
             android:textColor="@color/white"
-            android:textSize="14.5sp"
+            android:textSize="@dimen/text_sm"
             android:lineSpacingMultiplier="1.15"
             android:fontFamily="@font/poppins_regular" />
 
@@ -37,7 +37,7 @@
             android:layout_gravity="end"
             android:layout_marginTop="3dp"
             android:textColor="@color/white_70"
-            android:textSize="11sp"
+            android:textSize="@dimen/text_caption"
             android:fontFamily="@font/poppins_regular" />
     </LinearLayout>
 </FrameLayout>

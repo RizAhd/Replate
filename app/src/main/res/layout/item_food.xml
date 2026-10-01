@@ -153,7 +153,7 @@
                     android:text="@string/food_card_add"
                     android:textAllCaps="false"
                     android:textColor="@color/white"
-                    android:textSize="13sp"
+                    android:textSize="@dimen/text_sm_compact"
                     android:textStyle="bold"
                     app:backgroundTint="@color/green_primary"
                     app:cornerRadius="12dp"
