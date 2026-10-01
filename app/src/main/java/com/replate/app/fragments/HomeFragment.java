@@ -137,6 +137,7 @@ public class HomeFragment extends Fragment implements
     private java.util.concurrent.ExecutorService foodParseExecutor;
     private DatabaseReference favoritesRef;
     private androidx.swiperefreshlayout.widget.SwipeRefreshLayout swipeRefresh;
+    private TextView tvEmptyFeed;
     private ValueEventListener favoritesListener;
 
     private final Handler bannerHandler = new Handler(Looper.getMainLooper());
@@ -185,6 +186,7 @@ public class HomeFragment extends Fragment implements
         rvFavorites = view.findViewById(R.id.rvFavorites);
         progressBar = view.findViewById(R.id.progressBar);
         swipeRefresh = view.findViewById(R.id.swipeRefresh);
+        tvEmptyFeed = view.findViewById(R.id.tvEmptyFeed);
         if (swipeRefresh != null) {
             swipeRefresh.setColorSchemeResources(R.color.green_primary);
             swipeRefresh.setOnRefreshListener(this::refreshData);
@@ -940,6 +942,21 @@ public class HomeFragment extends Fragment implements
         } else {
             rvFoodItems.setVisibility(View.VISIBLE);
         }
+        updateEmptyFeed();
+    }
+
+    /** Tells the customer why the list is empty instead of leaving a blank gap. */
+    private void updateEmptyFeed() {
+        if (tvEmptyFeed == null) {
+            return;
+        }
+        boolean stillLoading = progressBar != null && progressBar.getVisibility() == View.VISIBLE;
+        if (foodItems.isEmpty() && !stillLoading) {
+            tvEmptyFeed.setText(allFoodItems.isEmpty() ? R.string.home_empty_none : R.string.home_empty_category);
+            tvEmptyFeed.setVisibility(View.VISIBLE);
+        } else {
+            tvEmptyFeed.setVisibility(View.GONE);
+        }
     }
 
     private boolean matchesCategory(String itemCategoryRaw, String selectedCategoryRaw) {
@@ -992,6 +1009,7 @@ public class HomeFragment extends Fragment implements
         if (!show && swipeRefresh != null) {
             swipeRefresh.setRefreshing(false);
         }
+        updateEmptyFeed();
     }
 
     // FoodItemAdapter.OnFoodItemClickListener implementation

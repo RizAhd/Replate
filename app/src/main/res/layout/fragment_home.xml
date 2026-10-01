@@ -307,6 +307,17 @@
                     android:nestedScrollingEnabled="false"
                     android:overScrollMode="never"
                     android:paddingBottom="@dimen/space_0_5"/>
+
+                <TextView
+                    android:id="@+id/tvEmptyFeed"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="@dimen/space_2"
+                    android:layout_marginTop="@dimen/space_2"
+                    android:gravity="center"
+                    android:padding="@dimen/space_2"
+                    android:textAppearance="@style/TextAppearance.REPLATE.Body"
+                    android:visibility="gone" />
             </LinearLayout>
 
             <LinearLayout
