@@ -1,0 +1,67 @@
+rules_version = '2';
+
+// Cloud Storage security rules for REPLATE.
+//
+// Note: image URLs saved in the database carry a download token, so Glide and <img> tags keep
+// working regardless of these rules. They govern uploads, deletes and SDK reads.
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // Storage rules cannot read the Realtime Database, so the admin is identified by sign-in email.
+    // These are the same two addresses the admin panel login accepts. Change them here if your
+    // admin account uses a different address.
+    function isAdmin() {
+      return signedIn() && request.auth.token.email in ['admin@replate.com', 'superadmin@replate.com'];
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    function smallerThanMb(limit) {
+      return request.resource.size < limit * 1024 * 1024;
+    }
+
+    // Customer profile photos: only into your own folder.
+    match /profileImages/{uid}/{file} {
+      allow read: if signedIn();
+      allow write: if signedIn() && request.auth.uid == uid && isImage() && smallerThanMb(5);
+      allow delete: if signedIn() && request.auth.uid == uid;
+    }
+
+    // Older upload location, kept for the app's fallback path. Files must start with your uid.
+    match /profile_photos/{file} {
+      allow read: if signedIn();
+      allow write: if signedIn() && file.matches(request.auth.uid + '_.*') && isImage() && smallerThanMb(5);
+    }
+
+    // Food photos uploaded from the hotel panel. Storage rules cannot tell a hotel from a customer,
+    // so this only checks sign-in, type and size (hotels are separated in the database rules).
+    match /food-images/{file} {
+      allow read: if signedIn();
+      allow write: if signedIn() && isImage() && smallerThanMb(5);
+    }
+
+    // Business licences uploaded during hotel registration: only the uploader and admins can read.
+    match /licenses/{file} {
+      allow read: if signedIn() && (file.matches(request.auth.uid + '_.*') || isAdmin());
+      allow write: if signedIn()
+                   && file.matches(request.auth.uid + '_.*')
+                   && (isImage() || request.resource.contentType == 'application/pdf')
+                   && smallerThanMb(10);
+    }
+
+    // Home screen banners, managed from the admin panel.
+    match /banners/{file} {
+      allow read: if signedIn();
+      allow write: if isAdmin() && isImage() && smallerThanMb(3);
+      allow delete: if isAdmin();
+    }
+
+    // Everything else is closed.
+  }
+}

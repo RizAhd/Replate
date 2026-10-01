@@ -1,0 +1,229 @@
+{
+  "rules": {
+    "users": {
+      ".read": "root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      ".indexOn": [
+        "createdAt"
+      ],
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        "role": {
+          ".validate": "root.child('users').child(auth.uid).child('role').val() === 'admin' || (newData.isString() && (data.exists() ? newData.val() === data.val() : (newData.val() === 'customer' || newData.val() === 'hotel')))"
+        },
+        "userType": {
+          ".validate": "root.child('users').child(auth.uid).child('role').val() === 'admin' || (newData.isString() && (data.exists() ? newData.val() === data.val() : (newData.val() === 'customer' || newData.val() === 'hotel')))"
+        }
+      }
+    },
+    "hotels": {
+      ".read": "auth != null",
+      ".indexOn": [
+        "userId",
+        "createdAt"
+      ],
+      "$hotelId": {
+        ".write": "root.child('users').child(auth.uid).child('role').val() === 'admin' || (auth != null && !data.exists() && newData.child('userId').val() === auth.uid && newData.child('status').val() === 'pending')",
+        "hotelName": {
+          ".write": "auth != null && (data.parent().child('userId').val() === auth.uid || $hotelId === auth.uid)"
+        },
+        "ownerName": {
+          ".write": "auth != null && (data.parent().child('userId').val() === auth.uid || $hotelId === auth.uid)"
+        },
+        "phone": {
+          ".write": "auth != null && (data.parent().child('userId').val() === auth.uid || $hotelId === auth.uid)"
+        },
+        "fcmToken": {
+          ".write": "auth != null && (data.parent().child('userId').val() === auth.uid || $hotelId === auth.uid)"
+        },
+        "notification": {
+          ".write": "auth != null && (data.parent().child('userId').val() === auth.uid || $hotelId === auth.uid)"
+        }
+      }
+    },
+    "foodItems": {
+      ".read": "auth != null",
+      ".indexOn": [
+        "hotelId",
+        "createdAt"
+      ],
+      "$foodId": {
+        ".write": "root.child('users').child(auth.uid).child('role').val() === 'admin' || (auth != null && (data.exists() ? data.child('hotelUserId').val() : newData.child('hotelUserId').val()) === auth.uid)",
+        "avgRating": {
+          ".write": "auth != null",
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 5"
+        },
+        "reviewCount": {
+          ".write": "auth != null",
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        }
+      }
+    },
+    "orders": {
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('hotelId').val() != null && root.child('hotels').child(root.child('users').child(auth.uid).child('hotelId').val()).child('userId').val() === auth.uid && root.child('hotels').child(root.child('users').child(auth.uid).child('hotelId').val()).child('status').val() === 'approved') || root.child('hotels').child(auth.uid).child('status').val() === 'approved' || (query.orderByChild === 'userId' && query.equalTo === auth.uid))",
+      ".indexOn": [
+        "userId",
+        "createdAt",
+        "hotelId"
+      ],
+      "$orderId": {
+        ".read": "auth != null && (data.child('userId').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin' || (data.child('hotelId').val() != null && (root.child('hotels').child(data.child('hotelId').val()).child('userId').val() === auth.uid || data.child('hotelId').val() === auth.uid)))",
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || ((!data.exists() || (data.child('userId').val() === auth.uid && (data.child('orderStatus').val() === 'pending_pickup' || data.child('orderStatus').val() === 'pending_delivery'))) && newData.child('userId').val() === auth.uid))",
+        ".validate": "newData.hasChildren(['userId', 'orderStatus', 'createdAt']) && newData.child('totalAmount').isNumber() && newData.child('totalAmount').val() >= 0",
+        "orderStatus": {
+          ".write": "auth != null && ((data.parent().child('userId').val() === auth.uid && newData.val() === 'cancelled') || (data.parent().child('hotelId').val() != null && (root.child('hotels').child(data.parent().child('hotelId').val()).child('userId').val() === auth.uid || data.parent().child('hotelId').val() === auth.uid)))"
+        },
+        "updatedAt": {
+          ".write": "auth != null && (data.parent().child('userId').val() === auth.uid || (data.parent().child('hotelId').val() != null && (root.child('hotels').child(data.parent().child('hotelId').val()).child('userId').val() === auth.uid || data.parent().child('hotelId').val() === auth.uid)))"
+        },
+        "cancelledAt": {
+          ".write": "auth != null && data.parent().child('userId').val() === auth.uid"
+        },
+        "completedAt": {
+          ".write": "auth != null && (data.parent().child('hotelId').val() != null && (root.child('hotels').child(data.parent().child('hotelId').val()).child('userId').val() === auth.uid || data.parent().child('hotelId').val() === auth.uid))"
+        },
+        "dispatchedAt": {
+          ".write": "auth != null && (data.parent().child('hotelId').val() != null && (root.child('hotels').child(data.parent().child('hotelId').val()).child('userId').val() === auth.uid || data.parent().child('hotelId').val() === auth.uid))"
+        },
+        "reviewRating": {
+          ".write": "auth != null && data.parent().child('userId').val() === auth.uid"
+        },
+        "reviewComment": {
+          ".write": "auth != null && data.parent().child('userId').val() === auth.uid"
+        },
+        "reviewAt": {
+          ".write": "auth != null && data.parent().child('userId').val() === auth.uid"
+        },
+        "hasReview": {
+          ".write": "auth != null && data.parent().child('userId').val() === auth.uid"
+        },
+        "userId": {
+          ".write": "auth != null && data.parent().child('userId').val() === auth.uid && newData.val() === '[deleted]'"
+        },
+        "customerName": {
+          ".write": "auth != null && data.parent().child('userId').val() === auth.uid && newData.val() === '[deleted]'"
+        },
+        "customerPhone": {
+          ".write": "auth != null && data.parent().child('userId').val() === auth.uid && newData.val() === '[deleted]'"
+        },
+        "userName": {
+          ".write": "auth != null && data.parent().child('userId').val() === auth.uid && newData.val() === '[deleted]'"
+        },
+        "userEmail": {
+          ".write": "auth != null && data.parent().child('userId').val() === auth.uid && newData.val() === '[deleted]'"
+        },
+        "userPhone": {
+          ".write": "auth != null && data.parent().child('userId').val() === auth.uid && newData.val() === '[deleted]'"
+        },
+        "accountDeleted": {
+          ".write": "auth != null && data.parent().child('userId').val() === auth.uid && newData.val() === true"
+        }
+      }
+    },
+    "reviews": {
+      ".read": "auth != null",
+      ".indexOn": [
+        "foodId"
+      ],
+      "$reviewId": {
+        ".write": "auth != null && ((!data.exists() && newData.child('userId').val() === auth.uid) || (data.exists() && data.child('userId').val() === auth.uid && (!newData.exists() || newData.child('userId').val() === auth.uid)))",
+        "rating": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 5"
+        },
+        "comment": {
+          ".validate": "newData.isString() && newData.val().length <= 1000"
+        }
+      }
+    },
+    "notifications": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        "$notificationId": {
+          ".write": "auth != null && !data.exists() && newData.exists()",
+          ".validate": "newData.hasChildren(['title', 'body', 'timestamp']) && newData.child('title').isString() && newData.child('title').val().length <= 200 && newData.child('body').isString() && newData.child('body').val().length <= 1000"
+        }
+      }
+    },
+    "chats": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      "$convId": {
+        ".read": "auth != null && ($convId.endsWith('_' + auth.uid) || $convId.beginsWith(auth.uid + '_') || root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('hotelId').val() != null && $convId.beginsWith(root.child('users').child(auth.uid).child('hotelId').val() + '_') && root.child('hotels').child(root.child('users').child(auth.uid).child('hotelId').val()).child('userId').val() === auth.uid))",
+        ".write": "auth != null && ($convId.endsWith('_' + auth.uid) || $convId.beginsWith(auth.uid + '_') || root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('hotelId').val() != null && $convId.beginsWith(root.child('users').child(auth.uid).child('hotelId').val() + '_') && root.child('hotels').child(root.child('users').child(auth.uid).child('hotelId').val()).child('userId').val() === auth.uid))",
+        "messages": {
+          ".indexOn": [
+            "timestamp"
+          ],
+          "$messageId": {
+            ".validate": "newData.hasChildren(['senderId', 'message', 'timestamp']) && newData.child('message').isString() && newData.child('message').val().length <= 2000"
+          }
+        }
+      }
+    },
+    "conversations": {
+      "$ownerId": {
+        ".indexOn": [
+          "lastTimestamp"
+        ],
+        ".read": "auth != null && (auth.uid === $ownerId || root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('hotelId').val() === $ownerId && root.child('hotels').child($ownerId).child('userId').val() === auth.uid))",
+        "$convId": {
+          ".write": "auth != null && (auth.uid === $ownerId || auth != null && ($convId.endsWith('_' + auth.uid) || $convId.beginsWith(auth.uid + '_') || root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('hotelId').val() != null && $convId.beginsWith(root.child('users').child(auth.uid).child('hotelId').val() + '_') && root.child('hotels').child(root.child('users').child(auth.uid).child('hotelId').val()).child('userId').val() === auth.uid)))"
+        }
+      }
+    },
+    "categories": {
+      ".read": "auth != null",
+      ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      ".indexOn": [
+        "order"
+      ]
+    },
+    "banners": {
+      ".read": "auth != null",
+      ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      ".indexOn": [
+        "order"
+      ],
+      "$bannerId": {
+        "title": {
+          ".validate": "newData.isString() && newData.val().length <= 80"
+        },
+        "subtitle": {
+          ".validate": "newData.isString() && newData.val().length <= 160"
+        },
+        "imageUrl": {
+          ".validate": "newData.isString() && newData.val().beginsWith('https://')"
+        },
+        "deepLink": {
+          ".validate": "newData.isString() && newData.val().length <= 300"
+        }
+      }
+    },
+    "notificationLogs": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      ".indexOn": [
+        "createdAt"
+      ]
+    },
+    "favorites": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+    "indexes": {
+      "foodByHotel": {
+        "$hotelKey": {
+          ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || ($hotelKey != null && (root.child('hotels').child($hotelKey).child('userId').val() === auth.uid || $hotelKey === auth.uid)))"
+        }
+      },
+      "ordersByUser": {
+        "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": "auth != null && auth.uid === $uid"
+        }
+      }
+    }
+  }
+}

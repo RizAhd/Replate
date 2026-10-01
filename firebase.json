@@ -4,6 +4,19 @@
       "source": "firebase-functions",
       "runtime": "nodejs20"
     }
-  ]
+  ],
+  "database": {
+    "rules": "firebase-rules/database.rules.json"
+  },
+  "storage": {
+    "rules": "firebase-rules/storage.rules"
+  },
+  "emulators": {
+    "database": {
+      "port": 9000
+    },
+    "ui": {
+      "enabled": false
+    }
+  }
 }
-
