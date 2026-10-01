@@ -79,17 +79,11 @@
         <activity android:name=".OrderSuccessActivity" android:exported="false" />
         <activity android:name=".EditProfileActivity" android:exported="false" />
         <activity android:name=".ChatActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
-        <activity android:name=".MockPayHereActivity"
-            android:exported="false"
-            android:theme="@style/Theme.REPLATE" />
         <activity
             android:name=".LocationPickerActivity"
             android:screenOrientation="portrait"
             android:label="Pick Location"/>
 
-
-        <activity android:name=".PayHereWebCheckoutActivity"
-            android:exported="false" />
 
         <!-- PHMainActivity is declared by PayHere SDK manifest; no local override needed. -->
 
