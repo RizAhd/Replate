@@ -427,6 +427,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                     return;
                 }
                 renderPlaceMarkers(places);
+                fitCameraToPlaces(places);
             }
 
             @Override
@@ -441,6 +442,32 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 ToastUtils.showCustomToast(getContext(), "Could not load hotel locations: " + message);
             }
         });
+    }
+
+    /**
+     * Frames every hotel when there's no better target yet. Skipped once the camera has centred
+     * on the user, or while a notification is about to focus a specific hotel.
+     */
+    private void fitCameraToPlaces(@NonNull List<FoodPlace> places) {
+        if (mMap == null || places.isEmpty() || hasCenteredOnUser || pendingFocusHotelId != null) {
+            return;
+        }
+        if (places.size() == 1) {
+            FoodPlace only = places.get(0);
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                    new LatLng(only.getLatitude(), only.getLongitude()), 14f));
+            return;
+        }
+
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+        for (FoodPlace place : places) {
+            builder.include(new LatLng(place.getLatitude(), place.getLongitude()));
+        }
+        try {
+            mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), dp(48)));
+        } catch (IllegalStateException e) {
+            // Map isn't laid out yet; the default camera stays in place
+        }
     }
 
     private void showNoRegisteredHotelsState() {
