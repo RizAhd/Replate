@@ -365,8 +365,17 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
     }
 
     private void resolveHotelPhone(PhoneCallback callback) {
+        // Never fall back to a made-up number: the customer would end up calling a stranger.
+        PhoneCallback onlyRealNumber = phone -> {
+            if (phone == null || phone.isEmpty()) {
+                ToastUtils.showCustomToast(this, "This hotel hasn't shared a phone number");
+            } else {
+                callback.onPhone(phone);
+            }
+        };
+
         if (order == null || order.getHotelId() == null || order.getHotelId().trim().isEmpty()) {
-            callback.onPhone("0112345678");
+            onlyRealNumber.onPhone("");
             return;
         }
 
@@ -374,13 +383,18 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        String phone = TelephonyUtils.normalizePhone(snapshot.getValue(String.class), "0112345678");
-                        callback.onPhone(phone);
+                        String raw = null;
+                        try {
+                            raw = snapshot.getValue(String.class);
+                        } catch (Exception ignored) {
+                            // phone stored as a number instead of text; treat as missing
+                        }
+                        onlyRealNumber.onPhone(TelephonyUtils.normalizePhone(raw, ""));
                     }
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
-                        callback.onPhone("0112345678");
+                        onlyRealNumber.onPhone("");
                     }
                 });
     }
