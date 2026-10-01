@@ -38,6 +38,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageException;
+import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
 import com.replate.app.helpers.ReplateDatabaseHelper;
 import com.replate.app.utils.FcmTokenManager;
@@ -498,7 +499,10 @@ public class SettingsActivity extends AppCompatActivity {
                     .child(user.getUid())
                     .child(fileName);
 
-            primaryRef.putBytes(data)
+            // Declare the type so Storage rules can require real images
+            StorageMetadata jpegMetadata = new StorageMetadata.Builder().setContentType("image/jpeg").build();
+
+            primaryRef.putBytes(data, jpegMetadata)
                     .addOnSuccessListener(taskSnapshot -> {
                         if (!isFinishing() && !isDestroyed()) {
                             uploadProfilePhotoToRef(primaryRef, user);
@@ -513,7 +517,7 @@ public class SettingsActivity extends AppCompatActivity {
                                 .child(user.getUid() + "_" + System.currentTimeMillis() + ".jpg");
 
                         if (isPermissionDenied(primaryError)) {
-                            legacyRef.putBytes(data)
+                            legacyRef.putBytes(data, jpegMetadata)
                                     .addOnSuccessListener(taskSnapshot -> {
                                         if (!isFinishing() && !isDestroyed()) {
                                             uploadProfilePhotoToRef(legacyRef, user);
