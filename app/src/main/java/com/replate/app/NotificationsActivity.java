@@ -434,7 +434,12 @@ public class NotificationsActivity extends AppCompatActivity
         );
 
         if (intent != null) {
-            startActivity(intent);
+            try {
+                startActivity(intent);
+            } catch (android.content.ActivityNotFoundException | SecurityException e) {
+                android.util.Log.w("NotificationsActivity", "Could not open notification target", e);
+                ToastUtils.showCustomToast(this, "Unable to open this notification");
+            }
         }
     }
 
