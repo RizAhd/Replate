@@ -889,7 +889,12 @@ public class LoginActivity extends AppCompatActivity {
                 .create();
 
         if (dialog.getWindow() != null) {
-            dialog.getWindow().setBackgroundDrawableResource(R.drawable.card_background_shape);
+            // Rounded card, inset 16dp from the screen edge like a standard dialog
+            int inset = (int) (16 * getResources().getDisplayMetrics().density);
+            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.InsetDrawable(
+                    ContextCompat.getDrawable(this, R.drawable.card_background_shape), inset));
+            dialog.getWindow().setSoftInputMode(
+                    android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         }
 
         btnSendOtp.setOnClickListener(v -> {
@@ -931,7 +936,8 @@ public class LoginActivity extends AppCompatActivity {
                             phoneResendToken = token;
                             phoneAuthProgress.setVisibility(View.GONE);
 
-                            // Show OTP section
+                            // Show OTP section (animated, so the dialog does not jump)
+                            TransitionManager.beginDelayedTransition((ViewGroup) dialogView);
                             btnSendOtp.setVisibility(View.GONE);
                             otpSection.setVisibility(View.VISIBLE);
                             ToastUtils.showCustomToast(LoginActivity.this, R.string.login_verification_code_sent);
@@ -962,6 +968,7 @@ public class LoginActivity extends AppCompatActivity {
 
         tvResendOtp.setOnClickListener(v -> {
             // Reset UI to send again
+            TransitionManager.beginDelayedTransition((ViewGroup) dialogView);
             otpSection.setVisibility(View.GONE);
             btnSendOtp.setVisibility(View.VISIBLE);
             btnSendOtp.setEnabled(true);

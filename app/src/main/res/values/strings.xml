@@ -700,4 +700,5 @@ Total: LKR %1$.2f</string>
     <string name="auth_cd_google">Continue with Google</string>
     <string name="auth_cd_facebook">Continue with Facebook</string>
     <string name="auth_cd_phone">Continue with phone number</string>
+    <string name="phone_auth_default_country_code" translatable="false">+94</string>
 </resources>

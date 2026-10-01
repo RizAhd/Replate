@@ -1,180 +1,160 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Scrollable so the code field and Verify button stay reachable above the keyboard on small phones -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="@dimen/space_3">
+    android:overScrollMode="never">
 
-    <!-- Header -->
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:fontFamily="@font/poppins_semibold"
-        android:text="@string/phone_auth_phone_sign_in"
-        android:textColor="@color/text_primary"
-        android:textSize="@dimen/text_title" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:fontFamily="@font/poppins_regular"
-        android:text="@string/phone_auth_enter_your_phone_number_and"
-        android:textColor="@color/text_secondary"
-        android:textSize="@dimen/text_sm_compact"
-        android:lineSpacingMultiplier="1.3" />
-
-    <!-- Phone Number Input -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/space_2_5"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilCountryCode"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            android:layout_width="90dp"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/space_1"
-            android:hint="@string/phone_auth_code_hint"
-            app:boxCornerRadiusTopStart="12dp"
-            app:boxCornerRadiusTopEnd="12dp"
-            app:boxCornerRadiusBottomStart="12dp"
-            app:boxCornerRadiusBottomEnd="12dp"
-            app:boxStrokeColor="@color/green_primary">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etCountryCode"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="phone"
-                android:text="+94"
-                android:textSize="@dimen/text_sm" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilPhoneNumber"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:hint="@string/phone_auth_phone_number_hint"
-            app:boxCornerRadiusTopStart="12dp"
-            app:boxCornerRadiusTopEnd="12dp"
-            app:boxCornerRadiusBottomStart="12dp"
-            app:boxCornerRadiusBottomEnd="12dp"
-            app:boxStrokeColor="@color/green_primary">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etPhoneNumber"
-                android:imeOptions="actionDone"
-                android:autofillHints="phoneNational"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="phone"
-                android:textSize="@dimen/text_sm" />
-        </com.google.android.material.textfield.TextInputLayout>
-    </LinearLayout>
-
-    <!-- Send OTP Button -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnSendOtp"
-        style="@style/Widget.MaterialComponents.Button"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_marginTop="@dimen/space_2"
-        android:backgroundTint="@color/green_primary"
-        android:fontFamily="@font/poppins_semibold"
-        android:text="@string/phone_auth_send_verification_code"
-        android:textColor="@color/white"
-        app:cornerRadius="12dp" />
-
-    <!-- OTP Section (initially hidden) -->
-    <LinearLayout
-        android:id="@+id/otpSection"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/space_2_5"
         android:orientation="vertical"
-        android:visibility="gone">
+        android:padding="@dimen/space_3">
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@color/divider" />
-
+        <!-- Header -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/space_2"
-            android:fontFamily="@font/poppins_medium"
-            android:text="@string/phone_auth_enter_the_6_digit_code"
-            android:textColor="@color/text_primary"
-            android:textSize="@dimen/text_sm" />
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilOtpCode"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:hint="@string/phone_auth_verification_code_hint"
-            app:boxCornerRadiusTopStart="12dp"
-            app:boxCornerRadiusTopEnd="12dp"
-            app:boxCornerRadiusBottomStart="12dp"
-            app:boxCornerRadiusBottomEnd="12dp"
-            app:boxStrokeColor="@color/green_primary">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etOtpCode"
-                android:imeOptions="actionDone"
-                android:autofillHints="smsOTPCode"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="number"
-                android:maxLength="6"
-                android:textSize="@dimen/text_lg"
-                android:letterSpacing="0.3"
-                android:gravity="center"
-                android:fontFamily="@font/poppins_semibold" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnVerifyOtp"
-            style="@style/Widget.MaterialComponents.Button"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:layout_marginTop="14dp"
-            android:backgroundTint="@color/green_primary"
-            android:fontFamily="@font/poppins_semibold"
-            android:text="@string/phone_auth_verify_sign_in"
-            android:textColor="@color/white"
-            app:cornerRadius="12dp" />
+            android:text="@string/phone_auth_phone_sign_in"
+            android:textAppearance="@style/TextAppearance.REPLATE.Headline" />
 
         <TextView
-            android:id="@+id/tvResendOtp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_1"
+            android:text="@string/phone_auth_enter_your_phone_number_and"
+            android:textAppearance="@style/TextAppearance.REPLATE.Body" />
+
+        <!-- Phone number input -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_2_5"
+            android:gravity="top"
+            android:orientation="horizontal">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilCountryCode"
+                style="@style/Widget.REPLATE.TextInputLayout"
+                android:layout_width="96dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/space_1"
+                android:hint="@string/phone_auth_code_hint">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etCountryCode"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:imeOptions="actionNext"
+                    android:inputType="phone"
+                    android:text="@string/phone_auth_default_country_code" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilPhoneNumber"
+                style="@style/Widget.REPLATE.TextInputLayout"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="@string/phone_auth_phone_number_hint">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etPhoneNumber"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:autofillHints="phoneNational"
+                    android:imeOptions="actionDone"
+                    android:inputType="phone" />
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
+
+        <!-- Send code -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSendOtp"
+            style="@style/Widget.REPLATE.Button.Primary"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/button_height"
+            android:layout_marginTop="@dimen/space_2"
+            android:text="@string/phone_auth_send_verification_code" />
+
+        <!-- Code entry (shown after the SMS is sent) -->
+        <LinearLayout
+            android:id="@+id/otpSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_2_5"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <View
+                style="@style/Widget.REPLATE.Divider"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/nav_divider_height" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_2"
+                android:text="@string/phone_auth_enter_the_6_digit_code"
+                android:textAppearance="@style/TextAppearance.REPLATE.Label" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilOtpCode"
+                style="@style/Widget.REPLATE.TextInputLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_1_5"
+                android:hint="@string/phone_auth_verification_code_hint">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etOtpCode"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:autofillHints="smsOTPCode"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:gravity="center"
+                    android:imeOptions="actionDone"
+                    android:inputType="number"
+                    android:letterSpacing="0.3"
+                    android:maxLength="6"
+                    android:textSize="@dimen/text_lg" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnVerifyOtp"
+                style="@style/Widget.REPLATE.Button.Primary"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/button_height"
+                android:layout_marginTop="@dimen/space_1_5"
+                android:text="@string/phone_auth_verify_sign_in" />
+
+            <TextView
+                android:id="@+id/tvResendOtp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:fontFamily="@font/poppins_medium"
+                android:gravity="center"
+                android:minHeight="@dimen/touch_target_min"
+                android:paddingHorizontal="@dimen/space_2"
+                android:text="@string/phone_auth_resend_code"
+                android:textColor="@color/green_primary"
+                android:textSize="@dimen/text_sm" />
+        </LinearLayout>
+
+        <!-- Loading -->
+        <ProgressBar
+            android:id="@+id/phoneAuthProgress"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="@dimen/space_1_5"
-            android:fontFamily="@font/poppins_medium"
-            android:text="@string/phone_auth_resend_code"
-            android:textColor="@color/green_primary"
-            android:textSize="@dimen/text_sm_compact" />
+            android:indeterminateTint="@color/green_primary"
+            android:visibility="gone" />
+
     </LinearLayout>
-
-    <!-- Loading -->
-    <ProgressBar
-        android:id="@+id/phoneAuthProgress"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="@dimen/space_1_5"
-        android:indeterminateTint="@color/green_primary"
-        android:visibility="gone" />
-
-</LinearLayout>
-
+</ScrollView>
