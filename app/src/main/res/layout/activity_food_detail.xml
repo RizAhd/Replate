@@ -193,7 +193,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="@dimen/space_0_5"
-                                android:text="LKR 800.00"
+                                tools:text="LKR 800.00"
                                 android:textColor="@color/text_secondary"
                                 android:textSize="@dimen/text_sm" />
 
@@ -202,7 +202,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="@dimen/space_0_5"
-                                android:text="LKR 500.00"
+                                tools:text="LKR 500.00"
                                 android:textColor="@color/green_primary"
                                 android:textSize="@dimen/text_display"
                                 android:textStyle="bold" />
@@ -271,7 +271,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="18dp"
                         android:lineSpacingExtra="4dp"
-                        android:text="@string/food_detail_description_placeholder"
+                        tools:text="@string/food_detail_description_placeholder"
                         android:textAppearance="@style/TextAppearance.REPLATE.Body"
                         android:textColor="@color/text_primary" />
 
@@ -355,7 +355,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/space_0_5"
-                        android:text="0.0 (0 reviews)"
+                        tools:text="0.0 (0 reviews)"
                         android:textColor="@color/text_secondary"
                         android:textSize="@dimen/text_sm_compact" />
 

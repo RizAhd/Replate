@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -134,7 +135,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
                         android:layout_marginTop="@dimen/space_2"
-                        android:background="#0D000000" />
+                        android:background="@color/divider_soft" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -155,7 +156,7 @@
                         android:letterSpacing="0.30"
                         android:paddingHorizontal="28dp"
                         android:paddingVertical="@dimen/space_1"
-                        android:text="------"
+                        tools:text="------"
                         android:textColor="@color/primary"
                         android:textSize="@dimen/text_xxl" />
                 </LinearLayout>
@@ -170,7 +171,7 @@
                 app:cardBackgroundColor="@color/md_theme_surfaceContainerLow"
                 app:cardCornerRadius="14dp"
                 app:cardElevation="0dp"
-                app:strokeColor="#0D000000"
+                app:strokeColor="@color/divider_soft"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -252,7 +253,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
                         android:layout_marginTop="10dp"
-                        android:background="#0A000000" />
+                        android:background="@color/divider_softer" />
 
                     <LinearLayout
                         android:id="@+id/statusRow"

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -44,7 +45,7 @@
                     android:layout_weight="1"
                     android:ellipsize="end"
                     android:maxLines="1"
-                    android:text="Hotel Name"
+                    tools:text="Hotel Name"
                     android:textColor="@color/text_primary"
                     android:textSize="@dimen/text_md"
                     android:fontFamily="@font/poppins_semibold" />
@@ -54,7 +55,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/space_1"
-                    android:text="10:30 AM"
+                    tools:text="10:30 AM"
                     android:textColor="@color/text_hint"
                     android:textSize="@dimen/text_caption"
                     android:fontFamily="@font/poppins_regular" />
@@ -67,7 +68,7 @@
                 android:layout_marginTop="2dp"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:text="Last message preview..."
+                tools:text="Last message preview..."
                 android:textColor="@color/text_secondary"
                 android:textSize="@dimen/text_sm_compact"
                 android:fontFamily="@font/poppins_regular" />

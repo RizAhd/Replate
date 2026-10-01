@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -48,7 +49,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/space_2"
-                android:text="@string/favorites_saved_count_default"
+                tools:text="@string/favorites_saved_count_default"
                 android:textAppearance="@style/TextAppearance.REPLATE.Body"
                 android:textColor="@color/text_on_primary_muted" />
         </LinearLayout>

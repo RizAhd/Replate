@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/cardOrder"
     android:layout_width="match_parent"
@@ -33,7 +34,7 @@
                     android:id="@+id/tvOrderId"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="#ABC12345"
+                    tools:text="#ABC12345"
                     android:textAppearance="@style/TextAppearance.REPLATE.Label" />
 
                 <TextView
@@ -45,7 +46,7 @@
                     android:fontFamily="@font/poppins_semibold"
                     android:paddingHorizontal="@dimen/space_1_5"
                     android:paddingVertical="6dp"
-                    android:text="Confirmed"
+                    tools:text="Confirmed"
                     android:textColor="@color/primary"
                     android:textSize="@dimen/text_xs" />
             </RelativeLayout>
@@ -57,7 +58,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/space_1_5"
-                android:text="Hotel Paradise"
+                tools:text="Hotel Paradise"
                 android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
             <LinearLayout
@@ -72,7 +73,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/poppins_regular"
-                    android:text="3 items"
+                    tools:text="3 items"
                     android:textColor="@color/text_secondary"
                     android:textSize="@dimen/text_sm" />
 
@@ -88,7 +89,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/poppins_semibold"
-                    android:text="LKR 1500"
+                    tools:text="LKR 1500"
                     android:textColor="@color/primary"
                     android:textSize="@dimen/text_sm" />
             </LinearLayout>
@@ -99,7 +100,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/space_1"
                 android:fontFamily="@font/poppins_regular"
-                android:text="Mar 10 2026"
+                tools:text="Mar 10 2026"
                 android:textColor="@color/text_hint"
                 android:textSize="@dimen/text_xs" />
 
@@ -112,7 +113,7 @@
                 android:fontFamily="@font/poppins_medium"
                 android:paddingHorizontal="@dimen/space_1_5"
                 android:paddingVertical="6dp"
-                android:text="Pickup 6PM"
+                tools:text="Pickup 6PM"
                 android:textColor="@color/ember2"
                 android:textSize="@dimen/text_xs"
                 android:visibility="gone" />

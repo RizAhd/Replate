@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Header and the Place order bar are pinned; only the cards scroll between them. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -249,7 +250,7 @@
                             android:id="@+id/tvSubtotal"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/price_zero_lkr"
+                            tools:text="@string/price_zero_lkr"
                             android:textColor="@color/text_primary"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -270,7 +271,7 @@
                             android:id="@+id/tvSavings"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/checkout_savings_default"
+                            tools:text="@string/checkout_savings_default"
                             android:textColor="@color/success"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -320,7 +321,7 @@
                             android:id="@+id/tvTotal"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/price_zero_lkr"
+                            tools:text="@string/price_zero_lkr"
                             android:textColor="@color/green_primary"
                             android:textSize="@dimen/text_xl"
                             android:textStyle="bold" />
