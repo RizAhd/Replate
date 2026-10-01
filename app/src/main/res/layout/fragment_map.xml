@@ -68,6 +68,8 @@
 
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/ivMyLocation"
+                        android:clickable="true"
+                        android:focusable="true"
                         android:layout_width="48dp"
                         android:layout_height="48dp"
                         app:cardBackgroundColor="@color/green_pale"

@@ -37,8 +37,8 @@
 
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/cardFilterAction"
-                    android:layout_width="46dp"
-                    android:layout_height="46dp"
+                    android:layout_width="@dimen/touch_target_min"
+                    android:layout_height="@dimen/touch_target_min"
                     app:cardBackgroundColor="@color/overlay_white_15"
                     app:cardCornerRadius="16dp"
                     app:cardElevation="0dp">

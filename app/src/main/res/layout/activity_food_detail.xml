@@ -363,7 +363,7 @@
                         android:id="@+id/btnToggleReviewComposer"
                         style="@style/Widget.REPLATE.Button.Secondary"
                         android:layout_width="wrap_content"
-                        android:layout_height="40dp"
+                        android:layout_height="@dimen/touch_target_min"
                         android:layout_marginTop="10dp"
                         android:text="@string/food_detail_write_a_review"
                         android:textSize="@dimen/text_xs" />

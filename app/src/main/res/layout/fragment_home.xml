@@ -45,6 +45,8 @@
 
                         <com.google.android.material.card.MaterialCardView
                             android:id="@+id/ivMenu"
+                            android:clickable="true"
+                            android:focusable="true"
                             android:layout_width="48dp"
                             android:layout_height="48dp"
                             android:layout_centerVertical="true"
