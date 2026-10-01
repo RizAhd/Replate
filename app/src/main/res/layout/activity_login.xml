@@ -150,6 +150,8 @@
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/etLoginEmail"
+                                android:imeOptions="actionNext"
+                                android:autofillHints="emailAddress"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:inputType="textEmailAddress" />
@@ -166,6 +168,8 @@
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/etLoginPassword"
+                                android:imeOptions="actionDone"
+                                android:autofillHints="password"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:inputType="textPassword" />
@@ -311,6 +315,8 @@
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/etRegisterName"
+                                android:imeOptions="actionNext"
+                                android:autofillHints="name"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:inputType="textPersonName" />
@@ -326,6 +332,8 @@
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/etRegisterEmail"
+                                android:imeOptions="actionNext"
+                                android:autofillHints="emailAddress"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:inputType="textEmailAddress" />
@@ -341,6 +349,8 @@
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/etRegisterPhone"
+                                android:imeOptions="actionNext"
+                                android:autofillHints="phone"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:inputType="phone" />
@@ -357,6 +367,8 @@
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/etRegisterPassword"
+                                android:imeOptions="actionNext"
+                                android:autofillHints="newPassword"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:inputType="textPassword" />
@@ -373,6 +385,8 @@
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/etRegisterConfirmPassword"
+                                android:imeOptions="actionDone"
+                                android:autofillHints="newPassword"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:inputType="textPassword" />

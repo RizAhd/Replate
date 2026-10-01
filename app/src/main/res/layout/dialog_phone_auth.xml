@@ -70,6 +70,8 @@
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etPhoneNumber"
+                android:imeOptions="actionDone"
+                android:autofillHints="phoneNational"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="phone"
@@ -128,6 +130,8 @@
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etOtpCode"
+                android:imeOptions="actionDone"
+                android:autofillHints="smsOTPCode"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="number"

@@ -167,6 +167,8 @@
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etAddress"
+                        android:imeOptions="actionDone"
+                        android:autofillHints="postalAddress"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="@string/checkout_address_hint"
@@ -442,6 +444,9 @@
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etCustomerName"
+                        android:inputType="textPersonName|textCapWords"
+                        android:imeOptions="actionNext"
+                        android:autofillHints="name"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="@string/checkout_full_name_hint" />
@@ -455,6 +460,8 @@
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etCustomerPhone"
+                        android:imeOptions="actionNext"
+                        android:autofillHints="phone"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="@string/checkout_phone_hint"
