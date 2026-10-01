@@ -33,6 +33,7 @@ import com.replate.app.R;
 import com.replate.app.SettingsActivity;
 import com.replate.app.helpers.ReplateDatabaseHelper;
 import com.replate.app.utils.AccountDeletionManager;
+import com.replate.app.utils.LocalDataCleaner;
 import com.replate.app.utils.ToastUtils;
 
 import java.util.Locale;
@@ -267,6 +268,7 @@ public class ProfileFragment extends Fragment {
                     } else {
                         try {
                             mAuth.signOut();
+                            LocalDataCleaner.clearAll(requireContext());
                             Intent intent = new Intent(requireContext(), LoginActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             startActivity(intent);
