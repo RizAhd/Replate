@@ -37,6 +37,7 @@ import com.replate.app.notifications.InAppNotificationCenter;
 import com.replate.app.notifications.NotificationCategories;
 import com.replate.app.notifications.NotificationRouter;
 import com.replate.app.utils.FcmTokenManager;
+import com.replate.app.utils.NotificationPrefs;
 import com.replate.app.utils.UserRoleHelper;
 
 import java.util.HashMap;
@@ -95,6 +96,11 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         }
 
         saveNotification(title, body, data);
+
+        // Turned off in Settings: keep it in the in-app list but don't pop up or ring
+        if (!NotificationPrefs.isAllowed(getApplicationContext(), data.get("category"))) {
+            return;
+        }
 
         if (isAppInForeground()) {
             InAppNotificationCenter.publish(new InAppNotificationCenter.InAppNotificationMessage(
