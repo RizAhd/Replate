@@ -181,6 +181,32 @@ public class SettingsActivity extends AppCompatActivity {
         loadPreferences();
     }
 
+    /** Drops disposable data (images, food lists, search history) but keeps the cart, favorites and orders. */
+    private void clearCaches() {
+        final android.content.Context app = getApplicationContext();
+        networkExecutor.execute(() -> {
+            try {
+                Glide.get(app).clearDiskCache();
+            } catch (Exception e) {
+                Log.w(TAG, "Could not clear image cache", e);
+            }
+            try {
+                ReplateDatabaseHelper db = ReplateDatabaseHelper.getInstance(app);
+                db.clearFoodCache();
+                db.clearSearchHistory();
+                new com.replate.app.helpers.FoodItemCacheManager(app).clearCache();
+            } catch (Exception e) {
+                Log.w(TAG, "Could not clear local caches", e);
+            }
+            runOnUiThread(() -> {
+                if (!isFinishing() && !isDestroyed()) {
+                    Glide.get(app).clearMemory();
+                    ToastUtils.showCustomToast(this, getString(R.string.settings_cache_cleared));
+                }
+            });
+        });
+    }
+
     private void initViews() {
         ImageView ivBack = findViewById(R.id.ivBack);
         // Always show the real build version instead of a hard-coded number that drifts
@@ -200,6 +226,12 @@ public class SettingsActivity extends AppCompatActivity {
         switchLocation = findViewById(R.id.switchLocation);
 
         ivBack.setOnClickListener(v -> finish());
+        findViewById(R.id.rowPrivacy).setOnClickListener(v -> new AlertDialog.Builder(this)
+                .setTitle(R.string.settings_privacy_title)
+                .setMessage(R.string.settings_privacy_body)
+                .setPositiveButton(android.R.string.ok, null)
+                .show());
+        findViewById(R.id.rowClearCache).setOnClickListener(v -> clearCaches());
         btnChangePhoto.setOnClickListener(v -> showPhotoPicker());
         btnPickAddress.setOnClickListener(v -> locationPickerLauncher.launch(new Intent(this, LocationPickerActivity.class)));
         btnSaveProfile.setOnClickListener(v -> saveProfile());
