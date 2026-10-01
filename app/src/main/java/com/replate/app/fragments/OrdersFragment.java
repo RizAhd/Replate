@@ -32,6 +32,7 @@ import com.replate.app.R;
 import com.replate.app.adapters.OrderAdapter;
 import com.replate.app.helpers.ReplateDatabaseHelper;
 import com.replate.app.models.Order;
+import com.replate.app.utils.SafeSnapshot;
 import com.replate.app.utils.ToastUtils;
 
 import java.util.ArrayList;
@@ -164,7 +165,7 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
                 allOrders.clear();
 
                 for (DataSnapshot orderSnapshot : snapshot.getChildren()) {
-                    Order order = orderSnapshot.getValue(Order.class);
+                    Order order = SafeSnapshot.getValue(orderSnapshot, Order.class);
                     if (order != null) {
                         order.setOrderId(orderSnapshot.getKey());
                         allOrders.add(order);
