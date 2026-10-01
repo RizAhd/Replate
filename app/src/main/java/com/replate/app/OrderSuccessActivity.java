@@ -39,6 +39,7 @@ import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.common.BitMatrix;
 import com.replate.app.models.Order;
+import com.replate.app.utils.SafeSnapshot;
 import com.replate.app.utils.ToastUtils;
 
 import java.util.HashMap;
@@ -141,10 +142,13 @@ public class OrderSuccessActivity extends AppCompatActivity {
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        order = snapshot.getValue(Order.class);
-                        if (order != null) {
+                        Order loaded = SafeSnapshot.getValue(snapshot, Order.class);
+                        if (loaded != null) {
+                            order = loaded;
                             order.setOrderId(snapshot.getKey());
                             displayOrder();
+                        } else {
+                            ToastUtils.showCustomToast(OrderSuccessActivity.this, "Could not load your order details. Check My Orders.");
                         }
                     }
 
@@ -192,8 +196,11 @@ public class OrderSuccessActivity extends AppCompatActivity {
                             .addListenerForSingleValueEvent(new ValueEventListener() {
                                 @Override
                                 public void onDataChange(@NonNull DataSnapshot snap) {
-                                    order = snap.getValue(Order.class);
-                                    if (order != null) order.setOrderId(snap.getKey());
+                                    Order reloaded = SafeSnapshot.getValue(snap, Order.class);
+                                    if (reloaded != null) {
+                                        order = reloaded;
+                                        order.setOrderId(snap.getKey());
+                                    }
                                     showCompletedState(true);
                                 }
                                 @Override
