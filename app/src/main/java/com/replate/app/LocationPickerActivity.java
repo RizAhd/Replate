@@ -46,6 +46,9 @@ public class LocationPickerActivity extends AppCompatActivity implements OnMapRe
     private final ExecutorService geocoderExecutor = Executors.newSingleThreadExecutor();
     private final android.os.Handler uiHandler = new android.os.Handler(android.os.Looper.getMainLooper());
     private int addressRequestId;
+    // True once the pin sits on a place the customer picked or the phone really found. Until then the
+    // map may show a default city, but Confirm must not hand that guess back as their address.
+    private boolean positionChosen;
 
     private final ActivityResultLauncher<String[]> locationPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
@@ -76,11 +79,12 @@ public class LocationPickerActivity extends AppCompatActivity implements OnMapRe
         }
 
         setupSearch();
+        findViewById(R.id.btnLocationBack).setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
 
         btnUseLiveLocation.setOnClickListener(v -> moveToLiveLocation(false));
 
         btnConfirmLocation.setOnClickListener(v -> {
-            if (selectedLatLng != null) {
+            if (selectedLatLng != null && positionChosen) {
                 // The address lookup may still be running; fall back to the coordinates
                 String address = selectedAddress != null && !selectedAddress.trim().isEmpty()
                         ? selectedAddress
@@ -135,6 +139,7 @@ public class LocationPickerActivity extends AppCompatActivity implements OnMapRe
                         if (mMap != null) {
                             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(target, 16f));
                         }
+                        positionChosen = true;
                         selectedLatLng = target;
                         getAddress(target);
                     } else {
@@ -160,7 +165,13 @@ public class LocationPickerActivity extends AppCompatActivity implements OnMapRe
 
         moveToLiveLocation(true);
 
+        mMap.setOnCameraMoveStartedListener(reason -> {
+            if (reason == GoogleMap.OnCameraMoveStartedListener.REASON_GESTURE) {
+                positionChosen = true;
+            }
+        });
         mMap.setOnCameraIdleListener(() -> {
+            if (!positionChosen) return;
             selectedLatLng = mMap.getCameraPosition().target;
             // Wait for the map to settle: panning fires many idle events in a row
             uiHandler.removeCallbacks(lookupRunnable);
@@ -220,16 +231,16 @@ public class LocationPickerActivity extends AppCompatActivity implements OnMapRe
     private void handleLocationResult(Location location) {
         if (mMap == null || isFinishing() || isDestroyed()) return;
 
-        LatLng target;
-        if (location != null) {
-            target = new LatLng(location.getLatitude(), location.getLongitude());
-        } else {
-            target = new LatLng(6.9271, 79.8612); // Colombo fallback
-            // Do not silently pick a place for the customer
+        if (location == null) {
+            // Show the default city so the map isn't empty, but leave the choice to the customer
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(6.9271, 79.8612), 12f));
             ToastUtils.showCustomToast(this, getString(R.string.location_picker_live_unavailable));
+            return;
         }
 
+        LatLng target = new LatLng(location.getLatitude(), location.getLongitude());
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(target, 15f));
+        positionChosen = true;
         selectedLatLng = target;
         getAddress(target);
     }
