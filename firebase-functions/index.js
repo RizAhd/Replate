@@ -905,29 +905,42 @@ exports.onOrderCreatedNotify = functions
 
     console.log(`[onOrderCreatedNotify] COMPLETED for orderId=${orderId}`);
 
-    // Server-side safety net: decrement food quantity & auto-deactivate if sold out
+    // Stock is adjusted here, on the server, and nowhere else: the database rules do not let
+    // customers write foodItems quantity/status. Two protections keep it correct:
+    //  - the stockAdjusted flag (flipped in a transaction) makes a retried trigger a no-op
+    //  - each quantity change is a transaction, so simultaneous orders cannot overwrite each other
     try {
-      const items = order.items || [];
-      for (const item of items) {
-        const foodId = String(item.foodId || "").trim();
-        const orderedQty = Number(item.quantity) || 1;
-        if (!foodId) continue;
+      const flag = await db
+        .ref(`orders/${orderId}/stockAdjusted`)
+        .transaction((current) => (current ? undefined : true));
 
-        const foodRef = db.ref(`foodItems/${foodId}`);
-        const foodSnap = await foodRef.get();
-        if (!foodSnap.exists()) continue;
+      if (flag.committed) {
+        const rawItems = order.items || [];
+        const items = Array.isArray(rawItems) ? rawItems : Object.values(rawItems);
+        for (const item of items) {
+          const foodId = String((item && item.foodId) || "").trim();
+          const orderedQty = Math.max(1, Number(item && item.quantity) || 1);
+          if (!foodId) continue;
 
-        const currentQty = Number(foodSnap.child("quantity").val()) || 0;
-        const newQty = Math.max(0, currentQty - orderedQty);
-        await foodRef.child("quantity").set(newQty);
+          const result = await db.ref(`foodItems/${foodId}/quantity`).transaction((current) => {
+            // Missing item: leave it alone (Firebase re-runs this with the server value if it exists)
+            if (current === null) return current;
+            const qty = Number(current);
+            return Math.max(0, (Number.isFinite(qty) ? qty : 0) - orderedQty);
+          });
 
-        if (newQty <= 0) {
-          await foodRef.child("status").set("sold_out");
-          await foodRef.child("isAvailable").set(false);
-          console.log(`[onOrderCreatedNotify] Food ${foodId} auto-deactivated (sold out)`);
-        } else {
-          console.log(`[onOrderCreatedNotify] Food ${foodId} quantity updated: ${currentQty} -> ${newQty}`);
+          if (!result.committed || !result.snapshot.exists()) continue;
+
+          const newQty = Number(result.snapshot.val()) || 0;
+          if (newQty <= 0) {
+            await db.ref(`foodItems/${foodId}`).update({ status: "sold_out", isAvailable: false, available: false });
+            console.log(`[onOrderCreatedNotify] Food ${foodId} auto-deactivated (sold out)`);
+          } else {
+            console.log(`[onOrderCreatedNotify] Food ${foodId} quantity is now ${newQty}`);
+          }
         }
+      } else {
+        console.log(`[onOrderCreatedNotify] Stock for order ${orderId} was already adjusted, skipping`);
       }
     } catch (qtyErr) {
       console.error("[onOrderCreatedNotify] Error decrementing food quantity", qtyErr);
