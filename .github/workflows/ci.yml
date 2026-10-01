@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  # Checks that don't need Android: the Firebase security rules and the Cloud Functions code.
+  firebase:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # The Firebase emulator that runs the rules tests needs Java
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - run: npm install --no-audit --no-fund
+
+      - name: Security rules are up to date with their source
+        run: |
+          npm run rules:build
+          git diff --exit-code firebase-rules/database.rules.json
+
+      - name: Security rules tests (Firebase emulator)
+        run: npm run rules:test
+
+      - name: Cloud Functions syntax check
+        run: node --check firebase-functions/index.js
+
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      # app/google-services.json is private and not in git, but the Google Services Gradle plugin
+      # refuses to run without one. A placeholder is enough to compile and run unit tests.
+      - name: Create placeholder Firebase config
+        run: |
+          cat > app/google-services.json <<'EOF'
+          {
+            "project_info": {
+              "project_number": "000000000000",
+              "project_id": "ci-placeholder",
+              "storage_bucket": "ci-placeholder.appspot.com",
+              "firebase_url": "https://ci-placeholder-default-rtdb.firebaseio.com"
+            },
+            "client": [
+              {
+                "client_info": {
+                  "mobilesdk_app_id": "1:000000000000:android:0000000000000000",
+                  "android_client_info": { "package_name": "com.replate.app" }
+                },
+                "api_key": [{ "current_key": "ci-placeholder-key" }],
+                "services": { "appinvite_service": { "other_platform_oauth_client": [] } }
+              }
+            ],
+            "configuration_version": "1"
+          }
+          EOF
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # gradle.properties points org.gradle.java.home at a Windows path for local development;
+      # the command-line property below overrides it on the CI machine.
+      - name: Unit tests
+        run: |
+          chmod +x gradlew
+          ./gradlew testDebugUnitTest -Dorg.gradle.java.home="$JAVA_HOME" --stacktrace
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-reports
+          path: app/build/reports/tests/
