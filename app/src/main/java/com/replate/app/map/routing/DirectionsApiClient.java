@@ -170,17 +170,25 @@ public class DirectionsApiClient {
         }
     }
 
-    private List<LatLng> decodePolyline(@NonNull String encoded) {
+    /**
+     * Decodes a Google encoded polyline. A truncated or malformed string returns the points
+     * decoded so far instead of throwing.
+     */
+    static List<LatLng> decodePolyline(@NonNull String encoded) {
         List<LatLng> polyline = new ArrayList<>();
         int index = 0;
         int lat = 0;
         int lng = 0;
+        int length = encoded.length();
 
-        while (index < encoded.length()) {
+        while (index < length) {
             int b;
             int shift = 0;
             int result = 0;
             do {
+                if (index >= length) {
+                    return polyline;
+                }
                 b = encoded.charAt(index++) - 63;
                 result |= (b & 0x1f) << shift;
                 shift += 5;
@@ -191,6 +199,9 @@ public class DirectionsApiClient {
             shift = 0;
             result = 0;
             do {
+                if (index >= length) {
+                    return polyline;
+                }
                 b = encoded.charAt(index++) - 63;
                 result |= (b & 0x1f) << shift;
                 shift += 5;
@@ -198,8 +209,7 @@ public class DirectionsApiClient {
             int dLng = ((result & 1) != 0) ? ~(result >> 1) : (result >> 1);
             lng += dLng;
 
-            LatLng point = new LatLng(lat / 1E5, lng / 1E5);
-            polyline.add(point);
+            polyline.add(new LatLng(lat / 1E5, lng / 1E5));
         }
 
         return polyline;
