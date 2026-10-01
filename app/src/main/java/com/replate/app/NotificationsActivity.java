@@ -34,6 +34,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.replate.app.adapters.NotificationAdapter;
 import com.replate.app.helpers.ReplateDatabaseHelper;
 import com.replate.app.models.AppNotification;
+import com.replate.app.utils.SafeSnapshot;
 import com.replate.app.utils.ToastUtils;
 
 import java.util.ArrayList;
@@ -330,7 +331,7 @@ public class NotificationsActivity extends AppCompatActivity
                         allNotifications.clear();
 
                         for (DataSnapshot notifSnapshot : snapshot.getChildren()) {
-                            AppNotification notif = notifSnapshot.getValue(AppNotification.class);
+                            AppNotification notif = SafeSnapshot.getValue(notifSnapshot, AppNotification.class);
                             if (notif != null) {
                                 notif.setNotificationId(notifSnapshot.getKey());
                                 allNotifications.add(notif);
