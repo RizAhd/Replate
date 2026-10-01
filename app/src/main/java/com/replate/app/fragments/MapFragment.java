@@ -973,7 +973,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     public void onPause() {
         super.onPause();
         stopLiveLocationUpdates();
+        // In-flight route results are ignored after this bump, so they'd never hide the spinner
         routeRequestVersion++;
+        if (loadingOverlay != null) {
+            loadingOverlay.setVisibility(View.GONE);
+        }
     }
 
     @Override
