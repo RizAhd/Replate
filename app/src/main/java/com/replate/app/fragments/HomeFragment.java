@@ -79,6 +79,7 @@ public class HomeFragment extends Fragment implements
     private androidx.appcompat.widget.SearchView searchView;
     private ViewPager2 bannerViewPager;
     private RecyclerView rvCategories, rvHotDeals, rvFoodItems, rvFavorites;
+    private View layoutFavoritesSection;
     private me.relex.circleindicator.CircleIndicator3 bannerIndicator;
     private View skeletonFeed;
     private ObjectAnimator skeletonPulse;
@@ -189,6 +190,7 @@ public class HomeFragment extends Fragment implements
         rvHotDeals = view.findViewById(R.id.rvHotDeals);
         rvFoodItems = view.findViewById(R.id.rvDeals);
         rvFavorites = view.findViewById(R.id.rvFavorites);
+        layoutFavoritesSection = view.findViewById(R.id.layoutFavoritesSection);
         skeletonFeed = view.findViewById(R.id.skeletonFeed);
         swipeRefresh = view.findViewById(R.id.swipeRefresh);
         tvEmptyFeed = view.findViewById(R.id.tvEmptyFeed);
@@ -908,15 +910,14 @@ public class HomeFragment extends Fragment implements
             }
         }
 
-        if (favoriteItems.isEmpty()) {
-            int fallbackCount = Math.min(6, allFoodItems.size());
-            for (int i = 0; i < fallbackCount; i++) {
-                favoriteItems.add(allFoodItems.get(i));
-            }
-        }
-
+        // Only real favourites: the section used to pad itself with the first six dishes, which isn't
+        // what "Your favourites" means. With none saved the whole section stays hidden.
         favoritesAdapter.updateData(new ArrayList<>(favoriteItems));
-        rvFavorites.setVisibility(favoriteItems.isEmpty() ? View.GONE : View.VISIBLE);
+        int visibility = favoriteItems.isEmpty() ? View.GONE : View.VISIBLE;
+        rvFavorites.setVisibility(visibility);
+        if (layoutFavoritesSection != null) {
+            layoutFavoritesSection.setVisibility(visibility);
+        }
     }
 
     private String getStringAny(DataSnapshot snapshot, String... keys) {
