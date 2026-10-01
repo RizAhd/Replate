@@ -110,6 +110,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private final Map<String, FoodPlace> markerPlaceMap = new HashMap<>();
     private final Map<String, Marker> markerByHotelId = new HashMap<>();
     private final Map<String, String> hotelFoodPreviewCache = new HashMap<>();
+    private final Map<String, Long> hotelFoodPreviewCachedAt = new HashMap<>();
+    // Sold-out items must not stay listed for the whole session
+    private static final long PREVIEW_CACHE_MS = 60_000L;
     private final List<FoodPlace> allPlaces = new ArrayList<>();
     private Marker searchMarker;
     private DatabaseReference foodItemsRef;
@@ -929,7 +932,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     }
 
     private void loadAvailableItemsPreview(@NonNull String hotelId) {
-        if (hotelFoodPreviewCache.containsKey(hotelId)) {
+        Long cachedAt = hotelFoodPreviewCachedAt.get(hotelId);
+        if (hotelFoodPreviewCache.containsKey(hotelId) && cachedAt != null
+                && System.currentTimeMillis() - cachedAt < PREVIEW_CACHE_MS) {
             tvAvailableItems.setText(hotelFoodPreviewCache.get(hotelId));
             return;
         }
@@ -977,6 +982,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 }
 
                 hotelFoodPreviewCache.put(hotelId, previewText);
+                hotelFoodPreviewCachedAt.put(hotelId, System.currentTimeMillis());
                 if (tvAvailableItems != null && selectedPlace != null && hotelId.equals(selectedPlace.getId())) {
                     tvAvailableItems.setText(previewText);
                 }
