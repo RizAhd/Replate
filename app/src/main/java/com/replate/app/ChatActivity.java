@@ -275,6 +275,14 @@ public class ChatActivity extends AppCompatActivity {
     private void loadMessages() {
         progressBar.setVisibility(View.VISIBLE);
 
+        // Offline, the server may never answer: stop the spinner after a while and show what we have
+        progressBar.postDelayed(() -> {
+            if (!isFinishing() && !isDestroyed() && progressBar.getVisibility() == View.VISIBLE) {
+                progressBar.setVisibility(View.GONE);
+                updateEmptyState();
+            }
+        }, 8000);
+
         // ── Step 1: Load from SQLite (instant, no network needed) ──
         List<ChatMessage> cachedMessages = chatDb.getMessages(conversationId);
         if (!cachedMessages.isEmpty()) {
