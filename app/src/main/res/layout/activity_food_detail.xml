@@ -182,6 +182,7 @@
                             android:orientation="vertical">
 
                             <TextView
+                                android:id="@+id/tvOriginalLabel"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/food_detail_original_label"

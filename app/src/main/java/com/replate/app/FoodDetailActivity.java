@@ -185,6 +185,15 @@ public class FoodDetailActivity extends AppCompatActivity {
         tvDiscountedPrice.setText(Money.format(foodItem.getDiscountedPriceValue()));
         tvDiscount.setText(String.format(Locale.getDefault(), "-%d%%", foodItem.getDiscountPercentValue()));
 
+        // No discount: hide "-0%" and the struck-through original price instead of showing a fake saving
+        boolean hasDiscount = foodItem.getDiscountPercentValue() > 0
+                && foodItem.getOriginalPriceValue() > foodItem.getDiscountedPriceValue();
+        int discountVisibility = hasDiscount ? View.VISIBLE : View.GONE;
+        tvDiscount.setVisibility(discountVisibility);
+        tvOriginalPrice.setVisibility(discountVisibility);
+        View originalLabel = findViewById(R.id.tvOriginalLabel);
+        if (originalLabel != null) originalLabel.setVisibility(discountVisibility);
+
         tvPickupTime.setText(foodItem.getPickupTimeFormatted());
         tvDistance.setText(foodItem.getDistance() > 0 ? foodItem.getDistanceFormatted() + " away" : "Nearby pickup");
 
@@ -257,8 +266,18 @@ public class FoodDetailActivity extends AppCompatActivity {
         ivFavorite.setContentDescription(isFavorite ? "Remove from favorites" : "Add to favorites");
     }
 
+    private boolean isSoldOut() {
+        return foodItem != null && (!foodItem.isAvailableValue() || !foodItem.hasStock());
+    }
+
     private void updateQuantityDisplay() {
         tvQuantity.setText(String.valueOf(quantity));
+        if (isSoldOut()) {
+            btnAddToCart.setEnabled(false);
+            btnAddToCart.setText(R.string.food_detail_sold_out);
+            return;
+        }
+        btnAddToCart.setEnabled(true);
         double total = foodItem.getDiscountedPriceValue() * quantity;
         btnAddToCart.setText(getString(R.string.food_detail_add_to_cart_total, Money.format(total)));
     }
@@ -268,8 +287,25 @@ public class FoodDetailActivity extends AppCompatActivity {
             ToastUtils.showCustomToast(this, R.string.food_detail_error_food_item_not_available);
             return;
         }
+        if (isSoldOut()) {
+            ToastUtils.showCustomToast(this, R.string.food_detail_sold_out);
+            return;
+        }
 
         CartDatabaseHelper cartDb = CartDatabaseHelper.getInstance(this);
+
+        // The cart sums repeated adds, so cap what is added at the stock left after what is already in it
+        int toAdd = quantity;
+        if (foodItem.getQuantity() != null) {
+            int remaining = foodItem.getQuantityValue() - cartDb.getQuantityInCart(foodItem.getFoodId());
+            if (remaining <= 0) {
+                ToastUtils.showCustomToast(this,
+                        getString(R.string.food_detail_cart_limit_reached, foodItem.getQuantityValue()));
+                return;
+            }
+            toAdd = Math.min(toAdd, remaining);
+        }
+
         CartItem cartItem = new CartItem(
                 foodItem.getFoodId(),
                 foodItem.getFoodName() != null ? foodItem.getFoodName() : "Item",
@@ -278,13 +314,14 @@ public class FoodDetailActivity extends AppCompatActivity {
                 foodItem.getImageUrl() != null ? foodItem.getImageUrl() : "",
                 foodItem.getDiscountedPriceValue(),
                 foodItem.getOriginalPriceValue(),
-                quantity,
+                toAdd,
                 foodItem.getDiscountPercentValue()
         );
         cartDb.addItem(cartItem);
-        AppAnalytics.addToCart(this, foodItem.getFoodId(), foodItem.getFoodName(), foodItem.getDiscountedPriceValue(), quantity);
+        AppAnalytics.addToCart(this, foodItem.getFoodId(), foodItem.getFoodName(), foodItem.getDiscountedPriceValue(), toAdd);
 
-        ToastUtils.showCustomToast(this, quantity + " x " + foodItem.getFoodName() + " added to cart!");
+        ToastUtils.showCustomToast(this,
+                getString(R.string.food_detail_added_to_cart_toast, toAdd, cartItem.getFoodName()));
         startActivity(new Intent(this, CartActivity.class));
     }
 

@@ -203,6 +203,22 @@ public class CartDatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
+     * How many of this item are already in the cart (0 when it is not there)
+     */
+    public int getQuantityInCart(String foodId) {
+        if (foodId == null) return 0;
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.query(TABLE_CART, new String[]{COL_QUANTITY},
+                COL_FOOD_ID + "=?", new String[]{foodId},
+                null, null, null);
+        try {
+            return cursor != null && cursor.moveToFirst() ? cursor.getInt(0) : 0;
+        } finally {
+            if (cursor != null) cursor.close();
+        }
+    }
+
+    /**
      * Check if item is in cart
      */
     public boolean isInCart(String foodId) {

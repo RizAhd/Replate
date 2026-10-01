@@ -477,6 +477,7 @@ Total: LKR %1$.2f</string>
     <string name="order_success_or_share_pickup_otp">Or share pickup OTP</string>
     <string name="order_success_order">Order</string>
     <string name="order_success_hotel">Hotel</string>
+    <string name="hotel_name_fallback">Hotel</string>
     <string name="order_success_total">Total</string>
     <string name="order_success_waiting_for_pickup_scan">Waiting for pickup scan…</string>
     <string name="order_success_how_was_your_experience">How was your experience?</string>
@@ -558,6 +559,9 @@ Total: LKR %1$.2f</string>
     <string name="food_detail_removed_from_favorites">Removed from favorites</string>
     <string name="food_detail_added_to_favorites">Added to favorites ❤</string>
     <string name="food_detail_maximum_available_quantity_reached">Maximum available quantity reached</string>
+    <string name="food_detail_sold_out">Sold out</string>
+    <string name="food_detail_cart_limit_reached">Your cart already has all %1$d available</string>
+    <string name="food_detail_added_to_cart_toast">%1$d x %2$s added to cart!</string>
     <string name="food_detail_error_food_item_not_available">Error: Food item not available</string>
     <string name="food_detail_please_login_to_submit_review">Please login to submit review</string>
     <string name="food_detail_please_select_a_rating">Please select a rating</string>
