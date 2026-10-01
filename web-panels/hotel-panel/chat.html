@@ -619,56 +619,9 @@
             ref.orderByChild('lastTimestamp').on('value', cb);
         });
 
-        // Also scan the chats/ node directly as a fallback
-        // in case conversations meta was never written
-        database.ref('chats').orderByKey().once('value', (snap) => {
-            if (!snap.exists()) return;
-            let found = 0;
-            snap.forEach(chatChild => {
-                const convId = chatChild.key;
-                // Check if this conversation belongs to this hotel
-                if (convId.startsWith(currentHotelId + '_') ||
-                    (uid && convId.startsWith(uid + '_'))) {
-                    if (!mergedMap[convId]) {
-                        // Build minimal conversation data from chat messages
-                        const msgs = chatChild.child('messages');
-                        let lastMsg = '', lastTs = 0, custName = 'Customer', custId = '', custEmail = '', food = '';
-                        msgs.forEach(m => {
-                            const v = m.val();
-                            if (v.timestamp > lastTs) {
-                                lastTs = v.timestamp;
-                                lastMsg = v.message || '';
-                            }
-                            if (v.customerName) custName = v.customerName;
-                            if (v.customerId) custId = v.customerId;
-                            if (v.customerEmail) custEmail = v.customerEmail;
-                            if (v.foodName) food = v.foodName;
-                            // If sender is customer, grab their info
-                            if (v.senderType === 'customer') {
-                                if (v.senderName) custName = v.senderName;
-                                if (v.senderId) custId = v.senderId;
-                            }
-                        });
-                        if (lastTs > 0) {
-                            mergedMap[convId] = {
-                                id: convId,
-                                customerName: custName,
-                                customerId: custId,
-                                customerEmail: custEmail,
-                                foodName: food,
-                                lastMessage: lastMsg,
-                                lastTimestamp: lastTs,
-                                hotelId: currentHotelId
-                            };
-                            found++;
-                        }
-                    }
-                }
-            });
-            if (found > 0) {
-                refreshUI();
-            }
-        });
+        // Conversations are listed from conversations/{hotelKey} only. The app writes that summary
+        // row for every chat, and the database rules keep each chat private to its two participants,
+        // so there is no fallback that scans every chat in the database.
     }
 
     function renderConversations(list) {
