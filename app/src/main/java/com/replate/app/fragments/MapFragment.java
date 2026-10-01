@@ -379,6 +379,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         mMap.getUiSettings().setZoomControlsEnabled(false);
         mMap.getUiSettings().setCompassEnabled(true);
         mMap.getUiSettings().setMapToolbarEnabled(false);
+        // The screen has its own "my location" button; hide Google's duplicate
+        mMap.getUiSettings().setMyLocationButtonEnabled(false);
 
         // Start somewhere useful instead of the world view while location and hotels load
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM));
