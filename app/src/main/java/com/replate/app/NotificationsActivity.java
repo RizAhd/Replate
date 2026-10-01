@@ -303,7 +303,13 @@ public class NotificationsActivity extends AppCompatActivity
 
     private void loadNotifications() {
         String userId = FirebaseAuth.getInstance().getUid();
-        if (userId == null) return;
+        if (userId == null) {
+            // Signed out (for example the session expired): don't leave the pull-to-refresh spinner running
+            if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
+            progressBar.setVisibility(View.GONE);
+            ToastUtils.showCustomToast(this, "Please log in to see your notifications");
+            return;
+        }
 
         progressBar.setVisibility(View.VISIBLE);
 
