@@ -38,6 +38,7 @@ import com.replate.app.helpers.ReplateDatabaseHelper;
 import com.replate.app.models.CartItem;
 import com.replate.app.models.FoodItem;
 import com.replate.app.models.Review;
+import com.replate.app.utils.SafeSnapshot;
 import com.replate.app.utils.TelephonyUtils;
 import com.replate.app.utils.ToastUtils;
 import com.replate.app.utils.LocationUtils;
@@ -627,7 +628,7 @@ public class FoodDetailActivity extends AppCompatActivity {
                 if (isFinishing() || isDestroyed()) return;
                 List<FoodItem> all = new ArrayList<>();
                 for (DataSnapshot child : snapshot.getChildren()) {
-                    FoodItem item = child.getValue(FoodItem.class);
+                    FoodItem item = SafeSnapshot.getValue(child, FoodItem.class);
                     if (item == null) continue;
                     item.setFoodId(child.getKey());
                     if (!item.isListable()) continue;
