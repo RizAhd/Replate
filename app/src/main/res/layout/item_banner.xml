@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/bannerCard"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_marginHorizontal="@dimen/space_1"
+    android:clickable="true"
+    android:focusable="true"
     app:cardCornerRadius="@dimen/radius_lg"
     app:cardElevation="@dimen/elevation_card"
     app:cardBackgroundColor="@color/surface_white">
@@ -17,12 +21,14 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@drawable/bg_gradient_green"
+            android:importantForAccessibility="no"
             android:scaleType="centerCrop" />
 
         <View
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#4D000000" />
+            android:background="@drawable/banner_scrim"
+            android:importantForAccessibility="no" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -41,10 +47,10 @@
                 android:fontFamily="@font/poppins_bold"
                 android:paddingHorizontal="@dimen/space_1_5"
                 android:paddingVertical="@dimen/space_0_5"
-                android:text="HOT DEAL"
                 android:textAllCaps="true"
                 android:textColor="@color/white"
-                android:textSize="@dimen/text_caption" />
+                android:textSize="@dimen/text_caption"
+                tools:text="HOT DEAL" />
 
             <TextView
                 android:id="@+id/tvBannerTitle"
@@ -53,9 +59,9 @@
                 android:layout_marginTop="@dimen/space_1"
                 android:fontFamily="@font/poppins_bold"
                 android:maxLines="2"
-                android:text="Save More, Waste Less"
                 android:textColor="@color/white"
-                android:textSize="@dimen/text_lg" />
+                android:textSize="@dimen/text_lg"
+                tools:text="Low Prices, Big Smiles" />
 
             <TextView
                 android:id="@+id/tvBannerSubtitle"
@@ -64,9 +70,9 @@
                 android:layout_marginTop="@dimen/space_0_5"
                 android:fontFamily="@font/poppins_regular"
                 android:maxLines="2"
-                android:text="Discover low-price rescued meals near you."
                 android:textColor="@color/white_85"
-                android:textSize="@dimen/text_xs" />
+                android:textSize="@dimen/text_xs"
+                tools:text="Get hotel-quality food at rescue prices today." />
 
         </LinearLayout>
     </FrameLayout>
