@@ -34,6 +34,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.replate.app.adapters.ChatAdapter;
 import com.replate.app.helpers.ChatDatabaseHelper;
 import com.replate.app.models.ChatMessage;
+import com.replate.app.utils.SafeSnapshot;
 import com.replate.app.utils.TelephonyUtils;
 import com.replate.app.utils.ToastUtils;
 
@@ -305,7 +306,7 @@ public class ChatActivity extends AppCompatActivity {
                 progressBar.setVisibility(View.GONE);
 
                 for (DataSnapshot msgSnap : snapshot.getChildren()) {
-                    ChatMessage msg = msgSnap.getValue(ChatMessage.class);
+                    ChatMessage msg = SafeSnapshot.getValue(msgSnap, ChatMessage.class);
                     if (msg != null) {
                         msg.setMessageId(msgSnap.getKey());
 
@@ -379,7 +380,7 @@ public class ChatActivity extends AppCompatActivity {
         messagesListener = new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot snapshot, String previousChildName) {
-                ChatMessage msg = snapshot.getValue(ChatMessage.class);
+                ChatMessage msg = SafeSnapshot.getValue(snapshot, ChatMessage.class);
                 if (msg != null) {
                     msg.setMessageId(snapshot.getKey());
 
@@ -404,7 +405,7 @@ public class ChatActivity extends AppCompatActivity {
 
             @Override
             public void onChildChanged(@NonNull DataSnapshot snapshot, String previousChildName) {
-                ChatMessage msg = snapshot.getValue(ChatMessage.class);
+                ChatMessage msg = SafeSnapshot.getValue(snapshot, ChatMessage.class);
                 if (msg != null) {
                     msg.setMessageId(snapshot.getKey());
                     chatDb.saveMessage(msg);
