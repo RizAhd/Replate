@@ -5,7 +5,6 @@ import android.view.View;
 import android.widget.FrameLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.view.ViewCompat;
 
 import com.replate.app.fragments.SearchFragment;
 
@@ -18,7 +17,7 @@ public class SearchActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         FrameLayout container = new FrameLayout(this);
-        int containerId = ViewCompat.generateViewId();
+        int containerId = R.id.search_fragment_container;
         container.setId(containerId);
         container.setLayoutParams(new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
