@@ -37,6 +37,7 @@ import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.common.BitMatrix;
 import com.replate.app.models.Order;
+import com.replate.app.utils.SafeSnapshot;
 import com.replate.app.utils.TelephonyUtils;
 import com.replate.app.utils.ToastUtils;
 
@@ -174,10 +175,13 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         orderListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                order = snapshot.getValue(Order.class);
-                if (order != null) {
+                Order loaded = SafeSnapshot.getValue(snapshot, Order.class);
+                if (loaded != null) {
+                    order = loaded;
                     order.setOrderId(snapshot.getKey());
                     displayOrderDetails();
+                } else {
+                    ToastUtils.showCustomToast(OrderDetailActivity.this, "This order could not be loaded");
                 }
             }
 
