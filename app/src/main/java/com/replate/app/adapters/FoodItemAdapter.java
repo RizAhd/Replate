@@ -15,6 +15,7 @@ import com.bumptech.glide.Glide;
 import com.google.firebase.storage.FirebaseStorage;
 import com.replate.app.R;
 import com.replate.app.models.FoodItem;
+import com.replate.app.utils.GlideSafe;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -280,6 +281,9 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
                         String resolved = uri == null ? "" : uri.toString();
                         if (!resolved.isEmpty()) {
                             RESOLVED_IMAGE_URL_CACHE.put(src, resolved);
+                        }
+                        if (!GlideSafe.canLoad(context)) {
+                            return;
                         }
                         Glide.with(context)
                                 .load(uri)
