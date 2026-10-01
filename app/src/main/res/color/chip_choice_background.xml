@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Filter chip fill: pale green when selected, white otherwise -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="@color/green_pale" android:state_checked="true" />
+    <item android:color="@color/surface_white" />
+</selector>

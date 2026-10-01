@@ -148,9 +148,9 @@
                 android:checked="true"
                 android:fontFamily="@font/poppins_medium"
                 android:textSize="@dimen/text_xs"
-                app:chipBackgroundColor="@color/green_pale"
+                app:chipBackgroundColor="@color/chip_choice_background"
                 app:checkedIconVisible="false"
-                app:chipStrokeColor="@color/green_primary"
+                app:chipStrokeColor="@color/chip_choice_stroke"
                 app:chipStrokeWidth="0.5dp" />
 
             <com.google.android.material.chip.Chip
@@ -164,9 +164,9 @@
                 app:chipIcon="@drawable/ic_orders"
                 app:chipIconSize="16dp"
                 app:chipIconTint="@color/green_primary"
-                app:chipBackgroundColor="@color/surface_white"
+                app:chipBackgroundColor="@color/chip_choice_background"
                 app:checkedIconVisible="false"
-                app:chipStrokeColor="@color/md_theme_outlineVariant"
+                app:chipStrokeColor="@color/chip_choice_stroke"
                 app:chipStrokeWidth="0.5dp" />
 
             <com.google.android.material.chip.Chip
@@ -180,9 +180,9 @@
                 app:chipIcon="@drawable/ic_deal"
                 app:chipIconSize="16dp"
                 app:chipIconTint="@color/orange_accent"
-                app:chipBackgroundColor="@color/surface_white"
+                app:chipBackgroundColor="@color/chip_choice_background"
                 app:checkedIconVisible="false"
-                app:chipStrokeColor="@color/md_theme_outlineVariant"
+                app:chipStrokeColor="@color/chip_choice_stroke"
                 app:chipStrokeWidth="0.5dp" />
 
             <com.google.android.material.chip.Chip
@@ -196,9 +196,9 @@
                 app:chipIcon="@drawable/ic_pickup"
                 app:chipIconSize="16dp"
                 app:chipIconTint="@color/badge_distance"
-                app:chipBackgroundColor="@color/surface_white"
+                app:chipBackgroundColor="@color/chip_choice_background"
                 app:checkedIconVisible="false"
-                app:chipStrokeColor="@color/md_theme_outlineVariant"
+                app:chipStrokeColor="@color/chip_choice_stroke"
                 app:chipStrokeWidth="0.5dp" />
 
             <com.google.android.material.chip.Chip
@@ -212,9 +212,9 @@
                 app:chipIcon="@drawable/ic_admin_announce"
                 app:chipIconSize="16dp"
                 app:chipIconTint="@color/primary_dark"
-                app:chipBackgroundColor="@color/surface_white"
+                app:chipBackgroundColor="@color/chip_choice_background"
                 app:checkedIconVisible="false"
-                app:chipStrokeColor="@color/md_theme_outlineVariant"
+                app:chipStrokeColor="@color/chip_choice_stroke"
                 app:chipStrokeWidth="0.5dp" />
 
         </com.google.android.material.chip.ChipGroup>

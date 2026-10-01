@@ -386,14 +386,17 @@ public class NotificationsActivity extends AppCompatActivity
     }
 
     private void updateUI() {
+        // Hide the whole pull-to-refresh container, not just the list: it has layout_weight 1 like the
+        // empty state, so hiding only the list left the empty message with half the screen.
+        View list = swipeRefresh != null ? swipeRefresh : rvNotifications;
         if (notifications.isEmpty()) {
-            rvNotifications.setVisibility(View.GONE);
+            list.setVisibility(View.GONE);
             emptyState.setVisibility(View.VISIBLE);
             tvMarkAllRead.setVisibility(View.GONE);
             if (tvDeleteAll != null) tvDeleteAll.setVisibility(View.GONE);
             if (tvUnreadCount != null) tvUnreadCount.setVisibility(View.GONE);
         } else {
-            rvNotifications.setVisibility(View.VISIBLE);
+            list.setVisibility(View.VISIBLE);
             emptyState.setVisibility(View.GONE);
             if (tvDeleteAll != null) tvDeleteAll.setVisibility(View.VISIBLE);
 
