@@ -71,6 +71,7 @@ public class SettingsActivity extends AppCompatActivity {
 
     private static final int CAMERA_PERMISSION_REQUEST = 2001;
     private static final String TAG = "SettingsActivity";
+    private static final int MAX_PROFILE_PHOTO_PX = 1024;
 
     private CircleImageView ivProfileImage;
     private TextInputEditText etName, etPhone, etEmail, etAddress;
@@ -131,15 +132,15 @@ public class SettingsActivity extends AppCompatActivity {
         galleryLauncher = registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
             if (uri == null) return;
             try {
-                InputStream stream = getContentResolver().openInputStream(uri);
-                Bitmap bitmap = BitmapFactory.decodeStream(stream);
-                if (stream != null) stream.close();
+                Bitmap bitmap = decodeScaledBitmap(uri, MAX_PROFILE_PHOTO_PX);
                 if (bitmap != null) {
                     ivProfileImage.setImageBitmap(bitmap);
                     savePhotoToInternalStorage(bitmap);
                     uploadProfilePhoto(bitmap);
+                } else {
+                    ToastUtils.showCustomToast(this, "Failed to read selected image");
                 }
-            } catch (Exception e) {
+            } catch (Exception | OutOfMemoryError e) {
                 ToastUtils.showCustomToast(this, "Failed to read selected image");
             }
         });
@@ -362,6 +363,33 @@ public class SettingsActivity extends AppCompatActivity {
      * Save photo to internal storage
      * REQUIREMENT: Internal Storage
      */
+    /**
+     * Decodes an image without loading the full-size bitmap into memory first:
+     * reads the dimensions, picks a power-of-two sample size, then decodes once.
+     */
+    private Bitmap decodeScaledBitmap(android.net.Uri uri, int maxDimension) throws java.io.IOException {
+        BitmapFactory.Options bounds = new BitmapFactory.Options();
+        bounds.inJustDecodeBounds = true;
+        try (InputStream boundsStream = getContentResolver().openInputStream(uri)) {
+            if (boundsStream == null) return null;
+            BitmapFactory.decodeStream(boundsStream, null, bounds);
+        }
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null;
+
+        int sampleSize = 1;
+        int largest = Math.max(bounds.outWidth, bounds.outHeight);
+        while (largest / (sampleSize * 2) >= maxDimension) {
+            sampleSize *= 2;
+        }
+
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inSampleSize = sampleSize;
+        try (InputStream stream = getContentResolver().openInputStream(uri)) {
+            if (stream == null) return null;
+            return BitmapFactory.decodeStream(stream, null, options);
+        }
+    }
+
     private void savePhotoToInternalStorage(Bitmap bitmap) {
         try {
             File file = new File(getFilesDir(), "profile_photo.jpg");
