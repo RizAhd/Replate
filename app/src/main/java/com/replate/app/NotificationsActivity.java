@@ -307,7 +307,7 @@ public class NotificationsActivity extends AppCompatActivity
             // Signed out (for example the session expired): don't leave the pull-to-refresh spinner running
             if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
             progressBar.setVisibility(View.GONE);
-            ToastUtils.showCustomToast(this, "Please log in to see your notifications");
+            ToastUtils.showCustomToast(this, R.string.notifications_please_log_in_to_see);
             return;
         }
 
@@ -445,7 +445,7 @@ public class NotificationsActivity extends AppCompatActivity
                 startActivity(intent);
             } catch (android.content.ActivityNotFoundException | SecurityException e) {
                 android.util.Log.w("NotificationsActivity", "Could not open notification target", e);
-                ToastUtils.showCustomToast(this, "Unable to open this notification");
+                ToastUtils.showCustomToast(this, R.string.notifications_unable_to_open_this_notification);
             }
         }
     }
@@ -478,7 +478,7 @@ public class NotificationsActivity extends AppCompatActivity
                         .child("read").setValue(true);
             }
         }
-        ToastUtils.showCustomToast(this, "All notifications marked as read");
+        ToastUtils.showCustomToast(this, R.string.notifications_all_notifications_marked_as_read);
     }
 
     @Override
@@ -486,10 +486,10 @@ public class NotificationsActivity extends AppCompatActivity
         if (notification == null || notification.getNotificationId() == null) return;
 
         new AlertDialog.Builder(this)
-                .setTitle("Delete notification")
-                .setMessage("Remove this notification?")
-                .setPositiveButton("Delete", (d, w) -> deleteSingleNotification(notification))
-                .setNegativeButton("Cancel", null)
+                .setTitle(R.string.notifications_delete_notification)
+                .setMessage(R.string.notifications_remove_this_notification)
+                .setPositiveButton(R.string.notifications_delete, (d, w) -> deleteSingleNotification(notification))
+                .setNegativeButton(R.string.notifications_cancel, null)
                 .show();
     }
 
@@ -501,24 +501,24 @@ public class NotificationsActivity extends AppCompatActivity
                 .child(notification.getNotificationId())
                 .removeValue()
                 .addOnSuccessListener(unused -> {
-                    ToastUtils.showCustomToast(this, "Notification deleted");
+                    ToastUtils.showCustomToast(this, R.string.notifications_notification_deleted);
                 })
                 .addOnFailureListener(e -> {
-                    ToastUtils.showCustomToast(this, "Failed to delete notification");
+                    ToastUtils.showCustomToast(this, R.string.notifications_failed_to_delete_notification);
                 });
     }
 
     private void confirmDeleteAll() {
         if (allNotifications.isEmpty()) {
-            ToastUtils.showCustomToast(this, "No notifications to delete");
+            ToastUtils.showCustomToast(this, R.string.notifications_no_notifications_to_delete);
             return;
         }
 
         new AlertDialog.Builder(this)
-                .setTitle("Delete all notifications")
+                .setTitle(R.string.notifications_delete_all_notifications)
                 .setMessage("Are you sure you want to delete all " + allNotifications.size() + " notifications? This cannot be undone.")
-                .setPositiveButton("Delete All", (d, w) -> deleteAllNotifications())
-                .setNegativeButton("Cancel", null)
+                .setPositiveButton(R.string.notifications_delete_all_2, (d, w) -> deleteAllNotifications())
+                .setNegativeButton(R.string.notifications_cancel, null)
                 .show();
     }
 
@@ -532,10 +532,10 @@ public class NotificationsActivity extends AppCompatActivity
                     if (localDb != null) {
                         localDb.clearNotificationCache();
                     }
-                    ToastUtils.showCustomToast(this, "All notifications deleted");
+                    ToastUtils.showCustomToast(this, R.string.notifications_all_notifications_deleted);
                 })
                 .addOnFailureListener(e -> {
-                    ToastUtils.showCustomToast(this, "Failed to delete notifications");
+                    ToastUtils.showCustomToast(this, R.string.notifications_failed_to_delete_notifications);
                 });
     }
 

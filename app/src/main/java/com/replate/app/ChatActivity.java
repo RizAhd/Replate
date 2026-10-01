@@ -118,7 +118,7 @@ public class ChatActivity extends AppCompatActivity {
 
         // Validate required data
         if (hotelId == null || hotelId.isEmpty()) {
-            ToastUtils.showCustomToast(this, "Invalid chat session");
+            ToastUtils.showCustomToast(this, R.string.chat_invalid_chat_session);
             finish();
             return;
         }
@@ -126,7 +126,7 @@ public class ChatActivity extends AppCompatActivity {
         // Get current user
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         if (firebaseUser == null) {
-            ToastUtils.showCustomToast(this, "Please login to chat");
+            ToastUtils.showCustomToast(this, R.string.chat_please_login_to_chat);
             finish();
             return;
         }
@@ -486,7 +486,7 @@ public class ChatActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Failed to send message", e);
-                    ToastUtils.showCustomToast(this, "Message saved locally — will retry when online");
+                    ToastUtils.showCustomToast(this, R.string.chat_message_saved_locally_will_retry);
                 });
     }
 
@@ -556,13 +556,13 @@ public class ChatActivity extends AppCompatActivity {
                             if (ph != null && !ph.isEmpty()) {
                                 initiateCall(ph);
                             } else {
-                                ToastUtils.showCustomToast(ChatActivity.this, "Phone number not available");
+                                ToastUtils.showCustomToast(ChatActivity.this, R.string.chat_phone_number_not_available);
                             }
                         }
 
                         @Override
                         public void onCancelled(@NonNull DatabaseError error) {
-                            ToastUtils.showCustomToast(ChatActivity.this, "Failed to get phone number");
+                            ToastUtils.showCustomToast(ChatActivity.this, R.string.chat_failed_to_get_phone_number);
                         }
                     });
         } else {
@@ -575,7 +575,7 @@ public class ChatActivity extends AppCompatActivity {
         try {
             TelephonyUtils.openDialer(this, phone);
         } catch (android.content.ActivityNotFoundException e) {
-            ToastUtils.showCustomToast(this, "No phone app available");
+            ToastUtils.showCustomToast(this, R.string.chat_no_phone_app_available);
         }
     }
 

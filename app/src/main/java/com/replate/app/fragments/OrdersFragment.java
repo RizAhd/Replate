@@ -112,15 +112,15 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
                 switch (tab.getPosition()) {
                     case 0:
                         currentFilter = "active";
-                        tvEmptyMessage.setText("No active orders");
+                        tvEmptyMessage.setText(R.string.orders_no_active_orders);
                         break;
                     case 1:
                         currentFilter = "completed";
-                        tvEmptyMessage.setText("No completed orders");
+                        tvEmptyMessage.setText(R.string.orders_no_completed_orders);
                         break;
                     case 2:
                         currentFilter = "cancelled";
-                        tvEmptyMessage.setText("No cancelled orders");
+                        tvEmptyMessage.setText(R.string.orders_no_cancelled_orders);
                         break;
                 }
                 filterOrders();
@@ -200,7 +200,7 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
                 if (!isAdded()) return;
                 Context ctx = getContext();
                 if (ctx != null) {
-                    ToastUtils.showCustomToast(ctx, "Failed to load orders");
+                    ToastUtils.showCustomToast(ctx, R.string.orders_failed_to_load_orders);
                 }
             }
         };
@@ -266,7 +266,7 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
             if (isAdded()) {
                 Context ctx = getContext();
                 if (ctx != null) {
-                    ToastUtils.showCustomToast(ctx, "This order cannot be cancelled");
+                    ToastUtils.showCustomToast(ctx, R.string.orders_this_order_cannot_be_cancelled);
                 }
             }
             return;
@@ -274,10 +274,10 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
 
         if (!isAdded()) return;
         new AlertDialog.Builder(requireContext())
-                .setTitle("Cancel this order?")
-                .setMessage("Are you sure you want to cancel this order? This action cannot be undone.")
-                .setNegativeButton("Keep", null)
-                .setPositiveButton("Cancel Order", (dialog, which) -> cancelOrder(order))
+                .setTitle(R.string.orders_cancel_this_order)
+                .setMessage(R.string.orders_are_you_sure_you_want)
+                .setNegativeButton(R.string.orders_keep, null)
+                .setPositiveButton(R.string.orders_cancel_order, (dialog, which) -> cancelOrder(order))
                 .show();
     }
 
@@ -296,7 +296,7 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
                     if (!isAdded()) return;
                     Context ctx = getContext();
                     if (ctx != null) {
-                        ToastUtils.showCustomToast(ctx, "Order cancelled");
+                        ToastUtils.showCustomToast(ctx, R.string.orders_order_cancelled);
                     }
                 })
                 .addOnFailureListener(e -> {
@@ -304,7 +304,7 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
                     if (!isAdded()) return;
                     Context ctx = getContext();
                     if (ctx != null) {
-                        ToastUtils.showCustomToast(ctx, "Failed to cancel order");
+                        ToastUtils.showCustomToast(ctx, R.string.orders_failed_to_cancel_order);
                     }
                 });
     }

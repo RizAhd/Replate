@@ -583,7 +583,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
                 if (!isAdded()) return;
                 setLoadingState(false);
                 if (allFoodItems.isEmpty()) {
-                    ToastUtils.showCustomToast(getContext(), "Error loading data");
+                    ToastUtils.showCustomToast(getContext(), R.string.search_error_loading_data);
                 }
             }
         };
@@ -741,7 +741,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
     @Override
     public void onAddToCartClick(FoodItem foodItem) {
         if (foodItem == null || foodItem.getFoodId() == null || getContext() == null) {
-            ToastUtils.showCustomToast(getContext(), "Couldn't add this item to your cart");
+            ToastUtils.showCustomToast(getContext(), R.string.search_couldn_t_add_this_item);
             return;
         }
 

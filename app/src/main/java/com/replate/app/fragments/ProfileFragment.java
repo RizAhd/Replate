@@ -261,9 +261,9 @@ public class ProfileFragment extends Fragment {
 
     private void showLogoutDialog() {
         new AlertDialog.Builder(requireContext())
-                .setTitle("Logout")
-                .setMessage("Are you sure you want to logout?")
-                .setPositiveButton("Logout", (dialog, which) -> {
+                .setTitle(R.string.profile_logout_2)
+                .setMessage(R.string.profile_are_you_sure_you_want)
+                .setPositiveButton(R.string.profile_logout_2, (dialog, which) -> {
                     if (getActivity() instanceof MainActivity) {
                         ((MainActivity) getActivity()).logoutToLogin();
                     } else {
@@ -276,11 +276,11 @@ public class ProfileFragment extends Fragment {
                             requireActivity().finish();
                         } catch (Exception e) {
                             Log.e("Logout", "Logout fallback error", e);
-                            ToastUtils.showCustomToast(getContext(), "Logout failed");
+                            ToastUtils.showCustomToast(getContext(), R.string.profile_logout_failed);
                         }
                     }
                 })
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton(R.string.profile_cancel, null)
                 .show();
     }
 

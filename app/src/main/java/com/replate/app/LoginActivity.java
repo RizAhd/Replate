@@ -138,7 +138,7 @@ public class LoginActivity extends AppCompatActivity {
                     public void onError(@NonNull FacebookException error) {
                         showLoading(false);
                         ToastUtils.showCustomToast(LoginActivity.this,
-                                "Facebook sign-in failed. Please try again.");
+                                R.string.login_facebook_sign_in_failed_please);
                     }
                 });
 
@@ -316,7 +316,7 @@ public class LoginActivity extends AppCompatActivity {
                     if (user == null) {
                         showLoading(false);
                         ToastUtils.showCustomToast(LoginActivity.this,
-                            "Login failed. Please try again.");
+                            R.string.login_login_failed_please_try_again);
                         return;
                     }
 
@@ -326,7 +326,7 @@ public class LoginActivity extends AppCompatActivity {
                         if (freshUser == null) {
                             showLoading(false);
                             ToastUtils.showCustomToast(LoginActivity.this,
-                                "Login failed. Please try again.");
+                                R.string.login_login_failed_please_try_again);
                             return;
                         }
 
@@ -380,7 +380,7 @@ public class LoginActivity extends AppCompatActivity {
                                     null
                             )
                     );
-                    ToastUtils.showCustomToast(LoginActivity.this, "Welcome back!");
+                    ToastUtils.showCustomToast(LoginActivity.this, R.string.login_welcome_back);
                     goToHomeByRole(role, user.getUid());
                 }
 
@@ -447,7 +447,7 @@ public class LoginActivity extends AppCompatActivity {
                     if (user == null) {
                         showLoading(false);
                         ToastUtils.showCustomToast(LoginActivity.this,
-                            "Registration failed. User not available.");
+                            R.string.login_registration_failed_user_not_available);
                         return;
                     }
 
@@ -479,7 +479,7 @@ public class LoginActivity extends AppCompatActivity {
                     if (!task.isSuccessful()) {
                         showLoading(false);
                         ToastUtils.showCustomToast(LoginActivity.this,
-                            "Failed to save user data.");
+                            R.string.login_failed_to_save_user_data);
                         return;
                     }
 
@@ -487,7 +487,7 @@ public class LoginActivity extends AppCompatActivity {
                     if (firebaseUser == null) {
                         showLoading(false);
                         ToastUtils.showCustomToast(LoginActivity.this,
-                            "Verification mail could not be sent.");
+                            R.string.login_verification_mail_could_not_be);
                         return;
                     }
 
@@ -495,7 +495,7 @@ public class LoginActivity extends AppCompatActivity {
                         showLoading(false);
                         saveUserSession(firebaseUser, "customer");
                         ToastUtils.showCustomToast(LoginActivity.this,
-                            "Account created successfully!");
+                            R.string.login_account_created_successfully);
                         goToHomeByRole("customer", firebaseUser.getUid());
                         return;
                     }
@@ -584,10 +584,10 @@ public class LoginActivity extends AppCompatActivity {
      */
     private void showVerificationSentDialog(String email) {
         new AlertDialog.Builder(this)
-            .setTitle("📧 Verify Your Email")
+            .setTitle(R.string.login_verify_your_email)
             .setMessage("We've sent a verification link to:\n\n" + (email != null ? email : "") +
                 "\n\nPlease check your inbox (and spam folder) and click the link to activate your account.\n\nOnce verified, come back and log in.")
-            .setPositiveButton("Got it", (dialog, which) -> {
+            .setPositiveButton(R.string.login_got_it, (dialog, which) -> {
                 tabLayout.selectTab(tabLayout.getTabAt(0));
             })
             .setCancelable(false)
@@ -694,23 +694,23 @@ public class LoginActivity extends AppCompatActivity {
         new AlertDialog.Builder(this)
             .setTitle(getString(R.string.auth_not_registered_title))
             .setMessage(getString(R.string.auth_not_registered_message))
-            .setPositiveButton("Register Now", (dialog, which) -> {
+            .setPositiveButton(R.string.login_register_now, (dialog, which) -> {
                 // Switch to Register tab and pre-fill the email
                 tabLayout.selectTab(tabLayout.getTabAt(1));
                 if (etRegisterEmail != null && email != null) {
                     etRegisterEmail.setText(email);
                 }
             })
-            .setNegativeButton("OK", null)
+            .setNegativeButton(R.string.login_ok, null)
             .setCancelable(true)
             .show();
     }
 
     private void showEmailNotVerifiedDialog(String email) {
         new AlertDialog.Builder(this)
-            .setTitle("✉️ Email Not Verified")
+            .setTitle(R.string.login_email_not_verified)
             .setMessage("Your email address (" + (email != null ? email : "") + ") has not been verified yet.\n\nPlease check your inbox (and spam folder) for the verification link, then try logging in again.")
-            .setPositiveButton("Resend Email", (dialog, which) -> {
+            .setPositiveButton(R.string.login_resend_email, (dialog, which) -> {
                 // Re-authenticate briefly to resend
                 showLoading(true);
                 String enteredEmail = etLoginEmail.getText() != null ? etLoginEmail.getText().toString().trim() : "";
@@ -723,22 +723,22 @@ public class LoginActivity extends AppCompatActivity {
                                 sendBrandedVerificationEmail(enteredEmail, null, u);
                             } else {
                                 showLoading(false);
-                                ToastUtils.showCustomToast(this, "Could not resend. Please check your password.");
+                                ToastUtils.showCustomToast(this, R.string.login_could_not_resend_please_check);
                             }
                         });
                 } else {
                     showLoading(false);
-                    ToastUtils.showCustomToast(this, "Enter your email and password to resend the verification link.");
+                    ToastUtils.showCustomToast(this, R.string.login_enter_your_email_and_password);
                 }
             })
-            .setNegativeButton("OK", null)
+            .setNegativeButton(R.string.login_ok, null)
             .setCancelable(true)
             .show();
     }
 
     private void signInWithGoogle() {
         if (mGoogleSignInClient == null) {
-            ToastUtils.showCustomToast(this, "Google Sign-In is not configured.");
+            ToastUtils.showCustomToast(this, R.string.login_google_sign_in_is_not);
             return;
         }
         // Sign out first so the account chooser always appears
@@ -770,13 +770,13 @@ public class LoginActivity extends AppCompatActivity {
                 } else if (code == com.google.android.gms.common.api.CommonStatusCodes.NETWORK_ERROR
                         || code == 7) {
                     new AlertDialog.Builder(this)
-                        .setTitle("Network Error")
-                        .setMessage("Could not connect to Google. Please check your internet connection and try again.")
-                        .setPositiveButton("Retry", (d, w) -> signInWithGoogle())
-                        .setNegativeButton("Cancel", null)
+                        .setTitle(R.string.login_network_error)
+                        .setMessage(R.string.login_could_not_connect_to_google)
+                        .setPositiveButton(R.string.login_retry, (d, w) -> signInWithGoogle())
+                        .setNegativeButton(R.string.login_cancel, null)
                         .show();
                 } else {
-                    ToastUtils.showCustomToast(this, "Google sign-in failed. Please try again.");
+                    ToastUtils.showCustomToast(this, R.string.login_google_sign_in_failed_please);
                 }
             }
         }
@@ -789,13 +789,13 @@ public class LoginActivity extends AppCompatActivity {
             .addOnCompleteListener(this, task -> {
                 if (!task.isSuccessful()) {
                     showLoading(false);
-                    ToastUtils.showCustomToast(this, "Google sign-in failed. Please try again.");
+                    ToastUtils.showCustomToast(this, R.string.login_google_sign_in_failed_please);
                     return;
                 }
                 FirebaseUser user = mAuth.getCurrentUser();
                 if (user == null) {
                     showLoading(false);
-                    ToastUtils.showCustomToast(this, "Sign-in failed. Please try again.");
+                    ToastUtils.showCustomToast(this, R.string.login_sign_in_failed_please_try);
                     return;
                 }
                 // Check if user profile exists; if not, create it
@@ -845,13 +845,13 @@ public class LoginActivity extends AppCompatActivity {
             .addOnCompleteListener(this, task -> {
                 if (!task.isSuccessful()) {
                     showLoading(false);
-                    ToastUtils.showCustomToast(this, "Facebook sign-in failed. Please try again.");
+                    ToastUtils.showCustomToast(this, R.string.login_facebook_sign_in_failed_please);
                     return;
                 }
                 FirebaseUser user = mAuth.getCurrentUser();
                 if (user == null) {
                     showLoading(false);
-                    ToastUtils.showCustomToast(this, "Sign-in failed. Please try again.");
+                    ToastUtils.showCustomToast(this, R.string.login_sign_in_failed_please_try);
                     return;
                 }
                 handleSocialAuthUser(user);
@@ -884,7 +884,7 @@ public class LoginActivity extends AppCompatActivity {
             String code = etCountryCode.getText() != null ? etCountryCode.getText().toString().trim() : "+94";
             String phone = etPhoneNumber.getText() != null ? etPhoneNumber.getText().toString().trim() : "";
             if (phone.isEmpty()) {
-                ToastUtils.showCustomToast(this, "Please enter your phone number");
+                ToastUtils.showCustomToast(this, R.string.login_please_enter_your_phone_number);
                 return;
             }
             String fullPhone = code + phone;
@@ -922,7 +922,7 @@ public class LoginActivity extends AppCompatActivity {
                             // Show OTP section
                             btnSendOtp.setVisibility(View.GONE);
                             otpSection.setVisibility(View.VISIBLE);
-                            ToastUtils.showCustomToast(LoginActivity.this, "Verification code sent!");
+                            ToastUtils.showCustomToast(LoginActivity.this, R.string.login_verification_code_sent);
                         }
                     })
                     .build();
@@ -932,11 +932,11 @@ public class LoginActivity extends AppCompatActivity {
         btnVerifyOtp.setOnClickListener(v -> {
             String otp = etOtpCode.getText() != null ? etOtpCode.getText().toString().trim() : "";
             if (otp.length() != 6) {
-                ToastUtils.showCustomToast(this, "Please enter the 6-digit code");
+                ToastUtils.showCustomToast(this, R.string.login_please_enter_the_6_digit);
                 return;
             }
             if (phoneVerificationId == null) {
-                ToastUtils.showCustomToast(this, "Please request a code first");
+                ToastUtils.showCustomToast(this, R.string.login_please_request_a_code_first);
                 return;
             }
 
@@ -964,13 +964,13 @@ public class LoginActivity extends AppCompatActivity {
             .addOnCompleteListener(this, task -> {
                 if (!task.isSuccessful()) {
                     showLoading(false);
-                    ToastUtils.showCustomToast(this, "Phone verification failed. Please try again.");
+                    ToastUtils.showCustomToast(this, R.string.login_phone_verification_failed_please_try);
                     return;
                 }
                 FirebaseUser user = mAuth.getCurrentUser();
                 if (user == null) {
                     showLoading(false);
-                    ToastUtils.showCustomToast(this, "Sign-in failed. Please try again.");
+                    ToastUtils.showCustomToast(this, R.string.login_sign_in_failed_please_try);
                     return;
                 }
                 handleSocialAuthUser(user);
@@ -1019,24 +1019,24 @@ public class LoginActivity extends AppCompatActivity {
     private void showForgotPasswordDialog() {
         // Create input field
         final TextInputEditText input = new TextInputEditText(this);
-        input.setHint("Enter your email");
+        input.setHint(R.string.login_enter_your_email);
         input.setInputType(android.text.InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
         input.setPadding(50, 30, 50, 30);
 
         // Create dialog
         new AlertDialog.Builder(this)
-            .setTitle("Reset Password")
-            .setMessage("We'll send you an email to reset your password.")
+            .setTitle(R.string.login_reset_password)
+            .setMessage(R.string.login_we_ll_send_you_an)
             .setView(input)
-            .setPositiveButton("Send", (dialog, which) -> {
+            .setPositiveButton(R.string.login_send, (dialog, which) -> {
                 String email = input.getText().toString().trim();
                 if (!TextUtils.isEmpty(email) && Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                     sendPasswordResetEmail(email);
                 } else {
-                    ToastUtils.showCustomToast(this, "Please enter a valid email");
+                    ToastUtils.showCustomToast(this, R.string.login_please_enter_a_valid_email);
                 }
             })
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(R.string.login_cancel, null)
             .show();
     }
 
@@ -1047,10 +1047,10 @@ public class LoginActivity extends AppCompatActivity {
                 showLoading(false);
                 if (task.isSuccessful()) {
                     ToastUtils.showCustomToast(this,
-                        "Password reset email sent. Check your inbox.");
+                        R.string.login_password_reset_email_sent_check);
                 } else {
                     ToastUtils.showCustomToast(this,
-                        "Failed to send reset email. Please try again.");
+                        R.string.login_failed_to_send_reset_email);
                 }
             });
     }

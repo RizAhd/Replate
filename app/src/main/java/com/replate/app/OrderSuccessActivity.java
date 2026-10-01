@@ -148,7 +148,7 @@ public class OrderSuccessActivity extends AppCompatActivity {
                             order.setOrderId(snapshot.getKey());
                             displayOrder();
                         } else {
-                            ToastUtils.showCustomToast(OrderSuccessActivity.this, "Could not load your order details. Check My Orders.");
+                            ToastUtils.showCustomToast(OrderSuccessActivity.this, R.string.order_success_could_not_load_your_order);
                         }
                     }
 
@@ -260,7 +260,7 @@ public class OrderSuccessActivity extends AppCompatActivity {
         // Update header based on order type
         boolean isDelivery = order != null && order.isDelivery();
         tvTitle.setText(isDelivery ? "Delivery Complete!" : "Pickup Complete!");
-        tvSubtitle.setText("Thanks for using REPLATE");
+        tvSubtitle.setText(R.string.order_success_thanks_for_using_replate);
 
         // Hide QR card (no longer needed)
         cardQR.setVisibility(View.GONE);
@@ -278,10 +278,10 @@ public class OrderSuccessActivity extends AppCompatActivity {
         }
 
         // Change skip text
-        btnSkip.setText("Done");
+        btnSkip.setText(R.string.order_success_done);
 
         // Change button text
-        btnViewDetails.setText("View Order Details");
+        btnViewDetails.setText(R.string.order_success_view_order_details_2);
     }
 
     private void generateQRCode(String data) {
@@ -337,7 +337,7 @@ public class OrderSuccessActivity extends AppCompatActivity {
 
         float rating = ratingReview.getRating();
         if (rating <= 0f) {
-            ToastUtils.showCustomToast(this, "Please add a rating");
+            ToastUtils.showCustomToast(this, R.string.order_success_please_add_a_rating);
             return;
         }
 
@@ -371,14 +371,14 @@ public class OrderSuccessActivity extends AppCompatActivity {
                     // Send notification to hotel
                     pushReviewNotificationToHotel(rating, comment);
 
-                    ToastUtils.showCustomToast(this, "Review submitted!");
+                    ToastUtils.showCustomToast(this, R.string.order_success_review_submitted);
 
                     // Redirect to orders after short delay
                     new Handler(Looper.getMainLooper()).postDelayed(this::navigateToOrders, 800);
                 })
                 .addOnFailureListener(e -> {
                     btnSubmitReview.setEnabled(true);
-                    ToastUtils.showCustomToast(this, "Failed to submit review");
+                    ToastUtils.showCustomToast(this, R.string.order_success_failed_to_submit_review);
                 });
     }
 

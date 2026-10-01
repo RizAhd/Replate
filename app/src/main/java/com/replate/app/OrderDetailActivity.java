@@ -141,7 +141,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
 
     private void openPickupRoute() {
         if (order == null || order.getHotelId() == null || order.getHotelId().trim().isEmpty()) {
-            ToastUtils.showCustomToast(this, "Hotel route not available");
+            ToastUtils.showCustomToast(this, R.string.order_detail_hotel_route_not_available);
             return;
         }
 
@@ -168,13 +168,13 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
                     order.setOrderId(snapshot.getKey());
                     displayOrderDetails();
                 } else {
-                    ToastUtils.showCustomToast(OrderDetailActivity.this, "This order could not be loaded");
+                    ToastUtils.showCustomToast(OrderDetailActivity.this, R.string.order_detail_this_order_could_not_be);
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                ToastUtils.showCustomToast(OrderDetailActivity.this, "Failed to load order");
+                ToastUtils.showCustomToast(OrderDetailActivity.this, R.string.order_detail_failed_to_load_order);
             }
         };
 
@@ -189,34 +189,34 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         if (status != null) {
             switch (status) {
                 case "pending":
-                    tvOrderStatus.setText("⏳ Pending Confirmation");
+                    tvOrderStatus.setText(R.string.order_detail_pending_confirmation);
                     break;
                 case "pending_pickup":
-                    tvOrderStatus.setText("🛍️ Pending Pickup");
+                    tvOrderStatus.setText(R.string.order_detail_pending_pickup);
                     break;
                 case "pending_delivery":
-                    tvOrderStatus.setText("📦 Pending Delivery");
+                    tvOrderStatus.setText(R.string.order_detail_pending_delivery);
                     break;
                 case "confirmed":
-                    tvOrderStatus.setText("✅ Order Confirmed");
+                    tvOrderStatus.setText(R.string.order_detail_order_confirmed_2);
                     break;
                 case "preparing":
-                    tvOrderStatus.setText("👨‍🍳 Preparing");
+                    tvOrderStatus.setText(R.string.order_detail_preparing);
                     break;
                 case "ready":
-                    tvOrderStatus.setText("🍽️ Ready for Pickup");
+                    tvOrderStatus.setText(R.string.order_detail_ready_for_pickup);
                     break;
                 case "out_for_delivery":
-                    tvOrderStatus.setText("🚚 Out for Delivery");
+                    tvOrderStatus.setText(R.string.order_detail_out_for_delivery);
                     break;
                 case "delivered":
-                    tvOrderStatus.setText("📬 Delivered");
+                    tvOrderStatus.setText(R.string.order_detail_delivered);
                     break;
                 case "completed":
-                    tvOrderStatus.setText("🎉 Order Completed");
+                    tvOrderStatus.setText(R.string.order_detail_order_completed);
                     break;
                 case "cancelled":
-                    tvOrderStatus.setText("❌ Order Cancelled");
+                    tvOrderStatus.setText(R.string.order_detail_order_cancelled);
                     break;
                 default:
                     tvOrderStatus.setText("📋 " + order.getStatusDisplay());
@@ -234,7 +234,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
             if (addr != null && !addr.isEmpty() && !"Pickup at Hotel".equalsIgnoreCase(addr)) {
                 tvPickupTime.setText("📍 Delivery to: " + addr);
             } else {
-                tvPickupTime.setText("🚚 Delivery Order");
+                tvPickupTime.setText(R.string.order_detail_delivery_order);
             }
         } else {
             tvPickupTime.setText("Pickup: " + (order.getPickupTime() != null ? order.getPickupTime() : "N/A"));
@@ -275,7 +275,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
             etReviewComment.setEnabled(false);
             btnSubmitReview.setEnabled(false);
             btnSubmitReview.setAlpha(0.6f);
-            tvReviewHint.setText("Thanks for your feedback! You already reviewed this order.");
+            tvReviewHint.setText(R.string.order_detail_thanks_for_your_feedback_you);
             tvReviewSummary.setText(String.format(Locale.getDefault(), "Your rating: %.1f / 5", rating));
         } else {
             ratingReview.setIsIndicator(false);
@@ -284,7 +284,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
             etReviewComment.setText("");
             btnSubmitReview.setEnabled(true);
             btnSubmitReview.setAlpha(1f);
-            tvReviewHint.setText("Rate your pickup experience to help other customers.");
+            tvReviewHint.setText(R.string.order_detail_rate_your_pickup_experience_to);
             tvReviewSummary.setText("");
         }
     }
@@ -309,7 +309,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
             ivQRCode.setImageBitmap(bitmap);
         } catch (Exception e) {
             android.util.Log.w("OrderDetail", "QR generation failed", e);
-            ToastUtils.showCustomToast(this, "QR Code generation failed");
+            ToastUtils.showCustomToast(this, R.string.order_detail_qr_code_generation_failed);
         }
     }
 
@@ -323,7 +323,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
             try {
                 TelephonyUtils.openDialer(this, phone);
             } catch (android.content.ActivityNotFoundException e) {
-                ToastUtils.showCustomToast(this, "No phone app available");
+                ToastUtils.showCustomToast(this, R.string.order_detail_no_phone_app_available);
             }
         });
     }
@@ -337,7 +337,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
             try {
                 TelephonyUtils.openSms(this, phone, message);
             } catch (Exception e) {
-                ToastUtils.showCustomToast(this, "No SMS app available");
+                ToastUtils.showCustomToast(this, R.string.order_detail_no_sms_app_available);
             }
         });
     }
@@ -346,7 +346,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         // Never fall back to a made-up number: the customer would end up calling a stranger.
         PhoneCallback onlyRealNumber = phone -> {
             if (phone == null || phone.isEmpty()) {
-                ToastUtils.showCustomToast(this, "This hotel hasn't shared a phone number");
+                ToastUtils.showCustomToast(this, R.string.order_detail_this_hotel_hasn_t_shared);
             } else {
                 callback.onPhone(phone);
             }
@@ -425,13 +425,13 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
     private void submitReview() {
         if (order == null || order.getOrderId() == null) return;
         if (!order.isCompleted()) {
-            ToastUtils.showCustomToast(this, "You can review only completed orders");
+            ToastUtils.showCustomToast(this, R.string.order_detail_you_can_review_only_completed);
             return;
         }
 
         float rating = ratingReview.getRating();
         if (rating <= 0f) {
-            ToastUtils.showCustomToast(this, "Please add a rating");
+            ToastUtils.showCustomToast(this, R.string.order_detail_please_add_a_rating);
             return;
         }
 
@@ -470,7 +470,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
                     order.setHasReview(true);
                     updateReviewSection();
 
-                    ToastUtils.showCustomToast(this, "Review submitted successfully");
+                    ToastUtils.showCustomToast(this, R.string.order_detail_review_submitted_successfully);
                 })
                 .addOnFailureListener(e -> {
                     btnSubmitReview.setEnabled(true);

@@ -204,11 +204,11 @@ public class FoodDetailActivity extends AppCompatActivity {
                 if (isFav) {
                     localDb.removeFavorite(foodItem.getFoodId());
                     updateFavoriteIcon(false);
-                    ToastUtils.showCustomToast(this, "Removed from favorites");
+                    ToastUtils.showCustomToast(this, R.string.food_detail_removed_from_favorites);
                 } else {
                     localDb.addFavorite(foodItem);
                     updateFavoriteIcon(true);
-                    ToastUtils.showCustomToast(this, "Added to favorites ❤");
+                    ToastUtils.showCustomToast(this, R.string.food_detail_added_to_favorites);
                 }
             });
         }
@@ -228,7 +228,7 @@ public class FoodDetailActivity extends AppCompatActivity {
                 quantity++;
                 updateQuantityDisplay();
             } else {
-                ToastUtils.showCustomToast(this, "Maximum available quantity reached");
+                ToastUtils.showCustomToast(this, R.string.food_detail_maximum_available_quantity_reached);
             }
         });
 
@@ -263,7 +263,7 @@ public class FoodDetailActivity extends AppCompatActivity {
 
     private void addToCart() {
         if (foodItem == null) {
-            ToastUtils.showCustomToast(this, "Error: Food item not available");
+            ToastUtils.showCustomToast(this, R.string.food_detail_error_food_item_not_available);
             return;
         }
 
@@ -401,13 +401,13 @@ public class FoodDetailActivity extends AppCompatActivity {
     private void submitReview() {
         String uid = FirebaseAuth.getInstance().getUid();
         if (uid == null || uid.trim().isEmpty()) {
-            ToastUtils.showCustomToast(this, "Please login to submit review");
+            ToastUtils.showCustomToast(this, R.string.food_detail_please_login_to_submit_review);
             return;
         }
 
         float rating = ratingInput.getRating();
         if (rating <= 0f) {
-            ToastUtils.showCustomToast(this, "Please select a rating");
+            ToastUtils.showCustomToast(this, R.string.food_detail_please_select_a_rating);
             return;
         }
 
@@ -453,11 +453,11 @@ public class FoodDetailActivity extends AppCompatActivity {
                         btnSubmitReview.setEnabled(true);
                         clearReviewInput();
                         updateFoodRatingAggregate(foodItem.getFoodId());
-                        ToastUtils.showCustomToast(this, "Review added");
+                        ToastUtils.showCustomToast(this, R.string.food_detail_review_added);
                     })
                     .addOnFailureListener(e -> {
                         btnSubmitReview.setEnabled(true);
-                        ToastUtils.showCustomToast(this, "Failed to submit review");
+                        ToastUtils.showCustomToast(this, R.string.food_detail_failed_to_submit_review);
                     });
         });
     }
@@ -473,9 +473,9 @@ public class FoodDetailActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         clearReviewInput();
                         updateFoodRatingAggregate(foodItem.getFoodId());
-                        ToastUtils.showCustomToast(this, "Review updated");
+                        ToastUtils.showCustomToast(this, R.string.food_detail_review_updated);
                     } else {
-                        ToastUtils.showCustomToast(this, "Failed to update review");
+                        ToastUtils.showCustomToast(this, R.string.food_detail_failed_to_update_review);
                     }
                 });
     }
@@ -504,10 +504,10 @@ public class FoodDetailActivity extends AppCompatActivity {
         if (review == null || review.getReviewId() == null || review.getReviewId().trim().isEmpty()) return;
 
         new AlertDialog.Builder(this)
-                .setTitle("Delete review")
-                .setMessage("Do you want to remove your review?")
-                .setPositiveButton("Delete", (d, w) -> deleteReview(review))
-                .setNegativeButton("Cancel", null)
+                .setTitle(R.string.food_detail_delete_review)
+                .setMessage(R.string.food_detail_do_you_want_to_remove)
+                .setPositiveButton(R.string.food_detail_delete, (d, w) -> deleteReview(review))
+                .setNegativeButton(R.string.food_detail_cancel, null)
                 .show();
     }
 
@@ -520,9 +520,9 @@ public class FoodDetailActivity extends AppCompatActivity {
                         clearReviewInput();
                     }
                     updateFoodRatingAggregate(foodItem.getFoodId());
-                    ToastUtils.showCustomToast(this, "Review deleted");
+                    ToastUtils.showCustomToast(this, R.string.food_detail_review_deleted);
                 })
-                .addOnFailureListener(e -> ToastUtils.showCustomToast(this, "Failed to delete review"));
+                .addOnFailureListener(e -> ToastUtils.showCustomToast(this, R.string.food_detail_failed_to_delete_review));
     }
 
     private void updateFoodRatingAggregate(String foodId) {
@@ -695,14 +695,14 @@ public class FoodDetailActivity extends AppCompatActivity {
             try {
                 TelephonyUtils.openDialer(this, phone);
             } catch (android.content.ActivityNotFoundException e) {
-                ToastUtils.showCustomToast(this, "No phone app available");
+                ToastUtils.showCustomToast(this, R.string.food_detail_no_phone_app_available);
             }
         });
     }
 
     private void openChat() {
         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
-            ToastUtils.showCustomToast(this, "Please login to chat with the hotel");
+            ToastUtils.showCustomToast(this, R.string.food_detail_please_login_to_chat_with);
             return;
         }
 
@@ -724,7 +724,7 @@ public class FoodDetailActivity extends AppCompatActivity {
             try {
                 TelephonyUtils.openSms(this, phone, message);
             } catch (Exception e) {
-                ToastUtils.showCustomToast(this, "No SMS app available");
+                ToastUtils.showCustomToast(this, R.string.food_detail_no_sms_app_available);
             }
         });
     }
@@ -738,7 +738,7 @@ public class FoodDetailActivity extends AppCompatActivity {
 
         String hotelId = foodItem.getHotelId();
         if (hotelId == null || hotelId.trim().isEmpty()) {
-            ToastUtils.showCustomToast(this, "Hotel phone number not available");
+            ToastUtils.showCustomToast(this, R.string.food_detail_hotel_phone_number_not_available);
             return;
         }
 
@@ -750,13 +750,13 @@ public class FoodDetailActivity extends AppCompatActivity {
                         if (!phone.isEmpty()) {
                             callback.onPhone(phone);
                         } else {
-                            ToastUtils.showCustomToast(FoodDetailActivity.this, "Hotel phone number not available");
+                            ToastUtils.showCustomToast(FoodDetailActivity.this, R.string.food_detail_hotel_phone_number_not_available);
                         }
                     }
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
-                        ToastUtils.showCustomToast(FoodDetailActivity.this, "Could not load phone number");
+                        ToastUtils.showCustomToast(FoodDetailActivity.this, R.string.food_detail_could_not_load_phone_number);
                     }
                 });
     }

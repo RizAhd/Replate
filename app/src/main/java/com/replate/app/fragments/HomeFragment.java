@@ -267,7 +267,7 @@ public class HomeFragment extends Fragment implements
         shakeDetector.setOnShakeListener(count -> {
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
-                    ToastUtils.showCustomToast(getContext(), "🔄 Refreshing nearby deals...");
+                    ToastUtils.showCustomToast(getContext(), R.string.home_refreshing_nearby_deals);
                     getUserLocation();
                 });
             }
@@ -363,7 +363,7 @@ public class HomeFragment extends Fragment implements
             try {
                 startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(link)));
             } catch (android.content.ActivityNotFoundException e) {
-                ToastUtils.showCustomToast(getContext(), "No app available to open this link");
+                ToastUtils.showCustomToast(getContext(), R.string.home_no_app_available_to_open);
             }
         }
     }
@@ -658,7 +658,7 @@ public class HomeFragment extends Fragment implements
             if (swipeRefresh != null) {
                 swipeRefresh.setRefreshing(false);
             }
-            ToastUtils.showCustomToast(getContext(), "You're offline. Showing saved listings.");
+            ToastUtils.showCustomToast(getContext(), R.string.home_you_re_offline_showing_saved);
             return;
         }
         loadFoodItems();
@@ -808,7 +808,7 @@ public class HomeFragment extends Fragment implements
                 if (!isAdded()) return;
                 Context ctx = getContext();
                 if (ctx != null && (allFoodItems == null || allFoodItems.isEmpty())) {
-                    ToastUtils.showCustomToast(ctx, "Failed to load food items");
+                    ToastUtils.showCustomToast(ctx, R.string.home_failed_to_load_food_items);
                 }
             }
         };

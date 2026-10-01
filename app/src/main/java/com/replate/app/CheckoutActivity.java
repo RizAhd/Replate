@@ -183,12 +183,12 @@ public class CheckoutActivity extends AppCompatActivity {
                 if (cardPickupTime != null) cardPickupTime.setVisibility(View.GONE);
                 if (rowDeliveryFee != null) rowDeliveryFee.setVisibility(View.VISIBLE);
                 etPickupTime.setText("");
-                rbCash.setText("Cash on Delivery");
+                rbCash.setText(R.string.checkout_cash_on_delivery);
             } else {
                 cardDeliveryAddress.setVisibility(View.GONE);
                 if (cardPickupTime != null) cardPickupTime.setVisibility(View.VISIBLE);
                 if (rowDeliveryFee != null) rowDeliveryFee.setVisibility(View.GONE);
-                rbCash.setText("Cash on Pickup");
+                rbCash.setText(R.string.checkout_cash_on_pickup);
                 selectedDeliveryLat = 0;
                 selectedDeliveryLng = 0;
             }
@@ -205,7 +205,7 @@ public class CheckoutActivity extends AppCompatActivity {
         cartItems = cartDb.getAllItems();
 
         if (cartItems.isEmpty()) {
-            ToastUtils.showCustomToast(this, "Cart is empty");
+            ToastUtils.showCustomToast(this, R.string.checkout_cart_is_empty);
             finish();
             return;
         }
@@ -324,13 +324,13 @@ public class CheckoutActivity extends AppCompatActivity {
         }
 
         if (!isDelivery && pickupTime.isEmpty()) {
-            ToastUtils.showCustomToast(this, "Please select pickup time");
+            ToastUtils.showCustomToast(this, R.string.checkout_please_select_pickup_time);
             return;
         }
         Calendar now = Calendar.getInstance();
         if (!isDelivery && CheckoutValidator.isPickupTimeInPast(
                 pickupTime, now.get(Calendar.HOUR_OF_DAY), now.get(Calendar.MINUTE))) {
-            ToastUtils.showCustomToast(this, "Pickup time has already passed. Please choose a later time today.");
+            ToastUtils.showCustomToast(this, R.string.checkout_pickup_time_has_already_passed);
             return;
         }
 
@@ -342,26 +342,26 @@ public class CheckoutActivity extends AppCompatActivity {
         recalculateTotals();
         boolean payingByCard = rgPayment.getCheckedRadioButtonId() == R.id.rbCard;
         if (payingByCard && !CheckoutValidator.isPayableAmount(totalAmount)) {
-            ToastUtils.showCustomToast(this, "This order has no payable amount. Please review your cart or pay by cash.");
+            ToastUtils.showCustomToast(this, R.string.checkout_this_order_has_no_payable);
             return;
         }
         new AlertDialog.Builder(this)
-                .setTitle("Confirm Order")
+                .setTitle(R.string.checkout_confirm_order)
                 .setMessage(getString(R.string.checkout_confirm_message, totalAmount))
-                .setPositiveButton("Yes, Place Order", (dialog, which) -> {
+                .setPositiveButton(R.string.checkout_yes_place_order, (dialog, which) -> {
                     if (rgPayment.getCheckedRadioButtonId() == R.id.rbCard) {
                         startSandboxPayment();
                     } else {
                         submitOrder("Cash", "pending");
                     }
                 })
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton(R.string.checkout_cancel, null)
                 .show();
     }
 
     private void startSandboxPayment() {
         if (MERCHANT_ID == null || MERCHANT_ID.trim().isEmpty()) {
-            ToastUtils.showCustomToast(this, "Payment not configured. Please contact support.");
+            ToastUtils.showCustomToast(this, R.string.checkout_payment_not_configured_please_contact);
             return;
         }
 
@@ -383,7 +383,7 @@ public class CheckoutActivity extends AppCompatActivity {
         if (email == null || email.trim().isEmpty()) {
             // PayHere needs a real email for the receipt; don't invent one
             ToastUtils.showCustomToast(this,
-                    "Card payment needs an email on your account. Add one in Settings, or choose cash.");
+                    R.string.checkout_card_payment_needs_an_email);
             return;
         }
 
@@ -439,7 +439,7 @@ public class CheckoutActivity extends AppCompatActivity {
 
         if (lower.contains("unauthorized domain") || lower.contains("unauthorized")) {
             ToastUtils.showCustomToast(this,
-                    "PayHere blocked this request (unauthorized domain). Use sandbox merchant + approved URLs.");
+                    R.string.checkout_payhere_blocked_this_request_unauthorized);
             Log.e(TAG, "PayHere unauthorized response: " + responseText);
             return;
         }
@@ -464,17 +464,17 @@ public class CheckoutActivity extends AppCompatActivity {
             showPaymentCancelledDialog();
         } else {
             new AlertDialog.Builder(this)
-                    .setTitle("Payment Failed")
-                    .setMessage("Your payment could not be processed. No charges were made.\n\nPlease try again or choose a different payment method.")
-                    .setPositiveButton("Try Again", (d, w) -> startSandboxPayment())
-                    .setNeutralButton("Pay with Cash", (d, w) -> {
+                    .setTitle(R.string.checkout_payment_failed)
+                    .setMessage(R.string.checkout_your_payment_could_not_be)
+                    .setPositiveButton(R.string.checkout_try_again, (d, w) -> startSandboxPayment())
+                    .setNeutralButton(R.string.checkout_pay_with_cash, (d, w) -> {
                         if (rgPayment != null) {
                             rgPayment.check(R.id.rbCash);
                         }
                         updatePlaceOrderButton();
-                        ToastUtils.showCustomToast(this, "Switched to cash payment.");
+                        ToastUtils.showCustomToast(this, R.string.checkout_switched_to_cash_payment);
                     })
-                    .setNegativeButton("Cancel", null)
+                    .setNegativeButton(R.string.checkout_cancel, null)
                     .show();
         }
     }
@@ -484,18 +484,18 @@ public class CheckoutActivity extends AppCompatActivity {
         showLoading(false);
 
         new AlertDialog.Builder(this)
-                .setTitle("💳 Payment Cancelled")
-                .setMessage("You cancelled the payment. Your order was not placed and no charges were made.\n\nYou can retry the payment or switch to cash instead.")
-                .setPositiveButton("Retry Payment", (dialog, which) -> startSandboxPayment())
-                .setNeutralButton("Pay with Cash", (dialog, which) -> {
+                .setTitle(R.string.checkout_payment_cancelled)
+                .setMessage(R.string.checkout_you_cancelled_the_payment_your)
+                .setPositiveButton(R.string.checkout_retry_payment, (dialog, which) -> startSandboxPayment())
+                .setNeutralButton(R.string.checkout_pay_with_cash, (dialog, which) -> {
                     // Switch payment method to Cash and auto-submit
                     if (rgPayment != null) {
                         rgPayment.check(R.id.rbCash);
                     }
                     updatePlaceOrderButton();
-                    ToastUtils.showCustomToast(this, "Switched to cash payment. Tap the order button to confirm.");
+                    ToastUtils.showCustomToast(this, R.string.checkout_switched_to_cash_payment_tap);
                 })
-                .setNegativeButton("Cancel Order", (dialog, which) -> finish())
+                .setNegativeButton(R.string.checkout_cancel_order, (dialog, which) -> finish())
                 .setCancelable(true)
                 .show();
     }
@@ -645,7 +645,7 @@ public class CheckoutActivity extends AppCompatActivity {
                     startActivity(intent);
                     finish();
 
-                    ToastUtils.showCustomToast(this, "Order placed successfully");
+                    ToastUtils.showCustomToast(this, R.string.checkout_order_placed_successfully);
                 })
                 .addOnFailureListener(e -> {
                     cancelSubmitTimeout();
@@ -672,16 +672,16 @@ public class CheckoutActivity extends AppCompatActivity {
     private void handleSubmitFailure(String paymentMethod, String paymentStatus, String reason) {
         showLoading(false);
         if ("paid".equals(paymentStatus)) {
-            btnPlaceOrder.setText("Retry saving order");
+            btnPlaceOrder.setText(R.string.checkout_retry_saving_order);
             if (isFinishing() || isDestroyed()) {
                 return;
             }
             new AlertDialog.Builder(this)
-                    .setTitle("Payment received")
+                    .setTitle(R.string.checkout_payment_received)
                     .setMessage(reason + "\n\nYour card payment went through. Tap Retry to save your order. "
                             + "You will not be charged again.")
-                    .setPositiveButton("Retry", (d, w) -> submitOrder(paymentMethod, paymentStatus))
-                    .setNegativeButton("Not now", null)
+                    .setPositiveButton(R.string.checkout_retry, (d, w) -> submitOrder(paymentMethod, paymentStatus))
+                    .setNegativeButton(R.string.checkout_not_now, null)
                     .setCancelable(false)
                     .show();
         } else {

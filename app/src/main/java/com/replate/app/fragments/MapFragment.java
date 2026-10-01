@@ -296,7 +296,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         if (btnViewDeals != null) {
             btnViewDeals.setOnClickListener(v -> {
                 if (selectedPlace == null) {
-                    ToastUtils.showCustomToast(getContext(), "Select a place marker first");
+                    ToastUtils.showCustomToast(getContext(), R.string.map_select_a_place_marker_first);
                     return;
                 }
                 drawRouteToSelectedPlace();
@@ -400,7 +400,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     private void searchLocation(@NonNull String locationName) {
         if (!Geocoder.isPresent()) {
-            ToastUtils.showCustomToast(getContext(), "Geocoder not available on this device");
+            ToastUtils.showCustomToast(getContext(), R.string.map_geocoder_not_available_on_this);
             return;
         }
 
@@ -444,7 +444,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                             renderSearchPin();
                         }
                     } else {
-                        ToastUtils.showCustomToast(getContext(), "Location not found");
+                        ToastUtils.showCustomToast(getContext(), R.string.map_location_not_found);
                     }
                 });
             } catch (IOException | IllegalArgumentException lookupError) {
@@ -458,7 +458,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                     if (loadingOverlay != null) {
                         loadingOverlay.setVisibility(View.GONE);
                     }
-                    ToastUtils.showCustomToast(getContext(), "Search failed. Check internet.");
+                    ToastUtils.showCustomToast(getContext(), R.string.map_search_failed_check_internet);
                 });
             }
         }).start();
@@ -627,7 +627,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         try {
             mMap.setMyLocationEnabled(true);
         } catch (SecurityException e) {
-            ToastUtils.showCustomToast(getContext(), "Location permission denied");
+            ToastUtils.showCustomToast(getContext(), R.string.map_location_permission_denied);
             return;
         }
 
@@ -661,7 +661,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 .addOnSuccessListener(this::handleLocation)
                 .addOnFailureListener(e -> {
                     if (!isAdded()) return;
-                    ToastUtils.showCustomToast(getContext(), "Unable to fetch live location");
+                    ToastUtils.showCustomToast(getContext(), R.string.map_unable_to_fetch_live_location);
                 });
     }
 
@@ -738,7 +738,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
 
         if (location == null) {
-            ToastUtils.showCustomToast(getContext(), "Waiting for live location...");
+            ToastUtils.showCustomToast(getContext(), R.string.map_waiting_for_live_location);
             return;
         }
 
@@ -814,7 +814,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     private void moveToCurrentLocation() {
         if (mMap == null || currentUserLatLng == null) {
-            ToastUtils.showCustomToast(getContext(), "Current location not available yet");
+            ToastUtils.showCustomToast(getContext(), R.string.map_current_location_not_available_yet);
             requestOrLoadLocation();
             return;
         }

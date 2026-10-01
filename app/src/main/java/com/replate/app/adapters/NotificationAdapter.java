@@ -193,7 +193,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             if (ts > 0) {
                 tvTime.setText(formatRelativeTime(ts));
             } else {
-                tvTime.setText("Just now");
+                tvTime.setText(R.string.notification_just_now);
             }
 
             boolean isRead = notif.isRead();

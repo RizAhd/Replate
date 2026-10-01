@@ -139,10 +139,10 @@ public class SettingsActivity extends AppCompatActivity {
                     savePhotoToInternalStorage(bitmap);
                     uploadProfilePhoto(bitmap);
                 } else {
-                    ToastUtils.showCustomToast(this, "Failed to read selected image");
+                    ToastUtils.showCustomToast(this, R.string.settings_failed_to_read_selected_image);
                 }
             } catch (Exception | OutOfMemoryError e) {
-                ToastUtils.showCustomToast(this, "Failed to read selected image");
+                ToastUtils.showCustomToast(this, R.string.settings_failed_to_read_selected_image);
             }
         });
 
@@ -337,7 +337,7 @@ public class SettingsActivity extends AppCompatActivity {
                     public void onCancelled(@NonNull DatabaseError error) {
                         if (canUseUi()) {
                             ToastUtils.showCustomToast(SettingsActivity.this,
-                                    "Failed to load profile");
+                                    R.string.settings_failed_to_load_profile);
                         }
                     }
                 });
@@ -355,7 +355,7 @@ public class SettingsActivity extends AppCompatActivity {
     private void showPhotoPicker() {
         String[] options = new String[]{"Take photo", "Choose from gallery"};
         new AlertDialog.Builder(this)
-                .setTitle("Update profile photo")
+                .setTitle(R.string.settings_update_profile_photo)
                 .setItems(options, (dialog, which) -> {
                     if (which == 0) {
                         openCamera();
@@ -392,7 +392,7 @@ public class SettingsActivity extends AppCompatActivity {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 openCamera();
             } else {
-                ToastUtils.showCustomToast(this, "Camera permission required");
+                ToastUtils.showCustomToast(this, R.string.settings_camera_permission_required);
             }
         }
     }
@@ -588,7 +588,7 @@ public class SettingsActivity extends AppCompatActivity {
         String address = etAddress.getText() != null ? etAddress.getText().toString().trim() : "";
 
         if (name.isEmpty() || phone.isEmpty()) {
-            ToastUtils.showCustomToast(this, "Please fill all fields");
+            ToastUtils.showCustomToast(this, R.string.settings_please_fill_all_fields);
             return;
         }
 
@@ -611,11 +611,11 @@ public class SettingsActivity extends AppCompatActivity {
                                         user.getEmail(), phone, null, address);
                             }
                             ToastUtils.showCustomToast(SettingsActivity.this,
-                                    "Profile Updated ✅");
+                                    R.string.settings_profile_updated);
                     })
                     .addOnFailureListener(e ->
                             ToastUtils.showCustomToast(SettingsActivity.this,
-                                    "Update Failed ❌"));
+                                    R.string.settings_update_failed));
         }
     }
 

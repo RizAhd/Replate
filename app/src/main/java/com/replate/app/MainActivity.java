@@ -545,7 +545,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
         } catch (Exception ignored) {}
 
-        com.replate.app.utils.ToastUtils.showCustomToast(this, "Refreshing...");
+        com.replate.app.utils.ToastUtils.showCustomToast(this, R.string.main_refreshing);
         refreshCurrentFragment();
     }
 
@@ -719,28 +719,28 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private void showLocationRationaleDialog() {
         if (isFinishing() || isDestroyed()) return;
         new AlertDialog.Builder(this)
-                .setTitle("Enable live location")
-                .setMessage("We use your current location to show nearby hotels, faster search results, and accurate pickup routes.")
-                .setPositiveButton("Continue", (d, w) ->
+                .setTitle(R.string.main_enable_live_location)
+                .setMessage(R.string.main_we_use_your_current_location)
+                .setPositiveButton(R.string.main_continue, (d, w) ->
                         locationPermissionLauncher.launch(new String[]{
                                 Manifest.permission.ACCESS_FINE_LOCATION,
                                 Manifest.permission.ACCESS_COARSE_LOCATION
                         }))
-                .setNegativeButton("Not now", null)
+                .setNegativeButton(R.string.main_not_now, null)
                 .show();
     }
 
     private void showLocationSettingsDialog() {
         if (isFinishing() || isDestroyed()) return;
         new AlertDialog.Builder(this)
-                .setTitle("Location permission needed")
-                .setMessage("Location access is permanently denied. Open app settings to enable live location and nearby hotel routes.")
-                .setPositiveButton("Open settings", (d, w) -> {
+                .setTitle(R.string.main_location_permission_needed)
+                .setMessage(R.string.main_location_access_is_permanently_denied)
+                .setPositiveButton(R.string.main_open_settings, (d, w) -> {
                     Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
                     intent.setData(Uri.parse("package:" + getPackageName()));
                     startActivity(intent);
                 })
-                .setNegativeButton("Not now", null)
+                .setNegativeButton(R.string.main_not_now, null)
                 .show();
     }
 }

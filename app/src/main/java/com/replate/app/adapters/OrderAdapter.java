@@ -125,7 +125,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
                 if (addr != null && !addr.isEmpty() && !"Pickup at Hotel".equalsIgnoreCase(addr)) {
                     tvPickupTime.setText("📍 Delivery: " + addr);
                 } else {
-                    tvPickupTime.setText("🚚 Delivery Order");
+                    tvPickupTime.setText(R.string.order_delivery_order);
                 }
                 tvPickupTime.setVisibility(View.VISIBLE);
             } else if (order.getPickupTime() != null && !order.getPickupTime().isEmpty() && !"N/A".equalsIgnoreCase(order.getPickupTime())) {

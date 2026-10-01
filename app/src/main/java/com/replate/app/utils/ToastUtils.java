@@ -14,6 +14,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.StringRes;
 
 import com.replate.app.R;
 
@@ -26,6 +27,20 @@ public final class ToastUtils {
     private static final int BOTTOM_MARGIN_DP = 64;
 
     private ToastUtils() {
+    }
+
+    /** Same as the String version, resolving the text safely even if the screen is already gone. */
+    public static void showCustomToast(Context context, @StringRes int messageRes) {
+        if (context == null) {
+            return;
+        }
+        String message;
+        try {
+            message = context.getString(messageRes);
+        } catch (Exception e) {
+            return;
+        }
+        showCustomToast(context, message);
     }
 
     public static void showCustomToast(Context context, String message) {
