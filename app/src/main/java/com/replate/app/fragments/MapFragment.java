@@ -31,6 +31,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -115,6 +116,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private final Map<String, Marker> markerByHotelId = new HashMap<>();
     private final Map<String, String> hotelFoodPreviewCache = new HashMap<>();
     private final Map<String, Long> hotelFoodPreviewCachedAt = new HashMap<>();
+    private final Map<String, String> hotelPreviewImageCache = new HashMap<>();
     // Sold-out items must not stay listed for the whole session
     private static final long PREVIEW_CACHE_MS = 60_000L;
     private final List<FoodPlace> allPlaces = new ArrayList<>();
@@ -932,9 +934,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         showStraightLineHint(currentUserLatLng, selectedDestinationLatLng);
         tvAvailableItems.setText(getString(R.string.map_loading_items));
         loadAvailableItemsPreview(place.getId());
-        if (ivRestaurantImage instanceof ImageView) {
-            ((ImageView) ivRestaurantImage).setImageResource(R.drawable.placeholder_food);
-        }
+        showPreviewImage(place.getId());
         bottomSheet.setVisibility(View.VISIBLE);
 
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(selectedDestinationLatLng, 15f));
@@ -1076,6 +1076,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         if (hotelFoodPreviewCache.containsKey(hotelId) && cachedAt != null
                 && System.currentTimeMillis() - cachedAt < PREVIEW_CACHE_MS) {
             tvAvailableItems.setText(hotelFoodPreviewCache.get(hotelId));
+            showPreviewImage(hotelId);
             return;
         }
 
@@ -1087,6 +1088,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 if (!isAdded()) return;
                 StringBuilder preview = new StringBuilder();
                 int added = 0;
+                String firstImage = "";
 
                 for (DataSnapshot child : snapshot.getChildren()) {
 
@@ -1101,6 +1103,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                         continue;
                     }
 
+                    if (firstImage.isEmpty()) {
+                        firstImage = asString(child.child("imageUrl").getValue());
+                    }
                     double price = asDouble(child.child("discountedPrice").getValue());
                     preview.append("• ").append(foodName);
                     if (price > 0) {
@@ -1123,8 +1128,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
                 hotelFoodPreviewCache.put(hotelId, previewText);
                 hotelFoodPreviewCachedAt.put(hotelId, System.currentTimeMillis());
+                hotelPreviewImageCache.put(hotelId, firstImage);
                 if (tvAvailableItems != null && selectedPlace != null && hotelId.equals(selectedPlace.getId())) {
                     tvAvailableItems.setText(previewText);
+                    showPreviewImage(hotelId);
                 }
             }
 
@@ -1136,6 +1143,25 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 }
             }
         });
+    }
+
+    /** Shows the hotel's first available dish on the card, or the placeholder until one is known. */
+    private void showPreviewImage(@NonNull String hotelId) {
+        if (!(ivRestaurantImage instanceof ImageView) || !isAdded()) {
+            return;
+        }
+        ImageView target = (ImageView) ivRestaurantImage;
+        String url = hotelPreviewImageCache.get(hotelId);
+        if (url == null || url.isEmpty()) {
+            target.setImageResource(R.drawable.placeholder_food);
+            return;
+        }
+        Glide.with(this)
+                .load(url)
+                .placeholder(R.drawable.placeholder_food)
+                .error(R.drawable.placeholder_food)
+                .centerCrop()
+                .into(target);
     }
 
     /** Quantity under any of the names listings use, or null when none is set. */
