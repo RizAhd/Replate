@@ -141,7 +141,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
         Intent hostIntent = requireActivity().getIntent();
         if (hostIntent != null) {
-            pendingFocusHotelId = hostIntent.getStringExtra("focus_hotel_id");
+            String focusId = hostIntent.getStringExtra("focus_hotel_id");
+            if (focusId != null && !focusId.trim().isEmpty()) {
+                pendingFocusHotelId = focusId;
+                // Consume it so revisiting the Map tab doesn't re-select the hotel and re-request a route
+                hostIntent.removeExtra("focus_hotel_id");
+            }
         }
 
         initViews(view);
