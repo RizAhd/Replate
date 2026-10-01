@@ -79,7 +79,7 @@
                         <div class="col-md-6">
                             <div class="card p-4 text-center">
                                 <h5>Scan Customer QR Code</h5>
-                                <div id="reader" style="width: 100%; min-height: 300px;"></div>
+                                <div id="reader" class="qr-reader"></div>
                                 <p class="text-muted mt-3">Point camera at the QR code on customer's phone.</p>
                             </div>
                         </div>
@@ -92,9 +92,9 @@
                             <div class="card p-5 text-center">
                                 <h5 class="mb-4">Enter 6-Digit OTP</h5>
                                 <label for="otpInput" class="visually-hidden">Order OTP</label>
-                                <input type="number" id="otpInput" class="form-control form-control-lg otp-digits text-center mb-4"
-                                       placeholder="0 0 0 0 0 0" min="0" max="999999">
-                                <button class="btn btn-primary w-100" onclick="verifyOTP()">
+                                <input type="text" id="otpInput" class="form-control form-control-lg otp-digits text-center mb-4"
+                                       placeholder="000000" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code">
+                                <button class="btn btn-primary w-100" id="btnVerifyOtp" type="button">
                                     <i class="fas fa-check-circle me-2"></i>Verify OTP &amp; Confirm Pickup
                                 </button>
                             </div>
@@ -112,7 +112,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="verificationModalTitle">Confirm Pickup</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div id="verificationModalBody">
@@ -124,9 +124,9 @@
                     <p class="text-end fw-bold">Total: <span id="modalTotal"></span></p>
                     <p><strong>Review:</strong> <span id="modalReview"></span></p>
                 </div>
-                <div id="verificationSuccessBody" class="d-none text-center" style="padding: 2rem 1rem;">
-                    <div style="width:80px;height:80px;border-radius:50%;background:#1A6B3C;display:inline-flex;align-items:center;justify-content:center;margin-bottom:1rem;">
-                        <i class="fas fa-check" style="color:#fff;font-size:2rem;"></i>
+                <div id="verificationSuccessBody" class="d-none text-center success-body">
+                    <div class="success-disc">
+                        <i class="fas fa-check" aria-hidden="true"></i>
                     </div>
                     <h4 class="text-success mb-2">Pickup Confirmed!</h4>
                     <p class="text-muted mb-0">Order has been marked as completed.</p>
@@ -134,7 +134,7 @@
             </div>
             <div class="modal-footer" id="verificationModalFooter">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-success" id="btnConfirmPickup" onclick="confirmPickup()">
+                <button type="button" class="btn btn-success" id="btnConfirmPickup">
                     <i class="fas fa-check-circle me-1"></i> Confirm &amp; Complete
                 </button>
             </div>
@@ -154,31 +154,22 @@
 <script src="../js/notifications-api.js"></script>
 
 <script>
-    let currentHotelUserId = null;
+    const esc = ReplateUI.esc;
     let hotelIds = new Set();
     let html5QrcodeScanner = null;
     let currentOrderKey = null;
     let verificationModalInstance = null;
-
+    const tableBody = document.getElementById('ordersTable');
 
     function orderBelongsToHotel(order) {
         const id = String(order.hotelId || order.hotelKey || order.hotelUserId || '').trim();
         return hotelIds.has(id);
     }
 
-    auth.onAuthStateChanged(async (user) => {
-        ReplateUI.renderSidebar('appShellSidebar', {
-            title: '<img src="../assets/replate-icon.svg" alt="REPLATE" class="brand-logo-sm">REPLATE',
-            activeKey: 'orders',
-            links: hotelShellLinks,
-        });
+    (async () => {
+        const user = await ReplateUI.requireRole('hotel');
+        if (!user) return;
 
-        if (!user) {
-            window.location.href = 'login.html';
-            return;
-        }
-
-        currentHotelUserId = user.uid;
         hotelIds = new Set([user.uid]);
         try {
             const hotelRecord = await ReplateSchema.findHotelByUserId(database, user.uid);
@@ -186,86 +177,85 @@
         } catch (e) {
             console.error('Failed to resolve hotel identity:', e);
         }
+        tableBody.innerHTML = '<tr><td colspan="7">' + ReplateUI.skeleton('rows', 4) + '</td></tr>';
         loadOrders();
-    });
+    })();
+
+    function actionButtons(key, status, isDelivery, isActive) {
+        const k = esc(key);
+        let html = `<button class="btn btn-sm btn-outline-primary" data-action="view" data-key="${k}"><i class="fas fa-eye" aria-hidden="true"></i> View</button>`;
+        if (!isActive) return html;
+        if (isDelivery) {
+            if (['pending_delivery', 'pending_pickup', 'confirmed', 'preparing'].includes(status)) {
+                html += ` <button class="btn btn-sm btn-info ms-1 text-white" data-action="dispatch" data-key="${k}"><i class="fas fa-truck" aria-hidden="true"></i> Dispatch</button>`;
+            }
+            if (status === 'out_for_delivery') {
+                html += ` <button class="btn btn-sm btn-success ms-1" data-action="delivered" data-key="${k}"><i class="fas fa-check-double" aria-hidden="true"></i> Delivered</button>`;
+            }
+        } else {
+            html += ` <button class="btn btn-sm btn-success ms-1" data-action="done" data-key="${k}"><i class="fas fa-check" aria-hidden="true"></i> Done</button>`;
+        }
+        return html;
+    }
 
     function loadOrders() {
-        const tableBody = document.getElementById('ordersTable');
-        tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Loading orders...</td></tr>';
-
         ReplateSchema.hotelOrders(database, hotelIds).on((snapshot) => {
-            tableBody.innerHTML = '';
-
             const rows = [];
             snapshot.forEach((child) => {
                 const order = child.val() || {};
-                if (orderBelongsToHotel(order)) {
-                    rows.push({ key: child.key, order });
-                }
+                if (orderBelongsToHotel(order)) rows.push({ key: child.key, order });
             });
 
             if (rows.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">No orders yet</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="7">' +
+                    ReplateUI.emptyState('No orders yet', 'When a customer reserves one of your dishes it appears here instantly.', 'fa-receipt') + '</td></tr>';
                 return;
             }
 
             rows.sort((a, b) => (b.order.createdAt || 0) - (a.order.createdAt || 0));
 
-            const htmlRows = rows.map(({ key, order }) => {
-                const itemNames  = ReplateSchema.extractItemNames(order);
-                const status     = ReplateSchema.normalizeOrderStatus(order.orderStatus);
-                const badgeClass = ReplateSchema.statusBadgeClass(status);
-                const label      = ReplateSchema.statusLabel(status);
-                const amount     = ReplateSchema.formatAmount(order.totalAmount || order.totalPrice);
-                const displayId  = ReplateSchema.shortOrderId(order, key);
-                const isActive   = !['completed', 'delivered', 'cancelled'].includes(status);
-                const isDelivery = (order.orderType || '').toLowerCase() === 'delivery';
-                const typeIcon   = isDelivery ? '🚚' : '🛍️';
+            tableBody.innerHTML = rows.map(({ key, order }) => {
+                const status = ReplateSchema.normalizeOrderStatus(order.orderStatus);
+                const isActive = !['completed', 'delivered', 'cancelled'].includes(status);
+                const isDelivery = String(order.orderType || '').toLowerCase() === 'delivery';
                 const review = Number(order.reviewRating || 0);
-                const reviewText = review > 0 ? `⭐ ${review.toFixed(1)}` : '<span class="text-muted">No review</span>';
-
-                let actionButtons = `<button class="btn btn-sm btn-outline-primary" onclick="viewOrderByKey('${key}')">
-                    <i class="fas fa-eye"></i> View
-                </button>`;
-
-                if (isActive) {
-                    if (isDelivery) {
-                        // Delivery order actions
-                        if (status === 'pending_delivery' || status === 'pending_pickup' || status === 'confirmed' || status === 'preparing') {
-                            actionButtons += ` <button class="btn btn-sm btn-info ms-1 text-white" onclick="markOutForDelivery('${key}')">
-                                <i class="fas fa-truck"></i> Dispatch
-                            </button>`;
-                        }
-                        if (status === 'out_for_delivery') {
-                            actionButtons += ` <button class="btn btn-sm btn-success ms-1" onclick="markDelivered('${key}')">
-                                <i class="fas fa-check-double"></i> Delivered
-                            </button>`;
-                        }
-                    } else {
-                        // Pickup order — show Done button
-                        actionButtons += ` <button class="btn btn-sm btn-success ms-1" onclick="quickComplete('${key}')">
-                            <i class="fas fa-check"></i> Done
-                        </button>`;
-                    }
-                }
+                const reviewText = review > 0
+                    ? `<i class="fas fa-star text-warning" aria-hidden="true"></i> ${review.toFixed(1)}`
+                    : '<span class="text-muted">No review</span>';
 
                 return `
                     <tr class="${isActive ? 'order-new' : ''}">
-                        <td data-label="Order ID"><code>#${displayId}</code></td>
-                        <td data-label="Customer">${order.customerName || 'Customer'}<br>
-                            <small class="text-muted">${order.customerPhone || ''}</small></td>
-                        <td data-label="Items">${typeIcon} ${itemNames}</td>
-                        <td data-label="Total">LKR ${amount}</td>
+                        <td data-label="Order ID"><code>#${esc(ReplateSchema.shortOrderId(order, key))}</code></td>
+                        <td data-label="Customer">${esc(order.customerName || 'Customer')}<br>
+                            <small class="text-muted">${esc(order.customerPhone || '')}</small></td>
+                        <td data-label="Items"><i class="fas ${isDelivery ? 'fa-truck' : 'fa-bag-shopping'} text-muted me-1" aria-hidden="true"></i>${esc(ReplateSchema.extractItemNames(order))}</td>
+                        <td data-label="Total" class="num">LKR ${esc(ReplateSchema.formatAmount(order.totalAmount || order.totalPrice))}</td>
                         <td data-label="Review">${reviewText}</td>
-                        <td data-label="Status"><span class="${badgeClass}">${label}</span></td>
-                        <td data-label="Action" class="actions-cell">${actionButtons}</td>
+                        <td data-label="Status"><span class="badge ${esc(ReplateSchema.statusBadgeClass(status))}">${esc(ReplateSchema.statusLabel(status))}</span></td>
+                        <td data-label="Action" class="actions-cell">${actionButtons(key, status, isDelivery, isActive)}</td>
                     </tr>`;
             }).join('');
-
-            tableBody.innerHTML = htmlRows;
+        }, (error) => {
+            console.error('Could not load orders', error);
+            tableBody.innerHTML = '<tr><td colspan="7">' +
+                ReplateUI.errorState('Orders could not be loaded. Check your connection and try again.') + '</td></tr>';
         });
     }
 
+    // ── Table actions ───────────────────────────────────────────────────
+    tableBody.addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-action]');
+        if (!button) return;
+        const key = button.dataset.key;
+        switch (button.dataset.action) {
+            case 'view': viewOrderByKey(key); break;
+            case 'done': quickComplete(key); break;
+            case 'dispatch': markOutForDelivery(key); break;
+            case 'delivered': markDelivered(key); break;
+        }
+    });
+
+    // ── QR scanner ──────────────────────────────────────────────────────
     document.getElementById('pills-scan-tab').addEventListener('shown.bs.tab', () => {
         if (html5QrcodeScanner) return;
         html5QrcodeScanner = new Html5Qrcode('reader');
@@ -278,9 +268,10 @@
                 checkOrderByCode(decodedText.trim());
             },
             () => {}
-        ).catch(err => {
-            document.getElementById('reader').innerHTML =
-                `<div class="alert alert-warning">Camera not available: ${err}</div>`;
+        ).catch(() => {
+            html5QrcodeScanner = null;
+            document.getElementById('reader').innerHTML = ReplateUI.emptyState(
+                'Camera not available', 'Allow camera access in your browser, or use the Enter OTP tab instead.', 'fa-camera');
         });
     });
 
@@ -295,38 +286,40 @@
         }
     }
 
+    // ── OTP lookup ──────────────────────────────────────────────────────
+    document.getElementById('btnVerifyOtp').addEventListener('click', verifyOTP);
+    document.getElementById('otpInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') verifyOTP(); });
+
     function verifyOTP() {
         const raw = (document.getElementById('otpInput').value || '').trim().replace(/\D/g, '');
         if (raw.length < 4) {
-            alert('Please enter the OTP code.');
+            ReplateUI.toast('Enter the pickup code the customer shows you.', 'warning');
             return;
         }
         const otp = raw.padStart(6, '0');
 
-        ReplateSchema.hotelOrders(database, hotelIds).once().then(snapshot => {
+        ReplateSchema.hotelOrders(database, hotelIds).once().then((snapshot) => {
             let foundKey = null;
             let foundOrder = null;
 
-            snapshot.forEach(child => {
+            snapshot.forEach((child) => {
                 if (foundKey) return;
                 const o = child.val() || {};
                 if (!orderBelongsToHotel(o)) return;
-
-                const saved = String(o.otpCode || '').trim().padStart(6, '0');
-                if (saved === otp) {
+                if (String(o.otpCode || '').trim().padStart(6, '0') === otp) {
                     foundKey = child.key;
                     foundOrder = o;
                 }
             });
 
             if (!foundKey) {
-                alert('❌ Invalid OTP. Please check the code and try again.');
+                ReplateUI.toast('That code does not match any order for your hotel.', 'danger');
                 return;
             }
             showVerificationModal(foundKey, foundOrder);
-        }).catch(err => {
+        }).catch((err) => {
             console.error('OTP lookup failed', err);
-            alert('Could not check the OTP right now. Please check your connection and try again.');
+            ReplateUI.toast('Could not check the code right now. Check your connection and try again.', 'danger');
         });
     }
 
@@ -335,7 +328,7 @@
 
         // A code that belongs to another hotel is refused by the database rules (permission denied).
         // Treat that like "not found here" and carry on to the search below, which reports it.
-        database.ref('orders/' + code).once('value').catch(() => null).then(snapshot => {
+        database.ref('orders/' + code).once('value').catch(() => null).then((snapshot) => {
             if (snapshot && snapshot.exists()) {
                 const order = snapshot.val() || {};
                 if (orderBelongsToHotel(order)) {
@@ -344,22 +337,17 @@
                 }
             }
 
-            ReplateSchema.hotelOrders(database, hotelIds).once().then(snap => {
+            ReplateSchema.hotelOrders(database, hotelIds).once().then((snap) => {
                 let foundKey = null;
                 let foundOrder = null;
 
-                snap.forEach(child => {
+                snap.forEach((child) => {
                     if (foundKey) return;
                     const o = child.val() || {};
                     if (!orderBelongsToHotel(o)) return;
 
-                    const candidates = [
-                        child.key,
-                        String(o.orderId || ''),
-                        String(o.qrCode || ''),
-                        String(o.pickupCode || ''),
-                    ].map(v => v.trim());
-
+                    const candidates = [child.key, String(o.orderId || ''), String(o.qrCode || ''), String(o.pickupCode || '')]
+                        .map((v) => v.trim());
                     if (candidates.includes(code)) {
                         foundKey = child.key;
                         foundOrder = o;
@@ -367,17 +355,18 @@
                 });
 
                 if (!foundKey) {
-                    alert('❌ Order not found. Make sure the QR code belongs to this hotel.');
+                    ReplateUI.toast('Order not found. Make sure the QR code belongs to this hotel.', 'danger');
                     return;
                 }
                 showVerificationModal(foundKey, foundOrder);
-            }).catch(err => {
+            }).catch((err) => {
                 console.error('Order search failed', err);
-                alert('Could not look up this order right now. Please check your connection and try again.');
+                ReplateUI.toast('Could not look up this order right now. Check your connection and try again.', 'danger');
             });
         });
     }
 
+    // ── Confirmation modal ──────────────────────────────────────────────
     function showVerificationModal(key, order) {
         if (!verificationModalInstance) {
             verificationModalInstance = new bootstrap.Modal(document.getElementById('verificationModal'));
@@ -386,129 +375,138 @@
 
         const status = ReplateSchema.normalizeOrderStatus(order.orderStatus);
         if (status === 'completed' || status === 'delivered') {
-            alert('ℹ️ This order is already completed.');
+            ReplateUI.toast('This order is already completed.', 'info');
             return;
         }
         if (status === 'cancelled') {
-            alert('⚠️ This order has been cancelled.');
+            ReplateUI.toast('This order has been cancelled.', 'warning');
             return;
         }
 
-        document.getElementById('modalOrderId').innerText = '#' + ReplateSchema.shortOrderId(order, key);
-        document.getElementById('modalCustomer').innerText =
+        document.getElementById('modalOrderId').textContent = '#' + ReplateSchema.shortOrderId(order, key);
+        document.getElementById('modalCustomer').textContent =
             (order.customerName || 'Customer') + (order.customerPhone ? ' - ' + order.customerPhone : '');
-        document.getElementById('modalTotal').innerText =
+        document.getElementById('modalTotal').textContent =
             'LKR ' + ReplateSchema.formatAmount(order.totalAmount || order.totalPrice);
 
-        const list = document.getElementById('modalItems');
-        const itemsHtml = ReplateSchema.extractItemsArray(order).map(item =>
-            `<li>${item.foodName || 'Item'} x ${item.quantity || 1}
-                &nbsp;<small class="text-muted">LKR ${ReplateSchema.formatAmount(item.price)}</small></li>`
+        document.getElementById('modalItems').innerHTML = ReplateSchema.extractItemsArray(order).map((item) =>
+            `<li>${esc(item.foodName || 'Item')} x ${esc(item.quantity || 1)}
+                &nbsp;<small class="text-muted">LKR ${esc(ReplateSchema.formatAmount(item.price))}</small></li>`
         ).join('');
-        list.innerHTML = itemsHtml;
 
-        document.getElementById('modalReview').innerText = order.reviewRating
-            ? `⭐ ${Number(order.reviewRating).toFixed(1)}${order.reviewComment ? ' - ' + order.reviewComment : ''}`
+        document.getElementById('modalReview').textContent = order.reviewRating
+            ? `${Number(order.reviewRating).toFixed(1)} / 5${order.reviewComment ? ' - ' + order.reviewComment : ''}`
             : 'No review yet';
 
-        document.getElementById('modalQR').innerText = order.qrCode || '';
+        document.getElementById('modalQR').textContent = order.qrCode || '';
 
+        document.getElementById('verificationModalBody').classList.remove('d-none');
+        document.getElementById('verificationSuccessBody').classList.add('d-none');
+        document.getElementById('verificationModalFooter').classList.remove('d-none');
         verificationModalInstance.show();
     }
 
+    document.getElementById('btnConfirmPickup').addEventListener('click', confirmPickup);
+
     function confirmPickup() {
         if (!currentOrderKey) return;
-        database.ref('orders/' + currentOrderKey).once('value').then(snap => {
+        const key = currentOrderKey;
+        database.ref('orders/' + key).once('value').then((snap) => {
             const order = snap.val() || {};
-            const isDelivery = (order.orderType || '').toLowerCase() === 'delivery';
-            const finalStatus = isDelivery ? 'delivered' : 'completed';
-
-            database.ref('orders/' + currentOrderKey).update({
-                orderStatus: finalStatus,
+            const isDelivery = String(order.orderType || '').toLowerCase() === 'delivery';
+            return database.ref('orders/' + key).update({
+                orderStatus: isDelivery ? 'delivered' : 'completed',
                 completedAt: Date.now(),
                 updatedAt: Date.now()
             }).then(() => {
-                sendCompletionNotification(currentOrderKey);
+                sendCompletionNotification(key);
                 if (verificationModalInstance) verificationModalInstance.hide();
-                ReplateUI.showAlert(isDelivery ? '✅ Order marked as delivered!' : '✅ Order marked as completed!', 'success');
-            }).catch(err => alert('Error: ' + err.message));
+                ReplateUI.toast(isDelivery ? 'Order marked as delivered.' : 'Pickup confirmed. Order completed.', 'success');
+            });
+        }).catch((err) => {
+            console.error(err);
+            ReplateUI.toast('Could not update the order. Please try again.', 'danger');
         });
     }
 
-    window.markOutForDelivery = function(key) {
-        if (!confirm('Mark this order as "Out for Delivery"?')) return;
-        database.ref('orders/' + key).update({
-            orderStatus: 'out_for_delivery',
-            updatedAt: Date.now(),
-            dispatchedAt: Date.now()
-        }).then(() => {
-            ReplateUI.showAlert('🚚 Order dispatched for delivery!', 'info');
-            // Notify the customer
-            database.ref('orders/' + key).once('value').then(snapshot => {
-                const order = snapshot.val();
-                if (!order || !order.userId) return;
-                NotificationApi.sendTargeted({
-                    userIds: [order.userId],
-                    title: 'Order Out for Delivery',
-                    body: `Your order from ${order.hotelName || 'the restaurant'} is on its way!`,
-                    type: 'order_dispatched',
-                    route: 'order',
-                    orderId: key,
-                    hotelId: order.hotelId || ''
-                }).catch(err => console.error('Failed to send dispatch notification:', err));
+    async function markOutForDelivery(key) {
+        const ok = await ReplateUI.confirmAction('The customer will be told their order is on its way.', {
+            title: 'Dispatch this order?', confirmText: 'Dispatch' });
+        if (!ok) return;
+        try {
+            await database.ref('orders/' + key).update({
+                orderStatus: 'out_for_delivery',
+                updatedAt: Date.now(),
+                dispatchedAt: Date.now()
             });
-        }).catch(err => alert('Error: ' + err.message));
-    };
+            ReplateUI.toast('Order dispatched for delivery.', 'info');
+            const snapshot = await database.ref('orders/' + key).once('value');
+            const order = snapshot.val();
+            if (!order || !order.userId) return;
+            NotificationApi.sendTargeted({
+                userIds: [order.userId],
+                title: 'Order Out for Delivery',
+                body: `Your order from ${order.hotelName || 'the restaurant'} is on its way!`,
+                type: 'order_dispatched',
+                route: 'order',
+                orderId: key,
+                hotelId: order.hotelId || ''
+            }).catch((err) => console.error('Failed to send dispatch notification:', err));
+        } catch (err) {
+            console.error(err);
+            ReplateUI.toast('Could not dispatch the order. Please try again.', 'danger');
+        }
+    }
 
-    window.markDelivered = function(key) {
-        if (!confirm('Mark this order as "Delivered"?')) return;
-        database.ref('orders/' + key).update({
-            orderStatus: 'delivered',
-            completedAt: Date.now(),
-            updatedAt: Date.now()
-        }).then(() => {
+    async function markDelivered(key) {
+        const ok = await ReplateUI.confirmAction('This closes the order as delivered.', {
+            title: 'Mark as delivered?', confirmText: 'Delivered' });
+        if (!ok) return;
+        try {
+            await database.ref('orders/' + key).update({
+                orderStatus: 'delivered',
+                completedAt: Date.now(),
+                updatedAt: Date.now()
+            });
             sendCompletionNotification(key);
-            ReplateUI.showAlert('📬 Order marked as delivered!', 'success');
-        }).catch(err => alert('Error: ' + err.message));
-    };
+            ReplateUI.toast('Order marked as delivered.', 'success');
+        } catch (err) {
+            console.error(err);
+            ReplateUI.toast('Could not update the order. Please try again.', 'danger');
+        }
+    }
 
-    window.quickComplete = function(key) {
-        database.ref('orders/' + key).once('value').then(snap => {
-            const order = snap.val() || {};
-            if (confirm('Mark this order as completed?\nCustomer: ' + (order.customerName || 'Unknown'))) {
-                showVerificationModal(key, order);
-            }
-        });
-    };
+    function quickComplete(key) {
+        // Opens the same confirmation sheet used for QR and OTP, so every pickup is confirmed the same way
+        viewOrderByKey(key);
+    }
 
-    window.viewOrderByKey = function(key) {
-        database.ref('orders/' + key).once('value').then(snap => {
+    function viewOrderByKey(key) {
+        database.ref('orders/' + key).once('value').then((snap) => {
             if (snap.exists()) showVerificationModal(key, snap.val() || {});
+        }).catch((err) => {
+            console.error(err);
+            ReplateUI.toast('Could not open this order.', 'danger');
         });
-    };
+    }
 
     function sendCompletionNotification(orderKey) {
-        database.ref('orders/' + orderKey).once('value').then(snapshot => {
+        database.ref('orders/' + orderKey).once('value').then((snapshot) => {
             const order = snapshot.val();
             if (!order || !order.userId) return;
 
-            const isDelivery = (order.orderType || '').toLowerCase() === 'delivery';
-            const title = isDelivery ? 'Order Delivered' : 'Pickup Confirmed';
-            const body = isDelivery
-                ? `Your order from ${order.hotelName || 'the restaurant'} has been delivered. Enjoy your meal!`
-                : `Your order at ${order.hotelName || 'the restaurant'} has been picked up. Enjoy your meal!`;
-
+            const isDelivery = String(order.orderType || '').toLowerCase() === 'delivery';
             NotificationApi.sendTargeted({
                 userIds: [order.userId],
-                title,
-                body,
+                title: isDelivery ? 'Order Delivered' : 'Pickup Confirmed',
+                body: isDelivery
+                    ? `Your order from ${order.hotelName || 'the restaurant'} has been delivered. Enjoy your meal!`
+                    : `Your order at ${order.hotelName || 'the restaurant'} has been picked up. Enjoy your meal!`,
                 type: 'order_completed',
                 route: 'order',
                 orderId: orderKey,
                 hotelId: order.hotelId || ''
-            }).catch((err) => {
-                console.error('Failed to send completion push:', err);
-            });
+            }).catch((err) => console.error('Failed to send completion push:', err));
         });
     }
 </script>
