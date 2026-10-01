@@ -27,6 +27,7 @@ import com.replate.app.utils.AccountActions;
 import com.replate.app.utils.Money;
 import com.replate.app.FavoritesActivity;
 import com.replate.app.MainActivity;
+import com.replate.app.MessagesActivity;
 import com.replate.app.NotificationsActivity;
 import com.replate.app.R;
 import com.replate.app.SettingsActivity;
@@ -45,7 +46,7 @@ public class ProfileFragment extends Fragment {
     private CircleImageView ivProfileImage;
     private TextView tvUserName, tvUserEmail, tvOrdersCount, tvSavings;
     private Button btnEditProfile, btnLogout, btnDeleteAccount;
-    private LinearLayout menuOrders, menuFavorites, menuNotifications, menuSettings, menuHelp;
+    private LinearLayout menuOrders, menuFavorites, menuNotifications, menuMessages, menuSettings, menuHelp;
 
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
@@ -88,6 +89,7 @@ public class ProfileFragment extends Fragment {
         menuOrders = view.findViewById(R.id.menuOrders);
         menuFavorites = view.findViewById(R.id.menuFavorites);
         menuNotifications = view.findViewById(R.id.menuNotifications);
+        menuMessages = view.findViewById(R.id.menuMessages);
         menuSettings = view.findViewById(R.id.menuSettings);
         menuHelp = view.findViewById(R.id.menuHelp);
     }
@@ -254,6 +256,8 @@ public class ProfileFragment extends Fragment {
         menuNotifications.setOnClickListener(v -> {
             startActivity(new Intent(getContext(), NotificationsActivity.class));
         });
+
+        menuMessages.setOnClickListener(v -> startActivity(new Intent(getContext(), MessagesActivity.class)));
 
         menuSettings.setOnClickListener(v -> {
             startActivity(new Intent(getContext(), SettingsActivity.class));

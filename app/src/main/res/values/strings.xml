@@ -752,6 +752,14 @@ Total: LKR %1$.2f</string>
     <string name="menu_help">Help</string>
     <string name="menu_logout">Logout</string>
 
+    <string name="messages_title">Messages</string>
+    <string name="messages_subtitle">Your chats with hotels</string>
+    <string name="messages_empty_title">No conversations yet</string>
+    <string name="messages_empty_subtitle">Open a dish and tap Chat to ask a hotel about your order or pickup.</string>
+    <string name="messages_load_failed">Couldn\'t load your messages. Check your connection and try again.</string>
+    <string name="messages_retry">Try again</string>
+    <string name="profile_messages">Messages</string>
+    <string name="menu_messages">Messages</string>
     <plurals name="order_items_count">
         <item quantity="one">%d item</item>
         <item quantity="other">%d items</item>

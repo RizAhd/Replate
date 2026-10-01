@@ -72,12 +72,10 @@ public class ConversationAdapter extends RecyclerView.Adapter<ConversationAdapte
 
         // Timestamp
         Object tsObj = conv.get("lastTimestamp");
-        if (tsObj instanceof Long) {
-            long ts = (Long) tsObj;
-            long now = System.currentTimeMillis();
-            long diff = now - ts;
-            
-            if (diff < 24 * 60 * 60 * 1000) {
+        if (tsObj instanceof Number) {
+            long ts = ((Number) tsObj).longValue();
+
+            if (android.text.format.DateUtils.isToday(ts)) {
                 // Today - show time
                 holder.tvTime.setText(timeFormat.format(new Date(ts)));
             } else {

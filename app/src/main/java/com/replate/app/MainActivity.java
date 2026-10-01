@@ -192,6 +192,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 startActivity(new Intent(this, SearchActivity.class));
             } else if (id == R.id.drawer_notifications) {
                 startActivity(new Intent(this, NotificationsActivity.class));
+            } else if (id == R.id.drawer_messages) {
+                startActivity(new Intent(this, MessagesActivity.class));
             } else if (id == R.id.drawer_settings) {
                 startActivity(new Intent(this, SettingsActivity.class));
             } else if (id == R.id.drawer_help) {

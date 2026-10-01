@@ -287,6 +287,39 @@
 
                 <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="58dp" android:background="@color/divider" />
 
+                <!-- Messages -->
+                <LinearLayout
+                    android:id="@+id/menuMessages"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:gravity="center_vertical"
+                    android:padding="18dp">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_chat_empty"
+                        app:tint="@color/primary" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/space_2"
+                        android:layout_weight="1"
+                        android:text="@string/profile_messages"
+                        android:textAppearance="@style/TextAppearance.REPLATE.Label" />
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_arrow_right" />
+                </LinearLayout>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="58dp" android:background="@color/divider" />
+
                 <!-- Settings -->
                 <LinearLayout
                     android:id="@+id/menuSettings"
