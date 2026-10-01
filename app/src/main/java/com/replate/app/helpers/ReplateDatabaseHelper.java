@@ -390,6 +390,17 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
         return 0;
     }
 
+    /**
+     * Remove every saved favorite (used when the user logs out).
+     */
+    public void clearFavorites() {
+        try {
+            getWritableDatabase().delete(TABLE_FAVORITES, null, null);
+        } catch (Exception e) {
+            Log.e(TAG, "Error clearing favorites", e);
+        }
+    }
+
     // NOTIFICATION CACHE — CRUD
     public void cacheNotifications(List<AppNotification> notifications) {
         if (notifications == null || notifications.isEmpty()) return;
