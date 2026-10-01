@@ -53,6 +53,7 @@ import com.replate.app.fragments.ProfileFragment;
 import com.replate.app.receivers.NetworkChangeReceiver;
 import com.replate.app.services.OrderSyncWorker;
 import com.replate.app.utils.FcmTokenManager;
+import com.replate.app.utils.LocalDataCleaner;
 import com.replate.app.utils.NotificationPermissionHelper;
 import com.replate.app.utils.UserRoleHelper;
 
@@ -597,6 +598,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         } catch (Exception ignored) {
             // Auth signout failure is non-blocking
         }
+
+        // Remove cart, favorites, cached orders (with pickup codes), chat and notifications
+        LocalDataCleaner.clearAll(this);
 
         SharedPreferences sessionPrefs = getSharedPreferences("REPLATE_PREFS", MODE_PRIVATE);
         // Preserve device-level onboarding flag across logouts
