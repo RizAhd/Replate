@@ -674,12 +674,30 @@ exports.sendTargetedNotification = functions.region(REGION).https.onRequest(asyn
       return res.status(400).json({ success: false, message: "userIds is required" });
     }
 
+    // An admin may notify anyone. A hotel may only notify customers who ordered from it, so a
+    // hotel account can never be used to message the whole user base.
+    let allowedUserIds = userIds.map((uid) => String(uid).trim());
+    if (requester.role === "hotel") {
+      const profile = (await db.ref(`users/${requester.uid}`).get()).val() || {};
+      const myHotelIds = new Set(await hotelIdsForUser(requester.uid, profile));
+      const checked = await Promise.all(allowedUserIds.map(async (customerUid) => {
+        const orders = await db.ref("orders").orderByChild("userId").equalTo(customerUid).get();
+        let isMine = false;
+        orders.forEach((order) => { if (myHotelIds.has(String((order.val() || {}).hotelId || ""))) isMine = true; });
+        return isMine ? customerUid : null;
+      }));
+      allowedUserIds = checked.filter(Boolean);
+      if (allowedUserIds.length === 0) {
+        return res.status(403).json({ success: false, message: "You can only notify customers who ordered from your hotel" });
+      }
+    }
+
     const payload = buildPayload({
       category: body.category || "admin_broadcast",
       ...body,
     });
 
-    const users = (await Promise.all(userIds.map((uid) => loadUserNotificationRecord(String(uid).trim())))).filter(Boolean);
+    const users = (await Promise.all(allowedUserIds.map((uid) => loadUserNotificationRecord(uid)))).filter(Boolean);
     const result = await sendToUserRecords(users, payload);
     await persistNotificationForUsers(users.map((u) => u.uid), payload, requester.role === "hotel" ? "hotel_targeted" : "admin_targeted");
 
@@ -841,6 +859,38 @@ const sendSelfTestPushHandler = async (req, res) => {
     return res.status(500).json({ success: false, message: err.message || "Failed to send self-test notification" });
   }
 };
+
+// ── NEW LISTING ────────────────────────────────────────────
+// Tells customers who follow the deals topic when a hotel publishes a dish. This runs on the
+// server so it works for every approved hotel; the hotel panel no longer sends this itself.
+exports.onFoodItemCreatedNotify = functions
+  .region(REGION)
+  .database.ref("/foodItems/{foodId}")
+  .onCreate(async (snapshot, context) => {
+    const item = snapshot.val() || {};
+    const status = String(item.status || "available").trim().toLowerCase();
+    if (item.isAvailable === false || (status !== "available" && status !== "active")) return null;
+
+    const hotelName = String(item.hotelName || "A hotel").trim();
+    const foodName = String(item.foodName || "a new dish").trim();
+    const discount = Number(item.discountPercent || item.discountPercentage || 0);
+    const payload = buildPayload({
+      title: "New deal nearby",
+      body: `${hotelName} added ${foodName}${discount > 0 ? ` at ${discount}% off` : ""}.`,
+      type: "new_deal",
+      category: discount >= 50 ? "hot_deals" : "new_deals",
+      route: "deals",
+      hotelId: String(item.hotelId || ""),
+      data: { foodId: context.params.foodId },
+    });
+
+    try {
+      await sendToTopic("deals_customers", payload);
+    } catch (err) {
+      console.warn("[onFoodItemCreatedNotify] Topic send failed:", err.message);
+    }
+    return null;
+  });
 
 // Canonical endpoint used by Android app:
 // https://asia-southeast1-replate-food-rescue.cloudfunctions.net/sendSelfTestPush

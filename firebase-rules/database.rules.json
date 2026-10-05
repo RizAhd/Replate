@@ -1,22 +1,22 @@
 {
   "rules": {
     "users": {
-      ".read": "root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      ".read": "(root.child('users').child(auth.uid).child('role').val() === 'admin' && (auth.token.email === 'admin@replate.com' || auth.token.email === 'superadmin@replate.com'))",
       ".indexOn": [
         "createdAt"
       ],
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",
-        ".write": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
-        ".validate": "root.child('users').child(auth.uid).child('role').val() === 'admin' || data.child('status').val() !== 'suspended' || newData.child('status').val() === 'suspended'",
+        ".write": "auth != null && (auth.uid === $uid || (root.child('users').child(auth.uid).child('role').val() === 'admin' && (auth.token.email === 'admin@replate.com' || auth.token.email === 'superadmin@replate.com')))",
+        ".validate": "(root.child('users').child(auth.uid).child('role').val() === 'admin' && (auth.token.email === 'admin@replate.com' || auth.token.email === 'superadmin@replate.com')) || data.child('status').val() !== 'suspended' || newData.child('status').val() === 'suspended'",
         "status": {
-          ".validate": "root.child('users').child(auth.uid).child('role').val() === 'admin'"
+          ".validate": "(root.child('users').child(auth.uid).child('role').val() === 'admin' && (auth.token.email === 'admin@replate.com' || auth.token.email === 'superadmin@replate.com'))"
         },
         "role": {
-          ".validate": "root.child('users').child(auth.uid).child('role').val() === 'admin' || (newData.isString() && (data.exists() ? newData.val() === data.val() : (newData.val() === 'customer' || newData.val() === 'hotel')))"
+          ".validate": "(root.child('users').child(auth.uid).child('role').val() === 'admin' && (auth.token.email === 'admin@replate.com' || auth.token.email === 'superadmin@replate.com')) || (newData.isString() && (data.exists() ? newData.val() === data.val() : (newData.val() === 'customer' || newData.val() === 'hotel')))"
         },
         "userType": {
-          ".validate": "root.child('users').child(auth.uid).child('role').val() === 'admin' || (newData.isString() && (data.exists() ? newData.val() === data.val() : (newData.val() === 'customer' || newData.val() === 'hotel')))"
+          ".validate": "(root.child('users').child(auth.uid).child('role').val() === 'admin' && (auth.token.email === 'admin@replate.com' || auth.token.email === 'superadmin@replate.com')) || (newData.isString() && (data.exists() ? newData.val() === data.val() : (newData.val() === 'customer' || newData.val() === 'hotel')))"
         }
       }
     },
@@ -27,7 +27,7 @@
         "createdAt"
       ],
       "$hotelId": {
-        ".write": "root.child('users').child(auth.uid).child('role').val() === 'admin' || (auth != null && !data.exists() && newData.child('userId').val() === auth.uid && newData.child('status').val() === 'pending')",
+        ".write": "(root.child('users').child(auth.uid).child('role').val() === 'admin' && (auth.token.email === 'admin@replate.com' || auth.token.email === 'superadmin@replate.com')) || (auth != null && !data.exists() && newData.child('userId').val() === auth.uid && newData.child('status').val() === 'pending')",
         "hotelName": {
           ".write": "auth != null && (data.parent().child('userId').val() === auth.uid || $hotelId === auth.uid)"
         },
@@ -47,8 +47,8 @@
     },
     "hotelLicenses": {
       "$hotelId": {
-        ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || data.child('userId').val() === auth.uid)",
-        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (!data.exists() && newData.child('userId').val() === auth.uid))",
+        ".read": "auth != null && ((root.child('users').child(auth.uid).child('role').val() === 'admin' && (auth.token.email === 'admin@replate.com' || auth.token.email === 'superadmin@replate.com')) || data.child('userId').val() === auth.uid)",
+        ".write": "auth != null && ((root.child('users').child(auth.uid).child('role').val() === 'admin' && (auth.token.email === 'admin@replate.com' || auth.token.email === 'superadmin@replate.com')) || (!data.exists() && newData.child('userId').val() === auth.uid))",
         ".validate": "newData.child('licenseUrl').isString() && newData.child('licenseUrl').val().beginsWith('https://')"
       }
     },
@@ -59,7 +59,7 @@
         "createdAt"
       ],
       "$foodId": {
-        ".write": "root.child('users').child(auth.uid).child('role').val() === 'admin' || (auth != null && (data.exists() ? data.child('hotelUserId').val() : newData.child('hotelUserId').val()) === auth.uid && ((root.child('users').child(auth.uid).child('hotelId').val() != null && root.child('hotels').child(root.child('users').child(auth.uid).child('hotelId').val()).child('userId').val() === auth.uid && root.child('hotels').child(root.child('users').child(auth.uid).child('hotelId').val()).child('status').val() === 'approved') || root.child('hotels').child(auth.uid).child('status').val() === 'approved') && (!newData.exists() || newData.child('hotelId').val() === root.child('users').child(auth.uid).child('hotelId').val() || newData.child('hotelId').val() === auth.uid))",
+        ".write": "(root.child('users').child(auth.uid).child('role').val() === 'admin' && (auth.token.email === 'admin@replate.com' || auth.token.email === 'superadmin@replate.com')) || (auth != null && (data.exists() ? data.child('hotelUserId').val() : newData.child('hotelUserId').val()) === auth.uid && ((root.child('users').child(auth.uid).child('hotelId').val() != null && root.child('hotels').child(root.child('users').child(auth.uid).child('hotelId').val()).child('userId').val() === auth.uid && root.child('hotels').child(root.child('users').child(auth.uid).child('hotelId').val()).child('status').val() === 'approved') || root.child('hotels').child(auth.uid).child('status').val() === 'approved') && (!newData.exists() || newData.child('hotelId').val() === root.child('users').child(auth.uid).child('hotelId').val() || newData.child('hotelId').val() === auth.uid))",
         "avgRating": {
           ".write": "auth != null",
           ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 5"
@@ -71,15 +71,15 @@
       }
     },
     "orders": {
-      ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (query.orderByChild === 'userId' && query.equalTo === auth.uid) || (((root.child('users').child(auth.uid).child('hotelId').val() != null && root.child('hotels').child(root.child('users').child(auth.uid).child('hotelId').val()).child('userId').val() === auth.uid && root.child('hotels').child(root.child('users').child(auth.uid).child('hotelId').val()).child('status').val() === 'approved') || root.child('hotels').child(auth.uid).child('status').val() === 'approved') && query.orderByChild === 'hotelId' && (query.equalTo === auth.uid || query.equalTo === root.child('users').child(auth.uid).child('hotelId').val())))",
+      ".read": "auth != null && ((root.child('users').child(auth.uid).child('role').val() === 'admin' && (auth.token.email === 'admin@replate.com' || auth.token.email === 'superadmin@replate.com')) || (query.orderByChild === 'userId' && query.equalTo === auth.uid) || (((root.child('users').child(auth.uid).child('hotelId').val() != null && root.child('hotels').child(root.child('users').child(auth.uid).child('hotelId').val()).child('userId').val() === auth.uid && root.child('hotels').child(root.child('users').child(auth.uid).child('hotelId').val()).child('status').val() === 'approved') || root.child('hotels').child(auth.uid).child('status').val() === 'approved') && query.orderByChild === 'hotelId' && (query.equalTo === auth.uid || query.equalTo === root.child('users').child(auth.uid).child('hotelId').val())))",
       ".indexOn": [
         "userId",
         "createdAt",
         "hotelId"
       ],
       "$orderId": {
-        ".read": "auth != null && (data.child('userId').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin' || (data.child('hotelId').val() != null && (root.child('hotels').child(data.child('hotelId').val()).child('userId').val() === auth.uid || data.child('hotelId').val() === auth.uid)))",
-        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || ((!data.exists() || (data.child('userId').val() === auth.uid && (data.child('orderStatus').val() === 'pending_pickup' || data.child('orderStatus').val() === 'pending_delivery'))) && newData.child('userId').val() === auth.uid))",
+        ".read": "auth != null && (data.child('userId').val() === auth.uid || (root.child('users').child(auth.uid).child('role').val() === 'admin' && (auth.token.email === 'admin@replate.com' || auth.token.email === 'superadmin@replate.com')) || (data.child('hotelId').val() != null && (root.child('hotels').child(data.child('hotelId').val()).child('userId').val() === auth.uid || data.child('hotelId').val() === auth.uid)))",
+        ".write": "auth != null && ((root.child('users').child(auth.uid).child('role').val() === 'admin' && (auth.token.email === 'admin@replate.com' || auth.token.email === 'superadmin@replate.com')) || ((!data.exists() || (data.child('userId').val() === auth.uid && (data.child('orderStatus').val() === 'pending_pickup' || data.child('orderStatus').val() === 'pending_delivery'))) && newData.child('userId').val() === auth.uid))",
         ".validate": "newData.hasChildren(['userId', 'orderStatus', 'createdAt']) && newData.child('totalAmount').isNumber() && newData.child('totalAmount').val() >= 0",
         "orderStatus": {
           ".write": "auth != null && ((data.parent().child('userId').val() === auth.uid && newData.val() === 'cancelled') || (data.parent().child('hotelId').val() != null && (root.child('hotels').child(data.parent().child('hotelId').val()).child('userId').val() === auth.uid || data.parent().child('hotelId').val() === auth.uid)))"
@@ -153,7 +153,7 @@
     "notifications": {
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",
-        ".write": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".write": "auth != null && (auth.uid === $uid || (root.child('users').child(auth.uid).child('role').val() === 'admin' && (auth.token.email === 'admin@replate.com' || auth.token.email === 'superadmin@replate.com')))",
         "$notificationId": {
           ".write": "auth != null && !data.exists() && newData.exists()",
           ".validate": "newData.hasChildren(['title', 'body', 'timestamp']) && newData.child('title').isString() && newData.child('title').val().length <= 200 && newData.child('body').isString() && newData.child('body').val().length <= 1000"
@@ -161,10 +161,10 @@
       }
     },
     "chats": {
-      ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' && (auth.token.email === 'admin@replate.com' || auth.token.email === 'superadmin@replate.com'))",
       "$convId": {
-        ".read": "auth != null && ($convId.endsWith('_' + auth.uid) || $convId.beginsWith(auth.uid + '_') || root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('hotelId').val() != null && $convId.beginsWith(root.child('users').child(auth.uid).child('hotelId').val() + '_') && root.child('hotels').child(root.child('users').child(auth.uid).child('hotelId').val()).child('userId').val() === auth.uid))",
-        ".write": "auth != null && ($convId.endsWith('_' + auth.uid) || $convId.beginsWith(auth.uid + '_') || root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('hotelId').val() != null && $convId.beginsWith(root.child('users').child(auth.uid).child('hotelId').val() + '_') && root.child('hotels').child(root.child('users').child(auth.uid).child('hotelId').val()).child('userId').val() === auth.uid))",
+        ".read": "auth != null && ($convId.endsWith('_' + auth.uid) || $convId.beginsWith(auth.uid + '_') || (root.child('users').child(auth.uid).child('role').val() === 'admin' && (auth.token.email === 'admin@replate.com' || auth.token.email === 'superadmin@replate.com')) || (root.child('users').child(auth.uid).child('hotelId').val() != null && $convId.beginsWith(root.child('users').child(auth.uid).child('hotelId').val() + '_') && root.child('hotels').child(root.child('users').child(auth.uid).child('hotelId').val()).child('userId').val() === auth.uid))",
+        ".write": "auth != null && ($convId.endsWith('_' + auth.uid) || $convId.beginsWith(auth.uid + '_') || (root.child('users').child(auth.uid).child('role').val() === 'admin' && (auth.token.email === 'admin@replate.com' || auth.token.email === 'superadmin@replate.com')) || (root.child('users').child(auth.uid).child('hotelId').val() != null && $convId.beginsWith(root.child('users').child(auth.uid).child('hotelId').val() + '_') && root.child('hotels').child(root.child('users').child(auth.uid).child('hotelId').val()).child('userId').val() === auth.uid))",
         "messages": {
           ".indexOn": [
             "timestamp"
@@ -180,22 +180,22 @@
         ".indexOn": [
           "lastTimestamp"
         ],
-        ".read": "auth != null && (auth.uid === $ownerId || root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('hotelId').val() === $ownerId && root.child('hotels').child($ownerId).child('userId').val() === auth.uid))",
+        ".read": "auth != null && (auth.uid === $ownerId || (root.child('users').child(auth.uid).child('role').val() === 'admin' && (auth.token.email === 'admin@replate.com' || auth.token.email === 'superadmin@replate.com')) || (root.child('users').child(auth.uid).child('hotelId').val() === $ownerId && root.child('hotels').child($ownerId).child('userId').val() === auth.uid))",
         "$convId": {
-          ".write": "auth != null && (auth.uid === $ownerId || auth != null && ($convId.endsWith('_' + auth.uid) || $convId.beginsWith(auth.uid + '_') || root.child('users').child(auth.uid).child('role').val() === 'admin' || (root.child('users').child(auth.uid).child('hotelId').val() != null && $convId.beginsWith(root.child('users').child(auth.uid).child('hotelId').val() + '_') && root.child('hotels').child(root.child('users').child(auth.uid).child('hotelId').val()).child('userId').val() === auth.uid)))"
+          ".write": "auth != null && (auth.uid === $ownerId || auth != null && ($convId.endsWith('_' + auth.uid) || $convId.beginsWith(auth.uid + '_') || (root.child('users').child(auth.uid).child('role').val() === 'admin' && (auth.token.email === 'admin@replate.com' || auth.token.email === 'superadmin@replate.com')) || (root.child('users').child(auth.uid).child('hotelId').val() != null && $convId.beginsWith(root.child('users').child(auth.uid).child('hotelId').val() + '_') && root.child('hotels').child(root.child('users').child(auth.uid).child('hotelId').val()).child('userId').val() === auth.uid)))"
         }
       }
     },
     "categories": {
       ".read": "auth != null",
-      ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' && (auth.token.email === 'admin@replate.com' || auth.token.email === 'superadmin@replate.com'))",
       ".indexOn": [
         "order"
       ]
     },
     "banners": {
       ".read": "auth != null",
-      ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' && (auth.token.email === 'admin@replate.com' || auth.token.email === 'superadmin@replate.com'))",
       ".indexOn": [
         "order"
       ],
@@ -215,8 +215,8 @@
       }
     },
     "notificationLogs": {
-      ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
-      ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' && (auth.token.email === 'admin@replate.com' || auth.token.email === 'superadmin@replate.com'))",
+      ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' && (auth.token.email === 'admin@replate.com' || auth.token.email === 'superadmin@replate.com'))",
       ".indexOn": [
         "createdAt"
       ]
@@ -230,7 +230,7 @@
     "indexes": {
       "foodByHotel": {
         "$hotelKey": {
-          ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || ($hotelKey != null && (root.child('hotels').child($hotelKey).child('userId').val() === auth.uid || $hotelKey === auth.uid)))"
+          ".write": "auth != null && ((root.child('users').child(auth.uid).child('role').val() === 'admin' && (auth.token.email === 'admin@replate.com' || auth.token.email === 'superadmin@replate.com')) || ($hotelKey != null && (root.child('hotels').child($hotelKey).child('userId').val() === auth.uid || $hotelKey === auth.uid)))"
         }
       },
       "ordersByUser": {

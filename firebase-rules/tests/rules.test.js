@@ -55,7 +55,8 @@ async function check(name, promise) {
   const owner1 = env.authenticatedContext('hotelOwner1').database();
   const owner2 = env.authenticatedContext('hotelOwner2').database();
   const pending = env.authenticatedContext('pendingOwner').database();
-  const admin = env.authenticatedContext('admin1').database();
+  const admin = env.authenticatedContext('admin1', { email: 'admin@replate.com' }).database();
+  const adminWrongEmail = env.authenticatedContext('admin1', { email: 'someone@else.com' }).database();
   const newUser = env.authenticatedContext('newbie').database();
 
   console.log('\nUnauthenticated');
@@ -68,6 +69,7 @@ async function check(name, promise) {
   await check('user cannot read another profile', assertFails(get(ref(cust1, 'users/cust2'))));
   await check('user cannot list all users', assertFails(get(ref(cust1, 'users'))));
   await check('admin can list all users', assertSucceeds(get(ref(admin, 'users'))));
+  await check('admin role with a non-admin email gets no admin access', assertFails(get(ref(adminWrongEmail, 'users'))));
   await check('new customer registers with role customer', assertSucceeds(set(ref(newUser, 'users/newbie'), { role: 'customer', userType: 'customer', name: 'N' })));
   await check('new hotel registers with role hotel', assertSucceeds(set(ref(env.authenticatedContext('newhotel').database(), 'users/newhotel'), { role: 'hotel', userType: 'hotel', hotelId: 'hX' })));
   await check('cannot register as admin', assertFails(set(ref(env.authenticatedContext('evil').database(), 'users/evil'), { role: 'admin' })));

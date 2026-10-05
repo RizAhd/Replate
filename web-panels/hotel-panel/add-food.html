@@ -306,8 +306,6 @@
             await database.ref('indexes/foodByHotel/' + resolvedHotel.hotelId + '/' + foodId).set(true).catch(() => {});
             await database.ref('indexes/foodByHotel/' + resolvedHotel.userId + '/' + foodId).set(true).catch(() => {});
 
-            sendPushNotification(foodItem.hotelName, foodItem.foodName);
-
             leave('manage-listings.html', 'Listing published. Customers nearby can see it now.', 'success');
         } catch (error) {
             console.error(error);
@@ -317,17 +315,6 @@
         }
     });
 
-    function sendPushNotification(hotelName, foodName) {
-        NotificationApi.sendDeal({
-            title: "New Food Alert!",
-            body: `${hotelName} added ${foodName} at a discount!`,
-            type: "new_deal",
-            route: "deals",
-            data: { hotelName, foodName }
-        }).catch((err) => {
-            console.error('Error sending notification:', err);
-        });
-    }
 </script>
 </body>
 </html>

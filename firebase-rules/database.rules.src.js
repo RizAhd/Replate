@@ -9,7 +9,11 @@
 const SIGNED_IN = 'auth != null';
 
 // users/{uid}/role is set to "admin" by hand in the Firebase console; clients can never grant it.
-const ADMIN = "root.child('users').child(auth.uid).child('role').val() === 'admin'";
+// The role alone is not enough: the signed-in address must also be one of the two admin addresses
+// (the same two as js/ui-shell.js and storage.rules), so a role set by mistake cannot grant admin.
+const ADMIN =
+  "(root.child('users').child(auth.uid).child('role').val() === 'admin'" +
+  " && (auth.token.email === 'admin@replate.com' || auth.token.email === 'superadmin@replate.com'))";
 
 // The hotels/{key} record owned by the signed-in user (hotel panel stores the key at users/{uid}/hotelId)
 const MY_HOTEL_KEY = "root.child('users').child(auth.uid).child('hotelId').val()";
