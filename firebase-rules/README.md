@@ -21,6 +21,9 @@ The rules assume how the app and web panels use the data **today**. Do these fir
 
 1. **Make sure an admin exists.** In the Firebase console, open the Realtime Database and set
    `users/<your admin uid>/role` to `"admin"`. Clients can never grant this role, so nothing else will.
+   The admin must also sign in with `admin@replate.com` or `superadmin@replate.com`: the rules require
+   the role **and** one of those two addresses (the same two as `web-panels/js/ui-shell.js` and
+   `storage.rules`).
 2. **Deploy the Cloud Functions first** (`firebase deploy --only functions`). Stock is now reduced only
    by `onOrderCreatedNotify`, because customers can no longer write `foodItems/*/quantity`. If the
    function is not deployed, stock will not go down when orders are placed.
@@ -38,8 +41,13 @@ The rules assume how the app and web panels use the data **today**. Do these fir
   read/write their own profile, notifications and chats.
 - **Hotels** (approved by an admin) manage their own listings, update the status of their own orders,
   read **only their own** orders (a `hotelId` query, never the whole list), and chat with customers.
-- **Admins** (`users/<uid>/role == "admin"`) approve hotels and manage categories, banners, users,
-  notifications and logs.
+- **Admins** (role `admin` and one of the two admin addresses) approve hotels and manage categories,
+  banners, users, notifications and logs. Suspending an account is done by the `setUserSuspended`
+  Cloud Function; `users/<uid>/status` can only be written by an admin and a suspended account cannot
+  clear it.
+- Only an **approved** hotel can create or edit `foodItems`, and a listing must carry that hotel's own
+  `hotelId`. Business licences live in `hotelLicenses/<hotelId>`, readable only by the owner and admins
+  (older hotels: run `scripts/migrate-hotel-licenses.js` once).
 - **Cloud Functions** use the admin SDK and bypass all of these rules.
 - Nobody can promote themselves: a role is chosen once at sign-up (customer or hotel) and only an
   admin can change it. New hotels can only register as `pending`.

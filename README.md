@@ -14,6 +14,16 @@ This repository holds all four parts of the system:
 
 Also: `docs/brand/` (logo files) and `docs/IMAGE_CREDITS.md` (photo credits).
 
+## Documentation
+
+| File | For |
+|---|---|
+| [docs/USER_MANUAL_CUSTOMER.md](docs/USER_MANUAL_CUSTOMER.md) | Customers using the app |
+| [docs/USER_MANUAL_HOTEL.md](docs/USER_MANUAL_HOTEL.md) | Hotel staff using the hotel panel |
+| [docs/USER_MANUAL_ADMIN.md](docs/USER_MANUAL_ADMIN.md) | The platform administrator |
+| [docs/TECHNICAL_GUIDE.md](docs/TECHNICAL_GUIDE.md) | Architecture, setup, deployment, tests, where each feature lives |
+| [docs/REPORT_CORRECTIONS.md](docs/REPORT_CORRECTIONS.md) | Page-by-page changes for the final project report |
+
 ## The Android app
 
 - Customer sign-in: email/password (with verified email), Google, Facebook and phone.
@@ -49,7 +59,9 @@ Prerequisites: [Android Studio](https://developer.android.com/studio),
 
 ```bash
 ./gradlew testDebugUnitTest      # Android unit tests (pure logic: validators, route cache, banners, map rules)
-npm install && npm run rules:test  # security rules, in the Firebase emulator (needs Java)
+npm install && npm run rules:test  # security rules, in the Firebase emulator (needs JDK 21 or newer)
+npm run web:check                  # every script and link in web-panels/ parses and resolves
+npm run web:test                   # the shared order rules the panels use (revenue, pending, expiry)
 ```
 
 Both run automatically on every push through GitHub Actions (`.github/workflows/ci.yml`).
