@@ -567,6 +567,16 @@ public class CheckoutActivity extends AppCompatActivity {
         String hotelId = "";
         String hotelName = "";
 
+        // The cart does not store a dish's category, but the browsing cache does. Saving it on each
+        // order line lets the admin and hotel analytics break revenue down by category.
+        Map<String, String> categoryByFood = new HashMap<>();
+        for (com.replate.app.models.FoodItem cached
+                : com.replate.app.helpers.ReplateDatabaseHelper.getInstance(this).getCachedFoodItems()) {
+            if (cached.getFoodId() != null && cached.getCategory() != null && !cached.getCategory().trim().isEmpty()) {
+                categoryByFood.put(cached.getFoodId(), cached.getCategory().trim());
+            }
+        }
+
         for (CartItem item : cartItems) {
             Map<String, Object> itemMap = new HashMap<>();
             itemMap.put("foodId", item.getFoodId());
@@ -574,6 +584,10 @@ public class CheckoutActivity extends AppCompatActivity {
             itemMap.put("quantity", item.getQuantity());
             itemMap.put("price", item.getPrice());
             itemMap.put("imageUrl", item.getImageUrl() != null ? item.getImageUrl() : "");
+            String category = categoryByFood.get(item.getFoodId());
+            if (category != null) {
+                itemMap.put("category", category);
+            }
             itemsList.add(itemMap);
 
             if (hotelId.isEmpty()) {
