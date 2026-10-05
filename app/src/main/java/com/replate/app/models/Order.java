@@ -43,6 +43,7 @@ public class Order implements Serializable {
     private Object subtotalAmount;
     private Object deliveryFee;
     private Object savingsAmount;
+    private Object pickupExpiresAt;
 
     public Order() {}
 
@@ -167,8 +168,22 @@ public class Order implements Serializable {
     public void setSubtotalAmount(Object subtotalAmount) { this.subtotalAmount = subtotalAmount; }
     public void setDeliveryFee(Object deliveryFee) { this.deliveryFee = deliveryFee; }
     public void setSavingsAmount(Object savingsAmount) { this.savingsAmount = savingsAmount; }
+    public void setPickupExpiresAt(Object pickupExpiresAt) { this.pickupExpiresAt = pickupExpiresAt; }
+
+    public Object getPickupExpiresAt() { return pickupExpiresAt; }
 
     // --- Helper methods ---
+    /** When the pickup QR and OTP stop working; 0 for delivery orders and orders from before expiry existed. */
+    @Exclude
+    public long getPickupExpiresAtValue() { return toLong(pickupExpiresAt); }
+
+    /** An order that can still be collected, but whose pickup window has closed. */
+    @Exclude
+    public boolean isPickupExpired(long nowMillis) {
+        return !isDelivery() && isActive()
+                && com.replate.app.utils.PickupWindow.isExpired(getPickupExpiresAtValue(), nowMillis);
+    }
+
     @Exclude
     public boolean isActive() {
         return orderStatus != null &&

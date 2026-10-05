@@ -337,12 +337,19 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         String otp = order.getOtpCode();
         tvOTP.setText(otp != null ? otp : "------");
 
-        // The pickup QR and OTP are only useful while the order can still be collected
-        boolean showQr = order.isActive();
+        // The pickup QR and OTP are only useful while the order can still be collected and its
+        // pickup window is open; after that the hotel panel rejects them anyway
+        boolean pickupExpired = order.isPickupExpired(System.currentTimeMillis());
+        boolean showQr = order.isActive() && !pickupExpired;
         if (cardQR != null) cardQR.setVisibility(showQr ? View.VISIBLE : View.GONE);
         if (showQr) {
             String qrData = order.getQrCode() != null ? order.getQrCode() : order.getOrderId();
             generateQRCode(qrData);
+        }
+        if (pickupExpired) {
+            tvOrderStatus.setText(R.string.order_detail_pickup_expired);
+            tvPickupTime.setText(getString(R.string.order_detail_pickup_expired_hint,
+                    order.getPickupTime() != null ? order.getPickupTime() : ""));
         }
 
         // Cancelled orders get a red banner; the route to the hotel makes no sense for delivery orders

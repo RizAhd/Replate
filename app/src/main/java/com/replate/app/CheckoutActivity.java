@@ -603,6 +603,14 @@ public class CheckoutActivity extends AppCompatActivity {
             orderData.put("deliveryLongitude", selectedDeliveryLng);
         }
         orderData.put("pickupTime", pickupTime);
+        if (!isDelivery) {
+            // The pickup QR and OTP stop working when this window closes
+            long expiresAt = com.replate.app.utils.PickupWindow.expiresAt(
+                    pickupTime, System.currentTimeMillis(), java.util.TimeZone.getDefault());
+            if (expiresAt > 0) {
+                orderData.put("pickupExpiresAt", expiresAt);
+            }
+        }
         orderData.put("qrCode", orderId);
         orderData.put("pickupCode", orderId);
         orderData.put("otpCode", otpCode);
