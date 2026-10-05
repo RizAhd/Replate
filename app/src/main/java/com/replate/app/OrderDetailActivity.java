@@ -41,6 +41,7 @@ import com.replate.app.models.Order;
 import com.replate.app.utils.SafeSnapshot;
 import com.replate.app.utils.CallHelper;
 import com.replate.app.utils.HotelNavigation;
+import com.replate.app.utils.OrderTimeline;
 import com.replate.app.utils.TelephonyUtils;
 import com.replate.app.utils.ToastUtils;
 
@@ -365,7 +366,97 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         }
 
         showOrderItems();
+        buildTimeline();
         updateReviewSection();
+    }
+
+    /**
+     * A row of dots from "placed" to "collected" or "delivered", filled up to the step the order has
+     * reached, so the customer sees progress at a glance instead of reading a status sentence.
+     * Cancelled orders have no timeline.
+     */
+    private void buildTimeline() {
+        View card = findViewById(R.id.cardTimeline);
+        LinearLayout row = findViewById(R.id.layoutTimeline);
+        if (card == null || row == null || order == null) return;
+
+        int current = OrderTimeline.currentStep(order.getOrderStatus());
+        if (current < 0) {
+            card.setVisibility(View.GONE);
+            return;
+        }
+        card.setVisibility(View.VISIBLE);
+        row.removeAllViews();
+
+        boolean delivery = order.isDelivery();
+        int lineHeight = (int) (3 * getResources().getDisplayMetrics().density);
+        int doneColor = getColor(R.color.primary);
+        int todoColor = getColor(R.color.divider);
+
+        for (int step = 0; step < OrderTimeline.STEP_COUNT; step++) {
+            LinearLayout column = new LinearLayout(this);
+            column.setOrientation(LinearLayout.VERTICAL);
+            column.setGravity(android.view.Gravity.CENTER_HORIZONTAL);
+            column.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+
+            LinearLayout dotRow = new LinearLayout(this);
+            dotRow.setOrientation(LinearLayout.HORIZONTAL);
+            dotRow.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            dotRow.setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+
+            // The line on the left is "done" once this step is reached; the line on the right once the next one is
+            View left = new View(this);
+            left.setLayoutParams(new LinearLayout.LayoutParams(0, lineHeight, 1f));
+            left.setBackgroundColor(step <= current ? doneColor : todoColor);
+            left.setVisibility(step == 0 ? View.INVISIBLE : View.VISIBLE);
+
+            ImageView dot = new ImageView(this);
+            int dotSize = (int) (24 * getResources().getDisplayMetrics().density);
+            dot.setLayoutParams(new LinearLayout.LayoutParams(dotSize, dotSize));
+            int stateCd;
+            if (step < current) {
+                dot.setImageResource(R.drawable.timeline_dot_done);
+                stateCd = R.string.timeline_step_done_cd;
+            } else if (step == current) {
+                dot.setImageResource(current == OrderTimeline.STEP_COUNT - 1
+                        ? R.drawable.timeline_dot_done : R.drawable.timeline_dot_current);
+                stateCd = R.string.timeline_step_current_cd;
+            } else {
+                dot.setImageResource(R.drawable.timeline_dot_todo);
+                stateCd = R.string.timeline_step_todo_cd;
+            }
+            dot.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+
+            View right = new View(this);
+            right.setLayoutParams(new LinearLayout.LayoutParams(0, lineHeight, 1f));
+            right.setBackgroundColor(step < current ? doneColor : todoColor);
+            right.setVisibility(step == OrderTimeline.STEP_COUNT - 1 ? View.INVISIBLE : View.VISIBLE);
+
+            dotRow.addView(left);
+            dotRow.addView(dot);
+            dotRow.addView(right);
+
+            String label = getString(OrderTimeline.labelFor(step, delivery));
+            TextView text = new TextView(this);
+            text.setText(label);
+            text.setGravity(android.view.Gravity.CENTER);
+            text.setMaxLines(2);
+            text.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.text_caption));
+            text.setTextColor(getColor(step == current ? R.color.primary : R.color.text_secondary));
+            if (step == current) {
+                text.setTypeface(text.getTypeface(), android.graphics.Typeface.BOLD);
+            }
+            LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            textParams.topMargin = (int) (6 * getResources().getDisplayMetrics().density);
+            text.setLayoutParams(textParams);
+
+            column.setContentDescription(getString(stateCd, label));
+            column.addView(dotRow);
+            column.addView(text);
+            row.addView(column);
+        }
     }
 
     private void showOrderItems() {

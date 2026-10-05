@@ -85,6 +85,26 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:paddingBottom="@dimen/space_3">
+
+            <!-- Where the order is now: one dot per step, filled up to the current one -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardTimeline"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/space_2"
+                android:layout_marginBottom="@dimen/space_2"
+                app:cardCornerRadius="@dimen/radius_xl"
+                app:cardElevation="@dimen/elevation_card">
+
+                <LinearLayout
+                    android:id="@+id/layoutTimeline"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="@dimen/space_1"
+                    android:paddingVertical="@dimen/space_2" />
+            </com.google.android.material.card.MaterialCardView>
+
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardQR"
                 android:layout_width="match_parent"
