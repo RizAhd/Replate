@@ -49,6 +49,12 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
         notifyItemChanged(position);
     }
 
+    /** Selects a chip after the list itself was replaced, because the old position may point elsewhere. */
+    public void resetSelection(int position) {
+        selectedPosition = Math.max(0, Math.min(position, categories.size() - 1));
+        notifyDataSetChanged();
+    }
+
     @NonNull
     @Override
     public CategoryViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {

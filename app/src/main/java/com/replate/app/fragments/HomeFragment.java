@@ -38,6 +38,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.replate.app.utils.AppAnalytics;
 import com.replate.app.FoodDetailActivity;
@@ -54,6 +55,7 @@ import com.replate.app.helpers.FoodItemCacheManager;
 import com.replate.app.helpers.ReplateDatabaseHelper;
 import com.replate.app.models.BannerItem;
 import com.replate.app.models.Category;
+import com.replate.app.utils.CategoryIcons;
 import com.replate.app.models.FoodItem;
 import com.replate.app.notifications.NotificationRouter;
 import com.replate.app.utils.ShakeDetector;
@@ -96,6 +98,8 @@ public class HomeFragment extends Fragment implements
 
     // Adapters
     private CategoryAdapter categoryAdapter;
+    private Query serverCategoriesQuery;
+    private ValueEventListener serverCategoriesListener;
     private FoodItemAdapter foodItemAdapter;
     private FoodItemAdapter hotDealsAdapter;
     private FoodItemAdapter favoritesAdapter;
@@ -253,8 +257,9 @@ public class HomeFragment extends Fragment implements
         setupBanner();
 
 
-        // Setup categories
+        // Setup categories: the built-in six first, replaced by the admin's list once it loads
         setupCategories();
+        listenForServerCategories();
 
         // Setup click listeners
         setupClickListeners();
@@ -299,6 +304,62 @@ public class HomeFragment extends Fragment implements
         categories.add(new Category("desserts", "Desserts", R.drawable.ic_category_desserts));
 
         categoryAdapter.notifyDataSetChanged();
+    }
+
+    /**
+     * The admin manages the category list (admin panel > Categories). When it has entries they
+     * replace the built-in chips, so adding, renaming or reordering a category shows up here. With
+     * no entries, or offline, the built-in chips stay.
+     */
+    private void listenForServerCategories() {
+        if (serverCategoriesQuery != null && serverCategoriesListener != null) {
+            serverCategoriesQuery.removeEventListener(serverCategoriesListener);
+        }
+        serverCategoriesQuery = mDatabase.child("categories").orderByChild("order");
+        serverCategoriesListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (!isAdded() || categoryAdapter == null) return;
+
+                List<Category> fromServer = new ArrayList<>();
+                for (DataSnapshot child : snapshot.getChildren()) {
+                    String name = child.child("name").getValue() instanceof String
+                            ? ((String) child.child("name").getValue()).trim() : "";
+                    if (name.isEmpty() || "all".equalsIgnoreCase(name)) continue;
+                    fromServer.add(new Category(child.getKey(), name, CategoryIcons.forName(name)));
+                }
+                if (fromServer.isEmpty()) {
+                    setupCategories();
+                    return;
+                }
+
+                categories.clear();
+                categories.add(new Category("all", "All", R.drawable.ic_category_all));
+                categories.addAll(fromServer);
+
+                // Keep the chip the customer had picked, or fall back to All if it was removed
+                int selectedIndex = 0;
+                for (int i = 0; i < categories.size(); i++) {
+                    if (categories.get(i).getName().equalsIgnoreCase(selectedCategory)) {
+                        selectedIndex = i;
+                        break;
+                    }
+                }
+                boolean selectionRemoved = selectedIndex == 0 && !"All".equalsIgnoreCase(selectedCategory);
+                if (selectionRemoved) {
+                    selectedCategory = "All";
+                    filterByCategory(selectedCategory);
+                }
+                categoryAdapter.resetSelection(selectedIndex);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // Offline or denied: the built-in chips stay
+                android.util.Log.w("HomeFragment", "Categories listener cancelled: " + error.getMessage());
+            }
+        };
+        serverCategoriesQuery.addValueEventListener(serverCategoriesListener);
     }
 
     private void setupBanner() {
@@ -1154,6 +1215,9 @@ public class HomeFragment extends Fragment implements
         // Otherwise a new favorites listener piles up every time this tab is opened
         if (favoritesRef != null && favoritesListener != null) {
             favoritesRef.removeEventListener(favoritesListener);
+        }
+        if (serverCategoriesQuery != null && serverCategoriesListener != null) {
+            serverCategoriesQuery.removeEventListener(serverCategoriesListener);
         }
         if (foodParseExecutor != null) {
             foodParseExecutor.shutdownNow();
