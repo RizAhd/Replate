@@ -409,6 +409,11 @@
         if (badge) badge.style.display = 'none';
     });
 
+    // Last known status of every hotel and order. Firebase's child_changed fires for ANY edit
+    // (a phone number, an FCM token, a review), so the feed only reports a change when the status moved.
+    const hotelStatusSeen = {};
+    const orderStatusSeen = {};
+
     // ── Real-Time Listeners ────────────────────────────────
     async function attachRealtimeListeners() {
         if (listenersAttached) return;
@@ -475,6 +480,8 @@
         database.ref('orders').on('child_changed', (snap) => {
             const order = snap.val() || {};
             const status = ReplateSchema.normalizeOrderStatus(order.orderStatus);
+            if (orderStatusSeen[snap.key] === status) return; // another field changed, not the status
+            orderStatusSeen[snap.key] = status;
             const label = ReplateSchema.statusLabel(status);
             addActivityItem('icon-status',
                 `Order status: ${label}`,
@@ -494,11 +501,13 @@
                     hotel.createdAt || Date.now());
             });
 
-        // Hotel status changes (approved/rejected)
+        // Hotel status changes (approved / rejected / suspended)
         database.ref('hotels').on('child_changed', (snap) => {
             const hotel = snap.val() || {};
-            const status = (hotel.status || '').toLowerCase();
-            if (status === 'approved' || status === 'rejected') {
+            const status = ReplateSchema.normalizeHotelStatus(hotel.status);
+            if (hotelStatusSeen[snap.key] === status) return; // phone, token or name edit, not a status change
+            hotelStatusSeen[snap.key] = status;
+            if (status === 'approved' || status === 'rejected' || status === 'suspended') {
                 addActivityItem('icon-hotel',
                     `Hotel ${status}: ${hotel.hotelName || hotel.name || 'Unknown'}`,
                     `${hotel.email || hotel.ownerName || '—'}`,
@@ -534,7 +543,7 @@
                 const log = snap.val() || {};
                 addActivityItem('icon-notif',
                     `Notification sent: ${log.action || 'unknown'}`,
-                    `${log.payload?.title || '—'} → ${log.target || log.userIds?.length + ' users' || '—'}`,
+                    `${log.payload?.title || '—'} → ${log.target || (log.userIds ? log.userIds.length + ' users' : '—')}`,
                     log.createdAt || Date.now());
             });
 
@@ -547,11 +556,15 @@
             let pending = 0;
             if (snap.exists()) {
                 snap.forEach(child => {
-                    const status = (child.val()?.status || '').toLowerCase();
-                    if (status === 'pending' || status === '') pending++;
+                    const status = ReplateSchema.normalizeHotelStatus(child.val()?.status);
+                    hotelStatusSeen[child.key] = status;
+                    if (status === 'pending') pending++;
                 });
             }
             document.getElementById('statPendingHotels').textContent = pending;
+        }, (error) => {
+            console.error('Could not load hotels', error);
+            document.getElementById('statPendingHotels').textContent = '—';
         });
 
         // New orders (pending status)
@@ -561,20 +574,30 @@
                 snap.forEach(child => {
                     const o = child.val() || {};
                     const status = ReplateSchema.normalizeOrderStatus(o.orderStatus);
-                    if (status === 'pending_pickup' || status === 'pending' || status === 'placed') newOrders++;
+                    orderStatusSeen[child.key] = status;
+                    if (status === 'pending_pickup' || status === 'pending_delivery') newOrders++;
                 });
             }
             document.getElementById('statNewOrders').textContent = newOrders;
+        }, (error) => {
+            console.error('Could not load orders', error);
+            document.getElementById('statNewOrders').textContent = '—';
         });
 
         // Total users
         database.ref('users').on('value', (snap) => {
             document.getElementById('statTotalUsers').textContent = snap.exists() ? snap.numChildren() : 0;
+        }, (error) => {
+            console.error('Could not load users', error);
+            document.getElementById('statTotalUsers').textContent = '—';
         });
 
         // Sent today from notificationLogs
         database.ref('notificationLogs').orderByChild('createdAt').startAt(todayStart()).on('value', (snap) => {
             document.getElementById('statSentToday').textContent = snap.exists() ? snap.numChildren() : 0;
+        }, (error) => {
+            console.error('Could not load notification logs', error);
+            document.getElementById('statSentToday').textContent = '—';
         });
     }
 
@@ -641,6 +664,10 @@
                         <td data-label="Result">${resultHtml}</td>
                     </tr>`;
             }).join('');
+        }, (error) => {
+            console.error('Could not load notification history', error);
+            document.getElementById('historyTable').innerHTML = '<tr><td colspan="5">' +
+                ReplateUI.errorState('The notification history could not be loaded. Check your admin access and connection.') + '</td></tr>';
         });
     }
 
@@ -711,6 +738,17 @@
         }
     }
 
+    /**
+     * The Cloud Function (which sends the phone push) failed and the message was only saved into the
+     * in-app notification lists. Say so plainly: it is NOT the same as a delivered push.
+     */
+    function reportFallback(reason, savedCount) {
+        ReplateUI.toast(
+            'The push service could not be reached (' + reason + '). The message was saved in ' + savedCount +
+            ' in-app notification list(s) only, so phones were not sent a push. Check that the Cloud Functions are deployed.',
+            'warning', 12000);
+    }
+
     // ── Send Form Handlers ─────────────────────────────────
     document.getElementById('broadcastForm').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -731,6 +769,7 @@
 
             let result;
             let method = 'cloud_function';
+            let cfMessage = '';
 
             try {
                 // Try Cloud Functions first
@@ -738,12 +777,14 @@
             } catch (cfErr) {
                 console.warn('Cloud Function failed, using Firebase direct write:', cfErr.message);
                 method = 'firebase_direct';
+                cfMessage = cfErr.message || 'unknown error';
                 // Fallback: write notifications directly to Firebase
                 result = await writeNotificationsDirectly(title, body, type, 'admin_broadcast', route, target);
                 await logNotificationSend('broadcast', target, { title, body }, result);
             }
 
-            ReplateUI.showAlert(`Broadcast sent (${method === 'firebase_direct' ? 'saved to ' + (result.written || 0) + ' users via Firebase' : 'via Cloud Function'}) to ${target}`, 'success');
+            if (method === 'firebase_direct') reportFallback(cfMessage, result.written || 0);
+            else ReplateUI.showAlert('Broadcast sent to ' + target + '.', 'success');
             document.getElementById('broadcastForm').reset();
             document.getElementById('broadcastType').value = 'announcement';
             document.getElementById('broadcastRoute').value = 'notifications';
@@ -771,6 +812,7 @@
 
             let result;
             let method = 'cloud_function';
+            let cfMessage = '';
 
             try {
                 result = await NotificationApi.sendTargeted({
@@ -782,6 +824,7 @@
             } catch (cfErr) {
                 console.warn('Cloud Function failed, using Firebase direct write:', cfErr.message);
                 method = 'firebase_direct';
+                cfMessage = cfErr.message || 'unknown error';
                 // Fallback: write directly to each user's notifications
                 const updates = {};
                 const now = Date.now();
@@ -803,7 +846,8 @@
                 await logNotificationSend('targeted', userIds.length + ' users', { title, body }, result);
             }
 
-            ReplateUI.showAlert(`Targeted notification sent to ${userIds.length} user(s) (${method === 'firebase_direct' ? 'via Firebase' : 'via Cloud Function'})`, 'success');
+            if (method === 'firebase_direct') reportFallback(cfMessage, userIds.length);
+            else ReplateUI.showAlert('Notification sent to ' + userIds.length + ' user(s).', 'success');
             document.getElementById('targetedForm').reset();
         } catch (err) {
             ReplateUI.showAlert('Targeted send failed: ' + err.message, 'danger');
@@ -825,6 +869,7 @@
 
             let result;
             let method = 'cloud_function';
+            let cfMessage = '';
 
             try {
                 result = await NotificationApi.sendDeal({
@@ -836,12 +881,14 @@
             } catch (cfErr) {
                 console.warn('Cloud Function failed, using Firebase direct write:', cfErr.message);
                 method = 'firebase_direct';
+                cfMessage = cfErr.message || 'unknown error';
                 // Fallback: write deal notifications directly to all customers
                 result = await writeNotificationsDirectly(title, body, 'new_deal', 'new_deals', 'deals', 'customers');
                 await logNotificationSend('deal', 'all customers', { title, body }, result);
             }
 
-            ReplateUI.showAlert(`Deal notification sent (${method === 'firebase_direct' ? 'to ' + (result.written || 0) + ' users via Firebase' : 'via Cloud Function'})`, 'success');
+            if (method === 'firebase_direct') reportFallback(cfMessage, result.written || 0);
+            else ReplateUI.showAlert('Deal notification sent.', 'success');
             document.getElementById('dealForm').reset();
         } catch (err) {
             ReplateUI.showAlert('Deal send failed: ' + err.message, 'danger');

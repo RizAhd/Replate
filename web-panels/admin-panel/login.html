@@ -67,7 +67,8 @@
 <script src="../js/ui-shell.js"></script>
 
 <script>
-    const ADMIN_EMAILS = ['admin@replate.com', 'superadmin@replate.com'];
+    // The admin addresses live in js/ui-shell.js (and in firebase-rules); change them there
+    const ADMIN_EMAILS = ReplateUI.ADMIN_EMAILS;
     ReplateUI.attachPasswordToggle('password', 'toggleAdminPassword', 'toggleAdminPasswordIcon');
 
     function friendlyAuthError(error) {

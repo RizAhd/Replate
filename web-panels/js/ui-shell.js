@@ -438,6 +438,7 @@ const ReplateUI = (() => {
         showAlert,
         confirmAction,
         askText,
+        ADMIN_EMAILS,
         requireRole,
         requireApprovedHotel,
         compressImage,
