@@ -39,6 +39,7 @@ import com.google.zxing.common.BitMatrix;
 import com.replate.app.utils.Money;
 import com.replate.app.models.Order;
 import com.replate.app.utils.SafeSnapshot;
+import com.replate.app.utils.CallHelper;
 import com.replate.app.utils.TelephonyUtils;
 import com.replate.app.utils.ToastUtils;
 
@@ -66,6 +67,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
     private View reviewSection;
 
     private boolean reviewFormPrepared;
+    private CallHelper callHelper;
     private String lastQrData;
 
     private DatabaseReference mDatabase;
@@ -81,6 +83,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        callHelper = new CallHelper(this);
         setContentView(R.layout.activity_order_detail);
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
@@ -428,12 +431,9 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
      */
     private void callHotel() {
         resolveHotelPhone(phone -> {
-            // The dialer needs no CALL_PHONE permission; the customer taps once to place the call.
-            try {
-                TelephonyUtils.openDialer(this, phone);
-            } catch (android.content.ActivityNotFoundException e) {
-                ToastUtils.showCustomToast(this, R.string.order_detail_no_phone_app_available);
-            }
+            // Direct call when CALL_PHONE is granted (asked for here), dialer otherwise
+            callHelper.call(phone, () ->
+                    ToastUtils.showCustomToast(this, R.string.order_detail_no_phone_app_available));
         });
     }
 

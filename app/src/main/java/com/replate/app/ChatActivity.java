@@ -35,6 +35,7 @@ import com.replate.app.adapters.ChatAdapter;
 import com.replate.app.helpers.ChatDatabaseHelper;
 import com.replate.app.models.ChatMessage;
 import com.replate.app.utils.SafeSnapshot;
+import com.replate.app.utils.CallHelper;
 import com.replate.app.utils.TelephonyUtils;
 import com.replate.app.utils.ToastUtils;
 
@@ -87,6 +88,7 @@ public class ChatActivity extends AppCompatActivity {
     private String currentUserName;
     private String currentUserType; // "customer" or "hotel"
     private boolean isHotelView;
+    private CallHelper callHelper;
 
     // Tracks message IDs already loaded from SQLite so Firebase doesn't duplicate them
     private final Set<String> loadedMessageIds = new HashSet<>();
@@ -103,6 +105,7 @@ public class ChatActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        callHelper = new CallHelper(this);
         setContentView(R.layout.activity_chat);
 
         // Get intent data
@@ -575,12 +578,9 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void initiateCall(String phone) {
-        // The dialer needs no CALL_PHONE permission; the customer taps once to place the call.
-        try {
-            TelephonyUtils.openDialer(this, phone);
-        } catch (android.content.ActivityNotFoundException e) {
-            ToastUtils.showCustomToast(this, R.string.chat_no_phone_app_available);
-        }
+        // Direct call when CALL_PHONE is granted (asked for here), dialer otherwise
+        callHelper.call(phone, () ->
+                ToastUtils.showCustomToast(this, R.string.chat_no_phone_app_available));
     }
 
     @Override

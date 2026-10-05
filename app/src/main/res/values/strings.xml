@@ -757,6 +757,7 @@ Total: LKR %1$.2f</string>
     <string name="notifications_undo">Undo</string>
     <string name="notifications_confirm_delete_all">Are you sure you want to delete all %1$d notifications? This cannot be undone.</string>
     <string name="favorites_empty_cta">Find dishes</string>
+    <string name="food_detail_chat_hotel_cd">Chat with hotel</string>
     <string name="notification_mark_read">Mark as read</string>
     <string name="network_back_online">Back online</string>
     <string name="network_offline">No internet connection. Some features may not work.</string>

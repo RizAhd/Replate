@@ -41,6 +41,7 @@ import com.replate.app.models.CartItem;
 import com.replate.app.models.FoodItem;
 import com.replate.app.models.Review;
 import com.replate.app.utils.SafeSnapshot;
+import com.replate.app.utils.CallHelper;
 import com.replate.app.utils.TelephonyUtils;
 import com.replate.app.utils.ToastUtils;
 import com.replate.app.utils.LocationUtils;
@@ -59,7 +60,8 @@ public class FoodDetailActivity extends AppCompatActivity {
     private TextView tvOriginalPrice, tvDiscountedPrice, tvDiscount;
     private TextView tvPickupTime, tvDistance, tvQuantity;
     private Button btnAddToCart, btnMinus, btnPlus;
-    private View btnCallHotel, btnSmsHotel;
+    private View btnCallHotel, btnSmsHotel, btnChatHotel;
+    private CallHelper callHelper;
 
     private TextView tvReviewSummary, tvNoReviews, tvNoRecommendations;
     private RatingBar ratingInput;
@@ -85,6 +87,7 @@ public class FoodDetailActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        callHelper = new CallHelper(this);
         setContentView(R.layout.activity_food_detail);
 
         // Get food item from intent
@@ -127,6 +130,7 @@ public class FoodDetailActivity extends AppCompatActivity {
         btnPlus = findViewById(R.id.btnPlus);
         btnCallHotel = findViewById(R.id.btnCallHotel);
         btnSmsHotel = findViewById(R.id.btnSmsHotel);
+        btnChatHotel = findViewById(R.id.btnChatHotel);
 
         tvReviewSummary = findViewById(R.id.tvReviewSummary);
         tvNoReviews = findViewById(R.id.tvNoReviews);
@@ -225,7 +229,8 @@ public class FoodDetailActivity extends AppCompatActivity {
         }
 
         btnCallHotel.setOnClickListener(v -> callHotel());
-        btnSmsHotel.setOnClickListener(v -> openChat());
+        btnSmsHotel.setOnClickListener(v -> smsHotel());
+        btnChatHotel.setOnClickListener(v -> openChat());
 
         btnMinus.setOnClickListener(v -> {
             if (quantity > 1) {
@@ -742,12 +747,9 @@ public class FoodDetailActivity extends AppCompatActivity {
 
     private void callHotel() {
         resolveHotelPhone(phone -> {
-            // The dialer needs no CALL_PHONE permission; the customer taps once to place the call.
-            try {
-                TelephonyUtils.openDialer(this, phone);
-            } catch (android.content.ActivityNotFoundException e) {
-                ToastUtils.showCustomToast(this, R.string.food_detail_no_phone_app_available);
-            }
+            // Direct call when CALL_PHONE is granted (asked for here), dialer otherwise
+            callHelper.call(phone, () ->
+                    ToastUtils.showCustomToast(this, R.string.food_detail_no_phone_app_available));
         });
     }
 
