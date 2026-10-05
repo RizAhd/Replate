@@ -69,6 +69,7 @@ import com.replate.app.map.model.FoodPlace;
 import com.replate.app.map.routing.DirectionsApiClient;
 import com.replate.app.map.routing.RouteResult;
 import com.replate.app.utils.LocationUtils;
+import com.replate.app.receivers.GpsStateReceiver;
 import com.replate.app.utils.ToastUtils;
 
 import java.io.IOException;
@@ -110,6 +111,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private TextView tvMapStatus;
     private Button btnMapStatusAction;
     private boolean placesLoadFailed;
+    private GpsStateReceiver gpsReceiver;
 
     // State
     private LatLng currentUserLatLng;
@@ -1359,6 +1361,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         super.onResume();
         // The user may have changed location access or turned GPS on from the phone settings
         updateMapStatus();
+        if (gpsReceiver == null) {
+            gpsReceiver = new GpsStateReceiver(this::updateMapStatus);
+            ContextCompat.registerReceiver(requireContext(), gpsReceiver,
+                    new android.content.IntentFilter(android.location.LocationManager.PROVIDERS_CHANGED_ACTION),
+                    ContextCompat.RECEIVER_NOT_EXPORTED);
+        }
         if (mMap != null) {
             startLiveLocationUpdates();
             // Not while a hotel is selected: reloading would wipe the route being looked at
@@ -1372,6 +1380,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public void onPause() {
         super.onPause();
+        if (gpsReceiver != null) {
+            try {
+                requireContext().unregisterReceiver(gpsReceiver);
+            } catch (IllegalArgumentException | IllegalStateException ignored) {
+                // already unregistered
+            }
+            gpsReceiver = null;
+        }
         stopLiveLocationUpdates();
         // In-flight route results are ignored after this bump, so they'd never hide the spinner
         routeRequestVersion++;
