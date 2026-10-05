@@ -173,6 +173,8 @@ Favorites are stored on your phone.
 
 - **Notifications** (bell on Home, or the menu): new deals, order updates and pickup reminders. Filter by
   **All, Orders, Deals, Pickup, System**; swipe one away to delete it, **Mark all read** or **Delete all**.
+- **Pickup reminders**: about 30 minutes before your pickup slot starts you get one reminder with the
+  hotel and the time, so you do not forget (turn this off under **Settings, Pickup reminders**).
 - A notification in your phone's status bar has a **Mark as read** button.
 - **Messages** (menu): your conversations with hotels. Tap one to continue chatting. Open a dish and tap
   the chat button to start a new one.

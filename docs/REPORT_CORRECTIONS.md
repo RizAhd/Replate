@@ -198,6 +198,10 @@ public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
 **Also fix steps 3 and 4** of the list above the code: the branded popup is shown while the app is open,
 and the system notification is posted in every case (not only in the background); a notification type
 turned off in Settings is kept in the list but does not pop up or ring.
+**Add (this is also in the proposal):** "A scheduled Cloud Function (`sendPickupReminders`, every 15
+minutes) sends each pickup customer one reminder about 30 minutes before their one-hour pickup slot
+starts. New-deal pushes are sent by a database trigger when a hotel publishes a dish, and a
+`sendScheduledEngagementNotifications` function sends a periodic trending-deals nudge."
 **Add:** "A system notification carries a **Mark as read** action. It is handled by
 `NotificationActionReceiver`, a manifest-declared BroadcastReceiver that marks the notification read in
 Firebase and removes it from the status bar." And: "`OrderSyncWorker` (WorkManager, every 15 minutes)
@@ -369,7 +373,8 @@ signed in could read a hotel's licence link through the open `hotels` node" → 
 Keep only the devices you actually tested on. If a phone in the table was not used, remove it.
 
 ### Pages 51-52, Table 11 (objectives)
-Add rows with Status "Added feature": "User suspension (admin)", "Favourite hotels", "QR/OTP expiry after
+Add rows with Status "Fully met" for the proposal items: "Upcoming-pickup push notifications", "Dashboard
+with daily earnings and most popular items", "User suspension". Add rows with Status "Added feature": "User suspension (admin)", "Favourite hotels", "QR/OTP expiry after
 the pickup slot", "Three BroadcastReceivers", "Hotel order steps (confirm, prepare, ready, cancel)",
 "Savings chart (MPAndroidChart)". The row "Sound on payment success: MediaPlayer in CheckoutActivity"
 is correct (the success screen plays it too).

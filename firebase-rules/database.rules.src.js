@@ -129,7 +129,7 @@ const rules = {
       // A single order can also be read directly (see $orderId below).
       '.read': `auth != null && (${ADMIN} || (query.orderByChild === 'userId' && query.equalTo === auth.uid)` +
         ` || ((${APPROVED_HOTEL}) && query.orderByChild === 'hotelId' && (query.equalTo === auth.uid || query.equalTo === ${MY_HOTEL_KEY})))`,
-      '.indexOn': ['userId', 'createdAt', 'hotelId'],
+      '.indexOn': ['userId', 'createdAt', 'hotelId', 'pickupExpiresAt'],
       $orderId: {
         '.read': `auth != null && (data.child('userId').val() === auth.uid || ${ADMIN} || ${OWNS("data.child('hotelId').val()")})`,
         // A customer creates their own order, and may re-send it while it is still pending (a retry

@@ -2,6 +2,7 @@ const crypto = require("crypto");
 const admin = require("firebase-admin");
 const functions = require("firebase-functions");
 const nodemailer = require("nodemailer");
+const { reminderFor, reminderText, LOOKAHEAD_MS } = require("./pickup-reminder");
 
 admin.initializeApp();
 
@@ -1311,6 +1312,56 @@ exports.onHotelStatusChangedNotify = functions
     }
     await persistNotificationForUsers([hotelRecord.uid], payload, "hotel_status_update");
     console.log(`[onHotelStatusChangedNotify] COMPLETED for hotelId=${hotelId}`);
+    return null;
+  });
+
+// ── UPCOMING PICKUP REMINDERS ──────────────────────────────
+// Every 15 minutes: customers whose one-hour pickup slot starts within 30 minutes (or is already
+// open) get one reminder. `pickupReminderSent` on the order makes sure it is only sent once, and
+// the app's "Pickup reminders" switch in Settings decides whether it pops up.
+exports.sendPickupReminders = functions
+  .region(REGION)
+  .pubsub.schedule("every 15 minutes")
+  .timeZone("Asia/Colombo")
+  .onRun(async () => {
+    const now = Date.now();
+    const snapshot = await db.ref("orders")
+      .orderByChild("pickupExpiresAt")
+      .startAt(now)
+      .endAt(now + LOOKAHEAD_MS)
+      .get();
+
+    const due = [];
+    snapshot.forEach((child) => {
+      const order = child.val() || {};
+      const phase = reminderFor(order, now);
+      if (phase && order.userId) due.push({ id: child.key, order, phase });
+    });
+
+    for (const { id, order, phase } of due) {
+      // Mark first: a retry must never send the same reminder twice
+      await db.ref(`orders/${id}/pickupReminderSent`).set(true);
+
+      const customer = await loadUserNotificationRecord(String(order.userId));
+      if (!customer) continue;
+
+      const text = reminderText(order, phase);
+      const payload = buildPayload({
+        ...text,
+        type: "pickup_reminder",
+        category: "pickup_reminder",
+        route: "order",
+        orderId: id,
+        hotelId: String(order.hotelId || ""),
+        data: { phase },
+      });
+      if (customer.token) {
+        await sendToUserRecords([customer], payload);
+      }
+      await persistNotificationForUsers([customer.uid], payload, "pickup_reminder");
+    }
+
+    console.log(`[sendPickupReminders] ${due.length} reminder(s) sent`);
     return null;
   });
 

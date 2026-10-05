@@ -41,6 +41,9 @@ jobs:
       - name: Panel order rules (what counts as revenue, pending and expired)
         run: node scripts/test-schema.js
 
+      - name: Cloud Function decisions (pickup reminders)
+        run: node scripts/test-functions.js
+
   android:
     runs-on: ubuntu-latest
     steps:

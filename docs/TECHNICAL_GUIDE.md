@@ -190,7 +190,8 @@ See `firebase-rules/README.md` for the full table and the known limitations.
 | `onOrderStatusChangedNotify` | DB update `/orders/{id}` | One push per status change (confirmed, preparing, ready, out for delivery, delivered, completed, cancelled; says who cancelled) |
 | `onHotelStatusChangedNotify` | DB update `/hotels/{id}` | Approved or rejected notice (not for suspension changes) |
 | `onUserProfileCreatedNotify` | DB create `/users/{uid}` | Welcome notification |
-| `sendScheduledEngagementNotifications` | schedule, every 2 hours | Pickup reminders and deal nudges |
+| `sendPickupReminders` | schedule, every 15 minutes | One reminder per pickup order, 30 minutes before its one-hour slot starts (or when the slot is already open); `pickupReminderSent` prevents repeats; the app's "Pickup reminders" switch decides whether it pops up |
+| `sendScheduledEngagementNotifications` | schedule, every 2 hours | "Trending deals" nudge to the deals topic |
 
 All HTTPS functions require a Firebase ID token in `Authorization: Bearer ...` and check the role.
 
@@ -201,7 +202,8 @@ All HTTPS functions require a Firebase ID token in `Authorization: Bearer ...` a
 | `./gradlew testDebugUnitTest` | Android unit tests (validators, `Savings`, `PickupWindow`, `HotelNavigation`, `CategoryIcons`, map rules, banners...) |
 | `npm run rules:test` | 127 security-rule checks in the Firebase emulator (needs **JDK 21+** on the PATH) |
 | `npm run web:check` | Every script and link in `web-panels/` parses and resolves |
-| `npm run web:test` | The shared order rules (revenue, pending, expiry, hotel status) |
+| `npm run web:test` | The shared order rules (revenue, pending, expiry, hotel status, daily earnings, popular items) |
+| `npm run functions:test` | The pickup-reminder decisions used by the Cloud Function |
 All of these run in GitHub Actions (`.github/workflows/ci.yml`).
 
 ## 5. The web panels
