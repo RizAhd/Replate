@@ -39,6 +39,8 @@ import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.common.BitMatrix;
 import com.replate.app.utils.Money;
+import com.replate.app.utils.OrderImpact;
+import com.replate.app.utils.Savings;
 import com.replate.app.models.Order;
 import com.replate.app.utils.ReviewWriter;
 import com.replate.app.utils.SafeSnapshot;
@@ -64,6 +66,7 @@ public class OrderSuccessActivity extends AppCompatActivity {
     private CircularProgressIndicator statusSpinner;
     private View cardQR, reviewSection, completionOverlay, statusRow;
     private View completionCircle, headerSection;
+    private TextView tvImpact;
     private RatingBar ratingReview;
     private TextInputEditText etReviewComment;
     private MaterialButton btnSubmitReview, btnViewDetails;
@@ -118,6 +121,7 @@ public class OrderSuccessActivity extends AppCompatActivity {
         completionOverlay = findViewById(R.id.completionOverlay);
         completionCircle = findViewById(R.id.completionCircle);
         headerSection = findViewById(R.id.headerSection);
+        tvImpact = findViewById(R.id.tvImpact);
         statusRow = findViewById(R.id.statusRow);
         ratingReview = findViewById(R.id.ratingReview);
         etReviewComment = findViewById(R.id.etReviewComment);
@@ -176,6 +180,7 @@ public class OrderSuccessActivity extends AppCompatActivity {
         tvHotelName.setText(order.getHotelName() != null && !order.getHotelName().trim().isEmpty()
                 ? order.getHotelName() : getString(R.string.hotel_name_fallback));
         tvTotal.setText(Money.format(order.getTotalAmountValue()));
+        showImpact();
 
         // The layout's wording is about pickup; a delivery order is waiting for the courier instead
         if (order.isDelivery() && !order.isCompleted()) {
@@ -186,6 +191,26 @@ public class OrderSuccessActivity extends AppCompatActivity {
         if (order.isCompleted()) {
             showCompletedState(false);
         }
+    }
+
+    /**
+     * The "peak" of the flow: right after ordering, say what it achieved (money saved, meals rescued)
+     * instead of leaving only a QR code. Fades in a moment after the tick so it reads as a reward.
+     */
+    private void showImpact() {
+        if (tvImpact == null || order == null || order.isCompleted()) return;
+        int meals = OrderImpact.mealCount(order.getItems());
+        if (meals <= 0) return;
+
+        double saved = Savings.forOrder(order.getSavingsAmountValue(), order.getOriginalTotalValue(),
+                order.getTotalAmountValue());
+        tvImpact.setText(saved > 0
+                ? getResources().getQuantityString(R.plurals.order_success_impact_saving, meals,
+                        Money.formatWhole(saved), meals)
+                : getResources().getQuantityString(R.plurals.order_success_impact_meals, meals, meals));
+        tvImpact.setAlpha(0f);
+        tvImpact.setVisibility(View.VISIBLE);
+        tvImpact.animate().alpha(1f).setStartDelay(700).setDuration(400).start();
     }
 
     /**

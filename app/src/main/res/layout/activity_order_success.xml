@@ -104,6 +104,22 @@
                     android:text="@string/order_success_show_this_qr_at_pickup"
                     android:textColor="@color/text_secondary"
                     android:textSize="@dimen/text_sm" />
+
+                <!-- The moment worth remembering: what this order did, shown once the order is in -->
+                <TextView
+                    android:id="@+id/tvImpact"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="@dimen/space_2_5"
+                    android:layout_marginTop="@dimen/space_1_5"
+                    android:background="@drawable/badge_pale"
+                    android:fontFamily="@font/poppins_medium"
+                    android:gravity="center"
+                    android:paddingHorizontal="@dimen/space_2"
+                    android:paddingVertical="@dimen/space_1"
+                    android:textColor="@color/green_primary"
+                    android:textSize="@dimen/text_xs"
+                    android:visibility="gone" />
             </LinearLayout>
 
             <!-- ===== QR CARD ===== -->
