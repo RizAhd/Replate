@@ -3,7 +3,6 @@ package com.replate.app.utils;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
-import android.text.TextUtils;
 
 /**
  * Telephony utility helpers used across food/order screens.
@@ -14,7 +13,7 @@ public final class TelephonyUtils {
     }
 
     public static String normalizePhone(String raw, String fallback) {
-        String value = TextUtils.isEmpty(raw) ? fallback : raw;
+        String value = raw == null || raw.isEmpty() ? fallback : raw;
         if (value == null) {
             return "";
         }
@@ -29,8 +28,8 @@ public final class TelephonyUtils {
     }
 
     /**
-     * Opens the phone app with the number filled in. ACTION_DIAL needs no permission, so the app
-     * does not request CALL_PHONE; the customer taps the call button themselves.
+     * Opens the phone app with the number filled in. ACTION_DIAL needs no permission, so this is the
+     * fallback when the customer has not granted CALL_PHONE (see {@link CallHelper}).
      */
     public static void openDialer(Activity activity, String phone) {
         Intent intent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + Uri.encode(phone)));
