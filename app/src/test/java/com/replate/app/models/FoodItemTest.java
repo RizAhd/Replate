@@ -54,6 +54,22 @@ public class FoodItemTest {
     }
 
     @Test
+    public void lowStockOnlyWhenAFewAreLeft() {
+        FoodItem item = new FoodItem();
+        assertFalse("unknown quantity is not low stock", item.isLowStock());
+
+        item.setQuantity(0);
+        assertFalse("sold out is not low stock, it is sold out", item.isLowStock());
+
+        item.setQuantity(1);
+        assertTrue(item.isLowStock());
+        item.setQuantity(FoodItem.LOW_STOCK_MAX);
+        assertTrue(item.isLowStock());
+        item.setQuantity(FoodItem.LOW_STOCK_MAX + 1);
+        assertFalse(item.isLowStock());
+    }
+
+    @Test
     public void discountPercentFallsBackToTheAlternativeField() {
         FoodItem item = new FoodItem();
         assertEquals(0, item.getDiscountPercentValue());

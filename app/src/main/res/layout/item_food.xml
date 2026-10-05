@@ -72,6 +72,21 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
+            <TextView
+                android:id="@+id/tvStockLeft"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|start"
+                android:layout_margin="@dimen/space_1_5"
+                android:background="@drawable/badge_urgency"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="@dimen/space_0_5"
+                android:textAppearance="@style/TextAppearance.REPLATE.Caption"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="Only 2 left" />
+
         </FrameLayout>
 
         <LinearLayout

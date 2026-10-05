@@ -93,6 +93,7 @@
     <color name="splash_bg">#0D3B1E</color>
     <color name="status_bar">@color/splash_bg</color>
     <color name="badge_discount">@color/ember</color>
+    <color name="badge_urgency">#C2410C</color>
     <color name="badge_distance">@color/leaf2</color>
     <color name="price_discounted">@color/leaf</color>
 

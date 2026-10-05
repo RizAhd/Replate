@@ -185,7 +185,7 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
         View cardView;
         ImageView ivFoodImage;
         TextView tvFoodName, tvHotelName, tvOriginalPrice, tvDiscountedPrice;
-        TextView tvDiscount, tvDistance, tvPickupTime;
+        TextView tvDiscount, tvDistance, tvPickupTime, tvStockLeft;
         View ivAddToCart;
 
         FoodViewHolder(@NonNull View itemView) {
@@ -200,6 +200,7 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
             tvDiscount = itemView.findViewById(R.id.tvDiscount);
             tvDistance = itemView.findViewById(R.id.tvDistance);
             tvPickupTime = itemView.findViewById(R.id.tvPickupTime);
+            tvStockLeft = itemView.findViewById(R.id.tvStockLeft);
             View addButton = itemView.findViewById(R.id.ivAddToCart);
             ivAddToCart = addButton != null ? addButton : itemView.findViewById(R.id.cardView);
         }
@@ -241,6 +242,15 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
 
             if (tvPickupTime != null) {
                 tvPickupTime.setText(context.getString(R.string.food_pickup_template, item.getPickupTimeFormatted()));
+            }
+
+            // A little urgency, only when it is true: just a few portions are left
+            if (tvStockLeft != null) {
+                boolean low = item.isLowStock() && item.isAvailableValue();
+                tvStockLeft.setVisibility(low ? View.VISIBLE : View.GONE);
+                if (low) {
+                    tvStockLeft.setText(context.getString(R.string.food_only_left, item.getQuantityValue()));
+                }
             }
 
             // Load image with Glide

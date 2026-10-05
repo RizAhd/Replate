@@ -108,6 +108,9 @@ public class FoodItem implements Serializable {
     public String getImageUrl() { return imageUrl; }
 
     @Exclude
+    /** Up to this many portions left counts as "only a few". */
+    public static final int LOW_STOCK_MAX = 3;
+
     public int getQuantityValue() { return toInt(quantity); }
     public Object getQuantity() { return quantity; }
 
@@ -239,6 +242,12 @@ public class FoodItem implements Serializable {
     @Exclude
     public boolean hasStock() {
         return quantity == null || getQuantityValue() > 0;
+    }
+
+    /** The hotel recorded a quantity and only a few portions are left, worth telling the customer. */
+    @Exclude
+    public boolean isLowStock() {
+        return quantity != null && getQuantityValue() >= 1 && getQuantityValue() <= LOW_STOCK_MAX;
     }
 
     @Exclude

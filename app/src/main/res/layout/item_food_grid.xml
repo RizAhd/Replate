@@ -63,6 +63,21 @@
                 android:textStyle="bold"
                 app:drawableStartCompat="@drawable/ic_location_small"
                 tools:text="@string/food_distance_placeholder" />
+
+            <TextView
+                android:id="@+id/tvStockLeft"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|end"
+                android:layout_margin="@dimen/space_1"
+                android:background="@drawable/badge_urgency"
+                android:paddingHorizontal="@dimen/space_1"
+                android:paddingVertical="@dimen/space_0_5"
+                android:textAppearance="@style/TextAppearance.REPLATE.Caption"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="Only 2 left" />
         </FrameLayout>
 
         <LinearLayout
