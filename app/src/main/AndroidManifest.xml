@@ -96,6 +96,11 @@
             android:label="Pick Location"/>
 
 
+        <!-- Handles the Mark as read button on push notifications -->
+        <receiver
+            android:name=".receivers.NotificationActionReceiver"
+            android:exported="false" />
+
         <!-- PHMainActivity is declared by PayHere SDK manifest; no local override needed. -->
 
         <!-- Facebook SDK Configuration -->

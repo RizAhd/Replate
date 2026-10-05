@@ -25,6 +25,7 @@ import androidx.core.content.ContextCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
@@ -37,6 +38,7 @@ import com.replate.app.notifications.InAppNotificationCenter;
 import com.replate.app.notifications.NotificationCategories;
 import com.replate.app.notifications.NotificationRouter;
 import com.replate.app.utils.FcmTokenManager;
+import com.replate.app.receivers.NotificationActionReceiver;
 import com.replate.app.utils.NotificationPrefs;
 import com.replate.app.utils.UserRoleHelper;
 
@@ -95,7 +97,10 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             data.put("category", category);
         }
 
-        saveNotification(title, body, data);
+        String notificationKey = saveNotification(title, body, data);
+        if (notificationKey != null) {
+            data.put("notificationKey", notificationKey);
+        }
 
         // Turned off in Settings: keep it in the in-app list but don't pop up or ring
         if (!NotificationPrefs.isAllowed(getApplicationContext(), data.get("category"))) {
@@ -136,11 +141,12 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         FcmTokenManager.syncTokenForCurrentUser(getApplicationContext(), role);
     }
 
-    private void saveNotification(String title, String body, Map<String, String> data) {
+    /** Saves the notification for the in-app list and returns its Firebase key (null when not signed in). */
+    private String saveNotification(String title, String body, Map<String, String> data) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {
             if (BuildConfig.DEBUG) Log.d(TAG, "Skipping notification persistence: no active user session.");
-            return;
+            return null;
         }
 
         long timestamp = System.currentTimeMillis();
@@ -159,11 +165,11 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         notifData.put("deepLink", value(data, "deepLink", ""));
 
         // Save to Firebase
-        FirebaseDatabase.getInstance().getReference()
+        DatabaseReference notificationRef = FirebaseDatabase.getInstance().getReference()
                 .child("notifications")
                 .child(user.getUid())
-                .push()
-                .setValue(notifData);
+                .push();
+        notificationRef.setValue(notifData);
 
         // Also cache to SQLite for instant offline access
         try {
@@ -186,6 +192,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         } catch (Exception e) {
             Log.w(TAG, "Failed to cache notification to SQLite", e);
         }
+        return notificationRef.getKey();
     }
 
     private void showNotification(String title, String body, Map<String, String> data) {
@@ -219,6 +226,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
 
         int requestCode = (int) System.currentTimeMillis();
+        final int systemId = requestCode;
         int pendingFlags = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE;
         PendingIntent pendingIntent = null;
         // Screens opened from a notification (order, notifications list) get Home underneath them,
@@ -260,7 +268,18 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setColor(ContextCompat.getColor(this, R.color.primary));
 
-        managerCompat.notify((int) System.currentTimeMillis(), builder.build());
+        // "Mark as read" button, handled by NotificationActionReceiver without opening the app
+        String notificationKey = data.get("notificationKey");
+        if (notificationKey != null && !notificationKey.isEmpty()) {
+            Intent markRead = new Intent(this, NotificationActionReceiver.class)
+                    .setAction(NotificationActionReceiver.ACTION_MARK_READ)
+                    .putExtra(NotificationActionReceiver.EXTRA_NOTIFICATION_KEY, notificationKey)
+                    .putExtra(NotificationActionReceiver.EXTRA_SYSTEM_ID, systemId);
+            PendingIntent markReadIntent = PendingIntent.getBroadcast(this, systemId, markRead, pendingFlags);
+            builder.addAction(R.drawable.ic_checkmark_white, getString(R.string.notification_mark_read), markReadIntent);
+        }
+
+        managerCompat.notify(systemId, builder.build());
     }
 
     private void createChannelIfNeeded() {
