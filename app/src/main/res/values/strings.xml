@@ -45,6 +45,7 @@
     <!-- Map -->
     <string name="map_search_hint">Search places, towns, landmarks…</string>
     <string name="map_route_button">Show route</string>
+    <string name="map_view_deals_button">View deals</string>
     <string name="map_loading_items">Loading available items…</string>
     <string name="map_tap_marker_route">Tap a marker to view route details</string>
     <string name="map_route_unavailable">Route unavailable</string>
@@ -490,6 +491,8 @@ Total: LKR %1$.2f</string>
     <string name="order_detail_call_hotel">Call Hotel</string>
     <string name="order_detail_sms_hotel">SMS Hotel</string>
     <string name="order_detail_open_pickup_route">Open Pickup Route</string>
+    <string name="order_detail_navigate_hotel">Navigate to hotel</string>
+    <string name="order_detail_no_maps_app">No maps app found on this phone</string>
     <string name="order_detail_payment">Payment</string>
     <string name="order_detail_total_amount">Total Amount</string>
     <string name="order_detail_payment_method">Payment Method</string>

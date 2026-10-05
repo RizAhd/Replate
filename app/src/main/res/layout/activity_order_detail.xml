@@ -228,11 +228,19 @@
                     </LinearLayout>
 
                     <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnOpenPickupRoute"
+                        android:id="@+id/btnNavigateHotel"
                         style="@style/Widget.REPLATE.Button.Primary"
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/button_height"
                         android:layout_marginTop="@dimen/space_1_5"
+                        android:text="@string/order_detail_navigate_hotel" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnOpenPickupRoute"
+                        style="@style/Widget.REPLATE.Button.Secondary"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/button_height"
+                        android:layout_marginTop="@dimen/space_1"
                         android:text="@string/order_detail_open_pickup_route" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

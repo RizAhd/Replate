@@ -40,6 +40,7 @@ import com.replate.app.utils.Money;
 import com.replate.app.models.Order;
 import com.replate.app.utils.SafeSnapshot;
 import com.replate.app.utils.CallHelper;
+import com.replate.app.utils.HotelNavigation;
 import com.replate.app.utils.TelephonyUtils;
 import com.replate.app.utils.ToastUtils;
 
@@ -60,6 +61,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
     private Button btnCallHotel;
     private Button btnSmsHotel;
     private Button btnOpenPickupRoute;
+    private Button btnNavigateHotel;
     private Button btnSubmitReview;
     private CardView cardQR;
     private android.widget.RatingBar ratingReview;
@@ -128,6 +130,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         btnCallHotel = findViewById(R.id.btnCallHotel);
         btnSmsHotel = findViewById(R.id.btnSmsHotel);
         btnOpenPickupRoute = findViewById(R.id.btnOpenPickupRoute);
+        btnNavigateHotel = findViewById(R.id.btnNavigateHotel);
         cardQR = findViewById(R.id.cardQR);
         reviewSection = findViewById(R.id.reviewSection);
         ratingReview = findViewById(R.id.ratingReview);
@@ -146,9 +149,81 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         if (btnOpenPickupRoute != null) {
             btnOpenPickupRoute.setOnClickListener(v -> openPickupRoute());
         }
+        if (btnNavigateHotel != null) {
+            btnNavigateHotel.setOnClickListener(v -> navigateToHotel());
+        }
         if (btnSubmitReview != null) {
             btnSubmitReview.setOnClickListener(v -> submitReview());
         }
+    }
+
+    /**
+     * Hands over to Google Maps for turn-by-turn directions to the hotel (app integration). Falls
+     * back to any map app, and finally to the in-app route when no maps app is installed.
+     */
+    private void navigateToHotel() {
+        if (order == null || order.getHotelId() == null || order.getHotelId().trim().isEmpty()) {
+            ToastUtils.showCustomToast(this, R.string.order_detail_hotel_route_not_available);
+            return;
+        }
+
+        mDatabase.child("hotels").child(order.getHotelId())
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        double lat = readCoordinate(snapshot, "latitude", "lat", "hotelLatitude");
+                        double lng = readCoordinate(snapshot, "longitude", "lng", "hotelLongitude", "long");
+                        if (HotelNavigation.hasLocation(lat, lng)) {
+                            launchMapsNavigation(lat, lng);
+                        } else {
+                            openPickupRoute();
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        openPickupRoute();
+                    }
+                });
+    }
+
+    private void launchMapsNavigation(double lat, double lng) {
+        Intent googleMaps = new Intent(Intent.ACTION_VIEW, Uri.parse(HotelNavigation.navigationUri(lat, lng)));
+        googleMaps.setPackage("com.google.android.apps.maps");
+        try {
+            startActivity(googleMaps);
+            return;
+        } catch (android.content.ActivityNotFoundException ignored) {
+            // Google Maps is not installed; try any other map app
+        }
+
+        String hotelName = order != null ? order.getHotelName() : null;
+        try {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(HotelNavigation.geoUri(lat, lng, hotelName))));
+        } catch (android.content.ActivityNotFoundException e) {
+            ToastUtils.showCustomToast(this, R.string.order_detail_no_maps_app);
+            openPickupRoute();
+        }
+    }
+
+    private static double readCoordinate(DataSnapshot hotel, String... keys) {
+        for (String key : keys) {
+            Object raw = hotel.child(key).getValue();
+            double value = 0;
+            if (raw instanceof Number) {
+                value = ((Number) raw).doubleValue();
+            } else if (raw instanceof String) {
+                try {
+                    value = Double.parseDouble(((String) raw).trim());
+                } catch (NumberFormatException ignored) {
+                    // not a number; try the next key
+                }
+            }
+            if (value != 0) {
+                return value;
+            }
+        }
+        return 0;
     }
 
     private void openPickupRoute() {
