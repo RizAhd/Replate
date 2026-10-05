@@ -521,39 +521,29 @@
     /* ────────────────────────────────────────────────────────
        AUTH + INIT
        ──────────────────────────────────────────────────────── */
-    auth.onAuthStateChanged(async (user) => {
+    (async () => {
         ReplateUI.renderSidebar('appShellSidebar', {
             title: '<img src="../assets/replate-icon.svg" alt="REPLATE" class="brand-logo-sm">REPLATE',
             activeKey: 'chat',
             links: hotelShellLinks,
         });
 
-        if (!user) { window.location.href = 'login.html'; return; }
+        // Only a signed-in, approved hotel can use the chat. The hotel is always read from the
+        // signed-in account (never from a value cached in the browser), so switching accounts is safe.
+        const user = await ReplateUI.requireRole('hotel');
+        if (!user) return;
+        const hotelRecord = await ReplateUI.requireApprovedHotel(user);
+        if (!hotelRecord) return;
 
-        currentHotelId = sessionStorage.getItem('hotelId');
-        if (!currentHotelId) {
-            try {
-                const rec = await ReplateSchema.findHotelByUserId(database, user.uid);
-                if (rec) {
-                    currentHotelId = rec.key;
-                    currentHotelName = rec.value?.name || rec.value?.hotelName || 'Hotel';
-                    sessionStorage.setItem('hotelId', currentHotelId);
-                } else { currentHotelId = user.uid; }
-            } catch (e) { currentHotelId = user.uid; }
-        }
-        if (!currentHotelName) {
-            try {
-                const s = await database.ref('hotels/' + currentHotelId).once('value');
-                if (s.exists()) currentHotelName = s.val().name || s.val().hotelName || 'Hotel';
-            } catch (e) {}
-        }
+        currentHotelId = hotelRecord.key;
+        currentHotelName = hotelRecord.value.hotelName || hotelRecord.value.name || 'Hotel';
 
         document.getElementById('chatStatus').style.display = '';
         updateConnectionStatus();
         window.addEventListener('online', updateConnectionStatus);
         window.addEventListener('offline', updateConnectionStatus);
         loadConversations();
-    });
+    })();
 
     function updateConnectionStatus() {
         const badge = document.getElementById('chatStatus');

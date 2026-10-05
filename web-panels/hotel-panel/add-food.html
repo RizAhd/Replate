@@ -254,7 +254,8 @@
         submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Publishing...';
 
         try {
-            const file = imageInput.files[0];
+            // Phone photos are often several MB; shrink them first so the app loads listings faster
+            const file = await ReplateUI.compressImage(imageInput.files[0]);
             const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-60);
             const storageRef = storage.ref('food-images/' + Date.now() + '_' + safeName);
             await storageRef.put(file, { contentType: file.type });

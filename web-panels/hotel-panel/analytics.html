@@ -173,15 +173,12 @@
         const user = await ReplateUI.requireRole('hotel');
         if (!user) return;
 
-        // Resolve all hotel IDs that belong to this user
+        // Only an approved hotel sees its analytics; its ids are the owner uid and the hotel key
+        const hotelRecord = await ReplateUI.requireApprovedHotel(user);
+        if (!hotelRecord) return;
         resolvedHotelIds.add(user.uid);
-        try {
-            const hotelRecord = await ReplateSchema.findHotelByUserId(database, user.uid);
-            if (hotelRecord) {
-                resolvedHotelIds.add(hotelRecord.key);
-                if (hotelRecord.value.userId) resolvedHotelIds.add(hotelRecord.value.userId);
-            }
-        } catch(e) { console.warn('Hotel resolve error:', e); }
+        resolvedHotelIds.add(hotelRecord.key);
+        if (hotelRecord.value.userId) resolvedHotelIds.add(hotelRecord.value.userId);
 
         loadAnalytics(user.uid);
         loadActiveListings(user.uid);

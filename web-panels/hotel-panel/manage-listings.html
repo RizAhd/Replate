@@ -57,9 +57,75 @@
     </div>
 </div>
 
+<!-- Edit listing -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg">
+        <form class="modal-content" id="editForm" novalidate>
+            <div class="modal-header">
+                <h2 class="modal-title h5" id="editModalTitle">Edit listing</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label" for="editName">Food name</label>
+                        <input type="text" class="form-control" id="editName" maxlength="60" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label" for="editCategory">Category</label>
+                        <select class="form-select" id="editCategory" required></select>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="editDescription">Description</label>
+                    <textarea class="form-control" id="editDescription" rows="2" maxlength="400"></textarea>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label" for="editOriginal">Original price (LKR)</label>
+                        <input type="number" class="form-control" id="editOriginal" min="1" step="1" inputmode="numeric" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label" for="editDiscounted">Discounted price (LKR)</label>
+                        <input type="number" class="form-control" id="editDiscounted" min="1" step="1" inputmode="numeric" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label" for="editQuantity">Quantity available</label>
+                        <input type="number" class="form-control" id="editQuantity" min="0" max="500" step="1" inputmode="numeric" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label" for="editStart">Pickup start</label>
+                        <input type="time" class="form-control" id="editStart" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label" for="editEnd">Pickup end</label>
+                        <input type="time" class="form-control" id="editEnd" required>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label" for="editPhoto">Replace photo (optional)</label>
+                    <div class="d-flex align-items-center gap-3">
+                        <img id="editPhotoPreview" src="" alt="Current photo" width="72" height="72" class="rounded listing-thumb d-none">
+                        <input type="file" class="form-control" id="editPhoto" accept="image/jpeg,image/png,image/webp">
+                    </div>
+                    <div class="form-text">JPG, PNG or WebP. Large photos are shrunk automatically before upload.</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="btnSaveEdit"><i class="fas fa-save me-2" aria-hidden="true"></i>Save changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 <script src="../js/env-config.js"></script>
 <script src="../js/firebase-config.js"></script>
 <script src="../js/data-schema.js"></script>
@@ -70,18 +136,18 @@
     const esc = ReplateUI.esc;
     let hotelIds = new Set();
     const tableBody = document.getElementById('listingsTable');
+    let itemsByKey = {};
+    let editingKey = null;
+    let editModal = null;
 
     (async () => {
         const user = await ReplateUI.requireRole('hotel');
         if (!user) return;
 
-        hotelIds = new Set([user.uid]);
-        try {
-            const hotelRecord = await ReplateSchema.findHotelByUserId(database, user.uid);
-            if (hotelRecord && hotelRecord.key) hotelIds.add(hotelRecord.key);
-        } catch (e) {
-            console.error('Failed to resolve hotel identity:', e);
-        }
+        // Only an approved hotel manages listings
+        const hotelRecord = await ReplateUI.requireApprovedHotel(user);
+        if (!hotelRecord) return;
+        hotelIds = new Set([user.uid, hotelRecord.key]);
         tableBody.innerHTML = '<tr><td colspan="6">' + ReplateUI.skeleton('rows', 4) + '</td></tr>';
         loadListings();
     })();
@@ -89,7 +155,11 @@
     function loadListings() {
         ReplateSchema.hotelFoodItems(database, hotelIds).on((snapshot) => {
             const rows = [];
-            snapshot.forEach((child) => rows.push({ key: child.key, item: child.val() || {} }));
+            itemsByKey = {};
+            snapshot.forEach((child) => {
+                rows.push({ key: child.key, item: child.val() || {} });
+                itemsByKey[child.key] = child.val() || {};
+            });
 
             if (rows.length === 0) {
                 tableBody.innerHTML = '<tr><td colspan="6">' +
@@ -124,6 +194,8 @@
                             <span class="badge ${isAvailable ? 'badge-success' : 'bg-secondary'}">${isAvailable ? 'Active' : 'Sold Out'}</span>
                         </td>
                         <td data-label="Actions" class="actions-cell">
+                            <button class="btn btn-sm btn-outline-secondary" data-action="edit" data-key="${esc(key)}"
+                                    aria-label="Edit ${esc(name)}"><i class="fas fa-pen" aria-hidden="true"></i> Edit</button>
                             <button class="btn btn-sm btn-outline-danger" data-action="delete" data-key="${esc(key)}" data-name="${esc(name)}"
                                     aria-label="Delete ${esc(name)}"><i class="fas fa-trash" aria-hidden="true"></i></button>
                             <button class="btn btn-sm btn-outline-primary" data-action="toggle" data-key="${esc(key)}" data-active="${isAvailable}">
@@ -144,7 +216,9 @@
         if (!button) return;
         const key = button.dataset.key;
 
-        if (button.dataset.action === 'delete') {
+        if (button.dataset.action === 'edit') {
+            openEdit(key);
+        } else if (button.dataset.action === 'delete') {
             const ok = await ReplateUI.confirmAction(`"${button.dataset.name}" will be removed from the app.`, {
                 title: 'Delete this listing?', confirmText: 'Delete', danger: true });
             if (!ok) return;
@@ -168,6 +242,114 @@
                 console.error(error);
                 ReplateUI.toast('Could not update the listing. Please try again.', 'danger');
             }
+        }
+    });
+
+    // ── Edit listing ────────────────────────────────────────
+    const field = (id) => document.getElementById(id);
+
+    async function fillCategories(current) {
+        const select = field('editCategory');
+        let names = [];
+        try {
+            const snap = await database.ref('categories').orderByChild('order').once('value');
+            snap.forEach((child) => { names.push((child.val() || {}).name || child.key); });
+        } catch (e) {
+            console.warn('Could not load categories', e);
+        }
+        if (names.length === 0) names = ['Rice & Curry', 'Noodles', 'Bakery', 'Kottu', 'Short Eats'];
+        // Keep the dish's current category even if the admin has since removed it from the list
+        if (current && !names.some((n) => n.toLowerCase() === String(current).toLowerCase())) names.unshift(current);
+        select.innerHTML = names.map((n) => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
+        const match = names.find((n) => n.toLowerCase() === String(current || '').toLowerCase());
+        if (match) select.value = match;
+    }
+
+    async function openEdit(key) {
+        const item = itemsByKey[key];
+        if (!item) return;
+        editingKey = key;
+        field('editName').value = item.foodName || '';
+        field('editDescription').value = item.description || '';
+        field('editOriginal').value = item.originalPrice || '';
+        field('editDiscounted').value = item.discountedPrice || '';
+        field('editQuantity').value = item.quantity ?? 0;
+        field('editStart').value = item.pickupTimeStart || item.pickupStart || '';
+        field('editEnd').value = item.pickupTimeEnd || item.pickupEnd || '';
+        field('editPhoto').value = '';
+        const preview = field('editPhotoPreview');
+        const url = ReplateUI.safeUrl(item.imageUrl);
+        preview.classList.toggle('d-none', !url);
+        preview.src = url || '';
+        await fillCategories(item.category);
+        if (!editModal) editModal = new bootstrap.Modal(field('editModal'));
+        editModal.show();
+    }
+
+    function editProblem() {
+        const original = parseFloat(field('editOriginal').value);
+        const discounted = parseFloat(field('editDiscounted').value);
+        const quantity = parseInt(field('editQuantity').value, 10);
+        const start = field('editStart').value;
+        const end = field('editEnd').value;
+        if (!field('editName').value.trim()) return 'Enter the food name.';
+        if (!(original > 0) || !(discounted > 0)) return 'Enter both prices (more than 0).';
+        if (discounted >= original) return 'The discounted price must be lower than the original price.';
+        if (!Number.isFinite(quantity) || quantity < 0) return 'Quantity must be 0 or more.';
+        if (!start || !end) return 'Set the pickup start and end times.';
+        if (end <= start) return 'Pickup must end after it starts.';
+        const file = field('editPhoto').files[0];
+        if (file && !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) return 'Choose a JPG, PNG or WebP photo.';
+        return null;
+    }
+
+    field('editForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (!editingKey) return;
+        const problem = editProblem();
+        if (problem) {
+            ReplateUI.toast(problem, 'warning');
+            return;
+        }
+
+        const original = parseFloat(field('editOriginal').value);
+        const discounted = parseFloat(field('editDiscounted').value);
+        const percent = Math.max(0, Math.round(((original - discounted) / Math.max(original, 1)) * 100));
+        const start = field('editStart').value;
+        const end = field('editEnd').value;
+        const updates = {
+            foodName: field('editName').value.trim(),
+            description: field('editDescription').value.trim(),
+            category: field('editCategory').value,
+            originalPrice: original,
+            discountedPrice: discounted,
+            discountPercentage: percent,
+            discountPercent: percent,
+            quantity: parseInt(field('editQuantity').value, 10),
+            pickupStart: start,
+            pickupEnd: end,
+            pickupTimeStart: start,
+            pickupTimeEnd: end
+        };
+
+        ReplateUI.setButtonLoading('btnSaveEdit', true, 'Saving...');
+        try {
+            const chosen = field('editPhoto').files[0];
+            if (chosen) {
+                const file = await ReplateUI.compressImage(chosen);
+                const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-60);
+                const storageRef = storage.ref('food-images/' + Date.now() + '_' + safeName);
+                await storageRef.put(file, { contentType: file.type });
+                updates.imageUrl = await storageRef.getDownloadURL();
+            }
+            await database.ref('foodItems/' + editingKey).update(updates);
+            editModal.hide();
+            ReplateUI.toast('Listing updated.', 'success');
+        } catch (error) {
+            console.error(error);
+            ReplateUI.toast('Could not save the changes. Check your connection and try again.', 'danger');
+        } finally {
+            ReplateUI.setButtonLoading('btnSaveEdit', false);
         }
     });
 </script>

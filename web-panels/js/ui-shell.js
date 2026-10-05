@@ -210,6 +210,32 @@ const ReplateUI = (() => {
         return null;
     }
 
+    /**
+     * For hotel pages that manage orders, listings or chats. Resolves with the hotel record
+     * ({ key, value }) once an admin has approved it. Otherwise the owner is sent back to the
+     * dashboard with a message that says why, and the promise resolves with null.
+     * (This hides the UI; the database rules are what really stop an unapproved hotel.)
+     */
+    async function requireApprovedHotel(user, homePage = 'dashboard.html') {
+        const messages = {
+            pending: 'Your hotel is still waiting for admin approval.',
+            rejected: 'Your hotel registration was not approved. Contact REPLATE support for details.',
+            suspended: 'Your hotel is suspended. Contact REPLATE support.'
+        };
+        let record = null;
+        try {
+            record = await ReplateSchema.findHotelByUserId(database, user.uid);
+        } catch (e) {
+            console.error('Could not check the hotel status', e);
+        }
+        const status = record && record.value ? ReplateSchema.normalizeHotelStatus(record.value.status) : 'pending';
+        if (record && status === 'approved') return record;
+
+        flash(record ? (messages[status] || messages.pending) : 'Hotel profile not found. Please register first.', 'warning');
+        window.location.replace(record ? homePage : 'register.html');
+        return null;
+    }
+
     // ── Sidebar ─────────────────────────────────────────────────────────────
     let sidebarBound = false;
 
@@ -313,6 +339,44 @@ const ReplateUI = (() => {
     }
     document.addEventListener('DOMContentLoaded', autoRenderSidebar);
 
+    // ── Photos ──────────────────────────────────────────────────────────────
+    /**
+     * Shrinks a photo in the browser before upload: longest side at most maxSide px, re-encoded as
+     * JPEG. Phone photos are often 4-8 MB; this makes them a few hundred KB, so the app loads
+     * listings faster on mobile data. Resolves with the original file if anything goes wrong or the
+     * result would not be smaller.
+     */
+    function compressImage(file, { maxSide = 1280, quality = 0.82 } = {}) {
+        return new Promise((resolve) => {
+            if (!file || !/^image\/(jpeg|png|webp)$/.test(file.type)) { resolve(file); return; }
+            const url = URL.createObjectURL(file);
+            const img = new Image();
+            img.onload = () => {
+                try {
+                    const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+                    const canvas = document.createElement('canvas');
+                    canvas.width = Math.max(1, Math.round(img.width * scale));
+                    canvas.height = Math.max(1, Math.round(img.height * scale));
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = '#ffffff'; // PNG transparency would turn black in a JPEG
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    canvas.toBlob((blob) => {
+                        URL.revokeObjectURL(url);
+                        if (!blob || blob.size >= file.size) { resolve(file); return; }
+                        const name = file.name.replace(/\.[^.]+$/, '') + '.jpg';
+                        resolve(new File([blob], name, { type: 'image/jpeg' }));
+                    }, 'image/jpeg', quality);
+                } catch (e) {
+                    URL.revokeObjectURL(url);
+                    resolve(file);
+                }
+            };
+            img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+            img.src = url;
+        });
+    }
+
     // ── Small form helpers ──────────────────────────────────────────────────
     function attachPasswordToggle(inputId, toggleBtnId, iconId) {
         const input = document.getElementById(inputId);
@@ -375,6 +439,8 @@ const ReplateUI = (() => {
         confirmAction,
         askText,
         requireRole,
+        requireApprovedHotel,
+        compressImage,
         renderSidebar,
         attachPasswordToggle,
         setButtonLoading,
