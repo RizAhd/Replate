@@ -115,6 +115,17 @@ const ReplateSchema = (() => {
         return 'pending';
     }
 
+    /**
+     * True when a pickup order's QR code and OTP have expired. The app stores `pickupExpiresAt`
+     * (end of the one-hour pickup slot) at checkout; orders without it never expire on their own.
+     */
+    function isPickupExpired(order, now = Date.now()) {
+        const expiresAt = Number(order && order.pickupExpiresAt);
+        if (!Number.isFinite(expiresAt) || expiresAt <= 0) return false;
+        const isDelivery = String((order && order.orderType) || '').toLowerCase() === 'delivery';
+        return !isDelivery && now > expiresAt;
+    }
+
     function toNumber(val, fallback = 0) {
         const n = Number(val);
         return Number.isFinite(n) ? n : fallback;
@@ -242,6 +253,7 @@ const ReplateSchema = (() => {
         shortOrderId,
         normalizeUserRole,
         normalizeHotelStatus,
+        isPickupExpired,
         toNumber,
         toSearchRegion,
         findHotelByUserId,

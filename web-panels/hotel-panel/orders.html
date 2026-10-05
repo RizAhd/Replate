@@ -231,7 +231,7 @@
                         <td data-label="Items"><i class="fas ${isDelivery ? 'fa-truck' : 'fa-bag-shopping'} text-muted me-1" aria-hidden="true"></i>${esc(ReplateSchema.extractItemNames(order))}</td>
                         <td data-label="Total" class="num">LKR ${esc(ReplateSchema.formatAmount(order.totalAmount || order.totalPrice))}</td>
                         <td data-label="Review">${reviewText}</td>
-                        <td data-label="Status"><span class="badge ${esc(ReplateSchema.statusBadgeClass(status))}">${esc(ReplateSchema.statusLabel(status))}</span></td>
+                        <td data-label="Status"><span class="badge ${esc(ReplateSchema.statusBadgeClass(status))}">${esc(ReplateSchema.statusLabel(status))}</span>${isActive && ReplateSchema.isPickupExpired(order) ? ' <span class="badge badge-warning" title="The pickup slot has ended, so the QR code and OTP no longer work">Slot ended</span>' : ''}</td>
                         <td data-label="Action" class="actions-cell">${actionButtons(key, status, isDelivery, isActive)}</td>
                     </tr>`;
             }).join('');
@@ -316,11 +316,23 @@
                 ReplateUI.toast('That code does not match any order for your hotel.', 'danger');
                 return;
             }
+            if (rejectIfExpired(foundOrder)) return;
             showVerificationModal(foundKey, foundOrder);
         }).catch((err) => {
             console.error('OTP lookup failed', err);
             ReplateUI.toast('Could not check the code right now. Check your connection and try again.', 'danger');
         });
+    }
+
+    // A QR code or OTP only works during the customer's pickup slot. If the hotel decides to hand
+    // the food over anyway, the Done button in the orders list still completes the order.
+    function rejectIfExpired(order) {
+        const status = ReplateSchema.normalizeOrderStatus(order.orderStatus);
+        if (['completed', 'delivered', 'cancelled'].includes(status)) return false;
+        if (!ReplateSchema.isPickupExpired(order)) return false;
+        ReplateUI.toast('This code has expired: the customer\'s pickup time (' + (order.pickupTime || 'slot') +
+            ') has ended. If you still hand the order over, use the Done button in the orders list.', 'warning');
+        return true;
     }
 
     function checkOrderByCode(code) {
@@ -332,6 +344,7 @@
             if (snapshot && snapshot.exists()) {
                 const order = snapshot.val() || {};
                 if (orderBelongsToHotel(order)) {
+                    if (rejectIfExpired(order)) return;
                     showVerificationModal(code, order);
                     return;
                 }
@@ -358,6 +371,7 @@
                     ReplateUI.toast('Order not found. Make sure the QR code belongs to this hotel.', 'danger');
                     return;
                 }
+                if (rejectIfExpired(foundOrder)) return;
                 showVerificationModal(foundKey, foundOrder);
             }).catch((err) => {
                 console.error('Order search failed', err);
