@@ -50,7 +50,7 @@ import com.replate.app.fragments.ProfileFragment;
 import com.replate.app.services.OrderSyncWorker;
 import com.replate.app.utils.FcmTokenManager;
 import com.replate.app.utils.LocalDataCleaner;
-import com.replate.app.utils.NetworkMonitor;
+import com.replate.app.receivers.NetworkChangeReceiver;
 import com.replate.app.utils.ScrollToTop;
 import com.replate.app.utils.NotificationPermissionHelper;
 import com.replate.app.utils.ToastUtils;
@@ -73,7 +73,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private OrdersFragment ordersFragment;
     private ProfileFragment profileFragment;
 
-    private NetworkMonitor networkMonitor;
+    private NetworkChangeReceiver networkReceiver;
     private View mainContent;
 
     // Accelerometer shake detection
@@ -390,16 +390,23 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
+    /** BroadcastReceiver for connectivity changes (online/offline toast); unregistered in onDestroy. */
+    @SuppressWarnings("deprecation")
     private void startNetworkMonitor() {
-        networkMonitor = new NetworkMonitor(this);
-        networkMonitor.start(online -> {
+        if (networkReceiver != null) {
+            return;
+        }
+        networkReceiver = new NetworkChangeReceiver(this, online -> {
             if (isFinishing() || isDestroyed()) {
                 return;
             }
             ToastUtils.showCustomToast(this, online
-                    ? "Back online"
-                    : "No internet connection. Some features may not work.");
+                    ? R.string.network_back_online
+                    : R.string.network_offline);
         });
+        ContextCompat.registerReceiver(this, networkReceiver,
+                new android.content.IntentFilter(android.net.ConnectivityManager.CONNECTIVITY_ACTION),
+                ContextCompat.RECEIVER_NOT_EXPORTED);
     }
 
     private void scheduleBackgroundSync() {
@@ -475,9 +482,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (networkMonitor != null) {
-            networkMonitor.stop();
-            networkMonitor = null;
+        if (networkReceiver != null) {
+            try {
+                unregisterReceiver(networkReceiver);
+            } catch (IllegalArgumentException ignored) {
+                // already unregistered
+            }
+            networkReceiver = null;
         }
     }
 
