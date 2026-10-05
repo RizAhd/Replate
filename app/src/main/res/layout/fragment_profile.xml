@@ -156,6 +156,54 @@
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
 
+        <!-- Savings chart: what the customer saved on their last orders -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_2"
+            app:cardBackgroundColor="@color/surface_white"
+            app:cardCornerRadius="@dimen/radius_xl"
+            app:cardElevation="@dimen/elevation_card">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/profile_savings_chart_title"
+                    android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/space_0_5"
+                    android:text="@string/profile_savings_chart_subtitle"
+                    android:textAppearance="@style/TextAppearance.REPLATE.Caption" />
+
+                <com.github.mikephil.charting.charts.BarChart
+                    android:id="@+id/chartSavings"
+                    android:layout_width="match_parent"
+                    android:layout_height="190dp"
+                    android:layout_marginTop="@dimen/space_1_5"
+                    android:contentDescription="@string/profile_savings_chart_cd"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/tvSavingsChartEmpty"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/space_1_5"
+                    android:gravity="center"
+                    android:paddingVertical="@dimen/space_2"
+                    android:text="@string/profile_savings_chart_empty"
+                    android:textAppearance="@style/TextAppearance.REPLATE.Body" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- Menu Section -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"

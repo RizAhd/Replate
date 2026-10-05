@@ -94,6 +94,9 @@ dependencies {
 
     implementation 'androidx.work:work-runtime:2.9.0'
 
+    // Savings bar chart on the Profile screen
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
+
     implementation 'androidx.lifecycle:lifecycle-process:2.7.0'
 
     testImplementation 'junit:junit:4.13.2'
