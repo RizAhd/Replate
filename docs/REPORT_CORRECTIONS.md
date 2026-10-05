@@ -236,9 +236,10 @@ analytics, settings, chat). Appendix A already lists the nine.
 ### Page 39, section 5.3.1 (Hotel Registration)
 **Replace the last sentence with:** "The licence file is uploaded to Firebase Storage and its link is kept
 in `hotelLicenses/{hotelId}`, which only the owner and administrators can read, so the link is not
-visible to other users. Until an administrator approves the hotel, the Orders, Manage Listings,
-Analytics, Chat and Add Food pages send the owner back to the dashboard with a message; the database
-rules also refuse listings from a hotel that is not approved."
+visible to other users. A hotel that is not approved cannot sign in (the sign-in page says "Waiting for
+approval" or shows the rejection reason). As a second check, the Orders, Manage Listings, Analytics, Chat
+and Add Food pages confirm the approval again, and the database rules refuse listings from a hotel that
+is not approved."
 
 ### Page 39, section 5.3.2 (Dashboard)
 Replace the revenue description with: "Total Revenue is the sum of completed and delivered orders;
