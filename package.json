@@ -2,7 +2,9 @@
   "private": true,
   "scripts": {
     "rules:build": "node firebase-rules/build-rules.js",
-    "rules:test": "firebase emulators:exec --only database --project demo-replate \"node firebase-rules/tests/rules.test.js\""
+    "rules:test": "firebase emulators:exec --only database --project demo-replate \"node firebase-rules/tests/rules.test.js\"",
+    "web:check": "node scripts/check-web.js",
+    "web:test": "node scripts/test-schema.js"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^3.0.4",

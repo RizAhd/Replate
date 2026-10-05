@@ -90,6 +90,38 @@ const ReplateSchema = (() => {
         return [];
     }
 
+    // ── One definition of "money earned" and "pending", used by every panel ──────────────
+    // An order earns revenue and counts as food rescued only once it was really handed over
+    // (completed for pickup, delivered for delivery). Cancelled orders count for nothing and every
+    // other state (pending, confirmed, preparing, ready, out for delivery) is still pending.
+    function isSuccessfulOrder(order) {
+        const s = normalizeOrderStatus(order && order.orderStatus);
+        return s === 'completed' || s === 'delivered';
+    }
+
+    function isCancelledOrder(order) {
+        return normalizeOrderStatus(order && order.orderStatus) === 'cancelled';
+    }
+
+    function isOpenOrder(order) {
+        return !isSuccessfulOrder(order) && !isCancelledOrder(order);
+    }
+
+    function orderAmount(order) {
+        const n = parseFloat((order && (order.totalAmount || order.totalPrice)) || 0);
+        return Number.isFinite(n) ? n : 0;
+    }
+
+    function itemQuantity(item) {
+        const q = parseInt(item && item.quantity, 10);
+        return q > 0 ? q : 1;
+    }
+
+    /** Total number of dishes in an order (a missing quantity counts as 1). */
+    function orderItemCount(order) {
+        return extractItemsArray(order || {}).reduce((sum, item) => sum + itemQuantity(item), 0);
+    }
+
     function formatAmount(val) {
         const n = parseFloat(val);
         return isNaN(n) ? '0.00' : n.toFixed(2);
@@ -254,6 +286,12 @@ const ReplateSchema = (() => {
         normalizeUserRole,
         normalizeHotelStatus,
         isPickupExpired,
+        isSuccessfulOrder,
+        isCancelledOrder,
+        isOpenOrder,
+        orderAmount,
+        itemQuantity,
+        orderItemCount,
         toNumber,
         toSearchRegion,
         findHotelByUserId,

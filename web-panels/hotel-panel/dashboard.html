@@ -143,9 +143,11 @@
                 const order = child.val() || {};
                 total++;
                 const status = ReplateSchema.normalizeOrderStatus(order.orderStatus);
-                if (status === 'completed') {
-                    revenue += parseFloat(order.totalAmount || order.totalPrice) || 0;
-                } else if (status === 'pending_pickup') {
+                // Same definition as the Analytics page: revenue from completed or delivered
+                // orders, "pending" is every order that is not finished or cancelled yet
+                if (ReplateSchema.isSuccessfulOrder(order)) {
+                    revenue += ReplateSchema.orderAmount(order);
+                } else if (ReplateSchema.isOpenOrder(order)) {
                     pending++;
                 }
                 recentOrders.push({ key: child.key, ...order });

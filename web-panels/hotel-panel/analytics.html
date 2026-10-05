@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#1a6b3c">
     <meta name="robots" content="noindex, nofollow">
     <title>Analytics - REPLATE Hotel</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -63,7 +63,7 @@
             <div class="row mb-4 g-3">
                 <div class="col-md-3 col-6">
                     <div class="stat-card card">
-                        <h6><i class="fas fa-dollar-sign me-1"></i>Total Revenue</h6>
+                        <h6><i class="fas fa-dollar-sign me-1"></i>Revenue (completed orders)</h6>
                         <h3 id="statRevenue">LKR 0</h3>
                         <span class="delta flat" id="deltaRevenue"></span>
                     </div>
@@ -273,27 +273,20 @@
 
                 totalOrders++;
                 const ts = order.createdAt || order.timestamp || now;
-                const amount = parseFloat(order.totalAmount || order.totalPrice || 0);
-                const status = ReplateSchema.normalizeOrderStatus(order.orderStatus);
+                const amount = ReplateSchema.orderAmount(order);
                 const dayKey = getDayKey(ts);
 
-                if (status === 'completed') {
+                // Revenue counts only orders that were really handed over (completed or delivered)
+                if (ReplateSchema.isSuccessfulOrder(order)) {
                     completed++;
                     totalRevenue += amount;
                     if (ts >= sevenDaysAgo) { thisWeekRevenue += amount; }
                     else if (ts >= prevWeekStart && ts < prevWeekEnd) { lastWeekRevenue += amount; }
                     if (dailyRevenue.hasOwnProperty(dayKey)) dailyRevenue[dayKey] += amount;
-                } else if (status === 'cancelled') {
+                } else if (ReplateSchema.isCancelledOrder(order)) {
                     cancelled++;
                 } else {
                     pending++;
-                    // Count confirmed/ready as revenue too
-                    const raw = (order.orderStatus || '').toLowerCase();
-                    if (raw === 'confirmed' || raw === 'ready' || raw === 'pending_pickup') {
-                        totalRevenue += amount;
-                        if (ts >= sevenDaysAgo) thisWeekRevenue += amount;
-                        if (dailyRevenue.hasOwnProperty(dayKey)) dailyRevenue[dayKey] += amount;
-                    }
                 }
 
                 if (ts >= sevenDaysAgo) thisWeekOrders++;
@@ -301,13 +294,13 @@
 
                 if (dailyOrders.hasOwnProperty(dayKey)) dailyOrders[dayKey]++;
 
-                // Top selling items
-                const items = ReplateSchema.extractItemsArray(order);
-                items.forEach(item => {
-                    const name = item.foodName || 'Item';
-                    const qty = parseInt(item.quantity) || 1;
-                    itemSales[name] = (itemSales[name] || 0) + qty;
-                });
+                // Top selling items (cancelled orders do not count as sales)
+                if (!ReplateSchema.isCancelledOrder(order)) {
+                    ReplateSchema.extractItemsArray(order).forEach(item => {
+                        const name = item.foodName || 'Item';
+                        itemSales[name] = (itemSales[name] || 0) + ReplateSchema.itemQuantity(item);
+                    });
+                }
 
                 // Recent orders
                 recentOrders.push({ key: child.key, order, ts });
