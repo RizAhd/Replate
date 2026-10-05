@@ -44,6 +44,7 @@ public class Order implements Serializable {
     private Object deliveryFee;
     private Object savingsAmount;
     private Object pickupExpiresAt;
+    private String cancelledBy;
 
     public Order() {}
 
@@ -171,6 +172,8 @@ public class Order implements Serializable {
     public void setPickupExpiresAt(Object pickupExpiresAt) { this.pickupExpiresAt = pickupExpiresAt; }
 
     public Object getPickupExpiresAt() { return pickupExpiresAt; }
+    public String getCancelledBy() { return cancelledBy; }
+    public void setCancelledBy(String cancelledBy) { this.cancelledBy = cancelledBy; }
 
     // --- Helper methods ---
     /** When the pickup QR and OTP stop working; 0 for delivery orders and orders from before expiry existed. */

@@ -306,7 +306,9 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
                     tvOrderStatus.setText(R.string.order_detail_order_completed);
                     break;
                 case "cancelled":
-                    tvOrderStatus.setText(R.string.order_detail_order_cancelled);
+                    tvOrderStatus.setText("hotel".equals(order.getCancelledBy())
+                            ? R.string.order_detail_cancelled_by_hotel
+                            : R.string.order_detail_order_cancelled);
                     break;
                 default:
                     tvOrderStatus.setText("📋 " + order.getStatusDisplay());

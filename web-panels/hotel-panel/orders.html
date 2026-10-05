@@ -178,12 +178,33 @@
         loadOrders();
     })();
 
+    /**
+     * The next step in the order's life, shown as one button. Pickup: Confirm, Preparing, Ready,
+     * then Done (QR or OTP). Delivery: Confirm, Preparing, Dispatch, Delivered. Each change tells
+     * the customer by itself: the server sends exactly one push per status change.
+     */
+    function stepFor(status) {
+        if (status === 'pending_pickup' || status === 'pending_delivery') {
+            return { next: 'confirmed', label: 'Confirm', icon: 'fa-thumbs-up' };
+        }
+        if (status === 'confirmed') return { next: 'preparing', label: 'Preparing', icon: 'fa-fire-burner' };
+        return null;
+    }
+
     function actionButtons(key, status, isDelivery, isActive) {
         const k = esc(key);
         let html = `<button class="btn btn-sm btn-outline-primary" data-action="view" data-key="${k}"><i class="fas fa-eye" aria-hidden="true"></i> View</button>`;
         if (!isActive) return html;
+
+        const step = stepFor(status);
+        if (step) {
+            html += ` <button class="btn btn-sm btn-primary ms-1" data-action="step" data-key="${k}" data-next="${step.next}" data-label="${esc(step.label)}"><i class="fas ${step.icon}" aria-hidden="true"></i> ${esc(step.label)}</button>`;
+        } else if (status === 'preparing' && !isDelivery) {
+            html += ` <button class="btn btn-sm btn-primary ms-1" data-action="step" data-key="${k}" data-next="ready" data-label="Ready"><i class="fas fa-bell-concierge" aria-hidden="true"></i> Ready</button>`;
+        }
+
         if (isDelivery) {
-            if (['pending_delivery', 'pending_pickup', 'confirmed', 'preparing'].includes(status)) {
+            if (status === 'preparing') {
                 html += ` <button class="btn btn-sm btn-info ms-1 text-white" data-action="dispatch" data-key="${k}"><i class="fas fa-truck" aria-hidden="true"></i> Dispatch</button>`;
             }
             if (status === 'out_for_delivery') {
@@ -192,6 +213,7 @@
         } else {
             html += ` <button class="btn btn-sm btn-success ms-1" data-action="done" data-key="${k}"><i class="fas fa-check" aria-hidden="true"></i> Done</button>`;
         }
+        html += ` <button class="btn btn-sm btn-outline-danger ms-1" data-action="cancel" data-key="${k}"><i class="fas fa-ban" aria-hidden="true"></i> Cancel</button>`;
         return html;
     }
 
@@ -246,6 +268,8 @@
         const key = button.dataset.key;
         switch (button.dataset.action) {
             case 'view': viewOrderByKey(key); break;
+            case 'step': changeStatus(key, button.dataset.next, button.dataset.label); break;
+            case 'cancel': cancelOrder(key); break;
             case 'done': quickComplete(key); break;
             case 'dispatch': markOutForDelivery(key); break;
             case 'delivered': markDelivered(key); break;
@@ -430,7 +454,6 @@
                 completedAt: Date.now(),
                 updatedAt: Date.now()
             }).then(() => {
-                sendCompletionNotification(key);
                 if (verificationModalInstance) verificationModalInstance.hide();
                 ReplateUI.toast(isDelivery ? 'Order marked as delivered.' : 'Pickup confirmed. Order completed.', 'success');
             });
@@ -451,18 +474,6 @@
                 dispatchedAt: Date.now()
             });
             ReplateUI.toast('Order dispatched for delivery.', 'info');
-            const snapshot = await database.ref('orders/' + key).once('value');
-            const order = snapshot.val();
-            if (!order || !order.userId) return;
-            NotificationApi.sendTargeted({
-                userIds: [order.userId],
-                title: 'Order Out for Delivery',
-                body: `Your order from ${order.hotelName || 'the restaurant'} is on its way!`,
-                type: 'order_dispatched',
-                route: 'order',
-                orderId: key,
-                hotelId: order.hotelId || ''
-            }).catch((err) => console.error('Failed to send dispatch notification:', err));
         } catch (err) {
             console.error(err);
             ReplateUI.toast('Could not dispatch the order. Please try again.', 'danger');
@@ -479,7 +490,6 @@
                 completedAt: Date.now(),
                 updatedAt: Date.now()
             });
-            sendCompletionNotification(key);
             ReplateUI.toast('Order marked as delivered.', 'success');
         } catch (err) {
             console.error(err);
@@ -501,24 +511,33 @@
         });
     }
 
-    function sendCompletionNotification(orderKey) {
-        database.ref('orders/' + orderKey).once('value').then((snapshot) => {
-            const order = snapshot.val();
-            if (!order || !order.userId) return;
+    // Move an order along (Confirm, Preparing, Ready). The server notices the status change and
+    // sends the customer a single push, so nothing is sent from here.
+    async function changeStatus(key, next, label) {
+        try {
+            await database.ref('orders/' + key).update({ orderStatus: next, updatedAt: Date.now() });
+            ReplateUI.toast(label + ': the customer has been told.', 'success');
+        } catch (err) {
+            console.error(err);
+            ReplateUI.toast('Could not update the order. Please try again.', 'danger');
+        }
+    }
 
-            const isDelivery = String(order.orderType || '').toLowerCase() === 'delivery';
-            NotificationApi.sendTargeted({
-                userIds: [order.userId],
-                title: isDelivery ? 'Order Delivered' : 'Pickup Confirmed',
-                body: isDelivery
-                    ? `Your order from ${order.hotelName || 'the restaurant'} has been delivered. Enjoy your meal!`
-                    : `Your order at ${order.hotelName || 'the restaurant'} has been picked up. Enjoy your meal!`,
-                type: 'order_completed',
-                route: 'order',
-                orderId: orderKey,
-                hotelId: order.hotelId || ''
-            }).catch((err) => console.error('Failed to send completion push:', err));
-        });
+    async function cancelOrder(key) {
+        const ok = await ReplateUI.confirmAction('The customer will be told you cancelled their order. This cannot be undone.', {
+            title: 'Cancel this order?', confirmText: 'Cancel order', cancelText: 'Keep order', danger: true });
+        if (!ok) return;
+        try {
+            await database.ref('orders/' + key).update({
+                orderStatus: 'cancelled',
+                cancelledBy: 'hotel',
+                updatedAt: Date.now()
+            });
+            ReplateUI.toast('Order cancelled.', 'info');
+        } catch (err) {
+            console.error(err);
+            ReplateUI.toast('Could not cancel the order. Please try again.', 'danger');
+        }
     }
 </script>
 

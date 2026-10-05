@@ -492,6 +492,7 @@ Total: LKR %1$.2f</string>
     <string name="order_detail_sms_hotel">SMS Hotel</string>
     <string name="order_detail_open_pickup_route">Open Pickup Route</string>
     <string name="order_detail_navigate_hotel">Navigate to hotel</string>
+    <string name="order_detail_cancelled_by_hotel">❌ Cancelled by the hotel</string>
     <string name="order_detail_pickup_expired">Pickup time passed</string>
     <string name="order_detail_pickup_expired_hint">Your %1$s pickup slot has ended, so the QR code and OTP no longer work. Call the hotel to arrange a new time.</string>
     <string name="order_detail_no_maps_app">No maps app found on this phone</string>

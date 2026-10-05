@@ -1105,11 +1105,41 @@ exports.onOrderStatusChangedNotify = functions
         category: "order_accepted",
       },
       completed: {
-        title: "Order completed",
-        body: "Order marked completed. Enjoy your meal!",
+        title: "Pickup confirmed",
+        body: "Your order was picked up. Enjoy your meal!",
+        category: "pickup_ready",
+      },
+      confirmed: {
+        title: "Order confirmed",
+        body: "The hotel confirmed your order and will start preparing it.",
+        category: "order_accepted",
+      },
+      preparing: {
+        title: "Preparing your order",
+        body: "The hotel is preparing your order now.",
+        category: "order_accepted",
+      },
+      out_for_delivery: {
+        title: "Order out for delivery",
+        body: "Your order is on its way!",
+        category: "order_accepted",
+      },
+      delivered: {
+        title: "Order delivered",
+        body: "Your order has been delivered. Enjoy your meal!",
         category: "pickup_ready",
       },
     };
+
+    // A hotel that cancels says so; no value means the customer cancelled their own order
+    const cancelledByHotel = status === "cancelled" && String(after.cancelledBy || "") === "hotel";
+    if (cancelledByHotel) {
+      statusMap.cancelled = {
+        title: "Order cancelled by the hotel",
+        body: `${after.hotelName || "The hotel"} had to cancel your order. Please contact them if you have questions.`,
+        category: "order_cancelled",
+      };
+    }
 
     const content = statusMap[status] || {
       title: "Order updated",
@@ -1141,7 +1171,8 @@ exports.onOrderStatusChangedNotify = functions
       }
     }
 
-    if (status === "cancelled" && hotelId) {
+    // Only a customer's own cancellation needs to tell the hotel
+    if (status === "cancelled" && hotelId && !cancelledByHotel) {
       const hotelRecord = await loadHotelNotificationRecord(hotelId);
       console.log(`[onOrderStatusChangedNotify] Hotel record for cancellation: uid=${hotelRecord?.uid}, hasToken=${!!hotelRecord?.token}`);
       if (hotelRecord && hotelRecord.uid) {

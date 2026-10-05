@@ -139,6 +139,12 @@ const rules = {
         },
         updatedAt: { '.write': `auth != null && (${ORDER_OWNER} || ${ORDER_HOTEL})` },
         cancelledAt: { '.write': `auth != null && ${ORDER_OWNER}` },
+        // Who cancelled it, so the right person is told. The customer app does not set it (no value
+        // means the customer cancelled); a hotel that cancels sets "hotel".
+        cancelledBy: {
+          '.write': `auth != null && (${ORDER_OWNER} || ${ORDER_HOTEL})`,
+          '.validate': "newData.val() === 'customer' || newData.val() === 'hotel'",
+        },
         completedAt: { '.write': `auth != null && ${ORDER_HOTEL}` },
         dispatchedAt: { '.write': `auth != null && ${ORDER_HOTEL}` },
         reviewRating: { '.write': `auth != null && ${ORDER_OWNER}` },

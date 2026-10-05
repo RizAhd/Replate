@@ -90,6 +90,10 @@
         "cancelledAt": {
           ".write": "auth != null && data.parent().child('userId').val() === auth.uid"
         },
+        "cancelledBy": {
+          ".write": "auth != null && (data.parent().child('userId').val() === auth.uid || (data.parent().child('hotelId').val() != null && (root.child('hotels').child(data.parent().child('hotelId').val()).child('userId').val() === auth.uid || data.parent().child('hotelId').val() === auth.uid)))",
+          ".validate": "newData.val() === 'customer' || newData.val() === 'hotel'"
+        },
         "completedAt": {
           ".write": "auth != null && (data.parent().child('hotelId').val() != null && (root.child('hotels').child(data.parent().child('hotelId').val()).child('userId').val() === auth.uid || data.parent().child('hotelId').val() === auth.uid))"
         },

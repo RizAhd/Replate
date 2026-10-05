@@ -136,6 +136,9 @@ async function check(name, promise) {
   await check('customer reads own order by id', assertSucceeds(get(ref(cust1, 'orders/o1'))));
   await check('customer cannot read another order', assertFails(get(ref(cust1, 'orders/o2'))));
   await check('customer cancels own pending order', assertSucceeds(update(ref(cust1, 'orders/o1'), { orderStatus: 'cancelled', updatedAt: 5, cancelledAt: 5 })));
+  await check('hotel cancels its order and records that it did', assertSucceeds(update(ref(owner2, 'orders/o2'), { orderStatus: 'cancelled', cancelledBy: 'hotel', updatedAt: 8 })));
+  await check('cancelledBy only accepts customer or hotel', assertFails(update(ref(owner1, 'orders/oDone'), { cancelledBy: 'admin' })));
+  await check('another hotel cannot set cancelledBy', assertFails(update(ref(owner2, 'orders/oDone'), { cancelledBy: 'hotel' })));
   await check('customer cannot mark order completed', assertFails(set(ref(cust1, 'orders/o2/orderStatus'), 'completed')));
   await check('customer cannot rewrite a completed order', assertFails(set(ref(cust1, 'orders/oDone'), { ...order, orderStatus: 'pending_pickup' })));
   await check('customer reviews a completed order', assertSucceeds(update(ref(cust1, 'orders/oDone'), { reviewRating: 5, reviewComment: 'great', reviewAt: 9, hasReview: true })));
