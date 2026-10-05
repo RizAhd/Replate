@@ -36,6 +36,34 @@
             </div>
 
             <div class="card data-panel p-3">
+                <!-- Filters -->
+                <div class="row g-2 mb-2">
+                    <div class="col-6 col-md-3">
+                        <label for="statusFilter" class="form-label small mb-1">Status</label>
+                        <select id="statusFilter" class="form-select form-select-sm">
+                            <option value="">All statuses</option>
+                            <option value="open">Pending (not finished)</option>
+                            <option value="completed">Completed / delivered</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label for="hotelFilter" class="form-label small mb-1">Hotel</label>
+                        <select id="hotelFilter" class="form-select form-select-sm">
+                            <option value="">All hotels</option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label for="fromDate" class="form-label small mb-1">From</label>
+                        <input type="date" id="fromDate" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label for="toDate" class="form-label small mb-1">To</label>
+                        <input type="date" id="toDate" class="form-control form-control-sm">
+                    </div>
+                </div>
+                <p id="summary" class="small text-muted mb-3" role="status"></p>
+
                 <div class="table-responsive">
                     <table id="transactionsTable" class="table table-striped align-middle table-stack" style="width:100%">
                         <thead>
@@ -44,7 +72,9 @@
                                 <th>Date</th>
                                 <th>Customer</th>
                                 <th>Hotel</th>
+                                <th>Items</th>
                                 <th>Amount</th>
+                                <th>Payment</th>
                                 <th>Review</th>
                                 <th>Status</th>
                             </tr>
@@ -74,18 +104,72 @@
 <script>
     const esc = ReplateUI.esc;
     const MAX_ROWS = 500; // newest first; keeps the page quick as the order history grows
+    const COLUMNS = 9;
 
     (async () => {
         const user = await ReplateUI.requireRole('admin');
         if (!user) return;
         document.getElementById('tableBody').innerHTML =
-            '<tr><td colspan="7">' + ReplateUI.skeleton('rows', 5) + '</td></tr>';
+            '<tr><td colspan="' + COLUMNS + '">' + ReplateUI.skeleton('rows', 5) + '</td></tr>';
         loadTransactions();
     })();
+
+    // ── Filters (on top of the search box) ──────────────────
+    function dayStart(value) { return value ? new Date(value + 'T00:00:00').getTime() : null; }
+    function dayEnd(value) { return value ? new Date(value + 'T23:59:59.999').getTime() : null; }
+
+    $.fn.dataTable.ext.search.push((settings, data, dataIndex) => {
+        if (settings.nTable.id !== 'transactionsTable') return true;
+        const row = settings.aoData[dataIndex].nTr;
+        if (!row) return true;
+
+        const status = document.getElementById('statusFilter').value;
+        const hotel = document.getElementById('hotelFilter').value;
+        const from = dayStart(document.getElementById('fromDate').value);
+        const to = dayEnd(document.getElementById('toDate').value);
+        const ts = Number(row.dataset.ts) || 0;
+
+        if (status && row.dataset.state !== status) return false;
+        if (hotel && row.dataset.hotel !== hotel) return false;
+        if (from !== null && ts < from) return false;
+        if (to !== null && ts > to) return false;
+        return true;
+    });
+
+    ['statusFilter', 'hotelFilter', 'fromDate', 'toDate'].forEach((id) => {
+        document.getElementById(id).addEventListener('change', () => {
+            if ($.fn.DataTable.isDataTable('#transactionsTable')) $('#transactionsTable').DataTable().draw();
+        });
+    });
+
+    function updateSummary(table) {
+        const nodes = table.rows({ search: 'applied' }).nodes().toArray();
+        let earned = 0;
+        nodes.forEach((tr) => { earned += Number(tr.dataset.earned) || 0; });
+        document.getElementById('summary').textContent = nodes.length + (nodes.length === 1 ? ' order' : ' orders') +
+            ' shown. Completed revenue in this view: LKR ' + earned.toLocaleString(undefined, { maximumFractionDigits: 0 }) + '.';
+    }
+
+    function refreshHotelFilter(names) {
+        const select = document.getElementById('hotelFilter');
+        const current = select.value;
+        select.innerHTML = '<option value="">All hotels</option>' + names.map((n) =>
+            `<option value="${esc(n)}">${esc(n)}</option>`).join('');
+        if (names.includes(current)) select.value = current;
+    }
+
+    function paymentCell(order) {
+        const method = String(order.paymentMethod || '—');
+        const paid = String(order.paymentStatus || '').toLowerCase();
+        const cls = paid === 'paid' ? 'badge-success' : paid === 'failed' ? 'badge-danger' : 'badge-warning';
+        const label = paid ? paid.charAt(0).toUpperCase() + paid.slice(1) : 'Pending';
+        return `${esc(method)}<br><span class="badge ${cls}">${esc(label)}</span>`;
+    }
 
     function loadTransactions() {
         database.ref('orders').orderByChild('createdAt').limitToLast(MAX_ROWS).on('value', (snapshot) => {
             const tbody = document.getElementById('tableBody');
+            const hotels = new Set();
 
             const rows = [];
             snapshot.forEach((child) => {
@@ -93,41 +177,60 @@
                 const date = order.createdAt ? new Date(order.createdAt).toLocaleString() : 'N/A';
                 const status = ReplateSchema.normalizeOrderStatus(order.orderStatus);
                 const label = ReplateSchema.statusLabel(status);
-                const amount = ReplateSchema.formatAmount(order.totalAmount);
+                const amount = ReplateSchema.formatAmount(order.totalAmount || order.totalPrice);
                 const displayId = ReplateSchema.shortOrderId(order, child.key);
                 const rating = Number(order.reviewRating);
+                const hotelName = order.hotelName || '—';
+                hotels.add(hotelName);
+
+                const state = ReplateSchema.isSuccessfulOrder(order) ? 'completed'
+                    : ReplateSchema.isCancelledOrder(order) ? 'cancelled' : 'open';
+                const earned = state === 'completed' ? ReplateSchema.orderAmount(order) : 0;
 
                 rows.push(`
-                    <tr>
+                    <tr data-ts="${esc(order.createdAt || 0)}" data-state="${state}" data-hotel="${esc(hotelName)}" data-earned="${earned}">
                         <td data-label="Order ID"><code>#${esc(displayId)}</code></td>
                         <td data-label="Date" data-order="${esc(order.createdAt || 0)}">${esc(date)}</td>
                         <td data-label="Customer">${esc(order.customerName || '—')}</td>
-                        <td data-label="Hotel">${esc(order.hotelName || '—')}</td>
-                        <td data-label="Amount" class="num">LKR ${esc(amount)}</td>
+                        <td data-label="Hotel">${esc(hotelName)}</td>
+                        <td data-label="Items">${esc(ReplateSchema.extractItemNames(order))}</td>
+                        <td data-label="Amount" class="num" data-order="${esc(ReplateSchema.orderAmount(order))}">LKR ${esc(amount)}</td>
+                        <td data-label="Payment">${paymentCell(order)}</td>
                         <td data-label="Review">${rating > 0 ? `<i class="fas fa-star text-warning" aria-hidden="true"></i> ${rating.toFixed(1)}` : '<span class="text-muted">—</span>'}</td>
                         <td data-label="Status"><span class="badge ${esc(ReplateSchema.statusBadgeClass(status))}">${esc(label)}</span></td>
                     </tr>`);
             });
 
-            // Redraw the table in place instead of tearing it down and rebuilding it
+            // Redraw in place, keeping the search text and page the admin was on
+            let previous = null;
             if ($.fn.DataTable.isDataTable('#transactionsTable')) {
-                $('#transactionsTable').DataTable().destroy();
+                const existing = $('#transactionsTable').DataTable();
+                previous = { search: existing.search(), page: existing.page() };
+                existing.destroy();
             }
-            tbody.innerHTML = rows.reverse().join('');
+
+            refreshHotelFilter(Array.from(hotels).sort());
+
             if (rows.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7">' +
+                tbody.innerHTML = '<tr><td colspan="' + COLUMNS + '">' +
                     ReplateUI.emptyState('No transactions yet', 'Orders will appear here as customers place them.', 'fa-receipt') + '</td></tr>';
+                document.getElementById('summary').textContent = '';
                 return;
             }
-            $('#transactionsTable').DataTable({
+
+            tbody.innerHTML = rows.reverse().join('');
+            const table = $('#transactionsTable').DataTable({
                 pageLength: 25,
                 order: [[1, 'desc']],
                 autoWidth: false
             });
+            table.on('draw', () => updateSummary(table));
+            if (previous) table.search(previous.search).page(previous.page).draw(false);
+            else updateSummary(table);
         }, (error) => {
             console.error('Could not load transactions', error);
             document.getElementById('tableBody').innerHTML =
-                '<tr><td colspan="7">' + ReplateUI.errorState('Transactions could not be loaded. Check your admin access and connection.') + '</td></tr>';
+                '<tr><td colspan="' + COLUMNS + '">' + ReplateUI.errorState('Transactions could not be loaded. Check your admin access and connection.') + '</td></tr>';
         });
     }
 </script>
