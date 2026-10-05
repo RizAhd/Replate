@@ -47,6 +47,11 @@ const rules = {
       $uid: {
         '.read': `auth != null && auth.uid === $uid`,
         '.write': `auth != null && (auth.uid === $uid || ${ADMIN})`,
+        // A suspended account cannot lift its own suspension by rewriting its profile. (The real
+        // block is the disabled Firebase Auth account; this keeps the displayed status honest.)
+        '.validate': `${ADMIN} || data.child('status').val() !== 'suspended' || newData.child('status').val() === 'suspended'`,
+        // active / suspended is set by the setUserSuspended Cloud Function or an admin, never by the user.
+        status: { '.validate': ADMIN },
         // Nobody can promote themselves: a role is chosen once at sign-up (customer or hotel) and
         // can only be changed by an admin.
         role: {
@@ -78,14 +83,28 @@ const rules = {
       },
     },
 
+    // Business licences are kept apart from `hotels` because every signed-in user can read that node
+    // (the map needs it) and a licence link must not be public. Only the owner and admins read it.
+    hotelLicenses: {
+      $hotelId: {
+        '.read': `auth != null && (${ADMIN} || data.child('userId').val() === auth.uid)`,
+        '.write': `auth != null && (${ADMIN} || (!data.exists() && newData.child('userId').val() === auth.uid))`,
+        '.validate': "newData.child('licenseUrl').isString() && newData.child('licenseUrl').val().beginsWith('https://')",
+      },
+    },
+
     // ----------------------------------------------------------- foodItems
     foodItems: {
       '.read': SIGNED_IN,
       '.indexOn': ['hotelId', 'createdAt'],
       $foodId: {
-        // The hotel that owns a listing (hotelUserId) manages it; quantity/status are also changed
-        // by the onOrderCreatedNotify Cloud Function, which bypasses these rules.
-        '.write': `${ADMIN} || (auth != null && (data.exists() ? data.child('hotelUserId').val() : newData.child('hotelUserId').val()) === auth.uid)`,
+        // The hotel that owns a listing (hotelUserId) manages it, but only while an admin has the
+        // hotel approved (a pending, rejected or suspended hotel cannot publish), and a listing can
+        // only point at the owner's own hotel. Deleting is allowed for the owner. Quantity/status are
+        // also changed by the onOrderCreatedNotify Cloud Function, which bypasses these rules.
+        '.write': `${ADMIN} || (auth != null && (data.exists() ? data.child('hotelUserId').val() : newData.child('hotelUserId').val()) === auth.uid` +
+          ` && (${APPROVED_HOTEL})` +
+          ` && (!newData.exists() || newData.child('hotelId').val() === ${MY_HOTEL_KEY} || newData.child('hotelId').val() === auth.uid))`,
         // Customers rate food, so they may update the aggregate - but only with sane numbers.
         avgRating: {
           '.write': SIGNED_IN,

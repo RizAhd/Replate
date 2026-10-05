@@ -8,6 +8,10 @@
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",
         ".write": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".validate": "root.child('users').child(auth.uid).child('role').val() === 'admin' || data.child('status').val() !== 'suspended' || newData.child('status').val() === 'suspended'",
+        "status": {
+          ".validate": "root.child('users').child(auth.uid).child('role').val() === 'admin'"
+        },
         "role": {
           ".validate": "root.child('users').child(auth.uid).child('role').val() === 'admin' || (newData.isString() && (data.exists() ? newData.val() === data.val() : (newData.val() === 'customer' || newData.val() === 'hotel')))"
         },
@@ -41,6 +45,13 @@
         }
       }
     },
+    "hotelLicenses": {
+      "$hotelId": {
+        ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || data.child('userId').val() === auth.uid)",
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (!data.exists() && newData.child('userId').val() === auth.uid))",
+        ".validate": "newData.child('licenseUrl').isString() && newData.child('licenseUrl').val().beginsWith('https://')"
+      }
+    },
     "foodItems": {
       ".read": "auth != null",
       ".indexOn": [
@@ -48,7 +59,7 @@
         "createdAt"
       ],
       "$foodId": {
-        ".write": "root.child('users').child(auth.uid).child('role').val() === 'admin' || (auth != null && (data.exists() ? data.child('hotelUserId').val() : newData.child('hotelUserId').val()) === auth.uid)",
+        ".write": "root.child('users').child(auth.uid).child('role').val() === 'admin' || (auth != null && (data.exists() ? data.child('hotelUserId').val() : newData.child('hotelUserId').val()) === auth.uid && ((root.child('users').child(auth.uid).child('hotelId').val() != null && root.child('hotels').child(root.child('users').child(auth.uid).child('hotelId').val()).child('userId').val() === auth.uid && root.child('hotels').child(root.child('users').child(auth.uid).child('hotelId').val()).child('status').val() === 'approved') || root.child('hotels').child(auth.uid).child('status').val() === 'approved') && (!newData.exists() || newData.child('hotelId').val() === root.child('users').child(auth.uid).child('hotelId').val() || newData.child('hotelId').val() === auth.uid))",
         "avgRating": {
           ".write": "auth != null",
           ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 5"

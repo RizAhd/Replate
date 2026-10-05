@@ -32,6 +32,10 @@ async function check(name, promise) {
     await set(ref(db, 'users/hotelOwner2'), { role: 'hotel', hotelId: 'hotelB' });
     await set(ref(db, 'users/pendingOwner'), { role: 'hotel', hotelId: 'hotelP' });
     await set(ref(db, 'users/stillPending'), { role: 'hotel', hotelId: 'hotelQ' });
+    await set(ref(db, 'users/suspendedUser'), { role: 'customer', name: 'Sus', status: 'suspended' });
+    await set(ref(db, 'users/suspendedOwner'), { role: 'hotel', hotelId: 'hotelS', status: 'suspended' });
+    await set(ref(db, 'hotels/hotelS'), { userId: 'suspendedOwner', status: 'suspended', hotelName: 'S' });
+    await set(ref(db, 'hotelLicenses/hotelA'), { userId: 'hotelOwner1', licenseUrl: 'https://x/license.pdf' });
     await set(ref(db, 'hotels/hotelQ'), { userId: 'stillPending', status: 'pending', hotelName: 'Q' });
     await set(ref(db, 'hotels/hotelA'), { userId: 'hotelOwner1', status: 'approved', hotelName: 'A' });
     await set(ref(db, 'hotels/hotelB'), { userId: 'hotelOwner2', status: 'approved', hotelName: 'B' });
@@ -74,6 +78,24 @@ async function check(name, promise) {
   await check('cannot write someone else profile', assertFails(update(ref(cust1, 'users/cust2'), { name: 'hax' })));
   await check('customer can delete own profile (account deletion)', assertSucceeds(remove(ref(env.authenticatedContext('newbie').database(), 'users/newbie'))));
 
+  await check('customer cannot give themselves a status', assertFails(set(ref(cust1, 'users/cust1/status'), 'active')));
+  await check('admin suspends a user', assertSucceeds(update(ref(admin, 'users/cust2'), { status: 'suspended', suspensionReason: 'spam' })));
+  await check('suspended user cannot clear the suspension by rewriting the profile', assertFails(set(ref(env.authenticatedContext('suspendedUser').database(), 'users/suspendedUser'), { role: 'customer', name: 'Sus' })));
+  await check('suspended user cannot set status to active', assertFails(set(ref(env.authenticatedContext('suspendedUser').database(), 'users/suspendedUser/status'), 'active')));
+  await check('suspended user may still update other profile fields', assertSucceeds(update(ref(env.authenticatedContext('suspendedUser').database(), 'users/suspendedUser'), { name: 'Still Sus' })));
+  await check('admin enables a user again', assertSucceeds(update(ref(admin, 'users/suspendedUser'), { status: 'active' })));
+
+  console.log('\nHotel licences');
+  await check('owner reads own licence', assertSucceeds(get(ref(owner1, 'hotelLicenses/hotelA'))));
+  await check('other signed-in user cannot read a licence', assertFails(get(ref(cust1, 'hotelLicenses/hotelA'))));
+  await check('other hotel cannot read a licence', assertFails(get(ref(owner2, 'hotelLicenses/hotelA'))));
+  await check('cannot list all licences', assertFails(get(ref(cust1, 'hotelLicenses'))));
+  await check('admin reads licences', assertSucceeds(get(ref(admin, 'hotelLicenses/hotelA'))));
+  await check('new hotel owner stores their licence', assertSucceeds(set(ref(newUser, 'hotelLicenses/newHotelKey'), { userId: 'newbie', licenseUrl: 'https://x/l.pdf' })));
+  await check('cannot store a licence under another user', assertFails(set(ref(newUser, 'hotelLicenses/other2'), { userId: 'cust1', licenseUrl: 'https://x/l.pdf' })));
+  await check('owner cannot overwrite an existing licence', assertFails(set(ref(owner1, 'hotelLicenses/hotelA'), { userId: 'hotelOwner1', licenseUrl: 'https://x/new.pdf' })));
+  await check('licence link must be https', assertFails(set(ref(env.authenticatedContext('another').database(), 'hotelLicenses/k3'), { userId: 'another', licenseUrl: 'http://x/l.pdf' })));
+
   console.log('\nHotels');
   await check('signed-in user reads all hotels (map)', assertSucceeds(get(ref(cust1, 'hotels'))));
   await check('hotel registration as pending for self', assertSucceeds(set(ref(newUser, 'hotels/newHotelKey'), { userId: 'newbie', status: 'pending', hotelName: 'New' })));
@@ -97,6 +119,9 @@ async function check(name, promise) {
   await check('hotel creates new listing for itself', assertSucceeds(set(ref(owner1, 'foodItems/f2'), { hotelId: 'hotelA', hotelUserId: 'hotelOwner1', foodName: 'Soup', quantity: 3 })));
   await check('hotel cannot create listing for another owner', assertFails(set(ref(owner1, 'foodItems/f3'), { hotelId: 'hotelB', hotelUserId: 'hotelOwner2', foodName: 'Fake' })));
   await check('owner deletes own listing', assertSucceeds(remove(ref(owner1, 'foodItems/f2'))));
+  await check('pending hotel cannot publish a listing', assertFails(set(ref(env.authenticatedContext('stillPending').database(), 'foodItems/fp'), { hotelId: 'hotelQ', hotelUserId: 'stillPending', foodName: 'Early' })));
+  await check('suspended hotel cannot publish a listing', assertFails(set(ref(env.authenticatedContext('suspendedOwner').database(), 'foodItems/fs'), { hotelId: 'hotelS', hotelUserId: 'suspendedOwner', foodName: 'Nope' })));
+  await check('hotel cannot point its listing at another hotel key', assertFails(set(ref(owner1, 'foodItems/f4'), { hotelId: 'hotelB', hotelUserId: 'hotelOwner1', foodName: 'Wrong hotel' })));
 
   console.log('\nOrders');
   const order = { userId: 'cust1', hotelId: 'hotelA', orderStatus: 'pending_pickup', totalAmount: 250, createdAt: Date.now(), items: [{ foodId: 'f1' }] };
