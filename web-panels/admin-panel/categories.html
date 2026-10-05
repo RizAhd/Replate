@@ -29,22 +29,23 @@
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                 <div>
                     <h1 class="panel-title">Manage Food Categories</h1>
-                    <p class="panel-subtitle mb-0">Add, edit, and organize food categories for your platform.</p>
+                    <p class="panel-subtitle mb-0">Add, rename, reorder and remove categories. The customer app's category chips and the hotel panel's category list follow this page.</p>
                 </div>
             </div>
 
             <div class="row">
                 <div class="col-lg-4">
-                    <div class="card p-4">
+                    <div class="card p-4 mb-4">
                         <h5 class="mb-3"><i class="fas fa-plus-circle me-2"></i>Add New Category</h5>
                         <form id="addCategoryForm">
                             <div class="mb-3">
                                 <label class="form-label" for="catName">Category Name</label>
-                                <input type="text" class="form-control" id="catName" placeholder="e.g. Rice & Curry" required>
+                                <input type="text" class="form-control" id="catName" placeholder="e.g. Rice &amp; Curry" maxlength="40" required>
                             </div>
                             <div class="mb-4">
                                 <label class="form-label" for="catOrder">Display Order</label>
-                                <input type="number" class="form-control" id="catOrder" value="1" required>
+                                <input type="number" class="form-control" id="catOrder" value="1" min="0" required>
+                                <div class="form-text">Use the arrows in the list to move a category later.</div>
                             </div>
                             <button type="submit" class="btn btn-primary w-100">
                                 <i class="fas fa-plus me-2"></i>Add Category
@@ -56,11 +57,12 @@
                 <div class="col-lg-8">
                     <div class="card p-3">
                         <div class="table-responsive">
-                            <table class="table table-hover table-stack">
+                            <table class="table table-hover align-middle table-stack">
                                 <thead>
                                     <tr>
                                         <th>Order</th>
                                         <th>Name</th>
+                                        <th>Dishes</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -87,38 +89,90 @@
 <script>
     const esc = ReplateUI.esc;
     const tbody = document.getElementById('categoryTable');
+    const COLUMNS = 4;
+
+    let categories = [];          // [{ key, name, order }] sorted by order
+    let dishesByCategory = {};    // lower-cased category name -> number of dishes using it
+    let dishCategories = [];      // [{ id, category }] so a rename can move the dishes with it
+
+    const sameName = (a, b) => String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase();
 
     (async () => {
         const user = await ReplateUI.requireRole('admin');
         if (!user) return;
-        tbody.innerHTML = '<tr><td colspan="3">' + ReplateUI.skeleton('rows', 3) + '</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="' + COLUMNS + '">' + ReplateUI.skeleton('rows', 3) + '</td></tr>';
         loadCategories();
+        loadDishCounts();
     })();
 
     function loadCategories() {
         database.ref('categories').orderByChild('order').on('value', (snapshot) => {
-            const rows = [];
+            const list = [];
             snapshot.forEach((child) => {
                 const cat = child.val() || {};
-                const name = cat.name || '';
-                rows.push(`
-                    <tr>
-                        <td data-label="Order">${esc(cat.order ?? '')}</td>
-                        <td data-label="Name">${esc(name)}</td>
-                        <td data-label="Actions" class="actions-cell">
-                            <button class="btn btn-sm btn-danger" data-action="delete" data-key="${esc(child.key)}"
-                                    data-name="${esc(name)}" aria-label="Delete category ${esc(name)}">
-                                <i class="fas fa-trash" aria-hidden="true"></i>
-                            </button>
-                        </td>
-                    </tr>`);
+                list.push({ key: child.key, name: String(cat.name || ''), order: Number(cat.order) || 0 });
             });
-            tbody.innerHTML = rows.join('') || '<tr><td colspan="3">' +
-                ReplateUI.emptyState('No categories yet', 'Add the first category using the form.', 'fa-tags') + '</td></tr>';
+            categories = list;
+            // Suggest the next free position in the add form
+            document.getElementById('catOrder').value = list.length + 1;
+            render();
         }, (error) => {
             console.error('Could not load categories', error);
-            tbody.innerHTML = '<tr><td colspan="3">' + ReplateUI.errorState('Categories could not be loaded. Check your admin access and connection.') + '</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="' + COLUMNS + '">' + ReplateUI.errorState('Categories could not be loaded. Check your admin access and connection.') + '</td></tr>';
         });
+    }
+
+    function loadDishCounts() {
+        database.ref('foodItems').on('value', (snapshot) => {
+            const counts = {};
+            const dishes = [];
+            snapshot.forEach((child) => {
+                const category = String((child.val() || {}).category || '').trim();
+                if (!category) return;
+                dishes.push({ id: child.key, category });
+                const key = category.toLowerCase();
+                counts[key] = (counts[key] || 0) + 1;
+            });
+            dishesByCategory = counts;
+            dishCategories = dishes;
+            render();
+        }, (error) => console.warn('Could not count dishes per category', error));
+    }
+
+    function render() {
+        if (categories.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="' + COLUMNS + '">' +
+                ReplateUI.emptyState('No categories yet', 'Add the first category using the form. Until then the app shows its built-in categories.', 'fa-tags') + '</td></tr>';
+            return;
+        }
+        tbody.innerHTML = categories.map((cat, i) => {
+            const used = dishesByCategory[cat.name.trim().toLowerCase()] || 0;
+            const name = esc(cat.name);
+            return `
+                <tr>
+                    <td data-label="Order">${i + 1}</td>
+                    <td data-label="Name">${name}</td>
+                    <td data-label="Dishes">${used}</td>
+                    <td data-label="Actions" class="actions-cell">
+                        <button class="btn btn-sm btn-outline-secondary" data-action="up" data-key="${esc(cat.key)}" aria-label="Move ${name} up" ${i === 0 ? 'disabled' : ''}>
+                            <i class="fas fa-arrow-up" aria-hidden="true"></i></button>
+                        <button class="btn btn-sm btn-outline-secondary" data-action="down" data-key="${esc(cat.key)}" aria-label="Move ${name} down" ${i === categories.length - 1 ? 'disabled' : ''}>
+                            <i class="fas fa-arrow-down" aria-hidden="true"></i></button>
+                        <button class="btn btn-sm btn-outline-primary" data-action="rename" data-key="${esc(cat.key)}" aria-label="Rename ${name}">
+                            <i class="fas fa-pen" aria-hidden="true"></i></button>
+                        <button class="btn btn-sm btn-danger" data-action="delete" data-key="${esc(cat.key)}" aria-label="Delete category ${name}">
+                            <i class="fas fa-trash" aria-hidden="true"></i></button>
+                    </td>
+                </tr>`;
+        }).join('');
+    }
+
+    function validateName(name, ignoreKey) {
+        if (!name) return 'Enter a category name.';
+        if (name.length > 40) return 'Keep the category name under 40 characters.';
+        if (sameName(name, 'all')) return '"All" is added by the app automatically.';
+        if (categories.some((c) => c.key !== ignoreKey && sameName(c.name, name))) return 'A category called "' + name + '" already exists.';
+        return null;
     }
 
     document.getElementById('addCategoryForm').addEventListener('submit', async (e) => {
@@ -126,12 +180,9 @@
         const name = document.getElementById('catName').value.trim();
         const order = parseInt(document.getElementById('catOrder').value, 10);
 
-        if (!name) {
-            ReplateUI.toast('Enter a category name.', 'warning');
-            return;
-        }
-        if (name.length > 40) {
-            ReplateUI.toast('Keep the category name under 40 characters.', 'warning');
+        const problem = validateName(name, null);
+        if (problem) {
+            ReplateUI.toast(problem, 'warning');
             return;
         }
         if (!Number.isFinite(order) || order < 0) {
@@ -142,7 +193,6 @@
         try {
             await database.ref('categories').push({ name, order });
             document.getElementById('addCategoryForm').reset();
-            document.getElementById('catOrder').value = order + 1;
             ReplateUI.toast('Category added.', 'success');
         } catch (error) {
             console.error(error);
@@ -150,22 +200,79 @@
         }
     });
 
-    tbody.addEventListener('click', async (event) => {
-        const button = event.target.closest('button[data-action="delete"]');
-        if (!button) return;
-        const ok = await ReplateUI.confirmAction(
-            `"${button.dataset.name}" will be removed from the app's category list.`,
-            { title: 'Delete this category?', confirmText: 'Delete', danger: true });
+    /** Swap a category with its neighbour and renumber the whole list 1..n, so ties never confuse the order. */
+    async function move(key, delta) {
+        const from = categories.findIndex((c) => c.key === key);
+        const to = from + delta;
+        if (from < 0 || to < 0 || to >= categories.length) return;
+        const reordered = categories.slice();
+        [reordered[from], reordered[to]] = [reordered[to], reordered[from]];
+        const updates = {};
+        reordered.forEach((c, i) => { updates['categories/' + c.key + '/order'] = i + 1; });
+        try {
+            await database.ref().update(updates);
+        } catch (error) {
+            console.error(error);
+            ReplateUI.toast('Could not reorder the categories. Please try again.', 'danger');
+        }
+    }
+
+    async function rename(key) {
+        const cat = categories.find((c) => c.key === key);
+        if (!cat) return;
+        const answer = await ReplateUI.askText(
+            `Dishes listed under "${cat.name}" move to the new name, so customers keep finding them.`,
+            { title: 'Rename category', placeholder: cat.name, confirmText: 'Rename' });
+        if (answer === null) return;
+        const name = answer.trim();
+        if (sameName(name, cat.name) && name === cat.name) return;
+        const problem = validateName(name, key);
+        if (problem) {
+            ReplateUI.toast(problem, 'warning');
+            return;
+        }
+
+        const updates = { ['categories/' + key + '/name']: name };
+        dishCategories.filter((d) => sameName(d.category, cat.name))
+            .forEach((d) => { updates['foodItems/' + d.id + '/category'] = name; });
+        try {
+            await database.ref().update(updates);
+            ReplateUI.toast('Category renamed.', 'success');
+        } catch (error) {
+            console.error(error);
+            ReplateUI.toast('Could not rename the category. Please try again.', 'danger');
+        }
+    }
+
+    async function remove(key) {
+        const cat = categories.find((c) => c.key === key);
+        if (!cat) return;
+        const used = dishesByCategory[cat.name.trim().toLowerCase()] || 0;
+        const message = used > 0
+            ? `${used} ${used === 1 ? 'dish uses' : 'dishes use'} "${cat.name}". They stay listed, but will no longer appear under this category chip in the app.`
+            : `"${cat.name}" will be removed from the app's category list.`;
+        const ok = await ReplateUI.confirmAction(message, { title: 'Delete this category?', confirmText: 'Delete', danger: true });
         if (!ok) return;
         try {
-            await database.ref('categories/' + button.dataset.key).remove();
+            await database.ref('categories/' + key).remove();
             ReplateUI.toast('Category deleted.', 'success');
         } catch (error) {
             console.error(error);
             ReplateUI.toast('Could not delete the category. Please try again.', 'danger');
         }
+    }
+
+    tbody.addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-action]');
+        if (!button || button.disabled) return;
+        const key = button.dataset.key;
+        switch (button.dataset.action) {
+            case 'up': move(key, -1); break;
+            case 'down': move(key, 1); break;
+            case 'rename': rename(key); break;
+            case 'delete': remove(key); break;
+        }
     });
 </script>
 </body>
 </html>
-
