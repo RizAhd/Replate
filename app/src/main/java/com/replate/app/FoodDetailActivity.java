@@ -42,6 +42,7 @@ import com.replate.app.models.FoodItem;
 import com.replate.app.models.Review;
 import com.replate.app.utils.SafeSnapshot;
 import com.replate.app.utils.CallHelper;
+import com.replate.app.utils.FavoriteHotelToggle;
 import com.replate.app.utils.TelephonyUtils;
 import com.replate.app.utils.ToastUtils;
 import com.replate.app.utils.LocationUtils;
@@ -55,7 +56,7 @@ import java.util.Map;
 
 public class FoodDetailActivity extends AppCompatActivity {
 
-    private ImageView ivFoodImage, ivBack, ivFavorite;
+    private ImageView ivFoodImage, ivBack, ivFavorite, ivFavoriteHotel;
     private TextView tvFoodName, tvHotelName, tvDescription;
     private TextView tvOriginalPrice, tvDiscountedPrice, tvDiscount;
     private TextView tvPickupTime, tvDistance, tvQuantity;
@@ -118,6 +119,7 @@ public class FoodDetailActivity extends AppCompatActivity {
         ivFavorite = findViewById(R.id.ivFavorite);
         tvFoodName = findViewById(R.id.tvFoodName);
         tvHotelName = findViewById(R.id.tvHotelName);
+        ivFavoriteHotel = findViewById(R.id.ivFavoriteHotel);
         tvDescription = findViewById(R.id.tvDescription);
         tvOriginalPrice = findViewById(R.id.tvOriginalPrice);
         tvDiscountedPrice = findViewById(R.id.tvDiscountedPrice);
@@ -226,6 +228,11 @@ public class FoodDetailActivity extends AppCompatActivity {
                     ToastUtils.showCustomToast(this, R.string.food_detail_added_to_favorites);
                 }
             });
+        }
+
+        if (foodItem != null) {
+            FavoriteHotelToggle.bind(this, ivFavoriteHotel, foodItem.getHotelId(),
+                    foodItem.getHotelName(), foodItem.getHotelAddress());
         }
 
         btnCallHotel.setOnClickListener(v -> callHotel());

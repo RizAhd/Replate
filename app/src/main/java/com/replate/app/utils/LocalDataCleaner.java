@@ -42,6 +42,7 @@ public final class LocalDataCleaner {
         try {
             ReplateDatabaseHelper db = ReplateDatabaseHelper.getInstance(app);
             db.clearFavorites();
+            db.clearFavoriteHotels();
             db.clearSearchHistory();
             db.clearNotificationCache();
             db.clearOrderCache();

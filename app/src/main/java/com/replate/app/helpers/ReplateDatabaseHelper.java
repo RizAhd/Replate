@@ -9,6 +9,7 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 import com.replate.app.models.AppNotification;
+import com.replate.app.models.FavoriteHotel;
 import com.replate.app.models.FoodItem;
 import com.replate.app.models.Order;
 
@@ -28,7 +29,7 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
 
     private static final String TAG = "ReplateDatabaseHelper";
     private static final String DATABASE_NAME = "ReplateLocalDB";
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 4;
 
     // TABLE 1: SEARCH HISTORY
     private static final String TABLE_SEARCH_HISTORY = "search_history";
@@ -92,6 +93,14 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
     private static final String UP_PHOTO_URL = "photo_url";
     private static final String UP_ADDRESS = "address";
     private static final String UP_CACHED_AT = "cached_at";
+
+    // TABLE 7: FAVORITE HOTELS
+    private static final String TABLE_FAVORITE_HOTELS = "favorite_hotels";
+    private static final String FH_ID = "id";
+    private static final String FH_HOTEL_ID = "hotel_id";
+    private static final String FH_NAME = "hotel_name";
+    private static final String FH_ADDRESS = "address";
+    private static final String FH_ADDED_AT = "added_at";
 
     // Singleton
     private static ReplateDatabaseHelper instance;
@@ -174,6 +183,9 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
                 + UP_ADDRESS + " TEXT, "
                 + UP_CACHED_AT + " INTEGER)");
 
+        // Favorite hotels
+        db.execSQL(createFavoriteHotelsSql());
+
         // Indices
         db.execSQL("CREATE INDEX IF NOT EXISTS idx_sh_timestamp ON " + TABLE_SEARCH_HISTORY + "(" + SH_TIMESTAMP + ")");
         db.execSQL("CREATE INDEX IF NOT EXISTS idx_fav_food_id ON " + TABLE_FAVORITES + "(" + FAV_FOOD_ID + ")");
@@ -182,7 +194,7 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("CREATE INDEX IF NOT EXISTS idx_fc_cached ON " + TABLE_FOOD_CACHE + "(" + FC_CACHED_AT + ")");
         db.execSQL("CREATE INDEX IF NOT EXISTS idx_up_user_id ON " + TABLE_USER_PROFILE + "(" + UP_USER_ID + ")");
 
-        Log.d(TAG, "Database created with 6 tables");
+        Log.d(TAG, "Database created with 7 tables");
     }
 
     @Override
@@ -219,6 +231,24 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
                 Log.w(TAG, "user_profile table may already exist", e);
             }
         }
+        if (oldVersion < 4) {
+            // v3 → v4: add favorite_hotels table
+            try {
+                db.execSQL(createFavoriteHotelsSql());
+                Log.d(TAG, "Upgraded to v4: added favorite_hotels table");
+            } catch (Exception e) {
+                Log.w(TAG, "favorite_hotels table may already exist", e);
+            }
+        }
+    }
+
+    private static String createFavoriteHotelsSql() {
+        return "CREATE TABLE IF NOT EXISTS " + TABLE_FAVORITE_HOTELS + " ("
+                + FH_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+                + FH_HOTEL_ID + " TEXT UNIQUE, "
+                + FH_NAME + " TEXT, "
+                + FH_ADDRESS + " TEXT, "
+                + FH_ADDED_AT + " INTEGER)";
     }
 
     // SEARCH HISTORY — CRUD
@@ -398,6 +428,74 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
             getWritableDatabase().delete(TABLE_FAVORITES, null, null);
         } catch (Exception e) {
             Log.e(TAG, "Error clearing favorites", e);
+        }
+    }
+
+    // FAVORITE HOTELS — CRUD
+    public void addFavoriteHotel(String hotelId, String name, String address) {
+        if (hotelId == null || hotelId.trim().isEmpty()) return;
+        try {
+            ContentValues values = new ContentValues();
+            values.put(FH_HOTEL_ID, hotelId);
+            values.put(FH_NAME, name);
+            values.put(FH_ADDRESS, address);
+            values.put(FH_ADDED_AT, System.currentTimeMillis());
+            getWritableDatabase().insertWithOnConflict(TABLE_FAVORITE_HOTELS, null, values,
+                    SQLiteDatabase.CONFLICT_REPLACE);
+        } catch (Exception e) {
+            Log.e(TAG, "Error adding favorite hotel", e);
+        }
+    }
+
+    public void removeFavoriteHotel(String hotelId) {
+        if (hotelId == null) return;
+        try {
+            getWritableDatabase().delete(TABLE_FAVORITE_HOTELS, FH_HOTEL_ID + "=?",
+                    new String[]{hotelId});
+        } catch (Exception e) {
+            Log.e(TAG, "Error removing favorite hotel", e);
+        }
+    }
+
+    public boolean isFavoriteHotel(String hotelId) {
+        if (hotelId == null) return false;
+        try {
+            Cursor cursor = getReadableDatabase().query(TABLE_FAVORITE_HOTELS, new String[]{FH_ID},
+                    FH_HOTEL_ID + "=?", new String[]{hotelId}, null, null, null);
+            boolean exists = cursor != null && cursor.getCount() > 0;
+            if (cursor != null) cursor.close();
+            return exists;
+        } catch (Exception e) {
+            Log.e(TAG, "Error checking favorite hotel", e);
+            return false;
+        }
+    }
+
+    public List<FavoriteHotel> getFavoriteHotels() {
+        List<FavoriteHotel> hotels = new ArrayList<>();
+        try {
+            Cursor cursor = getReadableDatabase().query(TABLE_FAVORITE_HOTELS, null, null, null,
+                    null, null, FH_ADDED_AT + " DESC");
+            if (cursor != null) {
+                while (cursor.moveToNext()) {
+                    hotels.add(new FavoriteHotel(
+                            getStr(cursor, FH_HOTEL_ID),
+                            getStr(cursor, FH_NAME),
+                            getStr(cursor, FH_ADDRESS)));
+                }
+                cursor.close();
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error loading favorite hotels", e);
+        }
+        return hotels;
+    }
+
+    public void clearFavoriteHotels() {
+        try {
+            getWritableDatabase().delete(TABLE_FAVORITE_HOTELS, null, null);
+        } catch (Exception e) {
+            Log.e(TAG, "Error clearing favorite hotels", e);
         }
     }
 

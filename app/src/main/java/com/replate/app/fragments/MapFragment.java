@@ -69,6 +69,7 @@ import com.replate.app.map.data.PlacesDataSource;
 import com.replate.app.map.model.FoodPlace;
 import com.replate.app.map.routing.DirectionsApiClient;
 import com.replate.app.map.routing.RouteResult;
+import com.replate.app.utils.FavoriteHotelToggle;
 import com.replate.app.utils.LocationUtils;
 import com.replate.app.receivers.GpsStateReceiver;
 import com.replate.app.utils.ToastUtils;
@@ -101,6 +102,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private View ivRestaurantImage;
     private View ivMyLocation;
     private TextView tvRestaurantName;
+    private ImageView ivFavoriteHotel;
     private TextView tvRestaurantAddress;
     private TextView tvDealsCount;
     private TextView tvRouteInfo;
@@ -215,6 +217,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         ivRestaurantImage = view.findViewById(R.id.ivRestaurantImage);
         ivMyLocation = view.findViewById(R.id.ivMyLocation);
         tvRestaurantName = view.findViewById(R.id.tvRestaurantName);
+        ivFavoriteHotel = view.findViewById(R.id.ivFavoriteHotel);
         tvRestaurantAddress = view.findViewById(R.id.tvRestaurantAddress);
         tvDealsCount = view.findViewById(R.id.tvDealsCount);
         tvRouteInfo = view.findViewById(R.id.tvRouteInfo);
@@ -1006,6 +1009,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         currentSelectedMarker.setZIndex(10f);
 
         tvRestaurantName.setText(place.getName());
+        FavoriteHotelToggle.bind(requireContext(), ivFavoriteHotel, place.getId(), place.getName(), place.getAddress());
         tvRestaurantAddress.setText(place.getAddress());
         tvDealsCount.setText(place.getRating() > 0
                 ? getString(R.string.map_deals_rating_template, place.getCategory(), place.getRating())
@@ -1440,6 +1444,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         ivRestaurantImage = null;
         ivMyLocation = null;
         tvRestaurantName = null;
+        ivFavoriteHotel = null;
         tvRestaurantAddress = null;
         tvDealsCount = null;
         tvRouteInfo = null;
