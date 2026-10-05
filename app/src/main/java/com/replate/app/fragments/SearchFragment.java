@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RadioGroup;
@@ -80,6 +81,8 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
     private View recentSearchesSection;
     private ChipGroup chipGroupRecentSearches;
     private TextView tvClearHistory;
+    private TextView tvRecentTitle;
+    private ImageView ivRecentIcon;
 
     private DatabaseReference mDatabase;
     private FoodItemAdapter adapter;
@@ -205,6 +208,8 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         recentSearchesSection = view.findViewById(R.id.recentSearchesSection);
         chipGroupRecentSearches = view.findViewById(R.id.chipGroupRecentSearches);
         tvClearHistory = view.findViewById(R.id.tvClearHistory);
+        tvRecentTitle = view.findViewById(R.id.tvRecentTitle);
+        ivRecentIcon = view.findViewById(R.id.ivRecentIcon);
 
         // ...removed chip references...
 
@@ -304,22 +309,53 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         }
     }
 
+    /** The categories with the most dishes on sale right now, most common first. */
+    private List<String> popularCategories(int limit) {
+        java.util.Map<String, Integer> counts = new java.util.LinkedHashMap<>();
+        for (FoodItem item : allFoodItems) {
+            String category = item.getCategory() == null ? "" : item.getCategory().trim();
+            if (category.isEmpty()) continue;
+            Integer seen = counts.get(category);
+            counts.put(category, seen == null ? 1 : seen + 1);
+        }
+        List<java.util.Map.Entry<String, Integer>> sorted = new ArrayList<>(counts.entrySet());
+        java.util.Collections.sort(sorted, (a, b) -> b.getValue() - a.getValue());
+        List<String> names = new ArrayList<>();
+        for (java.util.Map.Entry<String, Integer> entry : sorted) {
+            if (names.size() >= limit) break;
+            names.add(entry.getKey());
+        }
+        return names;
+    }
+
     private void showRecentSearches() {
         if (localDb == null || recentSearchesSection == null || chipGroupRecentSearches == null) return;
 
         List<String> recent = localDb.getRecentSearches(8);
-        if (recent.isEmpty()) {
+        // Never an empty box: with no history yet, suggest what is actually on sale
+        boolean suggestions = recent.isEmpty();
+        List<String> chips = suggestions ? popularCategories(5) : recent;
+        if (chips.isEmpty()) {
             hideRecentSearches();
             return;
         }
+        if (tvRecentTitle != null) {
+            tvRecentTitle.setText(suggestions ? R.string.search_suggestions_title : R.string.search_recent_title);
+        }
+        if (ivRecentIcon != null) {
+            ivRecentIcon.setImageResource(suggestions ? R.drawable.ic_search : R.drawable.ic_time);
+        }
+        if (tvClearHistory != null) {
+            tvClearHistory.setVisibility(suggestions ? View.GONE : View.VISIBLE);
+        }
 
         chipGroupRecentSearches.removeAllViews();
-        for (String query : recent) {
+        for (String query : chips) {
             Chip chip = new Chip(requireContext());
             chip.setText(query);
             chip.setChipBackgroundColorResource(R.color.green_pale);
             chip.setTextColor(getResources().getColor(R.color.text_primary, null));
-            chip.setCloseIconVisible(true);
+            chip.setCloseIconVisible(!suggestions);
             chip.setCloseIconResource(R.drawable.ic_close);
             chip.setCloseIconTintResource(R.color.text_secondary);
             chip.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
@@ -609,6 +645,10 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
 
                 setLoadingState(false);
                 filterItems(etSearch == null ? "" : etSearch.getText().toString());
+                // The suggestions come from the dishes, so refresh them once the dishes are here
+                if (etSearch != null && etSearch.hasFocus() && etSearch.getText().toString().trim().isEmpty()) {
+                    showRecentSearches();
+                }
             }
 
             @Override

@@ -423,6 +423,7 @@ Total: LKR %1$.2f</string>
     <string name="location_permission_open_settings">Open settings</string>
 
     <!-- Search History -->
+    <string name="search_suggestions_title">Try searching for</string>
     <string name="search_recent_title">Recent Searches</string>
     <string name="search_recent_clear">Clear</string>
     <string name="search_empty_suggestion">Try adjusting your search or filters</string>
@@ -513,6 +514,15 @@ Total: LKR %1$.2f</string>
     <string name="order_success_order_confirmation">Order Confirmation</string>
     <string name="order_success_skip">Skip</string>
     <string name="order_success_success_cd">Success</string>
+    <plurals name="order_success_impact_saving">
+        <item quantity="one">You are saving %1$s and rescuing %2$d meal from the bin</item>
+        <item quantity="other">You are saving %1$s and rescuing %2$d meals from the bin</item>
+    </plurals>
+    <plurals name="order_success_impact_meals">
+        <item quantity="one">You are rescuing %1$d meal from the bin</item>
+        <item quantity="other">You are rescuing %1$d meals from the bin</item>
+    </plurals>
+    <string name="food_only_left">Only %1$d left</string>
     <string name="order_success_order_placed">Order Placed!</string>
     <string name="order_success_show_this_qr_at_pickup">Show this QR at pickup</string>
     <string name="order_success_or_share_pickup_otp">Or share pickup OTP</string>
