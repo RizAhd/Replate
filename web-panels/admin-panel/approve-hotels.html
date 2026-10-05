@@ -37,6 +37,7 @@
                 <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#pending">Pending</a></li>
                 <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#approved">Approved</a></li>
                 <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#rejected">Rejected</a></li>
+                <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#suspended">Suspended</a></li>
             </ul>
 
             <div class="tab-content">
@@ -48,6 +49,9 @@
                 </div>
                 <div class="tab-pane fade" id="rejected">
                     <div id="rejectedList" class="row"></div>
+                </div>
+                <div class="tab-pane fade" id="suspended">
+                    <div id="suspendedList" class="row"></div>
                 </div>
             </div>
         </main>
@@ -69,8 +73,11 @@
     const lists = {
         pending: document.getElementById('pendingList'),
         approved: document.getElementById('approvedList'),
-        rejected: document.getElementById('rejectedList')
+        rejected: document.getElementById('rejectedList'),
+        suspended: document.getElementById('suspendedList')
     };
+    // hotelLicenses/{hotelKey}: the licence link is kept out of the openly readable hotels node
+    let licenseUrls = {};
 
     function showLoading() {
         Object.values(lists).forEach((el) => { el.innerHTML = ReplateUI.skeleton('cards', 3); });
@@ -84,32 +91,58 @@
     })();
 
     function loadHotels() {
+        let latestHotels = null;
+        const render = () => { if (latestHotels) renderHotels(latestHotels); };
+
+        database.ref('hotelLicenses').on('value', (snap) => {
+            const urls = {};
+            snap.forEach((child) => { urls[child.key] = (child.val() || {}).licenseUrl || ''; });
+            licenseUrls = urls;
+            render();
+        }, (error) => console.error('Could not load licences', error));
+
         database.ref('hotels').on('value', (snapshot) => {
-            const cards = { pending: [], approved: [], rejected: [] };
-
-            snapshot.forEach((child) => {
-                const hotel = child.val() || {};
-                const status = String(hotel.status || '').toLowerCase();
-                if (cards[status]) cards[status].push(createHotelCard(hotel, child.key));
-            });
-
-            lists.pending.innerHTML = cards.pending.join('') || ReplateUI.emptyState('No pending hotels', 'New registrations will appear here for review.', 'fa-hourglass-half');
-            lists.approved.innerHTML = cards.approved.join('') || ReplateUI.emptyState('No approved hotels yet', 'Approved partners are listed here.', 'fa-hotel');
-            lists.rejected.innerHTML = cards.rejected.join('') || ReplateUI.emptyState('No rejected hotels', 'Declined registrations are listed here.', 'fa-circle-check');
+            latestHotels = snapshot;
+            render();
         }, (error) => {
             console.error('Could not load hotels', error);
             Object.values(lists).forEach((el) => { el.innerHTML = ReplateUI.errorState('Hotels could not be loaded. Check your admin access and connection.'); });
         });
     }
 
-    function createHotelCard(hotel, key) {
-        const status = String(hotel.status || '').toLowerCase();
-        const buttons = status === 'pending'
-            ? `<button class="btn btn-success btn-sm w-100 mb-2" data-action="approve" data-key="${esc(key)}"><i class="fas fa-check" aria-hidden="true"></i> Approve</button>
-               <button class="btn btn-danger btn-sm w-100" data-action="reject" data-key="${esc(key)}"><i class="fas fa-xmark" aria-hidden="true"></i> Reject</button>`
-            : '';
+    function renderHotels(snapshot) {
+        {
+            // Hotels with a blank or older status (active, declined) still land in the right tab
+            const cards = { pending: [], approved: [], rejected: [], suspended: [] };
 
-        const licenseUrl = ReplateUI.safeUrl(hotel.licenseUrl || hotel.license);
+            snapshot.forEach((child) => {
+                const hotel = child.val() || {};
+                const status = ReplateSchema.normalizeHotelStatus(hotel.status);
+                cards[status].push(createHotelCard(hotel, child.key, status));
+            });
+
+            lists.pending.innerHTML = cards.pending.join('') || ReplateUI.emptyState('No pending hotels', 'New registrations will appear here for review.', 'fa-hourglass-half');
+            lists.approved.innerHTML = cards.approved.join('') || ReplateUI.emptyState('No approved hotels yet', 'Approved partners are listed here.', 'fa-hotel');
+            lists.rejected.innerHTML = cards.rejected.join('') || ReplateUI.emptyState('No rejected hotels', 'Declined registrations are listed here.', 'fa-circle-check');
+            lists.suspended.innerHTML = cards.suspended.join('') || ReplateUI.emptyState('No suspended hotels', 'Suspend an account from the Users page and its hotel is listed here.', 'fa-circle-check');
+        }
+    }
+
+    function createHotelCard(hotel, key, status) {
+        let buttons = '';
+        if (status === 'pending') {
+            buttons = `<button class="btn btn-success btn-sm w-100 mb-2" data-action="approve" data-key="${esc(key)}"><i class="fas fa-check" aria-hidden="true"></i> Approve</button>
+               <button class="btn btn-danger btn-sm w-100" data-action="reject" data-key="${esc(key)}"><i class="fas fa-xmark" aria-hidden="true"></i> Reject</button>`;
+        } else if (status === 'approved') {
+            buttons = `<button class="btn btn-outline-danger btn-sm w-100" data-action="revoke" data-key="${esc(key)}"><i class="fas fa-ban" aria-hidden="true"></i> Revoke approval</button>`;
+        } else if (status === 'rejected') {
+            buttons = `<button class="btn btn-outline-success btn-sm w-100" data-action="approve" data-key="${esc(key)}"><i class="fas fa-check" aria-hidden="true"></i> Approve after all</button>`;
+        } else if (status === 'suspended') {
+            buttons = '<p class="small text-muted mb-0">Enable the owner\'s account on the Users page to bring this hotel back.</p>';
+        }
+
+        // New registrations keep the licence in hotelLicenses; older ones still carry it on the hotel
+        const licenseUrl = ReplateUI.safeUrl(licenseUrls[key] || hotel.licenseUrl || hotel.license);
         const license = licenseUrl
             ? `<a href="${esc(licenseUrl)}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-dark btn-sm w-100 mb-3"><i class="fas fa-file-lines" aria-hidden="true"></i> View license</a>`
             : '<p class="small text-muted mb-3">No license uploaded.</p>';
@@ -153,6 +186,27 @@
         }
     }
 
+    async function revokeHotel(key) {
+        const reason = await ReplateUI.askText('The hotel is hidden from the app and cannot add listings or manage orders until you approve it again.', {
+            title: 'Revoke this approval?',
+            placeholder: 'Reason (shown to the hotel)',
+            confirmText: 'Revoke',
+            danger: true,
+            multiline: true
+        });
+        if (!reason) {
+            if (reason !== null) ReplateUI.toast('A reason is required to revoke an approval.', 'warning');
+            return;
+        }
+        try {
+            await database.ref('hotels/' + key).update({ status: 'rejected', rejectionReason: reason });
+            ReplateUI.toast('Approval revoked.', 'success');
+        } catch (error) {
+            console.error(error);
+            ReplateUI.toast('Could not revoke the approval. Please try again.', 'danger');
+        }
+    }
+
     async function rejectHotel(key) {
         const reason = await ReplateUI.askText('Tell the hotel why the registration was declined.', {
             title: 'Reject this hotel?',
@@ -181,6 +235,7 @@
         const key = button.dataset.key;
         if (button.dataset.action === 'approve') updateStatus(key, 'approved');
         else if (button.dataset.action === 'reject') rejectHotel(key);
+        else if (button.dataset.action === 'revoke') revokeHotel(key);
     });
 </script>
 

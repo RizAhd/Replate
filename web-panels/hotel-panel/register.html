@@ -223,9 +223,13 @@
                 longitude: field('longitude').value
             };
 
-            const hotelData = ReplateSchema.buildHotelPayload(hotelFormData, uid, licenseUrl);
+            const hotelData = ReplateSchema.buildHotelPayload(hotelFormData, uid);
             const newHotelRef = database.ref('hotels').push();
-            await newHotelRef.set(hotelData);
+            // The licence link goes to its own node that only this owner and admins can read
+            await database.ref().update({
+                ['hotels/' + newHotelRef.key]: hotelData,
+                ['hotelLicenses/' + newHotelRef.key]: { userId: uid, licenseUrl, uploadedAt: Date.now() }
+            });
 
             await database.ref('users/' + uid).set({
                 name: hotelFormData.ownerName,

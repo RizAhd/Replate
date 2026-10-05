@@ -112,6 +112,7 @@ const ReplateSchema = (() => {
         const s = String(raw).toLowerCase().trim();
         if (s === 'approved' || s === 'active') return 'approved';
         if (s === 'rejected' || s === 'declined') return 'rejected';
+        if (s === 'suspended') return 'suspended';
         return 'pending';
     }
 
@@ -154,7 +155,8 @@ const ReplateSchema = (() => {
         return null;
     }
 
-    function buildHotelPayload(formData, uid, licenseUrl) {
+    /** The hotel record. The licence link is stored separately (hotelLicenses/{key}) because every signed-in user can read this node. */
+    function buildHotelPayload(formData, uid) {
         return {
             hotelName: formData.hotelName,
             ownerName: formData.ownerName,
@@ -166,8 +168,6 @@ const ReplateSchema = (() => {
             userId: uid,
             status: 'pending',
             rejectionReason: '',
-            licenseUrl,
-            license: licenseUrl,
             searchRegion: toSearchRegion(formData.address),
             createdAt: Date.now(),
             registeredAt: new Date().toISOString()
