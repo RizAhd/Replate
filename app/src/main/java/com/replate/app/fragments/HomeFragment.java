@@ -890,12 +890,18 @@ public class HomeFragment extends Fragment implements
             return;
         }
 
-        List<FoodItem> sortedByPrice = new ArrayList<>(allFoodItems);
-        Collections.sort(sortedByPrice, Comparator.comparingDouble(FoodItem::getDiscountedPriceValue));
+        // Hot deals are the biggest discounts; the cheaper dish wins a tie.
+        List<FoodItem> sortedByDiscount = new ArrayList<>(allFoodItems);
+        Collections.sort(sortedByDiscount, (a, b) -> {
+            int byDiscount = Integer.compare(b.getDiscountPercentValue(), a.getDiscountPercentValue());
+            return byDiscount != 0
+                    ? byDiscount
+                    : Double.compare(a.getDiscountedPriceValue(), b.getDiscountedPriceValue());
+        });
 
-        int max = Math.min(6, sortedByPrice.size());
+        int max = Math.min(6, sortedByDiscount.size());
         for (int i = 0; i < max; i++) {
-            hotDeals.add(sortedByPrice.get(i));
+            hotDeals.add(sortedByDiscount.get(i));
         }
         hotDealsAdapter.updateData(new ArrayList<>(hotDeals));
     }
