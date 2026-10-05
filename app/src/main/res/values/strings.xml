@@ -631,6 +631,8 @@ Total: LKR %1$.2f</string>
     <string name="login_send">Send</string>
     <string name="login_facebook_sign_in_failed_please">Facebook sign-in failed. Please try again.</string>
     <string name="login_login_failed_please_try_again">Login failed. Please try again.</string>
+    <string name="login_account_suspended_title">Account suspended</string>
+    <string name="login_account_suspended_message">This account has been suspended by REPLATE, so you cannot sign in. If you think this is a mistake, please contact REPLATE support.</string>
     <string name="login_welcome_back">Welcome back!</string>
     <string name="login_registration_failed_user_not_available">Registration failed. User not available.</string>
     <string name="login_failed_to_save_user_data">Failed to save user data.</string>

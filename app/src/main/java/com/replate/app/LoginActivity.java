@@ -308,7 +308,16 @@ public class LoginActivity extends AppCompatActivity {
                     if (!task.isSuccessful()) {
                         showLoading(false);
                         Exception ex = task.getException();
-                        if (ex instanceof com.google.firebase.auth.FirebaseAuthInvalidUserException) {
+                        if (ex instanceof com.google.firebase.auth.FirebaseAuthInvalidUserException
+                                && "ERROR_USER_DISABLED".equals(
+                                ((com.google.firebase.auth.FirebaseAuthInvalidUserException) ex).getErrorCode())) {
+                            // An admin suspended this account (admin panel > Users)
+                            new androidx.appcompat.app.AlertDialog.Builder(LoginActivity.this)
+                                    .setTitle(R.string.login_account_suspended_title)
+                                    .setMessage(R.string.login_account_suspended_message)
+                                    .setPositiveButton(android.R.string.ok, null)
+                                    .show();
+                        } else if (ex instanceof com.google.firebase.auth.FirebaseAuthInvalidUserException) {
                             // Email not registered
                             showNotRegisteredDialog(email);
                         } else if (ex instanceof com.google.firebase.auth.FirebaseAuthInvalidCredentialsException) {
