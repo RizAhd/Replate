@@ -196,15 +196,25 @@ const ReplateUI = (() => {
             const stop = auth.onAuthStateChanged((u) => { stop(); resolve(u); });
         });
         if (!user) { window.location.replace(loginPage); return null; }
+        let reason = 'This account does not have ' + (role === 'admin' ? 'admin' : 'hotel') + ' access.';
         try {
             const snap = await database.ref('users/' + user.uid).once('value');
             const profile = snap.val() || {};
             const value = String(profile.role || profile.userType || '').toLowerCase();
             const isAdmin = value === 'admin' && ADMIN_EMAILS.includes((user.email || '').toLowerCase());
             if ((role === 'admin' && isAdmin) || (role === 'hotel' && value === 'hotel')) return user;
+            if (!snap.exists()) {
+                reason = 'No REPLATE profile was found for this account (users/' + user.uid + ').';
+            } else if (role === 'admin' && value === 'admin') {
+                reason = 'This email is not on the admin list.';
+            } else {
+                reason = 'The role on this account is "' + (value || 'not set') + '", not ' + role + '.';
+            }
         } catch (e) {
             console.error('Role check failed', e);
+            reason = 'Could not read your profile (' + (e && (e.code || e.message) || 'unknown error') + '). Check your connection and the database rules.';
         }
+        flash(reason + ' You have been signed out.', 'danger');
         await auth.signOut();
         window.location.replace(loginPage);
         return null;
