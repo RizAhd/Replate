@@ -83,8 +83,9 @@
                 </div>
                 <div class="col-md-3 col-6">
                     <div class="stat-card card">
-                        <h6><i class="fas fa-users me-1"></i>Registered Customers</h6>
+                        <h6><i class="fas fa-users me-1"></i>Registered Users</h6>
                         <h3 id="totalCustomers">0</h3>
+                        <span class="delta flat" id="userSplit"></span>
                     </div>
                 </div>
                 <div class="col-md-3 col-6">
@@ -228,15 +229,17 @@
     // ── Customer count (real-time) ──────────────────────────
     function loadCustomerCount() {
         database.ref('users').on('value', (snapshot) => {
-            let count = 0;
+            let total = 0, customers = 0, hotels = 0;
             if (snapshot.exists()) {
                 snapshot.forEach(child => {
-                    const u = child.val() || {};
-                    const role = ReplateSchema.normalizeUserRole(u);
-                    if (role === 'customer') count++;
+                    const role = ReplateSchema.normalizeUserRole(child.val() || {});
+                    total++;
+                    if (role === 'customer') customers++;
+                    else if (role === 'hotel') hotels++;
                 });
             }
-            document.getElementById('totalCustomers').textContent = count;
+            document.getElementById('totalCustomers').textContent = total;
+            document.getElementById('userSplit').textContent = customers + ' customers · ' + hotels + ' hotels';
         }, (error) => {
             console.error('Could not load users', error);
             document.getElementById('totalCustomers').textContent = '—';

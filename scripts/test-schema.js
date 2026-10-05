@@ -68,4 +68,33 @@ test('hotel status labels: blank and legacy values land in a real tab', () => {
     assert.strictEqual(S.normalizeHotelStatus('suspended'), 'suspended');
 });
 
+test('daily earnings add completed orders on the day they were completed, newest day last', () => {
+    const now = new Date(2026, 9, 5, 15, 0).getTime();              // 5 Oct 2026, 15:00 local
+    const today = new Date(2026, 9, 5, 9, 0).getTime();
+    const yesterday = new Date(2026, 9, 4, 20, 0).getTime();
+    const tooOld = new Date(2026, 8, 1, 10, 0).getTime();
+    const days = S.dailyEarnings([
+        { orderStatus: 'completed', totalAmount: 500, completedAt: today },
+        { orderStatus: 'delivered', totalAmount: 250, completedAt: today },
+        { orderStatus: 'completed', totalAmount: 100, completedAt: yesterday },
+        { orderStatus: 'pending_pickup', totalAmount: 999, createdAt: today },   // not earned yet
+        { orderStatus: 'cancelled', totalAmount: 999, completedAt: today },     // never earned
+        { orderStatus: 'completed', totalAmount: 999, completedAt: tooOld }     // outside the window
+    ], 7, now);
+    assert.strictEqual(days.length, 7);
+    assert.strictEqual(days[6].amount, 750);   // today
+    assert.strictEqual(days[5].amount, 100);   // yesterday
+    assert.strictEqual(days[0].amount, 0);
+});
+
+test('popular items add quantities across orders and ignore cancelled ones', () => {
+    const top = S.popularItems([
+        { orderStatus: 'completed', items: [{ foodName: 'Rice', quantity: 2 }, { foodName: 'Soup', quantity: 1 }] },
+        { orderStatus: 'pending_pickup', items: [{ foodName: 'Rice', quantity: 3 }] },
+        { orderStatus: 'cancelled', items: [{ foodName: 'Soup', quantity: 50 }] }
+    ], 5);
+    assert.strictEqual(Array.from(top, (t) => t.name + ':' + t.quantity).join(','), 'Rice:5,Soup:1');
+    assert.strictEqual(S.popularItems([], 5).length, 0);
+});
+
 console.log(`\n${passed} passed${process.exitCode ? ', some FAILED' : ''}`);

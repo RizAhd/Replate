@@ -122,6 +122,54 @@ const ReplateSchema = (() => {
         return extractItemsArray(order || {}).reduce((sum, item) => sum + itemQuantity(item), 0);
     }
 
+    function dayKey(ts) {
+        const d = new Date(ts);
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+
+    /** When an order earned its money: the day the hotel completed it (falls back to the last update). */
+    function earnedAt(order) {
+        return Number(order && order.completedAt) || Number(order && order.updatedAt) || Number(order && order.createdAt) || 0;
+    }
+
+    /**
+     * Earnings per day for the last `days` days, oldest first. Only completed and delivered orders
+     * count, on the day they were completed.
+     */
+    function dailyEarnings(orders, days = 7, now = Date.now()) {
+        const keys = [];
+        const totals = {};
+        for (let i = days - 1; i >= 0; i--) {
+            const d = new Date(now);
+            d.setDate(d.getDate() - i);
+            const key = dayKey(d.getTime());
+            keys.push(key);
+            totals[key] = 0;
+        }
+        (orders || []).forEach((order) => {
+            if (!isSuccessfulOrder(order)) return;
+            const key = dayKey(earnedAt(order));
+            if (key in totals) totals[key] += orderAmount(order);
+        });
+        return keys.map((key) => ({ key, amount: totals[key] }));
+    }
+
+    /** The dishes people order most (quantities added up, cancelled orders ignored), best first. */
+    function popularItems(orders, limit = 5) {
+        const counts = {};
+        (orders || []).forEach((order) => {
+            if (isCancelledOrder(order)) return;
+            extractItemsArray(order).forEach((item) => {
+                const name = String((item && item.foodName) || 'Item').trim() || 'Item';
+                counts[name] = (counts[name] || 0) + itemQuantity(item);
+            });
+        });
+        return Object.entries(counts)
+            .map(([name, quantity]) => ({ name, quantity }))
+            .sort((a, b) => b.quantity - a.quantity || a.name.localeCompare(b.name))
+            .slice(0, limit);
+    }
+
     function formatAmount(val) {
         const n = parseFloat(val);
         return isNaN(n) ? '0.00' : n.toFixed(2);
@@ -292,6 +340,10 @@ const ReplateSchema = (() => {
         orderAmount,
         itemQuantity,
         orderItemCount,
+        dayKey,
+        earnedAt,
+        dailyEarnings,
+        popularItems,
         toNumber,
         toSearchRegion,
         findHotelByUserId,
