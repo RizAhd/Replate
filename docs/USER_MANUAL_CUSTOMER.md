@@ -62,8 +62,9 @@ button (top left) opens a side menu with **Search**, **Notifications**, **Messag
 - **Pull down** to refresh, or **shake your phone** twice. The app reloads the latest listings.
 
 ### Search
-Tap the search bar on Home or open **Search** from the menu. Type a dish, a hotel or a cuisine. Your
-recent searches appear when the box is empty; tap one to repeat it, or **Clear** to remove them.
+Tap the search bar on Home or open **Search** from the menu. Type a dish, a hotel or a cuisine. When the
+box is empty you see your recent searches (tap one to repeat it, or **Clear** to remove them). If you have
+not searched yet, the screen suggests the most popular categories instead.
 Tap the filter button to **Sort by** nearest, lowest price, highest price, highest discount or top
 rated, choose a **Category**, and switch on **Available items only**. Tap **Apply**; **Reset** clears the
 filters.
@@ -86,6 +87,8 @@ pickup window, how many are left, and how far away the hotel is.
 
 - **Heart on the photo**: save the dish to Favorites.
 - **Heart next to the hotel name**: save the hotel to Favorites.
+- **Only N left**: dishes with three or fewer portions left carry an orange "Only N left" label on the
+  card, so you know to act quickly.
 - **Quantity**: use **-** and **+**. You cannot choose more than the hotel has left.
 - **Add to cart**: puts it in your cart. A sold-out dish shows **Sold out** instead.
 - **Call hotel**: asks for permission the first time, then calls the hotel. If you say no, the phone's
@@ -119,11 +122,15 @@ Open the **Cart** tab. Your cart is saved on your phone, so it is still there if
    - With cash, the order is placed straight away and you pay at the hotel.
 
 When it works you hear a short sound and see **Order Placed!** with your QR code and a six-digit code.
+A green line under the title tells you what the order does, for example "You are saving LKR 320 and
+rescuing 3 meals from the bin".
 
 ## 8. Collecting your food
 
 1. Open **Orders** and tap the order (or use the screen that appears after checkout).
-2. The order screen shows the status, the hotel's address and your pickup time.
+2. The order screen shows the status, a **step timeline** (Placed, Confirmed, Preparing, Ready or On the
+   way, then Collected or Delivered) that fills in as the hotel works, the hotel's address and your pickup
+   time. A cancelled order has no timeline.
 3. At the hotel, **show the QR code** to the staff. If the QR cannot be scanned, read out the six-digit
    **pickup OTP** instead.
 4. The screen brightness rises by itself in a dark room so the code is easy to scan.

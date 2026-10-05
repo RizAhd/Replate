@@ -150,6 +150,10 @@ The "Navigate to Hotel" button and the Call/SMS buttons are now correct. Replace
 > messaging app with a prepared text. **Navigate to hotel** opens turn-by-turn directions in Google
 > Maps, falls back to any maps app, and finally to the in-app route.
 
+Add: "A step timeline under the status banner shows how far the order has got (Placed, Confirmed, Preparing,
+Ready or On the way, Collected or Delivered); it is hidden for cancelled orders. The order-placed screen
+also says what the order achieved, for example how much was saved and how many meals were rescued, and
+dish cards show "Only N left" when three or fewer portions remain."
 Add: "When the pickup slot has passed, the screen says "Pickup time passed" and hides the QR code and
 OTP. If the hotel cancels an order it says "Cancelled by the hotel"."
 **Light sensor:** replace "below a defined threshold" with "below 50 lux".
