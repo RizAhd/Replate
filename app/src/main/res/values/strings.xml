@@ -34,9 +34,9 @@
     <string name="home_search_hint">Search food, hotels, cuisines…</string>
     <string name="home_categories_title">Browse categories</string>
     <string name="home_categories_subtitle">Pick what you’re craving right now</string>
-    <string name="home_hot_deals_title">Popular right now</string>
-    <string name="home_lowest_prices">Best value</string>
-    <string name="home_hot_deals_subtitle">Most ordered picks near your location</string>
+    <string name="home_hot_deals_title">Hot deals</string>
+    <string name="home_lowest_prices">Top discounts</string>
+    <string name="home_hot_deals_subtitle">The biggest discounts available right now</string>
     <string name="home_nearby_title">Nearby hotels and food</string>
     <string name="home_nearby_subtitle">Closest pickup options based on your live location</string>
     <string name="home_favorites_title">Recommended for you</string>
