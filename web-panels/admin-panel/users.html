@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="Users - REPLATE Admin - REPLATE food rescue.">
+    <meta name="theme-color" content="#1a6b3c">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Users - REPLATE Admin</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <!-- DataTables -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+    <link rel="icon" href="../assets/favicon.ico" sizes="any">
+    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+    <link rel="manifest" href="../manifest.webmanifest">
+</head>
+<body>
+<a class="skip-link" href="#mainContent">Skip to content</a>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Admin Sidebar -->
+        <nav id="appShellSidebar" class="sidebar"></nav>
+
+        <main id="mainContent">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <div>
+                    <h1 class="panel-title">Manage Users</h1>
+                    <p class="panel-subtitle mb-0">See every customer and hotel account. Suspending an account signs the person out and blocks them from signing in until you enable it again.</p>
+                </div>
+            </div>
+
+            <!-- Totals -->
+            <div class="row mb-4 g-3">
+                <div class="col-md-3 col-6">
+                    <div class="stat-card card">
+                        <h6><i class="fas fa-users me-1" aria-hidden="true"></i>All users</h6>
+                        <h3 id="countAll">0</h3>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-card card">
+                        <h6><i class="fas fa-user me-1" aria-hidden="true"></i>Customers</h6>
+                        <h3 id="countCustomers">0</h3>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-card card">
+                        <h6><i class="fas fa-hotel me-1" aria-hidden="true"></i>Hotels</h6>
+                        <h3 id="countHotels">0</h3>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-card card">
+                        <h6><i class="fas fa-user-slash me-1" aria-hidden="true"></i>Suspended</h6>
+                        <h3 id="countSuspended">0</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card data-panel p-3">
+                <div class="row g-2 mb-3">
+                    <div class="col-sm-6 col-md-3">
+                        <label for="roleFilter" class="form-label small mb-1">Role</label>
+                        <select id="roleFilter" class="form-select form-select-sm">
+                            <option value="">All roles</option>
+                            <option value="customer">Customers</option>
+                            <option value="hotel">Hotels</option>
+                            <option value="admin">Admins</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <label for="statusFilter" class="form-label small mb-1">Status</label>
+                        <select id="statusFilter" class="form-select form-select-sm">
+                            <option value="">All statuses</option>
+                            <option value="active">Active</option>
+                            <option value="suspended">Suspended</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table id="usersTable" class="table table-striped align-middle table-stack" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Role</th>
+                                <th>Joined</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Loaded via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="../js/env-config.js"></script>
+<script src="../js/firebase-config.js"></script>
+<script src="../js/data-schema.js"></script>
+<script src="../js/notifications-api.js"></script>
+<script src="../js/admin-shell-config.js"></script>
+<script src="../js/ui-shell.js"></script>
+
+<script>
+    const esc = ReplateUI.esc;
+    let currentAdminUid = null;
+    let hotelNameByUserId = {};
+
+    (async () => {
+        const user = await ReplateUI.requireRole('admin');
+        if (!user) return;
+        currentAdminUid = user.uid;
+        document.getElementById('tableBody').innerHTML =
+            '<tr><td colspan="7">' + ReplateUI.skeleton('rows', 5) + '</td></tr>';
+        loadUsers();
+    })();
+
+    // Role / status drop-downs filter the table on top of the search box
+    $.fn.dataTable.ext.search.push((settings, data) => {
+        if (settings.nTable.id !== 'usersTable') return true;
+        const role = document.getElementById('roleFilter').value;
+        const status = document.getElementById('statusFilter').value;
+        if (role && data[3].trim().toLowerCase() !== role) return false;
+        if (status && data[5].trim().toLowerCase() !== status) return false;
+        return true;
+    });
+    ['roleFilter', 'statusFilter'].forEach((id) => {
+        document.getElementById(id).addEventListener('change', () => {
+            if ($.fn.DataTable.isDataTable('#usersTable')) $('#usersTable').DataTable().draw();
+        });
+    });
+
+    function loadUsers() {
+        // Hotel names come from the hotels list so a hotel owner is easy to recognise
+        database.ref('hotels').on('value', (snap) => {
+            const map = {};
+            snap.forEach((child) => {
+                const hotel = child.val() || {};
+                if (hotel.userId) map[hotel.userId] = hotel.hotelName || '';
+            });
+            hotelNameByUserId = map;
+        });
+
+        database.ref('users').on('value', (snapshot) => {
+            const people = [];
+            snapshot.forEach((child) => {
+                const u = child.val() || {};
+                people.push({
+                    uid: child.key,
+                    name: u.name || u.fullName || u.hotelName || '',
+                    email: u.email || '',
+                    phone: u.phone || '',
+                    role: ReplateSchema.normalizeUserRole(u),
+                    createdAt: Number(u.createdAt) || 0,
+                    suspended: String(u.status || '').toLowerCase() === 'suspended',
+                    reason: u.suspensionReason || ''
+                });
+            });
+            renderUsers(people);
+        }, (error) => {
+            console.error('Could not load users', error);
+            document.getElementById('tableBody').innerHTML =
+                '<tr><td colspan="7">' + ReplateUI.errorState('Users could not be loaded. Check your admin access and connection.') + '</td></tr>';
+        });
+    }
+
+    function renderUsers(people) {
+        document.getElementById('countAll').textContent = people.length;
+        document.getElementById('countCustomers').textContent = people.filter((p) => p.role === 'customer').length;
+        document.getElementById('countHotels').textContent = people.filter((p) => p.role === 'hotel').length;
+        document.getElementById('countSuspended').textContent = people.filter((p) => p.suspended).length;
+
+        const tbody = document.getElementById('tableBody');
+        let previous = null;
+        if ($.fn.DataTable.isDataTable('#usersTable')) {
+            const table = $('#usersTable').DataTable();
+            previous = { search: table.search(), page: table.page() };
+            table.destroy();
+        }
+
+        if (people.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7">' +
+                ReplateUI.emptyState('No users yet', 'Accounts appear here as people sign up.', 'fa-users') + '</td></tr>';
+            return;
+        }
+
+        people.sort((a, b) => b.createdAt - a.createdAt);
+        tbody.innerHTML = people.map((p) => {
+            const hotelName = p.role === 'hotel' ? hotelNameByUserId[p.uid] : '';
+            const displayName = p.name || hotelName || '—';
+            const joined = p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '—';
+            const status = p.suspended
+                ? `<span class="badge badge-danger" title="${esc(p.reason)}">Suspended</span>`
+                : '<span class="badge badge-success">Active</span>';
+
+            let action = '<span class="text-muted">—</span>';
+            if (p.role !== 'admin' && p.uid !== currentAdminUid) {
+                action = p.suspended
+                    ? `<button class="btn btn-sm btn-success" data-action="enable" data-uid="${esc(p.uid)}" data-name="${esc(displayName)}"><i class="fas fa-user-check" aria-hidden="true"></i> Enable</button>`
+                    : `<button class="btn btn-sm btn-outline-danger" data-action="suspend" data-uid="${esc(p.uid)}" data-name="${esc(displayName)}"><i class="fas fa-user-slash" aria-hidden="true"></i> Suspend</button>`;
+            }
+
+            return `
+                <tr>
+                    <td data-label="Name">${esc(displayName)}${hotelName && p.name && hotelName !== p.name ? `<br><small class="text-muted">${esc(hotelName)}</small>` : ''}</td>
+                    <td data-label="Email">${esc(p.email || '—')}</td>
+                    <td data-label="Phone">${esc(p.phone || '—')}</td>
+                    <td data-label="Role" class="text-capitalize">${esc(p.role)}</td>
+                    <td data-label="Joined" data-order="${esc(p.createdAt)}">${esc(joined)}</td>
+                    <td data-label="Status">${status}</td>
+                    <td data-label="Action" class="actions-cell">${action}</td>
+                </tr>`;
+        }).join('');
+
+        const table = $('#usersTable').DataTable({
+            pageLength: 25,
+            order: [[4, 'desc']],
+            autoWidth: false
+        });
+        if (previous) {
+            table.search(previous.search).page(previous.page).draw(false);
+        }
+    }
+
+    async function setSuspended(uid, name, suspended) {
+        let reason = '';
+        if (suspended) {
+            const answer = await ReplateUI.askText(
+                `${name} will be signed out and cannot sign in again until you enable the account. A hotel's dishes are hidden from the app while it is suspended.`,
+                { title: 'Suspend this account?', placeholder: 'Reason (optional, only admins see it)', confirmText: 'Suspend', danger: true, multiline: true });
+            if (answer === null) return;
+            reason = answer;
+        } else {
+            const ok = await ReplateUI.confirmAction(`${name} will be able to sign in again.`, {
+                title: 'Enable this account?', confirmText: 'Enable' });
+            if (!ok) return;
+        }
+
+        try {
+            await NotificationApi.setUserSuspended(uid, suspended, reason);
+            ReplateUI.toast(suspended ? 'Account suspended.' : 'Account enabled.', 'success');
+        } catch (error) {
+            console.error(error);
+            ReplateUI.toast(error.message || 'Could not update the account. Please try again.', 'danger');
+        }
+    }
+
+    // One delegated listener instead of inline onclick attributes
+    document.getElementById('tableBody').addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-action]');
+        if (!button) return;
+        setSuspended(button.dataset.uid, button.dataset.name || 'This user', button.dataset.action === 'suspend');
+    });
+</script>
+</body>
+</html>

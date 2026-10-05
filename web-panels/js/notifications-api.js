@@ -48,6 +48,8 @@ const NotificationApi = (() => {
             category: "admin_broadcast"
         })),
         sendTargeted: (payload) => call("sendTargetedNotification", normalizePayload(payload)),
+        // Admin only: disable or enable a user's account (Users page)
+        setUserSuspended: (uid, suspended, reason) => call("setUserSuspended", { uid, suspended: !!suspended, reason: reason || "" }),
         sendDeal: (payload) => call("sendDealNotification", normalizePayload(payload, {
             category: payload && payload.isHotDeal ? "hot_deals" : "new_deals",
             route: "deals"

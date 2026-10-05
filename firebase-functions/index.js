@@ -700,6 +700,106 @@ exports.sendTargetedNotification = functions.region(REGION).https.onRequest(asyn
   }
 });
 
+// ── USER SUSPENSION (admin panel > Users) ─────────────────
+// Disabling the Firebase Auth account is what really blocks the person: they cannot sign in and
+// their refresh tokens are revoked. users/{uid}/status is for display. A suspended hotel owner's
+// hotel and dishes are hidden from the app until the account is enabled again.
+async function hotelIdsForUser(uid, userProfile) {
+  const ids = new Set();
+  if (userProfile && userProfile.hotelId) ids.add(String(userProfile.hotelId));
+  const byUser = await db.ref("hotels").orderByChild("userId").equalTo(uid).get();
+  byUser.forEach((child) => { ids.add(child.key); });
+  if ((await db.ref(`hotels/${uid}`).get()).exists()) ids.add(uid);
+  return Array.from(ids);
+}
+
+async function setHotelVisibility(hotelIds, suspended) {
+  const updates = {};
+  for (const hotelId of hotelIds) {
+    const hotelSnap = await db.ref(`hotels/${hotelId}`).get();
+    if (hotelSnap.exists()) {
+      const hotel = hotelSnap.val() || {};
+      if (suspended && hotel.status !== "suspended") {
+        updates[`hotels/${hotelId}/statusBeforeSuspension`] = hotel.status || "approved";
+        updates[`hotels/${hotelId}/status`] = "suspended";
+      } else if (!suspended && hotel.status === "suspended") {
+        updates[`hotels/${hotelId}/status`] = hotel.statusBeforeSuspension || "approved";
+        updates[`hotels/${hotelId}/statusBeforeSuspension`] = null;
+      }
+    }
+
+    const foods = await db.ref("foodItems").orderByChild("hotelId").equalTo(hotelId).get();
+    foods.forEach((child) => {
+      const food = child.val() || {};
+      if (suspended && !food.suspendedByAdmin) {
+        updates[`foodItems/${child.key}/statusBeforeSuspension`] = food.status || null;
+        updates[`foodItems/${child.key}/suspendedByAdmin`] = true;
+        updates[`foodItems/${child.key}/status`] = "inactive";
+      } else if (!suspended && food.suspendedByAdmin) {
+        updates[`foodItems/${child.key}/status`] = food.statusBeforeSuspension || "available";
+        updates[`foodItems/${child.key}/statusBeforeSuspension`] = null;
+        updates[`foodItems/${child.key}/suspendedByAdmin`] = null;
+      }
+    });
+  }
+  if (Object.keys(updates).length > 0) await db.ref().update(updates);
+}
+
+exports.setUserSuspended = functions.region(REGION).https.onRequest(async (req, res) => {
+  setCorsHeaders(res);
+  if (req.method === "OPTIONS") return res.status(204).send("");
+
+  try {
+    if (req.method !== "POST") {
+      return res.status(405).json({ success: false, message: "Method not allowed" });
+    }
+
+    let requester;
+    try {
+      requester = await verifyRequestAuth(req, ["admin"]);
+    } catch (authErr) {
+      return res.status(403).json({ success: false, message: "Only an admin can suspend or enable accounts" });
+    }
+
+    const uid = String((req.body && req.body.uid) || "").trim();
+    const suspended = !!(req.body && req.body.suspended === true);
+    const reason = String((req.body && req.body.reason) || "").trim().slice(0, 300);
+
+    if (!uid) return res.status(400).json({ success: false, message: "uid is required" });
+    if (uid === requester.uid) {
+      return res.status(400).json({ success: false, message: "You cannot suspend your own account" });
+    }
+
+    const userSnap = await db.ref(`users/${uid}`).get();
+    if (!userSnap.exists()) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+    const profile = userSnap.val() || {};
+    const role = roleFromUser(profile);
+    if (role === "admin") {
+      return res.status(403).json({ success: false, message: "Admin accounts cannot be suspended here" });
+    }
+
+    await admin.auth().updateUser(uid, { disabled: suspended });
+    if (suspended) {
+      await admin.auth().revokeRefreshTokens(uid);
+    }
+
+    await db.ref(`users/${uid}`).update(suspended
+      ? { status: "suspended", suspendedAt: Date.now(), suspendedBy: requester.uid, suspensionReason: reason }
+      : { status: "active", suspendedAt: null, suspendedBy: null, suspensionReason: null });
+
+    if (role === "hotel") {
+      await setHotelVisibility(await hotelIdsForUser(uid, profile), suspended);
+    }
+
+    return res.status(200).json({ success: true, status: suspended ? "suspended" : "active" });
+  } catch (err) {
+    console.error("setUserSuspended error", err);
+    return res.status(500).json({ success: false, message: err.message || "Could not update the account" });
+  }
+});
+
 const sendSelfTestPushHandler = async (req, res) => {
   setCorsHeaders(res);
   if (req.method === "OPTIONS") return res.status(204).send("");
@@ -1081,6 +1181,12 @@ exports.onHotelStatusChangedNotify = functions
 
     if (!afterStatus || beforeStatus === afterStatus) {
       console.log(`[onHotelStatusChangedNotify] No status change, skipping`);
+      return null;
+    }
+
+    // Suspending or re-enabling the owner's account (admin panel > Users) is not a new approval
+    if (beforeStatus === "suspended" || afterStatus === "suspended") {
+      console.log(`[onHotelStatusChangedNotify] Suspension change, skipping`);
       return null;
     }
 

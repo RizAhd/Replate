@@ -4,6 +4,7 @@
  */
 const adminShellLinks = [
     { key: 'approve-hotels', href: 'approve-hotels.html', icon: 'fas fa-hotel',           label: 'Approve Hotels' },
+    { key: 'users',          href: 'users.html',          icon: 'fas fa-users',           label: 'Users' },
     { key: 'transactions',   href: 'transactions.html',   icon: 'fas fa-money-bill-wave', label: 'Transactions' },
     { key: 'categories',     href: 'categories.html',     icon: 'fas fa-tags',            label: 'Categories' },
     { key: 'banners',        href: 'banners.html',        icon: 'fas fa-images',          label: 'Banners' },
