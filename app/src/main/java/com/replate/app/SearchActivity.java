@@ -12,6 +12,10 @@ import com.replate.app.fragments.SearchFragment;
  * Search Activity - Dedicated searchable listing screen.
  */
 public class SearchActivity extends AppCompatActivity {
+
+    /** Optional text to search for as soon as the screen opens, such as a hotel name. */
+    public static final String EXTRA_QUERY = "search_query";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

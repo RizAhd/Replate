@@ -537,6 +537,14 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
             intent.removeExtra(EXTRA_INITIAL_FILTER);
         }
 
+        // Opened from the Map sheet's "View deals": start with that hotel's name typed in
+        String launchQuery = intent.getStringExtra(com.replate.app.SearchActivity.EXTRA_QUERY);
+        if (launchQuery != null && !launchQuery.trim().isEmpty() && etSearch != null) {
+            etSearch.setText(launchQuery.trim());
+            etSearch.setSelection(etSearch.getText().length());
+            intent.removeExtra(com.replate.app.SearchActivity.EXTRA_QUERY);
+        }
+
         if (intent.getBooleanExtra(EXTRA_FROM_CART_EMPTY, false)) {
             intent.removeExtra(EXTRA_FROM_CART_EMPTY);
         }

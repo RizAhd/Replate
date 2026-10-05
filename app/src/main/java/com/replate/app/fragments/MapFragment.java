@@ -62,6 +62,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.replate.app.R;
+import com.replate.app.SearchActivity;
 import com.replate.app.map.data.FirebasePlacesDataSource;
 import com.replate.app.map.data.MapRules;
 import com.replate.app.map.data.PlacesDataSource;
@@ -105,6 +106,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private TextView tvRouteInfo;
     private TextView tvAvailableItems;
     private Button btnViewDeals;
+    private Button btnShowRoute;
     private SearchView searchView;
     private View topPanel;
     private View cardMapStatus;
@@ -218,6 +220,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         tvRouteInfo = view.findViewById(R.id.tvRouteInfo);
         tvAvailableItems = view.findViewById(R.id.tvAvailableItems);
         btnViewDeals = view.findViewById(R.id.btnViewDeals);
+        btnShowRoute = view.findViewById(R.id.btnShowRoute);
         searchView = view.findViewById(R.id.searchView);
 
         if (bottomSheet != null) {
@@ -307,13 +310,26 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             ivMyLocation.setOnClickListener(v -> moveToCurrentLocation());
         }
 
+        if (btnShowRoute != null) {
+            btnShowRoute.setOnClickListener(v -> {
+                if (selectedPlace == null) {
+                    ToastUtils.showCustomToast(getContext(), R.string.map_select_a_place_marker_first);
+                    return;
+                }
+                drawRouteToSelectedPlace();
+            });
+        }
+
         if (btnViewDeals != null) {
             btnViewDeals.setOnClickListener(v -> {
                 if (selectedPlace == null) {
                     ToastUtils.showCustomToast(getContext(), R.string.map_select_a_place_marker_first);
                     return;
                 }
-                drawRouteToSelectedPlace();
+                // Search matches hotel names, so this lists just this place's dishes
+                Intent intent = new Intent(requireContext(), SearchActivity.class);
+                intent.putExtra(SearchActivity.EXTRA_QUERY, selectedPlace.getName());
+                startActivity(intent);
             });
         }
     }
@@ -1429,6 +1445,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         tvRouteInfo = null;
         tvAvailableItems = null;
         btnViewDeals = null;
+        btnShowRoute = null;
         searchView = null;
         topPanel = null;
         super.onDestroyView();
