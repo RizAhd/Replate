@@ -37,6 +37,15 @@ public final class TelephonyUtils {
         activity.startActivity(intent);
     }
 
+    /**
+     * Places the call straight away with ACTION_CALL. Only use this once CALL_PHONE has been granted
+     * (CallHelper asks for it and falls back to the dialer when the customer says no).
+     */
+    public static void callNow(Activity activity, String phone) {
+        Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + Uri.encode(phone)));
+        activity.startActivity(intent);
+    }
+
     public static void openSms(Activity activity, String phone, String message) {
         Intent intent = new Intent(Intent.ACTION_SENDTO);
         intent.setData(Uri.parse("smsto:" + Uri.encode(phone)));
