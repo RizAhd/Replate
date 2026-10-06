@@ -41,8 +41,13 @@ jobs:
       - name: Panel order rules (what counts as revenue, pending and expired)
         run: node scripts/test-schema.js
 
-      - name: Cloud Function decisions (pickup reminders)
+      - name: Cloud Function decisions (pickup reminders, safe helpers)
         run: node scripts/test-functions.js
+
+      - run: npm install --prefix firebase-functions --no-audit --no-fund
+
+      - name: Order stock logic against the database emulator
+        run: npx firebase emulators:exec --only database --project demo-replate "node scripts/test-stock.js"
 
   android:
     runs-on: ubuntu-latest

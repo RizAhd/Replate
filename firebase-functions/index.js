@@ -3,10 +3,25 @@ const admin = require("firebase-admin");
 const functions = require("firebase-functions");
 const nodemailer = require("nodemailer");
 const { reminderFor, reminderText, LOOKAHEAD_MS } = require("./pickup-reminder");
+const { createStock } = require("./stock");
+const {
+  MAX_TARGETED_USERS,
+  RATE_LIMIT_PER_EMAIL,
+  RATE_LIMIT_PER_IP,
+  escapeHtml,
+  plainName,
+  generateOtp,
+  failureResponse,
+  rateLimitDecision,
+  isReservedDataKey,
+  limitUserIds,
+  colomboHour,
+} = require("./safe");
 
 admin.initializeApp();
 
 const db = admin.database();
+const { adjustStockForOrder, restoreStockForOrder } = createStock(db);
 const REGION = "asia-southeast1";
 const MAX_MULTICAST = 500;
 const OTP_EXPIRY_MINUTES = 10;
@@ -37,8 +52,27 @@ function keyFromEmail(email) {
   return Buffer.from(email.toLowerCase().trim()).toString("base64url");
 }
 
-function generateOtp() {
-  return String(Math.floor(100000 + Math.random() * 900000));
+/**
+ * Public endpoints (they send email) are limited per address and per caller IP so they cannot be used
+ * to flood someone's inbox or to burn the mail quota. Counters live in rateLimits/ (no client access).
+ */
+async function allowRequest(req, email, kind) {
+  const forwarded = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim();
+  const ip = forwarded || String(req.ip || "unknown");
+  const checks = [
+    [`${kind}_email_${sha256(String(email).toLowerCase().trim()).slice(0, 32)}`, RATE_LIMIT_PER_EMAIL],
+    [`${kind}_ip_${sha256(ip).slice(0, 32)}`, RATE_LIMIT_PER_IP],
+  ];
+  for (const [key, limit] of checks) {
+    let allowed = false;
+    await db.ref(`rateLimits/${key}`).transaction((record) => {
+      const decision = rateLimitDecision(record, Date.now(), { limit });
+      allowed = decision.allowed;
+      return decision.next;
+    });
+    if (!allowed) return false;
+  }
+  return true;
 }
 
 function getTransporter() {
@@ -150,7 +184,7 @@ function buildPayload(input = {}) {
       orderId,
       hotelId,
       ...Object.keys(extraData).reduce((acc, key) => {
-        acc[key] = String(extraData[key]);
+        if (!isReservedDataKey(key)) acc[key] = String(extraData[key]);
         return acc;
       }, {}),
     },
@@ -374,6 +408,12 @@ exports.sendCustomVerificationEmail = functions.region(REGION).https.onRequest(a
       return res.status(400).json({ success: false, message: "Valid email is required" });
     }
 
+    if (!(await allowRequest(req, email, "verifyMail"))) {
+      return res.status(429).json({ success: false, message: "Too many requests. Please wait a few minutes and try again." });
+    }
+    const textName = plainName(name);
+    const safeName = escapeHtml(textName);
+
     // Generate the Firebase verification link
     const actionCodeSettings = {
       url: `https://replate-app.web.app/verified?email=${encodeURIComponent(email)}`,
@@ -386,7 +426,7 @@ exports.sendCustomVerificationEmail = functions.region(REGION).https.onRequest(a
       from: `"REPLATE" <${process.env.OTP_EMAIL}>`,
       to: email,
       subject: "Verify your REPLATE account",
-      text: `Hi ${name || "there"},\n\nWelcome to REPLATE! Please verify your email address by clicking the link below:\n\n${verificationLink}\n\nThis link will expire in 24 hours.\n\nIf you didn't create this account, you can safely ignore this email.\n\n— The REPLATE Team`,
+      text: `Hi ${textName},\n\nWelcome to REPLATE! Please verify your email address by clicking the link below:\n\n${verificationLink}\n\nThis link will expire in 24 hours.\n\nIf you didn't create this account, you can safely ignore this email.\n\n— The REPLATE Team`,
       html: `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -410,7 +450,7 @@ exports.sendCustomVerificationEmail = functions.region(REGION).https.onRequest(a
           <!-- Body -->
           <tr>
             <td style="padding:36px 32px 28px;">
-              <p style="margin:0 0 8px;font-size:20px;font-weight:600;color:#1C1C1E;">Welcome, ${name || "there"}! 👋</p>
+              <p style="margin:0 0 8px;font-size:20px;font-weight:600;color:#1C1C1E;">Welcome, ${safeName}! 👋</p>
               <p style="margin:0 0 24px;font-size:14px;color:#6C6C6E;line-height:1.7;">
                 Thank you for joining REPLATE. To get started and unlock all features, please verify your email address by clicking the button below.
               </p>
@@ -449,7 +489,7 @@ exports.sendCustomVerificationEmail = functions.region(REGION).https.onRequest(a
     return res.status(200).json({ success: true, message: "Verification email sent" });
   } catch (err) {
     console.error("sendCustomVerificationEmail error", err);
-    return res.status(500).json({ success: false, message: err.message || "Server error" });
+    return res.status(500).json({ success: false, message: "We could not send the email right now. Please try again later." });
   }
 });
 
@@ -464,6 +504,12 @@ exports.sendOtpEmail = functions.region(REGION).https.onRequest(async (req, res)
     if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
       return res.status(400).json({ success: false, message: "Valid email is required" });
     }
+
+    if (!(await allowRequest(req, email, "otpMail"))) {
+      return res.status(429).json({ success: false, message: "Too many requests. Please wait a few minutes and try again." });
+    }
+    const textName = plainName(name);
+    const safeName = escapeHtml(textName);
 
     const otp = generateOtp();
     const otpHash = sha256(otp);
@@ -486,7 +532,7 @@ exports.sendOtpEmail = functions.region(REGION).https.onRequest(async (req, res)
       from: `"REPLATE" <${process.env.OTP_EMAIL}>`,
       to: email,
       subject: "Your REPLATE Verification Code",
-      text: `Hi ${name || "there"},\n\nYour REPLATE verification code is: ${otp}\nThis code expires in ${OTP_EXPIRY_MINUTES} minutes.\n\nIf you did not request this, you can ignore this email.`,
+      text: `Hi ${textName},\n\nYour REPLATE verification code is: ${otp}\nThis code expires in ${OTP_EXPIRY_MINUTES} minutes.\n\nIf you did not request this, you can ignore this email.`,
       html: `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -510,7 +556,7 @@ exports.sendOtpEmail = functions.region(REGION).https.onRequest(async (req, res)
           <!-- Body -->
           <tr>
             <td style="padding:36px 32px 28px;">
-              <p style="margin:0 0 8px;font-size:18px;font-weight:600;color:#1C1C1E;">Hi ${name || "there"} 👋</p>
+              <p style="margin:0 0 8px;font-size:18px;font-weight:600;color:#1C1C1E;">Hi ${safeName} 👋</p>
               <p style="margin:0 0 28px;font-size:14px;color:#6C6C6E;line-height:1.6;">
                 Here is your one-time verification code to complete your REPLATE registration.
               </p>
@@ -544,7 +590,7 @@ exports.sendOtpEmail = functions.region(REGION).https.onRequest(async (req, res)
     return res.status(200).json({ success: true, message: "OTP sent to your email" });
   } catch (err) {
     console.error("sendOtpEmail error", err);
-    return res.status(500).json({ success: false, message: err.message || "Server error" });
+    return res.status(500).json({ success: false, message: "We could not send the email right now. Please try again later." });
   }
 });
 
@@ -579,15 +625,15 @@ exports.verifyOtp = functions.region(REGION).https.onRequest(async (req, res) =>
       return res.status(400).json({ success: false, message: "OTP expired. Please request a new one." });
     }
 
-    const attempts = Number(record.attempts || 0);
-    if (attempts >= OTP_MAX_ATTEMPTS) {
+    // Count this guess first, atomically, so guesses sent in parallel cannot slip past the limit
+    const counted = await ref.child("attempts").transaction((n) => (Number(n) || 0) + 1);
+    if (Number(counted.snapshot.val()) > OTP_MAX_ATTEMPTS) {
       await ref.remove();
       return res.status(429).json({ success: false, message: "Too many attempts. Request a new OTP." });
     }
 
     const isMatch = sha256(String(otp).trim()) === String(record.otpHash || "");
     if (!isMatch) {
-      await ref.update({ attempts: attempts + 1 });
       return res.status(400).json({ success: false, message: "Invalid OTP" });
     }
 
@@ -596,7 +642,7 @@ exports.verifyOtp = functions.region(REGION).https.onRequest(async (req, res) =>
     return res.status(200).json({ success: true, message: "OTP verified" });
   } catch (err) {
     console.error("verifyOtp error", err);
-    return res.status(500).json({ success: false, message: err.message || "Server error" });
+    return res.status(500).json({ success: false, message: "We could not check the code right now. Please try again." });
   }
 });
 
@@ -655,7 +701,8 @@ exports.sendBroadcastNotification = functions.region(REGION).https.onRequest(asy
     return res.status(200).json({ success: true, result });
   } catch (err) {
     console.error("sendBroadcastNotification error", err);
-    return res.status(500).json({ success: false, message: err.message || "Failed to send notification" });
+    const failure = failureResponse(err, "Failed to send notification");
+    return res.status(failure.status).json({ success: false, message: failure.message });
   }
 });
 
@@ -670,7 +717,10 @@ exports.sendTargetedNotification = functions.region(REGION).https.onRequest(asyn
 
     const requester = await verifyRequestAuth(req, ["admin", "hotel"]);
     const body = req.body || {};
-    const userIds = Array.isArray(body.userIds) ? body.userIds.filter(Boolean) : [];
+    if (Array.isArray(body.userIds) && body.userIds.length > MAX_TARGETED_USERS) {
+      return res.status(400).json({ success: false, message: `You can notify at most ${MAX_TARGETED_USERS} people at once` });
+    }
+    const userIds = limitUserIds(body.userIds);
     if (userIds.length === 0) {
       return res.status(400).json({ success: false, message: "userIds is required" });
     }
@@ -715,7 +765,8 @@ exports.sendTargetedNotification = functions.region(REGION).https.onRequest(asyn
     return res.status(200).json({ success: true, result });
   } catch (err) {
     console.error("sendTargetedNotification error", err);
-    return res.status(500).json({ success: false, message: err.message || "Failed to send notification" });
+    const failure = failureResponse(err, "Failed to send notification");
+    return res.status(failure.status).json({ success: false, message: failure.message });
   }
 });
 
@@ -815,7 +866,8 @@ exports.setUserSuspended = functions.region(REGION).https.onRequest(async (req, 
     return res.status(200).json({ success: true, status: suspended ? "suspended" : "active" });
   } catch (err) {
     console.error("setUserSuspended error", err);
-    return res.status(500).json({ success: false, message: err.message || "Could not update the account" });
+    const failure = failureResponse(err, "Could not update the account");
+    return res.status(failure.status).json({ success: false, message: failure.message });
   }
 });
 
@@ -857,7 +909,8 @@ const sendSelfTestPushHandler = async (req, res) => {
     return res.status(200).json({ success: true, result });
   } catch (err) {
     console.error("sendSelfTestPush error", err);
-    return res.status(500).json({ success: false, message: err.message || "Failed to send self-test notification" });
+    const failure = failureResponse(err, "Failed to send self-test notification");
+    return res.status(failure.status).json({ success: false, message: failure.message });
   }
 };
 
@@ -958,7 +1011,8 @@ exports.sendDealNotification = functions.region(REGION).https.onRequest(async (r
     return res.status(200).json({ success: true, result });
   } catch (err) {
     console.error("sendDealNotification error", err);
-    return res.status(500).json({ success: false, message: err.message || "Failed to send deal notification" });
+    const failure = failureResponse(err, "Failed to send deal notification");
+    return res.status(failure.status).json({ success: false, message: failure.message });
   }
 });
 
@@ -986,14 +1040,7 @@ exports.onUserProfileCreatedNotify = functions
     return null;
   });
 
-exports.onOrderCreatedNotify = functions
-  .region(REGION)
-  .database.ref("/orders/{orderId}")
-  .onCreate(async (snapshot, context) => {
-    const order = snapshot.val() || {};
-    const orderId = context.params.orderId;
-    console.log(`[onOrderCreatedNotify] TRIGGER FIRED for orderId=${orderId}`);
-
+async function notifyOrderCreated(orderId, order) {
     const customerId = String(order.userId || "").trim();
     const hotelId = String(order.hotelId || "").trim();
     const customerName = String(order.customerName || order.userName || "Customer");
@@ -1055,48 +1102,28 @@ exports.onOrderCreatedNotify = functions
     }
 
     console.log(`[onOrderCreatedNotify] COMPLETED for orderId=${orderId}`);
+}
 
-    // Stock is adjusted here, on the server, and nowhere else: the database rules do not let
-    // customers write foodItems quantity/status. Two protections keep it correct:
-    //  - the stockAdjusted flag (flipped in a transaction) makes a retried trigger a no-op
-    //  - each quantity change is a transaction, so simultaneous orders cannot overwrite each other
+exports.onOrderCreatedNotify = functions
+  .region(REGION)
+  .database.ref("/orders/{orderId}")
+  .onCreate(async (snapshot, context) => {
+    const order = snapshot.val() || {};
+    const orderId = context.params.orderId;
+    console.log(`[onOrderCreatedNotify] TRIGGER FIRED for orderId=${orderId}`);
+
+    // Stock first: a push that fails must never stop the stock from being taken
     try {
-      const flag = await db
-        .ref(`orders/${orderId}/stockAdjusted`)
-        .transaction((current) => (current ? undefined : true));
-
-      if (flag.committed) {
-        const rawItems = order.items || [];
-        const items = Array.isArray(rawItems) ? rawItems : Object.values(rawItems);
-        for (const item of items) {
-          const foodId = String((item && item.foodId) || "").trim();
-          const orderedQty = Math.max(1, Number(item && item.quantity) || 1);
-          if (!foodId) continue;
-
-          const result = await db.ref(`foodItems/${foodId}/quantity`).transaction((current) => {
-            // Missing item: leave it alone (Firebase re-runs this with the server value if it exists)
-            if (current === null) return current;
-            const qty = Number(current);
-            return Math.max(0, (Number.isFinite(qty) ? qty : 0) - orderedQty);
-          });
-
-          if (!result.committed || !result.snapshot.exists()) continue;
-
-          const newQty = Number(result.snapshot.val()) || 0;
-          if (newQty <= 0) {
-            await db.ref(`foodItems/${foodId}`).update({ status: "sold_out", isAvailable: false, available: false });
-            console.log(`[onOrderCreatedNotify] Food ${foodId} auto-deactivated (sold out)`);
-          } else {
-            console.log(`[onOrderCreatedNotify] Food ${foodId} quantity is now ${newQty}`);
-          }
-        }
-      } else {
-        console.log(`[onOrderCreatedNotify] Stock for order ${orderId} was already adjusted, skipping`);
-      }
-    } catch (qtyErr) {
-      console.error("[onOrderCreatedNotify] Error decrementing food quantity", qtyErr);
+      await adjustStockForOrder(orderId, order);
+    } catch (stockErr) {
+      console.error("[onOrderCreatedNotify] Error adjusting stock", stockErr);
     }
 
+    try {
+      await notifyOrderCreated(orderId, order);
+    } catch (notifyErr) {
+      console.error("[onOrderCreatedNotify] Error sending notifications", notifyErr);
+    }
     return null;
   });
 
@@ -1112,6 +1139,15 @@ exports.onOrderStatusChangedNotify = functions
     if (before.orderStatus === after.orderStatus) {
       console.log(`[onOrderStatusChangedNotify] No status change, skipping`);
       return null;
+    }
+
+    // A cancelled order gives its portions back (once), before any push can fail
+    if (String(after.orderStatus || "").toLowerCase() === "cancelled") {
+      try {
+        await restoreStockForOrder(orderId, after);
+      } catch (restoreErr) {
+        console.error("[onOrderStatusChangedNotify] Error restoring stock", restoreErr);
+      }
     }
 
     const userId = String(after.userId || "").trim();
@@ -1338,30 +1374,36 @@ exports.sendPickupReminders = functions
       if (phase && order.userId) due.push({ id: child.key, order, phase });
     });
 
+    let sent = 0;
     for (const { id, order, phase } of due) {
-      // Mark first: a retry must never send the same reminder twice
-      await db.ref(`orders/${id}/pickupReminderSent`).set(true);
+      try {
+        // Mark first: a retry must never send the same reminder twice
+        await db.ref(`orders/${id}/pickupReminderSent`).set(true);
 
-      const customer = await loadUserNotificationRecord(String(order.userId));
-      if (!customer) continue;
+        const customer = await loadUserNotificationRecord(String(order.userId));
+        if (!customer) continue;
 
-      const text = reminderText(order, phase);
-      const payload = buildPayload({
-        ...text,
-        type: "pickup_reminder",
-        category: "pickup_reminder",
-        route: "order",
-        orderId: id,
-        hotelId: String(order.hotelId || ""),
-        data: { phase },
-      });
-      if (customer.token) {
-        await sendToUserRecords([customer], payload);
+        const text = reminderText(order, phase);
+        const payload = buildPayload({
+          ...text,
+          type: "pickup_reminder",
+          category: "pickup_reminder",
+          route: "order",
+          orderId: id,
+          hotelId: String(order.hotelId || ""),
+          data: { phase },
+        });
+        if (customer.token) {
+          await sendToUserRecords([customer], payload);
+        }
+        await persistNotificationForUsers([customer.uid], payload, "pickup_reminder");
+        sent += 1;
+      } catch (err) {
+        console.error(`[sendPickupReminders] order ${id} failed`, err);
       }
-      await persistNotificationForUsers([customer.uid], payload, "pickup_reminder");
     }
 
-    console.log(`[sendPickupReminders] ${due.length} reminder(s) sent`);
+    console.log(`[sendPickupReminders] ${sent} of ${due.length} reminder(s) sent`);
     return null;
   });
 
@@ -1370,7 +1412,7 @@ exports.sendScheduledEngagementNotifications = functions
   .pubsub.schedule("every 2 hours")
   .timeZone("Asia/Colombo")
   .onRun(async () => {
-    const hour = new Date().getHours();
+    const hour = colomboHour();
     let segment = "meal";
 
     if (hour >= 6 && hour < 11) segment = "breakfast";

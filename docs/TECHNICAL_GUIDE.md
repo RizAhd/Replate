@@ -203,7 +203,8 @@ All HTTPS functions require a Firebase ID token in `Authorization: Bearer ...` a
 | `npm run rules:test` | 127 security-rule checks in the Firebase emulator (needs **JDK 21+** on the PATH) |
 | `npm run web:check` | Every script and link in `web-panels/` parses and resolves |
 | `npm run web:test` | The shared order rules (revenue, pending, expiry, hotel status, daily earnings, popular items) |
-| `npm run functions:test` | The pickup-reminder decisions used by the Cloud Function |
+| `npm run functions:test` | The pickup-reminder decisions and the safe helpers (escaping, rate limit, quantity cap, error mapping) |
+| `npm run stock:test` | Order stock logic (take, cap, other-hotel guard, restore on cancel) against the database emulator |
 All of these run in GitHub Actions (`.github/workflows/ci.yml`).
 
 ## 5. The web panels
