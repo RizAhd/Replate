@@ -775,7 +775,8 @@
                 // Try Cloud Functions first
                 result = await NotificationApi.sendBroadcast({ target, title, body, type, route });
             } catch (cfErr) {
-                console.warn('Cloud Function failed, using Firebase direct write:', cfErr.message);
+                if (!NotificationApi.canFallBack(cfErr)) throw cfErr;
+                console.warn('Cloud Function unreachable, using Firebase direct write:', cfErr.message);
                 method = 'firebase_direct';
                 cfMessage = cfErr.message || 'unknown error';
                 // Fallback: write notifications directly to Firebase
@@ -822,7 +823,8 @@
                     orderId
                 });
             } catch (cfErr) {
-                console.warn('Cloud Function failed, using Firebase direct write:', cfErr.message);
+                if (!NotificationApi.canFallBack(cfErr)) throw cfErr;
+                console.warn('Cloud Function unreachable, using Firebase direct write:', cfErr.message);
                 method = 'firebase_direct';
                 cfMessage = cfErr.message || 'unknown error';
                 // Fallback: write directly to each user's notifications
@@ -879,7 +881,8 @@
                     data: { hotelName, foodName, discount }
                 });
             } catch (cfErr) {
-                console.warn('Cloud Function failed, using Firebase direct write:', cfErr.message);
+                if (!NotificationApi.canFallBack(cfErr)) throw cfErr;
+                console.warn('Cloud Function unreachable, using Firebase direct write:', cfErr.message);
                 method = 'firebase_direct';
                 cfMessage = cfErr.message || 'unknown error';
                 // Fallback: write deal notifications directly to all customers

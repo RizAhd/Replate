@@ -100,8 +100,9 @@ they stay sharp at every size and support Android 13 themed icons.
 
 - Secrets that must stay out of the app: FCM server key, payment secrets. Anything compiled into an
   APK can be extracted.
-- The PayHere merchant secret is currently still compiled in (the SDK call needs it). Move payment
-  verification to a Cloud Function with a PayHere `notify_url` before going live with real payments.
+- The PayHere merchant secret is no longer compiled into the app (the SDK never used it). Move payment
+  verification to a Cloud Function with a PayHere `notify_url` (it will need the secret) before going live
+  with real payments. A debug build refuses a live merchant id (one starting with 2).
 - Restrict the Google Maps key to this app (package + SHA-1) and the two APIs it needs, and set a
   billing alert in Google Cloud Console.
 

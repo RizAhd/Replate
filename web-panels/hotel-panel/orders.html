@@ -448,6 +448,14 @@
         const key = currentOrderKey;
         database.ref('orders/' + key).once('value').then((snap) => {
             const order = snap.val() || {};
+            const current = String(order.orderStatus || '').toLowerCase();
+            if (current === 'cancelled' || current === 'completed' || current === 'delivered') {
+                if (verificationModalInstance) verificationModalInstance.hide();
+                ReplateUI.toast(current === 'cancelled'
+                    ? 'This order was cancelled, so it cannot be completed.'
+                    : 'This order is already finished.', 'warning');
+                return null;
+            }
             const isDelivery = String(order.orderType || '').toLowerCase() === 'delivery';
             return database.ref('orders/' + key).update({
                 orderStatus: isDelivery ? 'delivered' : 'completed',
@@ -515,6 +523,11 @@
     // sends the customer a single push, so nothing is sent from here.
     async function changeStatus(key, next, label) {
         try {
+            const latest = String(((await database.ref('orders/' + key + '/orderStatus').once('value')).val()) || '').toLowerCase();
+            if (latest === 'cancelled' || latest === 'completed' || latest === 'delivered') {
+                ReplateUI.toast(latest === 'cancelled' ? 'The customer cancelled this order.' : 'This order is already finished.', 'warning');
+                return;
+            }
             await database.ref('orders/' + key).update({ orderStatus: next, updatedAt: Date.now() });
             ReplateUI.toast(label + ': the customer has been told.', 'success');
         } catch (err) {

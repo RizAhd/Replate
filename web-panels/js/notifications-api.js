@@ -11,14 +11,22 @@ const NotificationApi = (() => {
         const base = (ENV.FUNCTIONS_BASE_URL || "").replace(/\/$/, "");
         if (!base) throw new Error("FUNCTIONS_BASE_URL is not configured");
 
-        const res = await fetch(`${base}/${functionName}`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${idToken}`
-            },
-            body: JSON.stringify(payload || {})
-        });
+        let res;
+        try {
+            res = await fetch(`${base}/${functionName}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${idToken}`
+                },
+                body: JSON.stringify(payload || {})
+            });
+        } catch (networkError) {
+            // The request never reached the server (offline, blocked, wrong URL)
+            const err = new Error("Could not reach the notification service. Check your connection.");
+            err.status = 0;
+            throw err;
+        }
 
         let body = {};
         try {
@@ -28,7 +36,9 @@ const NotificationApi = (() => {
         }
 
         if (!res.ok || body.success === false) {
-            throw new Error(body.message || `Request failed (${res.status})`);
+            const err = new Error(body.message || `Request failed (${res.status})`);
+            err.status = res.status;
+            throw err;
         }
 
         return body;
@@ -43,7 +53,18 @@ const NotificationApi = (() => {
         };
     }
 
+    /**
+     * Only when the service itself is missing or unreachable is it safe to write the notifications
+     * directly. After any other failure (for example a 500 once some pushes were already sent) a
+     * direct write would deliver everything twice.
+     */
+    function canFallBack(err) {
+        const status = err && err.status;
+        return status === 0 || status === 404 || status === 502 || status === 503 || status === 504;
+    }
+
     return {
+        canFallBack,
         sendBroadcast: (payload) => call("sendBroadcastNotification", normalizePayload(payload, {
             category: "admin_broadcast"
         })),

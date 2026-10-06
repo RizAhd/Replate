@@ -52,7 +52,6 @@ Functions with the Admin SDK, which bypasses the rules.
    sdk.dir=C\:\\Users\\<you>\\AppData\\Local\\Android\\Sdk
    GOOGLE_MAPS_API_KEY=...      # Maps SDK + Directions API
    PAYHERE_MERCHANT_ID=...
-   PAYHERE_MERCHANT_SECRET=...
    GOOGLE_WEB_CLIENT_ID=...     # Firebase console > Authentication > Google > Web client ID
    ```
    `GOOGLE_WEB_CLIENT_ID` is required for Google Sign-In; without it the button explains that Google
@@ -261,10 +260,11 @@ node scripts/migrate-hotel-licenses.js --apply    # moves the links
 
 ## 7. Known limitations
 
-- **Payment is confirmed by the app.** A customer can write `paymentStatus: "paid"` on their own order. The
-  fix is a PayHere `notify_url` handled by a Cloud Function.
-- The PayHere merchant secret is compiled into the app (the SDK needs it). Do the server-side
-  verification before taking real payments.
+- **Payment is reported by the app.** The rules only accept `paymentStatus: "paid"` together with a PayHere
+  payment number, but a determined customer could still invent one. Real proof is a PayHere `notify_url`
+  handled by a Cloud Function that checks PayHere's signature; do this before taking real payments.
+- The PayHere merchant secret is no longer compiled into the app (the SDK never used it). Keep it for the
+  server-side verification only (Functions config).
 - Customers can read each hotel's phone, email and push token from `hotels` (the map needs the rest).
   Split the private fields into their own node.
 - The Hot Deals row and category chips are computed on the phone from the full `foodItems` list; at large

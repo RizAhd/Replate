@@ -225,12 +225,9 @@
 
             const hotelData = ReplateSchema.buildHotelPayload(hotelFormData, uid);
             const newHotelRef = database.ref('hotels').push();
-            // The licence link goes to its own node that only this owner and admins can read
-            await database.ref().update({
-                ['hotels/' + newHotelRef.key]: hotelData,
-                ['hotelLicenses/' + newHotelRef.key]: { userId: uid, licenseUrl, uploadedAt: Date.now() }
-            });
-
+            // The profile is written first: if the hotel write below fails, the owner is left with a profile
+            // and no hotel (they can simply register again). The other way round would leave a pending
+            // hotel with no owner for the admin to find, and the rules do not let an owner delete a hotel.
             await database.ref('users/' + uid).set({
                 name: hotelFormData.ownerName,
                 email,
@@ -243,6 +240,12 @@
                 lastActive: Date.now(),
                 emailVerified: !!createdUser.emailVerified,
                 hotelId: newHotelRef.key
+            });
+
+            // The licence link goes to its own node that only this owner and admins can read
+            await database.ref().update({
+                ['hotels/' + newHotelRef.key]: hotelData,
+                ['hotelLicenses/' + newHotelRef.key]: { userId: uid, licenseUrl, uploadedAt: Date.now() }
             });
 
             // Registration is complete but not yet approved, so do not leave the visitor signed in
