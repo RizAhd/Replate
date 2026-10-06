@@ -14,6 +14,7 @@ import android.widget.ProgressBar;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
@@ -35,12 +36,17 @@ import com.replate.app.utils.Money;
 import com.replate.app.helpers.CartDatabaseHelper;
 import com.replate.app.models.CartItem;
 import com.replate.app.utils.CheckoutValidator;
+import com.replate.app.utils.CartCheck;
 import com.replate.app.utils.NetworkUtils;
+import com.replate.app.utils.PayHereConfig;
+import com.replate.app.utils.PaymentOutcome;
+import com.replate.app.utils.PendingPayment;
+import com.replate.app.utils.PendingPaymentStore;
 import com.replate.app.utils.ToastUtils;
 
 import java.io.FileOutputStream;
 import java.io.Serializable;
-import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -50,11 +56,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import lk.payhere.androidsdk.PHConfigs;
 import lk.payhere.androidsdk.PHConstants;
 import lk.payhere.androidsdk.PHMainActivity;
+import lk.payhere.androidsdk.PHResponse;
 import lk.payhere.androidsdk.model.InitRequest;
 import lk.payhere.androidsdk.model.Item;
+import lk.payhere.androidsdk.model.StatusResponse;
 
 public class CheckoutActivity extends AppCompatActivity {
 
@@ -62,7 +69,6 @@ public class CheckoutActivity extends AppCompatActivity {
     private static final int PAYHERE_REQUEST = 11001;
 
     private static final String MERCHANT_ID     = BuildConfig.PAYHERE_MERCHANT_ID;
-    private static final String MERCHANT_SECRET = BuildConfig.PAYHERE_MERCHANT_SECRET;
 
     private static final double DELIVERY_FEE_LKR = 250.0;
 
@@ -103,6 +109,10 @@ public class CheckoutActivity extends AppCompatActivity {
     private String pendingPaymentStatus;
     private boolean orderCompleted;
     private boolean orderWriteInFlight;
+    // True while the confirm dialog is on screen, so a second tap cannot open a second one
+    private boolean confirmDialogOpen;
+    // PayHere's payment number, saved on the order so a payment can be traced
+    private long pendingPaymentRef;
     private static final long SUBMIT_TIMEOUT_MS = 25_000L;
     private final android.os.Handler submitTimeoutHandler =
             new android.os.Handler(android.os.Looper.getMainLooper());
@@ -121,6 +131,8 @@ public class CheckoutActivity extends AppCompatActivity {
         initResultLaunchers();
         loadOrderSummary();
         loadUserData();
+        registerBackGuard();
+        restoreUnsavedPayment();
     }
 
     private void initResultLaunchers() {
@@ -167,7 +179,7 @@ public class CheckoutActivity extends AppCompatActivity {
         tvDeliveryFee = findViewById(R.id.tvDeliveryFee);
         rowDeliveryFee = findViewById(R.id.rowDeliveryFee);
 
-        ivBack.setOnClickListener(v -> finish());
+        ivBack.setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
         etPickupTime.setOnClickListener(v -> showTimePicker());
         btnPlaceOrder.setOnClickListener(v -> placeOrder());
 
@@ -296,9 +308,10 @@ public class CheckoutActivity extends AppCompatActivity {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
                             String name = snapshot.child("name").getValue(String.class);
-                            String phone = snapshot.child("phone").getValue(String.class);
-                            if (name != null) etCustomerName.setText(name);
-                            if (phone != null) etCustomerPhone.setText(phone);
+                            Object phoneValue = snapshot.child("phone").getValue();
+                            String phone = phoneValue == null ? null : String.valueOf(phoneValue);
+                            if (name != null && isEmpty(etCustomerName)) etCustomerName.setText(name);
+                            if (phone != null && isEmpty(etCustomerPhone)) etCustomerPhone.setText(phone);
                         }
 
                         @Override
@@ -323,6 +336,9 @@ public class CheckoutActivity extends AppCompatActivity {
         // Starting another payment here would charge the customer twice.
         if (pendingPaymentStatus != null) {
             submitOrder(pendingPaymentMethod, pendingPaymentStatus);
+            return;
+        }
+        if (confirmDialogOpen || !btnPlaceOrder.isEnabled()) {
             return;
         }
 
@@ -367,32 +383,224 @@ public class CheckoutActivity extends AppCompatActivity {
             ToastUtils.showCustomToast(this, R.string.checkout_this_order_has_no_payable);
             return;
         }
+        confirmDialogOpen = true;
         new AlertDialog.Builder(this)
                 .setTitle(R.string.checkout_confirm_order)
                 .setMessage(getString(R.string.checkout_confirm_message, totalAmount))
-                .setPositiveButton(R.string.checkout_yes_place_order, (dialog, which) -> {
+                .setPositiveButton(R.string.checkout_yes_place_order, (dialog, which) -> verifyCartThen(() -> {
                     if (rgPayment.getCheckedRadioButtonId() == R.id.rbCard) {
                         startSandboxPayment();
                     } else {
                         submitOrder("Cash", "pending");
                     }
-                })
+                }))
                 .setNegativeButton(R.string.checkout_cancel, null)
+                .setOnDismissListener(d -> confirmDialogOpen = false)
+                .show();
+    }
+
+    /**
+     * Reads the live listing of every dish in the cart and only goes on when the price, stock and
+     * availability still match, so nobody pays for a dish that sold out or changed price.
+     */
+    private void verifyCartThen(Runnable proceed) {
+        if (!NetworkUtils.isOnline(this)) {
+            ToastUtils.showCustomToast(this, R.string.checkout_cart_check_failed);
+            return;
+        }
+        showLoading(true);
+        final java.util.concurrent.atomic.AtomicBoolean finished = new java.util.concurrent.atomic.AtomicBoolean(false);
+        final CartCheck.Line[] lines = new CartCheck.Line[cartItems.size()];
+        final int[] remaining = {cartItems.size()};
+        final Runnable onTimeout = () -> {
+            if (finished.compareAndSet(false, true)) {
+                showLoading(false);
+                ToastUtils.showCustomToast(this, R.string.checkout_cart_check_failed);
+            }
+        };
+        submitTimeoutHandler.postDelayed(onTimeout, 12_000L);
+
+        for (int i = 0; i < cartItems.size(); i++) {
+            final int index = i;
+            final CartItem item = cartItems.get(i);
+            final String foodId = item.getFoodId();
+            if (foodId == null || foodId.trim().isEmpty()) {
+                // An old cart line without a dish id cannot be checked; let it through as it was
+                lines[index] = new CartCheck.Line(item.getFoodName(), item.getQuantity(), item.getPrice(),
+                        new CartCheck.Live(true, item.getQuantity(), item.getPrice()));
+                if (--remaining[0] == 0) {
+                    finishCartCheck(finished, onTimeout, lines, proceed);
+                }
+                continue;
+            }
+            mDatabase.child("foodItems").child(foodId).get().addOnCompleteListener(task -> {
+                if (finished.get()) {
+                    return;
+                }
+                if (!task.isSuccessful()) {
+                    if (finished.compareAndSet(false, true)) {
+                        submitTimeoutHandler.removeCallbacks(onTimeout);
+                        showLoading(false);
+                        ToastUtils.showCustomToast(this, R.string.checkout_cart_check_failed);
+                    }
+                    return;
+                }
+                CartCheck.Live live = null;
+                DataSnapshot snap = task.getResult();
+                if (snap != null && snap.exists()) {
+                    try {
+                        com.replate.app.models.FoodItem food = snap.getValue(com.replate.app.models.FoodItem.class);
+                        if (food != null) {
+                            live = new CartCheck.Live(food.isAvailableValue(), food.getQuantityValue(),
+                                    food.getDiscountedPriceValue());
+                        }
+                    } catch (RuntimeException e) {
+                        // A listing we cannot read is not proof that the dish is gone: leave this line unchecked
+                        Log.w(TAG, "Could not read listing " + foodId, e);
+                        live = new CartCheck.Live(true, item.getQuantity(), item.getPrice());
+                    }
+                }
+                lines[index] = new CartCheck.Line(item.getFoodName(), item.getQuantity(), item.getPrice(), live);
+                if (--remaining[0] == 0) {
+                    finishCartCheck(finished, onTimeout, lines, proceed);
+                }
+            });
+        }
+    }
+
+    private void finishCartCheck(java.util.concurrent.atomic.AtomicBoolean finished, Runnable onTimeout,
+                                 CartCheck.Line[] lines, Runnable proceed) {
+        if (!finished.compareAndSet(false, true)) {
+            return;
+        }
+        submitTimeoutHandler.removeCallbacks(onTimeout);
+        if (isFinishing() || isDestroyed()) {
+            return;
+        }
+        List<String> problems = CartCheck.problems(Arrays.asList(lines));
+        if (problems.isEmpty()) {
+            proceed.run();
+            return;
+        }
+        showLoading(false);
+        StringBuilder text = new StringBuilder();
+        for (String problem : problems) {
+            text.append("\u2022 ").append(problem).append('\n');
+        }
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.checkout_cart_changed_title)
+                .setMessage(getString(R.string.checkout_cart_changed_message, text.toString().trim()))
+                .setPositiveButton(R.string.checkout_back_to_cart, (d, w) -> finish())
+                .setCancelable(false)
+                .show();
+    }
+
+    private static boolean isEmpty(TextInputEditText field) {
+        return field.getText() == null || field.getText().toString().trim().isEmpty();
+    }
+
+    /** One order id and pickup code per checkout; also used as PayHere's order id so the two can be matched. */
+    private void ensureOrderIds() {
+        if (pendingOrderId == null) {
+            pendingOrderId = mDatabase.child("orders").push().getKey();
+            pendingOtp = String.format(Locale.US, "%06d", new java.security.SecureRandom().nextInt(1_000_000));
+        }
+    }
+
+    /** Back is blocked while a card payment has gone through but the order is not saved yet. */
+    private void registerBackGuard() {
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (pendingPaymentStatus == null) {
+                    setEnabled(false);
+                    getOnBackPressedDispatcher().onBackPressed();
+                    return;
+                }
+                new AlertDialog.Builder(CheckoutActivity.this)
+                        .setTitle(R.string.checkout_leave_unsaved_title)
+                        .setMessage(R.string.checkout_leave_unsaved_message)
+                        .setPositiveButton(R.string.checkout_retry, (d, w) -> submitOrder(pendingPaymentMethod, pendingPaymentStatus))
+                        .setNegativeButton(R.string.checkout_leave, (d, w) -> {
+                            setEnabled(false);
+                            finish();
+                        })
+                        .show();
+            }
+        });
+    }
+
+    /** Writes the paid-but-unsaved order to the phone, so closing the app cannot lose it. */
+    private void persistUnsavedPayment(String method) {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) {
+            return;
+        }
+        ensureOrderIds();
+        boolean isDelivery = rgOrderType.getCheckedRadioButtonId() == R.id.rbDelivery;
+        PendingPaymentStore.save(this, new PendingPayment(user.getUid(), pendingOrderId, pendingOtp, method,
+                pendingPaymentRef, isDelivery,
+                String.valueOf(etCustomerName.getText()).trim(), String.valueOf(etCustomerPhone.getText()).trim(),
+                isDelivery ? "" : String.valueOf(etPickupTime.getText()).trim(),
+                String.valueOf(etAddress.getText()).trim(), selectedDeliveryLat, selectedDeliveryLng));
+    }
+
+    /** A payment from an earlier visit that was never saved as an order: fill the form again and offer to finish it. */
+    private void restoreUnsavedPayment() {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null || cartItems == null || cartItems.isEmpty() || pendingPaymentStatus != null) {
+            return;
+        }
+        PendingPayment saved = PendingPaymentStore.load(this, user.getUid());
+        if (saved == null) {
+            return;
+        }
+        pendingOrderId = saved.orderId;
+        pendingOtp = saved.otp;
+        pendingPaymentMethod = saved.method;
+        pendingPaymentStatus = "paid";
+        pendingPaymentRef = saved.paymentRef;
+
+        rgOrderType.check(saved.delivery ? R.id.rbDelivery : R.id.rbPickup);
+        rgPayment.check(R.id.rbCard);
+        etCustomerName.setText(saved.customerName);
+        etCustomerPhone.setText(saved.customerPhone);
+        etPickupTime.setText(saved.pickupTime);
+        etAddress.setText(saved.address);
+        selectedDeliveryLat = saved.lat;
+        selectedDeliveryLng = saved.lng;
+        recalculateTotals();
+        btnPlaceOrder.setText(R.string.checkout_retry_saving_order);
+
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.checkout_payment_received)
+                .setMessage(R.string.checkout_unsaved_found)
+                .setPositiveButton(R.string.checkout_retry, (d, w) -> submitOrder(pendingPaymentMethod, pendingPaymentStatus))
+                .setNegativeButton(R.string.checkout_not_now, null)
+                .setCancelable(false)
                 .show();
     }
 
     private void startSandboxPayment() {
-        if (MERCHANT_ID == null || MERCHANT_ID.trim().isEmpty()) {
+        if (!PayHereConfig.isConfigured(MERCHANT_ID)) {
+            showLoading(false);
             ToastUtils.showCustomToast(this, R.string.checkout_payment_not_configured_please_contact);
             return;
         }
+        // PayHere picks sandbox or live from the merchant id itself; a debug build must stay on the sandbox
+        if (!PayHereConfig.mayStartPayment(MERCHANT_ID, BuildConfig.DEBUG)) {
+            showLoading(false);
+            ToastUtils.showCustomToast(this, R.string.checkout_payment_test_build_only);
+            return;
+        }
 
+        ensureOrderIds();
         InitRequest req = new InitRequest();
         req.setMerchantId(MERCHANT_ID);
-        applyMerchantSecretIfSupported(req);
         req.setCurrency("LKR");
         req.setAmount(totalAmount);
-        req.setOrderId("RPL-" + System.currentTimeMillis());
+        // The same id as the order that will be saved, so a PayHere payment can be matched to its order
+        req.setOrderId(pendingOrderId);
         req.setItemsDescription("REPLATE Order");
 
         String fullName = etCustomerName.getText().toString().trim();
@@ -404,6 +612,7 @@ public class CheckoutActivity extends AppCompatActivity {
         String email = user != null ? user.getEmail() : null;
         if (email == null || email.trim().isEmpty()) {
             // PayHere needs a real email for the receipt; don't invent one
+            showLoading(false);
             ToastUtils.showCustomToast(this,
                     R.string.checkout_card_payment_needs_an_email);
             return;
@@ -430,74 +639,60 @@ public class CheckoutActivity extends AppCompatActivity {
         Intent intent = new Intent(this, PHMainActivity.class);
         intent.putExtra(PHConstants.INTENT_EXTRA_DATA, req);
 
-        PHConfigs.setBaseUrl(PHConfigs.SANDBOX_URL);
+        showLoading(true);
         payHereLauncher.launch(intent);
-    }
-
-    private void applyMerchantSecretIfSupported(InitRequest req) {
-        try {
-            Method m = req.getClass().getMethod("setMerchantSecret", String.class);
-            m.invoke(req, MERCHANT_SECRET);
-            if (BuildConfig.DEBUG) Log.d(TAG, "Applied merchant secret via SDK method");
-        } catch (Exception ignore) {
-            // SDK version may not expose merchant secret setter; sandbox can still proceed.
-        }
     }
 
     private void handlePayHereResult(int resultCode, @Nullable Intent data) {
         // Always reset loading/button state first
         showLoading(false);
 
-        if (data == null || !data.hasExtra(PHConstants.INTENT_EXTRA_RESULT)) {
-            if (resultCode == Activity.RESULT_CANCELED) {
-                showPaymentCancelledDialog();
-            }
-            return;
-        }
-
-        Serializable response = data.getSerializableExtra(PHConstants.INTENT_EXTRA_RESULT);
-        String responseText = response != null ? response.toString() : "No response payload";
-        String lower = responseText.toLowerCase(Locale.US);
-
-        if (lower.contains("unauthorized domain") || lower.contains("unauthorized")) {
-            ToastUtils.showCustomToast(this,
-                    R.string.checkout_payhere_blocked_this_request_unauthorized);
-            Log.e(TAG, "PayHere unauthorized response: " + responseText);
-            return;
-        }
-
-        boolean success = (resultCode == Activity.RESULT_OK);
-        if (response != null) {
-            try {
-                Method isSuccess = response.getClass().getMethod("isSuccess");
-                Object v = isSuccess.invoke(response);
-                if (v instanceof Boolean) {
-                    success = (Boolean) v;
-                }
-            } catch (Exception ignore) {
-                // Keep resultCode fallback.
-            }
-        }
-
-        if (success) {
-            if (BuildConfig.DEBUG) Log.d(TAG, "Payment success: " + responseText);
-            submitOrder("PayHere Online", "paid");
-        } else if (resultCode == Activity.RESULT_CANCELED || lower.contains("cancel")) {
+        Serializable raw = data == null ? null : data.getSerializableExtra(PHConstants.INTENT_EXTRA_RESULT);
+        if (!(raw instanceof PHResponse)) {
+            // The SDK closed without a result (for example the back button): nothing was charged
             showPaymentCancelledDialog();
-        } else {
-            new AlertDialog.Builder(this)
-                    .setTitle(R.string.checkout_payment_failed)
-                    .setMessage(R.string.checkout_your_payment_could_not_be)
-                    .setPositiveButton(R.string.checkout_try_again, (d, w) -> startSandboxPayment())
-                    .setNeutralButton(R.string.checkout_pay_with_cash, (d, w) -> {
-                        if (rgPayment != null) {
-                            rgPayment.check(R.id.rbCash);
-                        }
-                        updatePlaceOrderButton();
-                        ToastUtils.showCustomToast(this, R.string.checkout_switched_to_cash_payment);
-                    })
-                    .setNegativeButton(R.string.checkout_cancel, null)
-                    .show();
+            return;
+        }
+        PHResponse<?> response = (PHResponse<?>) raw;
+        int paymentState = PaymentOutcome.UNKNOWN;
+        long paymentNo = 0;
+        if (response.getData() instanceof StatusResponse) {
+            StatusResponse status = (StatusResponse) response.getData();
+            paymentState = status.getStatus();
+            paymentNo = status.getPaymentNo();
+        }
+        String responseText = response.toString();
+
+        switch (PaymentOutcome.classify(resultCode == Activity.RESULT_OK, response.getStatus(), paymentState, responseText)) {
+            case SUCCESS:
+                if (BuildConfig.DEBUG) Log.d(TAG, "Payment success: " + responseText);
+                pendingPaymentRef = paymentNo;
+                // Written to the phone first: if saving the order fails or the app is closed, the next checkout finishes it
+                persistUnsavedPayment("PayHere Online");
+                submitOrder("PayHere Online", "paid");
+                break;
+            case UNAUTHORIZED:
+                ToastUtils.showCustomToast(this, R.string.checkout_payhere_blocked_this_request_unauthorized);
+                Log.e(TAG, "PayHere unauthorized response: " + responseText);
+                break;
+            case CANCELLED:
+                showPaymentCancelledDialog();
+                break;
+            default:
+                new AlertDialog.Builder(this)
+                        .setTitle(R.string.checkout_payment_failed)
+                        .setMessage(R.string.checkout_your_payment_could_not_be)
+                        .setPositiveButton(R.string.checkout_try_again, (d, w) -> startSandboxPayment())
+                        .setNeutralButton(R.string.checkout_pay_with_cash, (d, w) -> {
+                            if (rgPayment != null) {
+                                rgPayment.check(R.id.rbCash);
+                            }
+                            updatePlaceOrderButton();
+                            ToastUtils.showCustomToast(this, R.string.checkout_switched_to_cash_payment);
+                        })
+                        .setNegativeButton(R.string.checkout_cancel, null)
+                        .show();
+                break;
         }
     }
 
@@ -523,7 +718,7 @@ public class CheckoutActivity extends AppCompatActivity {
     }
 
     private void submitOrder(String paymentMethod, String paymentStatus) {
-        if (orderCompleted) {
+        if (orderCompleted || orderWriteInFlight) {
             return;
         }
         if ("paid".equals(paymentStatus)) {
@@ -551,10 +746,7 @@ public class CheckoutActivity extends AppCompatActivity {
         String pickupTime = isDelivery ? "N/A" : etPickupTime.getText().toString().trim();
         String address = etAddress.getText().toString().trim();
 
-        if (pendingOrderId == null) {
-            pendingOrderId = mDatabase.child("orders").push().getKey();
-            pendingOtp = String.format(Locale.US, "%06d", new java.security.SecureRandom().nextInt(1_000_000));
-        }
+        ensureOrderIds();
         final String otpCode = pendingOtp;
         final String orderId = pendingOrderId;
 
@@ -610,6 +802,10 @@ public class CheckoutActivity extends AppCompatActivity {
         orderData.put("orderStatus", isDelivery ? "pending_delivery" : "pending_pickup");
         orderData.put("paymentStatus", paymentStatus);
         orderData.put("paymentMethod", paymentMethod);
+        if ("paid".equals(paymentStatus) && pendingPaymentRef > 0) {
+            // PayHere's payment number, so the payment can be looked up in the PayHere dashboard
+            orderData.put("paymentRef", pendingPaymentRef);
+        }
         orderData.put("orderType", orderType);
         orderData.put("deliveryAddress", isDelivery ? address : "Pickup at Hotel");
         if (isDelivery) {
@@ -659,6 +855,8 @@ public class CheckoutActivity extends AppCompatActivity {
                     orderCompleted = true;
                     pendingPaymentMethod = null;
                     pendingPaymentStatus = null;
+                    pendingPaymentRef = 0;
+                    PendingPaymentStore.clear(this);
                     showLoading(false);
 
                     // Stock is adjusted by the onOrderCreatedNotify Cloud Function (server side, exactly

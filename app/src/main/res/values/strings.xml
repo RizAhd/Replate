@@ -832,4 +832,14 @@ Total: LKR %1$.2f</string>
     <string name="order_status_delivery_prefix">🚚 %1$s</string>
     <string name="order_delivery_to">📍 Delivery: %1$s</string>
     <string name="order_pickup_at">Pickup %1$s</string>
+    <string name="checkout_cart_changed_title">Your cart needs a change</string>
+    <string name="checkout_cart_changed_message">%1$s
+
+Please go back to your cart and update it. You have not been charged.</string>
+    <string name="checkout_cart_check_failed">Could not check availability. Check your connection and try again.</string>
+    <string name="checkout_payment_test_build_only">This test build only accepts the PayHere sandbox merchant id (it starts with 1).</string>
+    <string name="checkout_leave_unsaved_title">Your payment is not saved yet</string>
+    <string name="checkout_leave_unsaved_message">Your card payment went through but your order has not been saved. Tap Retry to save it now. If you leave, we will offer to save it the next time you open checkout.</string>
+    <string name="checkout_leave">Leave</string>
+    <string name="checkout_unsaved_found">We found a card payment that went through but was never saved as an order. Tap Retry to finish it. You will not be charged again.</string>
 </resources>

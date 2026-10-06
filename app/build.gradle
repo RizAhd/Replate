@@ -29,8 +29,6 @@ android {
 
         buildConfigField "String", "PAYHERE_MERCHANT_ID",
             '"' + (localProps.getProperty("PAYHERE_MERCHANT_ID") ?: "") + '"'
-        buildConfigField "String", "PAYHERE_MERCHANT_SECRET",
-            '"' + (localProps.getProperty("PAYHERE_MERCHANT_SECRET") ?: "") + '"'
         buildConfigField "String", "GOOGLE_WEB_CLIENT_ID",
             '"' + (localProps.getProperty("GOOGLE_WEB_CLIENT_ID") ?: "") + '"'
 

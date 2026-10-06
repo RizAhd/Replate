@@ -47,7 +47,6 @@ Prerequisites: [Android Studio](https://developer.android.com/studio),
    sdk.dir=C\:\\Users\\<you>\\AppData\\Local\\Android\\Sdk
    GOOGLE_MAPS_API_KEY=...        # Maps SDK + Directions API key
    PAYHERE_MERCHANT_ID=...
-   PAYHERE_MERCHANT_SECRET=...
    GOOGLE_WEB_CLIENT_ID=...       # for Google sign-in
    ```
 
