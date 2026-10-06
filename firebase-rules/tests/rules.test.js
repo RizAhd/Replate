@@ -44,6 +44,11 @@ async function check(name, promise) {
     await set(ref(db, 'orders/o1'), { userId: 'cust1', hotelId: 'hotelA', orderStatus: 'pending_pickup', totalAmount: 500, createdAt: 1 });
     await set(ref(db, 'orders/o2'), { userId: 'cust2', hotelId: 'hotelB', orderStatus: 'pending_pickup', totalAmount: 300, createdAt: 2 });
     await set(ref(db, 'orders/oDone'), { userId: 'cust1', hotelId: 'hotelA', orderStatus: 'completed', totalAmount: 100, createdAt: 3 });
+    await set(ref(db, 'orders/o3'), { userId: 'cust1', hotelId: 'hotelA', orderStatus: 'pending_pickup', totalAmount: 400, createdAt: 4 });
+    await set(ref(db, 'orders/oProcessed'), { userId: 'cust1', hotelId: 'hotelA', orderStatus: 'pending_pickup', totalAmount: 400, createdAt: 5, stockAdjusted: true });
+    await set(ref(db, 'orders/oCancelled'), { userId: 'cust1', hotelId: 'hotelA', orderStatus: 'cancelled', totalAmount: 90, createdAt: 6 });
+    await set(ref(db, 'orders/oLegacy'), { userId: 'cust1', hotelId: 'hotelA', orderStatus: 'pending_pickup', totalAmount: 90, createdAt: 8, paymentStatus: 'paid', paymentMethod: 'PayHere Online' });
+    await set(ref(db, 'orders/oQ'), { userId: 'cust2', hotelId: 'hotelQ', orderStatus: 'pending_pickup', totalAmount: 90, createdAt: 7 });
     await set(ref(db, 'banners/b1'), { title: 'T', imageUrl: 'https://x/y.jpg', order: 1, active: true });
     await set(ref(db, 'chats/hotelA_cust1/messages/m1'), { senderId: 'cust1', message: 'hi', timestamp: 1 });
     await set(ref(db, 'notifications/cust1/n1'), { title: 't', body: 'b', timestamp: 1, read: false });
@@ -120,6 +125,10 @@ async function check(name, promise) {
   await check('other hotel cannot edit it', assertFails(update(ref(owner2, 'foodItems/f1'), { status: 'x' })));
   await check('hotel creates new listing for itself', assertSucceeds(set(ref(owner1, 'foodItems/f2'), { hotelId: 'hotelA', hotelUserId: 'hotelOwner1', foodName: 'Soup', quantity: 3 })));
   await check('hotel cannot create listing for another owner', assertFails(set(ref(owner1, 'foodItems/f3'), { hotelId: 'hotelB', hotelUserId: 'hotelOwner2', foodName: 'Fake' })));
+  await check('listing price must be a number', assertFails(set(ref(owner1, 'foodItems/f1/discountedPrice'), '100')));
+  await check('listing price cannot be negative', assertFails(set(ref(owner1, 'foodItems/f1/discountedPrice'), -1)));
+  await check('listing quantity cannot exceed 1000', assertFails(set(ref(owner1, 'foodItems/f1/quantity'), 5000)));
+  await check('owner sets a valid price and quantity', assertSucceeds(update(ref(owner1, 'foodItems/f1'), { discountedPrice: 180, originalPrice: 300, quantity: 12 })));
   await check('owner deletes own listing', assertSucceeds(remove(ref(owner1, 'foodItems/f2'))));
   await check('pending hotel cannot publish a listing', assertFails(set(ref(env.authenticatedContext('stillPending').database(), 'foodItems/fp'), { hotelId: 'hotelQ', hotelUserId: 'stillPending', foodName: 'Early' })));
   await check('suspended hotel cannot publish a listing', assertFails(set(ref(env.authenticatedContext('suspendedOwner').database(), 'foodItems/fs'), { hotelId: 'hotelS', hotelUserId: 'suspendedOwner', foodName: 'Nope' })));
@@ -152,10 +161,30 @@ async function check(name, promise) {
   await check('hotel cannot query orders by customer', assertFails(get(query(ref(owner1, 'orders'), orderByChild('userId'), equalTo('cust1')))));
   await check('pending hotel cannot query orders', assertFails(get(query(ref(env.authenticatedContext('stillPending').database(), 'orders'), orderByChild('hotelId'), equalTo('hotelQ')))));
   await check('hotel reads one of its orders', assertSucceeds(get(ref(owner1, 'orders/o1'))));
-  await check('hotel A updates status of its own order', assertSucceeds(update(ref(owner1, 'orders/o1'), { orderStatus: 'completed', completedAt: 7, updatedAt: 7 })));
+  await check('hotel A updates status of its own order', assertSucceeds(update(ref(owner1, 'orders/o3'), { orderStatus: 'completed', completedAt: 7, updatedAt: 7 })));
   await check('hotel A cannot update hotel B order', assertFails(update(ref(owner1, 'orders/o2'), { orderStatus: 'completed' })));
   await check('admin reads all orders', assertSucceeds(get(ref(admin, 'orders'))));
   await check('customer cannot write stockAdjusted', assertFails(set(ref(cust1, 'orders/o1/stockAdjusted'), true)));
+
+  console.log('\nOrders: tampering and payment');
+  const fresh = { ...order, createdAt: 1 };
+  await check('customer cannot rewrite their own pending order as completed', assertFails(set(ref(cust1, 'orders/oSelf1'), { ...fresh, orderStatus: 'completed' })));
+  await check('customer cannot create an order that already has stockAdjusted', assertFails(set(ref(cust1, 'orders/oSelf2'), { ...fresh, stockAdjusted: true })));
+  await check('customer cannot create an order with a completion time', assertFails(set(ref(cust1, 'orders/oSelf3'), { ...fresh, completedAt: 5 })));
+  await check('customer cannot re-send an order the server already processed', assertFails(set(ref(cust1, 'orders/oProcessed'), fresh)));
+  await check('customer cannot re-send a pending order as completed', assertFails(set(ref(cust1, 'orders/oSelf1'), { ...fresh, orderStatus: 'pending_pickup' }).then(() => set(ref(cust1, 'orders/oSelf1'), { ...fresh, orderStatus: 'completed' }))));
+  await check('cash order is created as pending payment', assertSucceeds(set(ref(cust1, 'orders/oPay1'), { ...fresh, paymentStatus: 'pending', paymentMethod: 'Cash' })));
+  await check('card order with a PayHere payment number is accepted', assertSucceeds(set(ref(cust1, 'orders/oPay2'), { ...fresh, paymentStatus: 'paid', paymentMethod: 'PayHere Online', paymentRef: 320005678 })));
+  await check('paid without a payment number is rejected', assertFails(set(ref(cust1, 'orders/oPay3'), { ...fresh, paymentStatus: 'paid', paymentMethod: 'PayHere Online' })));
+  await check('paid by cash is rejected', assertFails(set(ref(cust1, 'orders/oPay4'), { ...fresh, paymentStatus: 'paid', paymentMethod: 'Cash', paymentRef: 5 })));
+  await check('unknown payment status is rejected', assertFails(set(ref(cust1, 'orders/oPay5'), { ...fresh, paymentStatus: 'free' })));
+  await check('hotel cannot complete a cancelled order', assertFails(update(ref(owner1, 'orders/oCancelled'), { orderStatus: 'completed', completedAt: 9 })));
+  await check('hotel cannot move a completed order back', assertFails(update(ref(owner1, 'orders/oDone'), { orderStatus: 'preparing' })));
+  await check('customer cannot cancel a completed order', assertFails(update(ref(cust1, 'orders/oDone'), { orderStatus: 'cancelled' })));
+  await check('hotel can still progress an older paid order that has no payment number', assertSucceeds(update(ref(owner1, 'orders/oLegacy'), { orderStatus: 'confirmed', updatedAt: 12 })));
+  await check('an unknown order status is rejected', assertFails(update(ref(owner1, 'orders/oProcessed'), { orderStatus: 'banana' })));
+  await check('hotel moves an order through preparing', assertSucceeds(update(ref(owner1, 'orders/oProcessed'), { orderStatus: 'preparing', updatedAt: 11 })));
+  await check('a hotel still waiting for approval cannot change order status', assertFails(update(ref(env.authenticatedContext('stillPending').database(), 'orders/oQ'), { orderStatus: 'confirmed' })));
 
   console.log('\nReviews');
   await check('customer creates own review', assertSucceeds(set(ref(cust1, 'reviews/r1'), { userId: 'cust1', foodId: 'f1', rating: 4, comment: 'ok' })));
@@ -171,7 +200,10 @@ async function check(name, promise) {
   await check('user cannot read another inbox', assertFails(get(ref(cust2, 'notifications/cust1'))));
   await check('user marks own notification read', assertSucceeds(update(ref(cust1, 'notifications/cust1/n1'), { read: true })));
   await check('user deletes own notification', assertSucceeds(remove(ref(cust1, 'notifications/cust1/n1'))));
-  await check('customer notifies the hotel owner (new notification)', assertSucceeds(set(push(ref(cust1, 'notifications/hotelOwner1')), { title: 'New order', body: 'x', timestamp: 1 })));
+  await check('customer notifies the hotel owner about their own order', assertSucceeds(set(push(ref(cust1, 'notifications/hotelOwner1')), { title: 'New order', body: 'x', timestamp: 1, read: false, orderId: 'oProcessed' })));
+  await check('a notification into another inbox needs an order of the sender', assertFails(set(push(ref(cust1, 'notifications/hotelOwner1')), { title: 'Admin notice', body: 'x', timestamp: 1, read: false })));
+  await check('a notification cannot point at someone else\'s order', assertFails(set(push(ref(cust1, 'notifications/hotelOwner1')), { title: 'x', body: 'x', timestamp: 1, read: false, orderId: 'o2' })));
+  await check('a notification into another inbox must start unread', assertFails(set(push(ref(cust1, 'notifications/hotelOwner1')), { title: 'x', body: 'x', timestamp: 1, read: true, orderId: 'oProcessed' })));
   await check('customer cannot edit an existing notification in another inbox', assertFails(set(ref(cust1, 'notifications/cust2/n9/read'), true)));
   await check('oversized notification body rejected', assertFails(set(push(ref(cust1, 'notifications/hotelOwner1')), { title: 't', body: 'x'.repeat(2000), timestamp: 1 })));
 

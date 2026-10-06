@@ -39,11 +39,18 @@ service firebase.storage {
       allow write: if signedIn() && file.matches(request.auth.uid + '_.*') && isImage() && smallerThanMb(5);
     }
 
-    // Food photos uploaded from the hotel panel. Storage rules cannot tell a hotel from a customer,
-    // so this only checks sign-in, type and size (hotels are separated in the database rules).
+    // Food photos uploaded from the hotel panel go into the uploader's own folder, so nobody can
+    // overwrite or delete another account's photo. Storage rules cannot tell a hotel from a customer,
+    // so this only checks sign-in, folder, type and size (hotels are separated in the database rules).
+    match /food-images/{uid}/{file} {
+      allow read: if signedIn();
+      allow write: if signedIn() && request.auth.uid == uid && isImage() && smallerThanMb(5);
+      allow delete: if signedIn() && request.auth.uid == uid;
+    }
+
+    // Photos uploaded before the per-account folders existed: still readable, no longer writable.
     match /food-images/{file} {
       allow read: if signedIn();
-      allow write: if signedIn() && isImage() && smallerThanMb(5);
     }
 
     // Business licences uploaded during hotel registration: only the uploader and admins can read.

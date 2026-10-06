@@ -55,8 +55,13 @@ The rules assume how the app and web panels use the data **today**. Do these fir
 
 ## Known limitations (be aware, not blockers)
 
-- **Payment is still decided by the app.** A customer can write `paymentStatus: "paid"` on their own
-  order. Fixing this needs a PayHere `notify_url` handled by a Cloud Function; the rules cannot do it.
+- **Payment is still reported by the app.** The rules now refuse `paymentStatus: "paid"` unless the
+  order is a PayHere order that carries a PayHere payment number (`paymentRef`), so it can no longer be
+  typed in on its own, but a determined customer could still invent a number. Real proof needs a PayHere
+  `notify_url` handled by a Cloud Function that checks PayHere's signature; the rules cannot do it.
+- **Orders.** A customer can create an order only in a pending state and cannot set server or hotel
+  fields (`stockAdjusted`, `completedAt` ...); a finished order (completed, delivered, cancelled) can no
+  longer change state; only an approved hotel can move an order along.
 - **Customers can read the whole `hotels` node** (the map needs it), which includes each hotel's phone,
   email and FCM token. Moving private fields to a separate node would fix this.
 - `avgRating` / `reviewCount` on food items are still written by the customer app (validated to a sane

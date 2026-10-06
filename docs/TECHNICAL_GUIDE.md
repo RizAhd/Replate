@@ -160,7 +160,7 @@ from the table.
 Indexes: `orders` on `userId`, `createdAt`, `hotelId`; `foodItems` on `hotelId`, `createdAt`; `hotels` on
 `userId`, `createdAt`; `categories` and `banners` on `order`.
 
-Storage paths: `profileImages/{uid}/`, `profile_photos/` (older fallback), `food-images/`, `licenses/`,
+Storage paths: `profileImages/{uid}/`, `profile_photos/` (older fallback), `food-images/{uid}/` (one folder per uploading account), `licenses/`,
 `banners/` (see `firebase-rules/storage.rules`).
 
 ### 4.2 Security rules

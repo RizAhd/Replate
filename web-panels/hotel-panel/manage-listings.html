@@ -338,7 +338,7 @@
             if (chosen) {
                 const file = await ReplateUI.compressImage(chosen);
                 const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-60);
-                const storageRef = storage.ref('food-images/' + Date.now() + '_' + safeName);
+                const storageRef = storage.ref('food-images/' + auth.currentUser.uid + '/' + Date.now() + '_' + safeName);
                 await storageRef.put(file, { contentType: file.type });
                 updates.imageUrl = await storageRef.getDownloadURL();
             }

@@ -42,6 +42,38 @@ const ORDER_HOTEL = OWNS("data.parent().child('hotelId').val()");
 const PENDING_ORDER =
   "(data.child('orderStatus').val() === 'pending_pickup' || data.child('orderStatus').val() === 'pending_delivery')";
 
+// Orders that can no longer change: nobody (except an admin) may move them to another state
+const FINAL_ORDER_STATUS = "(data.val() === 'completed' || data.val() === 'delivered' || data.val() === 'cancelled')";
+const VALID_ORDER_STATUS =
+  "(newData.val() === 'pending_pickup' || newData.val() === 'pending_delivery' || newData.val() === 'pending'" +
+  " || newData.val() === 'confirmed' || newData.val() === 'accepted' || newData.val() === 'preparing'" +
+  " || newData.val() === 'ready' || newData.val() === 'ready_for_pickup' || newData.val() === 'out_for_delivery'" +
+  " || newData.val() === 'completed' || newData.val() === 'delivered' || newData.val() === 'cancelled'" +
+  " || newData.val() === 'rejected')";
+
+// What a customer may send when creating an order (or re-sending one that is still pending after a
+// flaky connection): their own order, starting in a pending state, and none of the fields that only
+// the server or the hotel set. Without this the customer could write the order as already "completed".
+const NEW_ORDER_FROM_CUSTOMER =
+  "newData.child('userId').val() === auth.uid" +
+  " && (newData.child('orderStatus').val() === 'pending_pickup' || newData.child('orderStatus').val() === 'pending_delivery')" +
+  " && !newData.child('stockAdjusted').exists() && !newData.child('stockRestored').exists()" +
+  " && !newData.child('pickupReminderSent').exists() && !newData.child('completedAt').exists()" +
+  " && !newData.child('dispatchedAt').exists() && !newData.child('cancelledAt').exists()" +
+  " && !newData.child('cancelledBy').exists()";
+
+// "paid" has to come with the PayHere payment number the app got back, so it cannot simply be typed in
+const PAYMENT_FIELDS_OK =
+  "(!newData.child('paymentStatus').exists() || newData.child('paymentStatus').val() === 'pending'" +
+  " || (newData.child('paymentStatus').val() === 'paid' && newData.child('paymentMethod').val() === 'PayHere Online'" +
+  " && newData.child('paymentRef').isNumber() && newData.child('paymentRef').val() > 0))";
+
+// Older orders (before paymentRef existed) keep working: only a change to the payment fields is checked
+const PAYMENT_UNCHANGED =
+  "(data.exists() && data.child('paymentStatus').val() === newData.child('paymentStatus').val()" +
+  " && data.child('paymentMethod').val() === newData.child('paymentMethod').val()" +
+  " && data.child('paymentRef').val() === newData.child('paymentRef').val())";
+
 const rules = {
   rules: {
     // ---------------------------------------------------------------- users
@@ -109,6 +141,10 @@ const rules = {
         '.write': `${ADMIN} || (auth != null && (data.exists() ? data.child('hotelUserId').val() : newData.child('hotelUserId').val()) === auth.uid` +
           ` && (${APPROVED_HOTEL})` +
           ` && (!newData.exists() || newData.child('hotelId').val() === ${MY_HOTEL_KEY} || newData.child('hotelId').val() === auth.uid))`,
+        // Prices and stock must be real numbers inside sensible limits.
+        originalPrice: { '.validate': 'newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000' },
+        discountedPrice: { '.validate': 'newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000' },
+        quantity: { '.validate': 'newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000' },
         // Customers rate food, so they may update the aggregate - but only with sane numbers.
         avgRating: {
           '.write': SIGNED_IN,
@@ -135,11 +171,14 @@ const rules = {
         // A customer creates their own order, and may re-send it while it is still pending (a retry
         // after a flaky connection reuses the same order id). Afterwards only the field-level rules
         // below apply.
-        '.write': `auth != null && (${ADMIN} || ((!data.exists() || (data.child('userId').val() === auth.uid && ${PENDING_ORDER})) && newData.child('userId').val() === auth.uid))`,
-        '.validate': "newData.hasChildren(['userId', 'orderStatus', 'createdAt']) && newData.child('totalAmount').isNumber() && newData.child('totalAmount').val() >= 0",
-        // Customer can only cancel; the hotel moves the order through its other states.
+        // A re-send is only possible before the server has processed the order (stockAdjusted).
+        '.write': `auth != null && (${ADMIN} || (${NEW_ORDER_FROM_CUSTOMER} && (!data.exists() || (data.child('userId').val() === auth.uid && ${PENDING_ORDER} && !data.child('stockAdjusted').exists()))))`,
+        '.validate': `newData.hasChildren(['userId', 'orderStatus', 'createdAt']) && newData.child('totalAmount').isNumber() && newData.child('totalAmount').val() >= 0 && (${PAYMENT_FIELDS_OK} || ${PAYMENT_UNCHANGED})`,
+        // Customer can only cancel; the hotel (once approved) moves the order through its other states.
+        // A finished order (completed, delivered, cancelled) can never be moved again.
         orderStatus: {
-          '.write': `auth != null && ((${ORDER_OWNER} && newData.val() === 'cancelled') || ${ORDER_HOTEL})`,
+          '.write': `auth != null && !${FINAL_ORDER_STATUS} && ((${ORDER_OWNER} && newData.val() === 'cancelled') || (${ORDER_HOTEL} && (${APPROVED_HOTEL})))`,
+          '.validate': VALID_ORDER_STATUS,
         },
         updatedAt: { '.write': `auth != null && (${ORDER_OWNER} || ${ORDER_HOTEL})` },
         cancelledAt: { '.write': `auth != null && ${ORDER_OWNER}` },
@@ -186,7 +225,7 @@ const rules = {
         // ...and any signed-in user may drop a NEW notification into someone else's inbox (a
         // customer notifying the hotel about an order or a review). They cannot edit or delete one.
         $notificationId: {
-          '.write': 'auth != null && !data.exists() && newData.exists()',
+          '.write': `auth != null && !data.exists() && newData.exists() && (auth.uid === $uid || ${ADMIN} || (newData.child('read').val() === false && newData.child('orderId').isString() && root.child('orders').child(newData.child('orderId').val()).child('userId').val() === auth.uid))`,
           '.validate': "newData.hasChildren(['title', 'body', 'timestamp']) && newData.child('title').isString() && newData.child('title').val().length <= 200 && newData.child('body').isString() && newData.child('body').val().length <= 1000",
         },
       },
