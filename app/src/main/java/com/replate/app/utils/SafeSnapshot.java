@@ -17,6 +17,32 @@ public final class SafeSnapshot {
 
     private SafeSnapshot() {}
 
+    /** Text from any scalar (a phone number saved as a number is still read as text); null when empty or not a scalar. */
+    @Nullable
+    public static String string(@Nullable DataSnapshot snapshot) {
+        return stringOf(snapshot == null ? null : snapshot.getValue());
+    }
+
+    @Nullable
+    public static String stringOf(@Nullable Object value) {
+        if (value == null || value instanceof java.util.Map || value instanceof java.util.List) {
+            return null;
+        }
+        String text = String.valueOf(value).trim();
+        return text.isEmpty() ? null : text;
+    }
+
+    /** True/false from a real boolean or the words "true"/"false"; {@code fallback} for anything else. */
+    public static boolean booleanOf(@Nullable Object value, boolean fallback) {
+        if (value instanceof Boolean) return (Boolean) value;
+        if (value instanceof String) {
+            String t = ((String) value).trim();
+            if (t.equalsIgnoreCase("true")) return true;
+            if (t.equalsIgnoreCase("false")) return false;
+        }
+        return fallback;
+    }
+
     @Nullable
     public static <T> T getValue(@Nullable DataSnapshot snapshot, Class<T> type) {
         if (snapshot == null) {

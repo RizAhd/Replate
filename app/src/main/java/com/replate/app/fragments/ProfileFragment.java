@@ -153,7 +153,7 @@ public class ProfileFragment extends Fragment {
                         if (snapshot.exists()) {
                             String name = snapshot.child("name").getValue(String.class);
                             String email = snapshot.child("email").getValue(String.class);
-                            String phone = snapshot.child("phone").getValue(String.class);
+                            String phone = com.replate.app.utils.SafeSnapshot.string(snapshot.child("phone"));
                             String address = snapshot.child("address").getValue(String.class);
                             String profileImage = snapshot.child("profileImage").getValue(String.class);
                             if (profileImage == null || profileImage.trim().isEmpty()) {

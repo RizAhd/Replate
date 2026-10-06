@@ -559,7 +559,7 @@ public class ChatActivity extends AppCompatActivity {
                     .addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            String ph = snapshot.getValue(String.class);
+                            String ph = com.replate.app.utils.SafeSnapshot.string(snapshot);
                             if (ph != null && !ph.isEmpty()) {
                                 initiateCall(ph);
                             } else {

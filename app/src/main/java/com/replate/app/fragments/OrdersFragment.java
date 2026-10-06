@@ -148,6 +148,13 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
         if (mAuth.getCurrentUser() == null) return;
 
         progressBar.setVisibility(View.VISIBLE);
+        // Firebase never answers while offline with nothing cached: stop the spinner and say so
+        progressBar.postDelayed(() -> {
+            if (isAdded() && progressBar.getVisibility() == View.VISIBLE) {
+                progressBar.setVisibility(View.GONE);
+                android.widget.Toast.makeText(requireContext(), R.string.loading_took_too_long, android.widget.Toast.LENGTH_LONG).show();
+            }
+        }, 12_000L);
         String userId = mAuth.getCurrentUser().getUid();
 
         // Remove previous listener if any

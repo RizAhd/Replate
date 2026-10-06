@@ -665,6 +665,15 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
     }
 
     private void setLoadingState(boolean loading) {
+        if (loading && progressBar != null) {
+            // Firebase never answers while offline with nothing cached: stop the spinner and say so
+            progressBar.postDelayed(() -> {
+                if (isAdded() && progressBar != null && progressBar.getVisibility() == View.VISIBLE) {
+                    setLoadingState(false);
+                    android.widget.Toast.makeText(requireContext(), R.string.loading_took_too_long, android.widget.Toast.LENGTH_LONG).show();
+                }
+            }, 12_000L);
+        }
         if (progressBar != null) {
             progressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
         }

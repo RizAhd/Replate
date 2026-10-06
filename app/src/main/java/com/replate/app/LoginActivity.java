@@ -407,9 +407,10 @@ public class LoginActivity extends AppCompatActivity {
 
                 @Override
                 public void onCancelled(@NonNull DatabaseError error) {
+                    // Do not guess the role: a hotel or admin sent to the customer screens would be confusing and wrong
                     showLoading(false);
-                    saveUserSession(user, UserRoleHelper.ROLE_CUSTOMER);
-                    goToHomeByRole(UserRoleHelper.ROLE_CUSTOMER, user.getUid());
+                    mAuth.signOut();
+                    ToastUtils.showCustomToast(LoginActivity.this, R.string.login_role_check_failed);
                 }
             });
     }
@@ -845,9 +846,10 @@ public class LoginActivity extends AppCompatActivity {
                         }
                         @Override
                         public void onCancelled(@NonNull DatabaseError error) {
+                            // Do not guess the role: a hotel or admin sent to the customer screens would be confusing and wrong
                             showLoading(false);
-                            saveUserSession(user, UserRoleHelper.ROLE_CUSTOMER);
-                            goToHomeByRole(UserRoleHelper.ROLE_CUSTOMER, user.getUid());
+                            mAuth.signOut();
+                            ToastUtils.showCustomToast(LoginActivity.this, R.string.login_role_check_failed);
                         }
                     });
             });
@@ -1071,9 +1073,10 @@ public class LoginActivity extends AppCompatActivity {
 
                 @Override
                 public void onCancelled(@NonNull DatabaseError error) {
+                    // Do not guess the role: a hotel or admin sent to the customer screens would be confusing and wrong
                     showLoading(false);
-                    saveUserSession(user, UserRoleHelper.ROLE_CUSTOMER);
-                    goToHomeByRole(UserRoleHelper.ROLE_CUSTOMER, user.getUid());
+                    mAuth.signOut();
+                    ToastUtils.showCustomToast(LoginActivity.this, R.string.login_role_check_failed);
                 }
             });
     }

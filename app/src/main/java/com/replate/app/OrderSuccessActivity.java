@@ -154,15 +154,28 @@ public class OrderSuccessActivity extends AppCompatActivity {
                             order.setOrderId(snapshot.getKey());
                             displayOrder();
                         } else {
-                            ToastUtils.showCustomToast(OrderSuccessActivity.this, R.string.order_success_could_not_load_your_order);
+                            offerRetry();
                         }
                     }
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
                         Log.e(TAG, "Failed to load order", error.toException());
+                        offerRetry();
                     }
                 });
+    }
+
+    /** The order is saved even if it cannot be shown right now; let the customer try again instead of a blank screen. */
+    private void offerRetry() {
+        if (isFinishing() || isDestroyed()) return;
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle(R.string.order_success_could_not_load_your_order)
+                .setMessage(R.string.order_success_load_failed_hint)
+                .setPositiveButton(R.string.checkout_retry, (d, w) -> loadOrder())
+                .setNegativeButton(R.string.checkout_leave, (d, w) -> finish())
+                .setCancelable(false)
+                .show();
     }
 
     private void displayOrder() {
@@ -402,7 +415,9 @@ public class OrderSuccessActivity extends AppCompatActivity {
                     ToastUtils.showCustomToast(this, R.string.order_success_review_submitted);
 
                     // Redirect to orders after short delay
-                    new Handler(Looper.getMainLooper()).postDelayed(this::navigateToOrders, 800);
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        if (!isFinishing() && !isDestroyed()) navigateToOrders();
+                    }, 800);
                 })
                 .addOnFailureListener(e -> {
                     btnSubmitReview.setEnabled(true);

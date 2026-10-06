@@ -806,7 +806,7 @@ public class FoodDetailActivity extends AppCompatActivity {
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        String phone = TelephonyUtils.normalizePhone(snapshot.getValue(String.class), "");
+                        String phone = TelephonyUtils.normalizePhone(com.replate.app.utils.SafeSnapshot.string(snapshot), "");
                         if (!phone.isEmpty()) {
                             callback.onPhone(phone);
                         } else {

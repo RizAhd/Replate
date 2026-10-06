@@ -538,7 +538,7 @@ public class HomeFragment extends Fragment implements
                 if (!isAdded()) return;
                 int unread = 0;
                 for (DataSnapshot child : snapshot.getChildren()) {
-                    Boolean read = child.child("read").getValue(Boolean.class);
+                    Boolean read = com.replate.app.utils.SafeSnapshot.booleanOf(child.child("read").getValue(), false);
                     if (read == null || !read) unread++;
                 }
                 updateNotifBadge(unread);
