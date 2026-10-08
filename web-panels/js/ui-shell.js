@@ -212,6 +212,11 @@ const ReplateUI = (() => {
             }
         } catch (e) {
             console.error('Role check failed', e);
+            if (e && e.code !== 'PERMISSION_DENIED' && e.code !== 'permission-denied') {
+                // Probably a connection problem: do not sign anyone out for that, offer a retry instead
+                toast('Could not check your account. Check your connection and reload the page.', 'danger', 0);
+                return null;
+            }
             reason = 'Could not read your profile (' + (e && (e.code || e.message) || 'unknown error') + '). Check your connection and the database rules.';
         }
         flash(reason + ' You have been signed out.', 'danger');

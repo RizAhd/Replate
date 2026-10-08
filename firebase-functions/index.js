@@ -1286,6 +1286,26 @@ exports.onOrderStatusChangedNotify = functions
     return null;
   });
 
+// A hotel that is no longer approved (revoked or rejected) must not keep selling: its dishes are hidden
+// from the app, and shown again (as they were) when it is approved again.
+async function setHotelDishesHidden(hotelId, hidden) {
+  const updates = {};
+  const foods = await db.ref("foodItems").orderByChild("hotelId").equalTo(hotelId).get();
+  foods.forEach((child) => {
+    const food = child.val() || {};
+    if (hidden && !food.suspendedByAdmin) {
+      updates[`foodItems/${child.key}/statusBeforeSuspension`] = food.status || null;
+      updates[`foodItems/${child.key}/suspendedByAdmin`] = true;
+      updates[`foodItems/${child.key}/status`] = "inactive";
+    } else if (!hidden && food.suspendedByAdmin) {
+      updates[`foodItems/${child.key}/status`] = food.statusBeforeSuspension || "available";
+      updates[`foodItems/${child.key}/statusBeforeSuspension`] = null;
+      updates[`foodItems/${child.key}/suspendedByAdmin`] = null;
+    }
+  });
+  if (Object.keys(updates).length > 0) await db.ref().update(updates);
+}
+
 exports.onHotelStatusChangedNotify = functions
   .region(REGION)
   .database.ref("/hotels/{hotelId}")
@@ -1300,6 +1320,16 @@ exports.onHotelStatusChangedNotify = functions
     if (!afterStatus || beforeStatus === afterStatus) {
       console.log(`[onHotelStatusChangedNotify] No status change, skipping`);
       return null;
+    }
+
+    // Revoking or rejecting hides the dishes; approving brings them back (suspension handles its own)
+    if (beforeStatus !== "suspended" && afterStatus !== "suspended") {
+      try {
+        if (beforeStatus === "approved" && afterStatus !== "approved") await setHotelDishesHidden(hotelId, true);
+        else if (afterStatus === "approved" && beforeStatus !== "approved") await setHotelDishesHidden(hotelId, false);
+      } catch (visibilityErr) {
+        console.error("[onHotelStatusChangedNotify] Could not update dish visibility", visibilityErr);
+      }
     }
 
     // Suspending or re-enabling the owner's account (admin panel > Users) is not a new approval

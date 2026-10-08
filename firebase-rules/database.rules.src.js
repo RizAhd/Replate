@@ -122,6 +122,8 @@ const rules = {
     // Business licences are kept apart from `hotels` because every signed-in user can read that node
     // (the map needs it) and a licence link must not be public. Only the owner and admins read it.
     hotelLicenses: {
+      // Listing every licence (the admin approval page) needs a read rule on the node itself
+      '.read': `auth != null && ${ADMIN}`,
       $hotelId: {
         '.read': `auth != null && (${ADMIN} || data.child('userId').val() === auth.uid)`,
         '.write': `auth != null && (${ADMIN} || (!data.exists() && newData.child('userId').val() === auth.uid))`,

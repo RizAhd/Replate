@@ -802,9 +802,15 @@ public class CheckoutActivity extends AppCompatActivity {
         orderData.put("orderStatus", isDelivery ? "pending_delivery" : "pending_pickup");
         orderData.put("paymentStatus", paymentStatus);
         orderData.put("paymentMethod", paymentMethod);
-        if ("paid".equals(paymentStatus) && pendingPaymentRef > 0) {
-            // PayHere's payment number, so the payment can be looked up in the PayHere dashboard
-            orderData.put("paymentRef", pendingPaymentRef);
+        if ("paid".equals(paymentStatus)) {
+            // PayHere's payment number, so the payment can be looked up in the PayHere dashboard. If the SDK
+            // ever returns none, the time is stored instead (and flagged) so a paid order is never refused.
+            if (pendingPaymentRef > 0) {
+                orderData.put("paymentRef", pendingPaymentRef);
+            } else {
+                orderData.put("paymentRef", System.currentTimeMillis());
+                orderData.put("paymentRefLocal", true);
+            }
         }
         orderData.put("orderType", orderType);
         orderData.put("deliveryAddress", isDelivery ? address : "Pickup at Hotel");
@@ -845,51 +851,10 @@ public class CheckoutActivity extends AppCompatActivity {
         };
         submitTimeoutHandler.postDelayed(submitTimeoutRunnable, SUBMIT_TIMEOUT_MS);
 
+        final boolean deliveryOrder = isDelivery;
         mDatabase.child("orders").child(orderId).setValue(orderData)
-                .addOnSuccessListener(unused -> {
-                    cancelSubmitTimeout();
-                    orderWriteInFlight = false;
-                    if (orderCompleted) {
-                        return; // a late success after a retry already finished the order
-                    }
-                    orderCompleted = true;
-                    pendingPaymentMethod = null;
-                    pendingPaymentStatus = null;
-                    pendingPaymentRef = 0;
-                    PendingPaymentStore.clear(this);
-                    showLoading(false);
-
-                    // Stock is adjusted by the onOrderCreatedNotify Cloud Function (server side, exactly
-                    // once); customers are not allowed to write foodItems quantity.
-                    cartDb.clearCart();
-                    AppAnalytics.purchase(this, orderId, totalAmount, paymentMethod);
-                    saveReceipt(orderId, otpCode, customerName, totalAmount);
-                    playPaymentSound();
-                    createOrderNotifications(orderId, finalHotelId, finalHotelName, customerName, totalAmount);
-
-                    com.replate.app.notifications.InAppNotificationCenter.publish(
-                            new com.replate.app.notifications.InAppNotificationCenter.InAppNotificationMessage(
-                                    "Order placed successfully",
-                                    isDelivery
-                                        ? "Your delivery order has been placed and is being processed."
-                                        : "Your order has been placed and is waiting for pickup.",
-                                    com.replate.app.notifications.NotificationCategories.ORDER_PLACED,
-                                    "order",
-                                    orderId,
-                                    finalHotelId,
-                                    "",
-                                    null
-                            )
-                    );
-
-                    Intent intent = new Intent(this, OrderSuccessActivity.class);
-                    intent.putExtra("orderId", orderId);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    startActivity(intent);
-                    finish();
-
-                    ToastUtils.showCustomToast(this, R.string.checkout_order_placed_successfully);
-                })
+                .addOnSuccessListener(unused -> onOrderSaved(orderId, otpCode, customerName, finalHotelId, finalHotelName,
+                        paymentMethod, deliveryOrder))
                 .addOnFailureListener(e -> {
                     cancelSubmitTimeout();
                     orderWriteInFlight = false;
@@ -897,8 +862,67 @@ public class CheckoutActivity extends AppCompatActivity {
                         return;
                     }
                     Log.w(TAG, "Order write failed", e);
-                    handleSubmitFailure(paymentMethod, paymentStatus, "We couldn't save your order.");
+                    // The first write may have reached the server even though its answer was lost; the retry is then
+                    // refused (the server already processed the order). If the order is there and is ours, we are done.
+                    mDatabase.child("orders").child(orderId).get().addOnCompleteListener(check -> {
+                        FirebaseUser current = mAuth.getCurrentUser();
+                        boolean alreadySaved = check.isSuccessful() && check.getResult() != null && check.getResult().exists()
+                                && current != null
+                                && current.getUid().equals(String.valueOf(check.getResult().child("userId").getValue()));
+                        if (alreadySaved) {
+                            onOrderSaved(orderId, otpCode, customerName, finalHotelId, finalHotelName, paymentMethod, deliveryOrder);
+                        } else {
+                            handleSubmitFailure(paymentMethod, paymentStatus, "We couldn't save your order.");
+                        }
+                    });
                 });
+    }
+
+    /** The order is stored: clear the cart and the unsaved-payment record, then show the QR/OTP screen. */
+    private void onOrderSaved(String orderId, String otpCode, String customerName, String hotelId, String hotelName,
+                              String paymentMethod, boolean isDelivery) {
+        cancelSubmitTimeout();
+        orderWriteInFlight = false;
+        if (orderCompleted) {
+            return; // a late success after a retry already finished the order
+        }
+        orderCompleted = true;
+        pendingPaymentMethod = null;
+        pendingPaymentStatus = null;
+        pendingPaymentRef = 0;
+        PendingPaymentStore.clear(this);
+        showLoading(false);
+
+        // Stock is adjusted by the onOrderCreatedNotify Cloud Function (server side, exactly
+        // once); customers are not allowed to write foodItems quantity.
+        cartDb.clearCart();
+        AppAnalytics.purchase(this, orderId, totalAmount, paymentMethod);
+        saveReceipt(orderId, otpCode, customerName, totalAmount);
+        playPaymentSound();
+        createOrderNotifications(orderId, hotelId, hotelName, customerName, totalAmount);
+
+        com.replate.app.notifications.InAppNotificationCenter.publish(
+                new com.replate.app.notifications.InAppNotificationCenter.InAppNotificationMessage(
+                        "Order placed successfully",
+                        isDelivery
+                                ? "Your delivery order has been placed and is being processed."
+                                : "Your order has been placed and is waiting for pickup.",
+                        com.replate.app.notifications.NotificationCategories.ORDER_PLACED,
+                        "order",
+                        orderId,
+                        hotelId,
+                        "",
+                        null
+                )
+        );
+
+        Intent intent = new Intent(this, OrderSuccessActivity.class);
+        intent.putExtra("orderId", orderId);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
+        finish();
+
+        ToastUtils.showCustomToast(this, R.string.checkout_order_placed_successfully);
     }
 
     private void cancelSubmitTimeout() {

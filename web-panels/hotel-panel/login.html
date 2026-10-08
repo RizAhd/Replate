@@ -134,7 +134,19 @@
         const status = ReplateSchema.normalizeHotelStatus(hotelRecord.value && hotelRecord.value.status);
 
         if (status === 'approved') {
+            // Orders, listings and chat find the hotel through users/{uid}/hotelId; repair it if it is missing
+            try {
+                const linked = (await database.ref('users/' + auth.currentUser.uid + '/hotelId').once('value')).val();
+                if (!linked) await database.ref('users/' + auth.currentUser.uid + '/hotelId').set(hotelRecord.key);
+            } catch (linkErr) {
+                console.warn('Could not link the hotel to the account', linkErr);
+            }
             window.location.href = 'dashboard.html';
+            return;
+        }
+        if (status === 'suspended') {
+            showNotice('rejected', 'Hotel suspended', 'This hotel is suspended. Contact REPLATE support.');
+            await auth.signOut();
             return;
         }
         if (status === 'pending') {

@@ -97,6 +97,8 @@ async function check(name, promise) {
   await check('other signed-in user cannot read a licence', assertFails(get(ref(cust1, 'hotelLicenses/hotelA'))));
   await check('other hotel cannot read a licence', assertFails(get(ref(owner2, 'hotelLicenses/hotelA'))));
   await check('cannot list all licences', assertFails(get(ref(cust1, 'hotelLicenses'))));
+  await check('a hotel owner cannot list all licences', assertFails(get(ref(owner1, 'hotelLicenses'))));
+  await check('admin lists all licences (approval page)', assertSucceeds(get(ref(admin, 'hotelLicenses'))));
   await check('admin reads licences', assertSucceeds(get(ref(admin, 'hotelLicenses/hotelA'))));
   await check('new hotel owner stores their licence', assertSucceeds(set(ref(newUser, 'hotelLicenses/newHotelKey'), { userId: 'newbie', licenseUrl: 'https://x/l.pdf' })));
   await check('cannot store a licence under another user', assertFails(set(ref(newUser, 'hotelLicenses/other2'), { userId: 'cust1', licenseUrl: 'https://x/l.pdf' })));

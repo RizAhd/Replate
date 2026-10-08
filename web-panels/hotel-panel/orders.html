@@ -361,7 +361,9 @@
 
         // A code that belongs to another hotel is refused by the database rules (permission denied).
         // Treat that like "not found here" and carry on to the search below, which reports it.
-        database.ref('orders/' + code).once('value').catch(() => null).then((snapshot) => {
+        // A scanned code with characters that cannot be part of a database path (. # $ [ ] /) is never an order id
+        const lookup = /[.#$\[\]\/]/.test(code) ? Promise.resolve(null) : database.ref('orders/' + code).once('value').catch(() => null);
+        lookup.then((snapshot) => {
             if (snapshot && snapshot.exists()) {
                 const order = snapshot.val() || {};
                 if (orderBelongsToHotel(order)) {
