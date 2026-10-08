@@ -11,10 +11,12 @@ import com.replate.app.OrderDetailActivity;
 import java.util.Locale;
 import java.util.Map;
 
+// Decides which screen a tapped notification should open.
 public final class NotificationRouter {
 
     private NotificationRouter() {}
 
+    // Builds the screen intent from the notification type and route.
     public static Intent buildIntent(Context context,
                                      String category,
                                      String route,
@@ -108,6 +110,7 @@ public final class NotificationRouter {
         }
     }
 
+    // Adds the notification details to the intent.
     private static Intent applyCommonExtras(Intent intent,
                                             String category,
                                             String route,
@@ -125,6 +128,7 @@ public final class NotificationRouter {
         return intent;
     }
 
+    // True for notification types about an order.
     private static boolean isOrderCategory(String category) {
         return NotificationCategories.ORDER_PLACED.equals(category)
                 || NotificationCategories.ORDER_ACCEPTED.equals(category)
@@ -135,6 +139,7 @@ public final class NotificationRouter {
                 || NotificationCategories.HOTEL_NEW_ORDER.equals(category);
     }
 
+    // Opens the hotel orders screen, or Main if it is missing.
     private static Intent tryHotelOrdersIntent(Context context) {
         try {
             Class<?> hotelOrdersClass = Class.forName("com.replate.app.hotel.HotelOrdersActivity");
@@ -146,6 +151,7 @@ public final class NotificationRouter {
         }
     }
 
+    // Opens the hotel dashboard, or Main if it is missing.
     private static Intent tryHotelDashboardIntent(Context context) {
         try {
             Class<?> hotelDashboardClass = Class.forName("com.replate.app.hotel.HotelDashboardActivity");

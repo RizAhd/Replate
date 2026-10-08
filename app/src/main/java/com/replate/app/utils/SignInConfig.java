@@ -5,6 +5,7 @@ public final class SignInConfig {
 
     private SignInConfig() {}
 
+    // True when the value is not a placeholder.
     public static boolean isConfigured(String value) {
         if (value == null) return false;
         String trimmed = value.trim();

@@ -31,6 +31,7 @@ public class FavoriteHotelAdapter extends RecyclerView.Adapter<FavoriteHotelAdap
         this.listener = listener;
     }
 
+    // Replaces the list of saved hotels.
     public void submit(List<FavoriteHotel> newHotels) {
         hotels.clear();
         hotels.addAll(newHotels);
@@ -45,6 +46,7 @@ public class FavoriteHotelAdapter extends RecyclerView.Adapter<FavoriteHotelAdap
         return new Holder(view);
     }
 
+    // Shows one saved hotel and wires its buttons.
     @Override
     public void onBindViewHolder(@NonNull Holder holder, int position) {
         FavoriteHotel hotel = hotels.get(position);

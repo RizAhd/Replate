@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+// Checks the cart line subtotal (price times quantity).
 public class CartItemTest {
 
     private static CartItem item(double price, int quantity) {

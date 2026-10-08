@@ -10,6 +10,7 @@ import org.junit.Test;
 
 import java.util.List;
 
+// Checks route line decoding and the friendly route error messages.
 public class DirectionsApiClientTest {
 
     // Example from Google's encoded polyline algorithm documentation

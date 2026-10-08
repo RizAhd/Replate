@@ -34,6 +34,7 @@ public class AppNotification implements Serializable {
     public String getOrderId() { return orderId; }
     public String getHotelId() { return hotelId; }
 
+    // Reads the time as a number, whatever form it was saved in.
     public long getTimestampValue() {
         if (timestamp == null) return 0L;
         if (timestamp instanceof Number) return ((Number) timestamp).longValue();

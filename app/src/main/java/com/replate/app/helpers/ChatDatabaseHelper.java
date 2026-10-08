@@ -56,6 +56,7 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
 
     private static ChatDatabaseHelper instance;
 
+    // Returns the one shared helper for the whole app.
     public static synchronized ChatDatabaseHelper getInstance(Context context) {
         if (instance == null) {
             instance = new ChatDatabaseHelper(context.getApplicationContext());
@@ -67,6 +68,7 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
+    // Creates the message and chat tables and their indexes.
     @Override
     public void onCreate(SQLiteDatabase db) {
         // Create messages table
@@ -112,6 +114,7 @@ public class ChatDatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("CREATE INDEX IF NOT EXISTS idx_synced ON " + TABLE_MESSAGES + "(" + COL_SYNCED + ")");
     }
 
+    // Adds the columns that older app versions did not have.
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         if (oldVersion < 2) {

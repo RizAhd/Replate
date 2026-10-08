@@ -65,6 +65,7 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
 
     private String currentFilter = "active"; // active, completed, cancelled
 
+    // Builds the Orders screen and loads the orders.
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -85,6 +86,7 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
         return view;
     }
 
+    // Finds the views on the screen.
     private void initViews(View view) {
         tabLayoutOrders = view.findViewById(R.id.tabLayoutOrders);
         rvOrders = view.findViewById(R.id.rvOrders);
@@ -105,8 +107,10 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
         });
     }
 
+    // Sets up the Active, Completed and Cancelled tabs.
     private void setupTabs() {
         tabLayoutOrders.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            // Changes the filter to the chosen tab.
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 switch (tab.getPosition()) {
@@ -134,6 +138,7 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
         });
     }
 
+    // Shows the orders saved on the phone.
     private void loadCachedOrders() {
         if (localDb == null) return;
         List<Order> cached = localDb.getCachedOrders();
@@ -144,6 +149,7 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
         }
     }
 
+    // Listens to Firebase for the user's orders.
     private void loadOrders() {
         if (mAuth.getCurrentUser() == null) return;
 
@@ -167,6 +173,7 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
                 .equalTo(userId);
 
         ordersListener = new ValueEventListener() {
+            // Reads the orders, sorts them and saves a copy.
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 allOrders.clear();
@@ -192,6 +199,7 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
                 filterOrders();
             }
 
+            // Falls back to the saved orders.
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 progressBar.setVisibility(View.GONE);
@@ -215,6 +223,7 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
         ordersQuery.addValueEventListener(ordersListener);
     }
 
+    // Keeps the orders that fit the selected tab.
     private void filterOrders() {
         filteredOrders.clear();
 
@@ -242,6 +251,7 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
         updateUI();
     }
 
+    // Shows the list, or the empty message.
     private void updateUI() {
         if (filteredOrders.isEmpty()) {
             emptyState.setVisibility(View.VISIBLE);
@@ -252,6 +262,7 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
         }
     }
 
+    // Opens the order details.
     @Override
     public void onOrderClick(Order order) {
         Intent intent = new Intent(getContext(), OrderDetailActivity.class);
@@ -259,6 +270,7 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
         startActivity(intent);
     }
 
+    // Opens the order details with the pickup QR code.
     @Override
     public void onViewQRClick(Order order) {
         Intent intent = new Intent(getContext(), OrderDetailActivity.class);
@@ -267,6 +279,7 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
         startActivity(intent);
     }
 
+    // Asks the user to confirm the cancellation.
     @Override
     public void onCancelOrderClick(Order order) {
         if (order == null || order.getOrderId() == null || !order.isActive()) {
@@ -288,6 +301,7 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
                 .show();
     }
 
+    // Marks the order as cancelled in Firebase.
     private void cancelOrder(@NonNull Order order) {
         progressBar.setVisibility(View.VISIBLE);
 
@@ -316,6 +330,7 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
                 });
     }
 
+    // Reloads the orders when the screen comes back.
     @Override
     public void onResume() {
         super.onResume();
@@ -326,6 +341,7 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
         }
     }
 
+    // Removes the orders listener.
     @Override
     public void onDestroyView() {
         super.onDestroyView();

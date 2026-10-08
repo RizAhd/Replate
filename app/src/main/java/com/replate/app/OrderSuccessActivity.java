@@ -78,6 +78,7 @@ public class OrderSuccessActivity extends AppCompatActivity {
     private ValueEventListener statusListener;
     private boolean completionShown = false;
 
+    // Needs an order id; sets up views, loads the order, starts listening.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -105,6 +106,7 @@ public class OrderSuccessActivity extends AppCompatActivity {
         });
     }
 
+    // Finds the views and sets up the buttons.
     private void initViews() {
         ivQRCode = findViewById(R.id.ivQRCode);
         tvOTP = findViewById(R.id.tvOTP);
@@ -143,9 +145,11 @@ public class OrderSuccessActivity extends AppCompatActivity {
         btnSubmitReview.setOnClickListener(v -> submitReview());
     }
 
+    // Reads the order once from Firebase.
     private void loadOrder() {
         mDatabase.child("orders").child(orderId)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
+                    // Shows the loaded order, or offers a retry.
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         Order loaded = SafeSnapshot.getValue(snapshot, Order.class);
@@ -158,6 +162,7 @@ public class OrderSuccessActivity extends AppCompatActivity {
                         }
                     }
 
+                    // Loading failed: offer a retry.
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
                         Log.e(TAG, "Failed to load order", error.toException());
@@ -178,6 +183,7 @@ public class OrderSuccessActivity extends AppCompatActivity {
                 .show();
     }
 
+    // Fills the screen with the order details and QR code.
     private void displayOrder() {
         // QR Code
         String qrData = order.getQrCode() != null ? order.getQrCode() : orderId;
@@ -232,6 +238,7 @@ public class OrderSuccessActivity extends AppCompatActivity {
      */
     private void attachStatusListener() {
         statusListener = new ValueEventListener() {
+            // When the status becomes completed, show the done screen.
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 String status = snapshot.getValue(String.class);
@@ -240,6 +247,7 @@ public class OrderSuccessActivity extends AppCompatActivity {
                     // Reload full order to get latest data
                     mDatabase.child("orders").child(orderId)
                             .addListenerForSingleValueEvent(new ValueEventListener() {
+                                // Take the latest order data, then show the done state.
                                 @Override
                                 public void onDataChange(@NonNull DataSnapshot snap) {
                                     Order reloaded = SafeSnapshot.getValue(snap, Order.class);
@@ -302,6 +310,7 @@ public class OrderSuccessActivity extends AppCompatActivity {
         }
     }
 
+    // Switches the header and QR to the review form.
     private void transitionToReviewState() {
         // Update header based on order type
         boolean isDelivery = order != null && order.isDelivery();
@@ -330,6 +339,7 @@ public class OrderSuccessActivity extends AppCompatActivity {
         btnViewDetails.setText(R.string.order_success_view_order_details_2);
     }
 
+    // Draws the QR code image for the order.
     private void generateQRCode(String data) {
         try {
             int size = 512;
@@ -351,6 +361,7 @@ public class OrderSuccessActivity extends AppCompatActivity {
         }
     }
 
+    // Animates the success circle and checkmark.
     private void playEntranceAnimation() {
         View circle = findViewById(R.id.successCircle);
         View check = findViewById(R.id.ivCheckmark);
@@ -381,6 +392,7 @@ public class OrderSuccessActivity extends AppCompatActivity {
         }
     }
 
+    // Checks the rating, then saves the review.
     private void submitReview() {
         if (order == null || orderId == null) return;
 
@@ -425,6 +437,7 @@ public class OrderSuccessActivity extends AppCompatActivity {
                 });
     }
 
+    // Tells the hotel owner about the new review.
     private void pushReviewNotificationToHotel(float rating, String comment) {
         if (order == null || order.getHotelId() == null || order.getHotelId().trim().isEmpty()) return;
 
@@ -492,6 +505,7 @@ public class OrderSuccessActivity extends AppCompatActivity {
         }
     }
 
+    // Opens the Orders tab on the home screen.
     private void navigateToOrders() {
         Intent intent = new Intent(this, MainActivity.class);
         intent.putExtra("open_tab", "orders");
@@ -501,6 +515,7 @@ public class OrderSuccessActivity extends AppCompatActivity {
     }
 
 
+    // Stops listening for status changes.
     @Override
     protected void onDestroy() {
         super.onDestroy();

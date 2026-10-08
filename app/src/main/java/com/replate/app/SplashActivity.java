@@ -28,6 +28,7 @@ public class SplashActivity extends AppCompatActivity {
 
     private final Handler handler = new Handler(Looper.getMainLooper());
 
+    // Returning users skip ahead; first-time users see the intro.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // Must run before super.onCreate: swaps the system splash theme for Theme.REPLATE.PostSplash
@@ -55,6 +56,7 @@ public class SplashActivity extends AppCompatActivity {
         }, animate ? FIRST_RUN_HOLD_MS : FIRST_RUN_HOLD_REDUCED_MS);
     }
 
+    // Checks that the phone allows animations.
     private boolean animationsEnabled() {
         return Build.VERSION.SDK_INT < Build.VERSION_CODES.O || ValueAnimator.areAnimatorsEnabled();
     }
@@ -88,12 +90,14 @@ public class SplashActivity extends AppCompatActivity {
         progress.animate().alpha(1f).setStartDelay(600).setDuration(400).start();
     }
 
+    // Cancels the pending jump to the next screen.
     @Override
     protected void onDestroy() {
         handler.removeCallbacksAndMessages(null);
         super.onDestroy();
     }
 
+    // Picks the next screen from the saved login and role.
     private void proceedToNextScreen(Intent launchIntent) {
         SharedPreferences prefs = getSharedPreferences("REPLATE_PREFS", MODE_PRIVATE);
         String savedUserId = prefs.getString("userId", null);
@@ -107,6 +111,7 @@ public class SplashActivity extends AppCompatActivity {
             savedUserId = null;
         }
 
+        // Choose the screen: role home if logged in, else onboarding or login.
         Intent nextIntent;
         if (savedUserId != null) {
             // Auto-login based on role
@@ -146,6 +151,7 @@ public class SplashActivity extends AppCompatActivity {
         finish();
     }
 
+    // Passes notification details on to the next screen.
     private void copyNotificationExtras(Intent source, Intent target) {
         if (source == null || target == null) return;
         if (source.getExtras() == null) return;

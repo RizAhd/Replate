@@ -52,6 +52,7 @@ public final class FcmTokenManager {
         }
     }
 
+    // Saves the push token to the signed-in user's account and topics.
     public static void syncTokenForCurrentUser(@NonNull Context context, @Nullable String role) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {
@@ -75,11 +76,13 @@ public final class FcmTokenManager {
                 .addOnFailureListener(e -> Log.w(TAG, "Unable to fetch FCM token", e));
     }
 
+    // Remembers the latest push token on the phone.
     public static void persistLatestToken(@NonNull Context context, @NonNull String token) {
         if (token.trim().isEmpty()) return;
         saveTokenInPrefs(context.getApplicationContext(), token.trim());
     }
 
+    // Removes the push token from the account on logout.
     public static void clearTokenForCurrentUser() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) return;
@@ -108,6 +111,7 @@ public final class FcmTokenManager {
                 .addOnFailureListener(e -> Log.w(TAG, "Failed deleting FCM token", e));
     }
 
+    // Looks up the push token of the person to notify.
     public static void fetchReceiverToken(@NonNull String uid, @NonNull TokenLookupCallback callback) {
         DatabaseReference root = FirebaseDatabase.getInstance().getReference();
         root.child("users").child(uid).get()
@@ -138,6 +142,7 @@ public final class FcmTokenManager {
                 });
     }
 
+    // Deletes the tokens that no longer work.
     public static void clearStaleToken(@NonNull TokenLookupResult result) {
         DatabaseReference root = FirebaseDatabase.getInstance().getReference();
         for (String path : result.cleanupPaths) {
@@ -145,6 +150,7 @@ public final class FcmTokenManager {
         }
     }
 
+    // Joins the push topics that match the user's role.
     public static void subscribeTopics(@Nullable String role) {
         FirebaseMessaging.getInstance().subscribeToTopic(TOPIC_ALL_USERS);
 
@@ -162,6 +168,7 @@ public final class FcmTokenManager {
         }
     }
 
+    // Leaves every push topic.
     private static void unsubscribeAllTopics() {
         FirebaseMessaging.getInstance().unsubscribeFromTopic(TOPIC_ALL_USERS);
         FirebaseMessaging.getInstance().unsubscribeFromTopic(TOPIC_CUSTOMERS);
@@ -170,6 +177,7 @@ public final class FcmTokenManager {
         FirebaseMessaging.getInstance().unsubscribeFromTopic(TOPIC_DEALS_CUSTOMERS);
     }
 
+    // Saves the token and role under the user in Firebase.
     private static void writeTokenToDatabase(@NonNull String uid, @NonNull String token, @Nullable String role) {
         DatabaseReference root = FirebaseDatabase.getInstance().getReference();
         long now = System.currentTimeMillis();
@@ -189,6 +197,7 @@ public final class FcmTokenManager {
         }
     }
 
+    // Finds the hotel record for this user and reads its token.
     private static void fetchHotelToken(DatabaseReference root,
                                         String uid,
                                         String role,
@@ -225,6 +234,7 @@ public final class FcmTokenManager {
                 });
     }
 
+    // Writes the new token into the matching hotel records.
     private static void updateHotelTokens(DatabaseReference root, DataSnapshot snapshot, String token, long updatedAt) {
         if (snapshot == null || !snapshot.exists()) return;
         for (DataSnapshot child : snapshot.getChildren()) {
@@ -236,12 +246,14 @@ public final class FcmTokenManager {
         }
     }
 
+    // Deletes a token saved at the given path.
     private static void clearTokenAtPath(DatabaseReference root, String path) {
         if (path == null || path.trim().isEmpty()) return;
         root.child(path).removeValue()
                 .addOnFailureListener(e -> Log.w(TAG, "Failed clearing stale token path: " + path, e));
     }
 
+    // Keeps the token and time on the phone.
     private static void saveTokenInPrefs(Context context, String token) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         prefs.edit()
@@ -250,11 +262,13 @@ public final class FcmTokenManager {
                 .apply();
     }
 
+    // Returns the last saved token, or empty text.
     public static String getLastToken(Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         return prefs.getString(KEY_LAST_FCM_TOKEN, "");
     }
 
+    // Trims the text, or gives empty text for null.
     private static String safeString(@Nullable String value) {
         return value == null ? "" : value.trim();
     }

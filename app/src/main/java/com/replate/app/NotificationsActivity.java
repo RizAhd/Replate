@@ -67,6 +67,7 @@ public class NotificationsActivity extends AppCompatActivity
     private DatabaseReference notificationsRef;
     private String activeFilter = "all";
 
+    // Sets up the screen and loads the notifications.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,6 +82,7 @@ public class NotificationsActivity extends AppCompatActivity
         loadNotifications();
     }
 
+    // Finds the views, list, swipe-to-delete and buttons.
     private void initViews() {
         ImageView ivBack = findViewById(R.id.ivBack);
         rvNotifications = findViewById(R.id.rvNotifications);
@@ -137,6 +139,7 @@ public class NotificationsActivity extends AppCompatActivity
                 return false;
             }
 
+            // Section headers cannot be swiped away.
             @Override
             public int getSwipeDirs(@NonNull RecyclerView recyclerView,
                                     @NonNull RecyclerView.ViewHolder viewHolder) {
@@ -146,6 +149,7 @@ public class NotificationsActivity extends AppCompatActivity
                 return super.getSwipeDirs(recyclerView, viewHolder);
             }
 
+            // Swiped item is deleted, with an Undo option.
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
                 int position = viewHolder.getAdapterPosition();
@@ -210,6 +214,7 @@ public class NotificationsActivity extends AppCompatActivity
         }
     }
 
+    // Chips filter the list by type.
     private void setupFilterChips() {
         if (chipGroupFilter == null) return;
 
@@ -236,6 +241,7 @@ public class NotificationsActivity extends AppCompatActivity
         });
     }
 
+    // Shows only the notifications matching the chosen chip.
     private void applyFilter() {
         notifications.clear();
         if ("all".equals(activeFilter)) {
@@ -272,6 +278,7 @@ public class NotificationsActivity extends AppCompatActivity
         }
     }
 
+    // Hides a notification and deletes it unless Undo is tapped.
     private void deleteNotificationWithUndo(AppNotification notification) {
         String userId = FirebaseAuth.getInstance().getUid();
         if (userId == null || notification.getNotificationId() == null) return;
@@ -290,6 +297,7 @@ public class NotificationsActivity extends AppCompatActivity
             applyFilter();
         });
         snackbar.addCallback(new Snackbar.Callback() {
+            // If Undo was not tapped, delete it for good.
             @Override
             public void onDismissed(Snackbar snackbar, int event) {
                 if (event != DISMISS_EVENT_ACTION) {
@@ -303,6 +311,7 @@ public class NotificationsActivity extends AppCompatActivity
         snackbar.show();
     }
 
+    // Loads the user's notifications from Firebase.
     private void loadNotifications() {
         String userId = FirebaseAuth.getInstance().getUid();
         if (userId == null) {
@@ -334,6 +343,7 @@ public class NotificationsActivity extends AppCompatActivity
 
         notificationsRef
                 .addValueEventListener(notificationsListener = new ValueEventListener() {
+                    // Reads all notifications, newest first, and saves a copy.
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         allNotifications.clear();
@@ -370,6 +380,7 @@ public class NotificationsActivity extends AppCompatActivity
                         }
                     }
 
+                    // Loading failed; show the saved copy instead.
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
                         progressBar.setVisibility(View.GONE);
@@ -387,6 +398,7 @@ public class NotificationsActivity extends AppCompatActivity
                 });
     }
 
+    // Shows the list or the empty state, and the buttons.
     private void updateUI() {
         // Hide the whole pull-to-refresh container, not just the list: it has layout_weight 1 like the
         // empty state, so hiding only the list left the empty message with half the screen.
@@ -421,6 +433,7 @@ public class NotificationsActivity extends AppCompatActivity
         }
     }
 
+    // Marks it read, then opens what it is about.
     @Override
     public void onNotificationClick(AppNotification notification) {
         String userId = FirebaseAuth.getInstance().getUid();
@@ -432,6 +445,7 @@ public class NotificationsActivity extends AppCompatActivity
         navigateFromNotification(notification);
     }
 
+    // Opens the right screen for this notification.
     private void navigateFromNotification(AppNotification notification) {
         if (notification == null) return;
 
@@ -455,10 +469,12 @@ public class NotificationsActivity extends AppCompatActivity
         }
     }
 
+    // Returns trimmed text, or empty text if null.
     private String value(String input) {
         return input == null ? "" : input.trim();
     }
 
+    // Opens the order, or the Orders tab if no id.
     private void openOrderFromPayload(String orderId) {
         if (orderId == null || orderId.trim().isEmpty()) {
             Intent fallback = new Intent(this, MainActivity.class);
@@ -472,6 +488,7 @@ public class NotificationsActivity extends AppCompatActivity
         startActivity(intent);
     }
 
+    // Marks every notification as read.
     private void markAllAsRead() {
         String userId = FirebaseAuth.getInstance().getUid();
         if (userId == null) return;
@@ -489,6 +506,7 @@ public class NotificationsActivity extends AppCompatActivity
         ToastUtils.showCustomToast(this, R.string.notifications_all_notifications_marked_as_read);
     }
 
+    // Delete button on an item uses the same Undo flow.
     @Override
     public void onNotificationDelete(AppNotification notification) {
         if (notification == null || notification.getNotificationId() == null) return;
@@ -497,6 +515,7 @@ public class NotificationsActivity extends AppCompatActivity
         deleteNotificationWithUndo(notification);
     }
 
+    // Deletes one notification from Firebase.
     private void deleteSingleNotification(AppNotification notification) {
         String userId = FirebaseAuth.getInstance().getUid();
         if (userId == null || notification.getNotificationId() == null) return;
@@ -512,6 +531,7 @@ public class NotificationsActivity extends AppCompatActivity
                 });
     }
 
+    // Asks before deleting every notification.
     private void confirmDeleteAll() {
         if (allNotifications.isEmpty()) {
             ToastUtils.showCustomToast(this, R.string.notifications_no_notifications_to_delete);
@@ -526,6 +546,7 @@ public class NotificationsActivity extends AppCompatActivity
                 .show();
     }
 
+    // Deletes all of the user's notifications.
     private void deleteAllNotifications() {
         String userId = FirebaseAuth.getInstance().getUid();
         if (userId == null) return;
@@ -543,6 +564,7 @@ public class NotificationsActivity extends AppCompatActivity
                 });
     }
 
+    // Stops listening for changes.
     @Override
     protected void onDestroy() {
         super.onDestroy();

@@ -8,14 +8,17 @@ public final class PayHereConfig {
 
     private PayHereConfig() {}
 
+    // True when a merchant id has been set.
     public static boolean isConfigured(String merchantId) {
         return merchantId != null && !merchantId.trim().isEmpty();
     }
 
+    // True for the test (sandbox) merchant id.
     public static boolean isSandbox(String merchantId) {
         return isConfigured(merchantId) && merchantId.trim().charAt(0) == '1';
     }
 
+    // True for the live merchant id.
     public static boolean isLive(String merchantId) {
         return isConfigured(merchantId) && merchantId.trim().charAt(0) == '2';
     }

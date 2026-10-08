@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+// Asks Google Directions for a driving route.
 public class DirectionsApiClient {
 
     public interface Callback {
@@ -64,6 +65,7 @@ public class DirectionsApiClient {
         this.appContext = context != null ? context.getApplicationContext() : null;
     }
 
+    // Gets a route from the cache or from Google, then reports back on the main thread.
     public void fetchRoute(@NonNull LatLng origin,
                            @NonNull LatLng destination,
                            @NonNull Callback callback) {
@@ -172,6 +174,7 @@ public class DirectionsApiClient {
         }
     }
 
+    // Returns the app signing fingerprint, or null if unavailable.
     @Nullable
     private String signingCertSha1() {
         if (!certLoaded) {
@@ -181,6 +184,7 @@ public class DirectionsApiClient {
         return certSha1;
     }
 
+    // Reads the app signing fingerprint from the system.
     @SuppressWarnings("deprecation")
     @Nullable
     private String readSigningCertSha1() {
@@ -213,6 +217,7 @@ public class DirectionsApiClient {
         return hex.toString();
     }
 
+    // Sends an error message to the caller on the main thread.
     private void postError(@NonNull Callback callback, @NonNull String message) {
         mainHandler.post(() -> callback.onError(message));
     }
@@ -239,6 +244,7 @@ public class DirectionsApiClient {
         }
     }
 
+    // Reads the whole response text.
     private String readStream(InputStream inputStream) throws Exception {
         if (inputStream == null) {
             return "";

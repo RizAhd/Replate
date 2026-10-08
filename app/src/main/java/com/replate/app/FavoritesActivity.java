@@ -56,6 +56,7 @@ public class FavoritesActivity extends AppCompatActivity implements FoodItemAdap
     private FoodItemAdapter adapter;
     private ReplateDatabaseHelper localDb;
 
+    // Sets up the screen and loads the saved favourites.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,12 +70,14 @@ public class FavoritesActivity extends AppCompatActivity implements FoodItemAdap
         loadFavorites();
     }
 
+    // Reload favourites each time the screen comes back.
     @Override
     protected void onResume() {
         super.onResume();
         loadFavorites();
     }
 
+    // Finds the views and sets up the dishes / hotels tabs.
     private void initViews() {
         ivBack = findViewById(R.id.ivBack);
         tvFavoritesCount = findViewById(R.id.tvFavoritesCount);
@@ -111,6 +114,7 @@ public class FavoritesActivity extends AppCompatActivity implements FoodItemAdap
         });
     }
 
+    // Sets up the dish list and the hotel list.
     private void setupRecyclerView() {
         rvFavorites.setLayoutManager(new LinearLayoutManager(this));
         rvFavorites.setHasFixedSize(true);
@@ -120,6 +124,7 @@ public class FavoritesActivity extends AppCompatActivity implements FoodItemAdap
 
         rvFavoriteHotels.setLayoutManager(new LinearLayoutManager(this));
         hotelAdapter = new FavoriteHotelAdapter(new FavoriteHotelAdapter.Listener() {
+            // Opens a search showing only that hotel's dishes.
             @Override
             public void onViewDeals(FavoriteHotel hotel) {
                 // Search matches hotel names, so this lists just that hotel's dishes
@@ -136,10 +141,12 @@ public class FavoritesActivity extends AppCompatActivity implements FoodItemAdap
         rvFavoriteHotels.setAdapter(hotelAdapter);
     }
 
+    // Back button closes the screen.
     private void setupClickListeners() {
         ivBack.setOnClickListener(v -> finish());
     }
 
+    // Swiping a dish left or right removes it.
     private void setupSwipeToRemove() {
         ItemTouchHelper.SimpleCallback swipeCallback = new ItemTouchHelper.SimpleCallback(0,
                 ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
@@ -160,6 +167,7 @@ public class FavoritesActivity extends AppCompatActivity implements FoodItemAdap
         new ItemTouchHelper(swipeCallback).attachToRecyclerView(rvFavorites);
     }
 
+    // Reads saved dishes and hotels, then refreshes the screen.
     private void loadFavorites() {
         if (progressBar != null) {
             progressBar.setVisibility(View.VISIBLE);
@@ -222,6 +230,7 @@ public class FavoritesActivity extends AppCompatActivity implements FoodItemAdap
         }
     }
 
+    // Finds a dish's place in the list, or -1.
     private int indexOfFavorite(String foodId) {
         for (int i = 0; i < favoriteItems.size(); i++) {
             if (foodId.equals(favoriteItems.get(i).getFoodId())) return i;
@@ -229,6 +238,7 @@ public class FavoritesActivity extends AppCompatActivity implements FoodItemAdap
         return -1;
     }
 
+    // Shows the count, the right list, or the empty message.
     private void updateUi() {
         int count = showingHotels ? favoriteHotels.size() : favoriteItems.size();
         if (tvFavoritesCount != null) {
@@ -250,6 +260,7 @@ public class FavoritesActivity extends AppCompatActivity implements FoodItemAdap
         btnEmptyAction.setText(showingHotels ? R.string.favorites_hotels_empty_cta : R.string.favorites_empty_cta);
     }
 
+    // Removes a hotel, with an Undo option.
     private void removeFavoriteHotel(FavoriteHotel hotel) {
         int position = favoriteHotels.indexOf(hotel);
         if (position < 0) return;
@@ -273,6 +284,7 @@ public class FavoritesActivity extends AppCompatActivity implements FoodItemAdap
                 .show();
     }
 
+    // Removes a dish, with an Undo option.
     private void removeFavoriteAt(int position) {
         if (position < 0 || position >= favoriteItems.size()) {
             adapter.updateData(new ArrayList<>(favoriteItems));
@@ -307,6 +319,7 @@ public class FavoritesActivity extends AppCompatActivity implements FoodItemAdap
                 .show();
     }
 
+    // Opens the dish detail screen.
     @Override
     public void onFoodItemClick(FoodItem foodItem) {
         Intent intent = new Intent(this, FoodDetailActivity.class);
@@ -314,6 +327,7 @@ public class FavoritesActivity extends AppCompatActivity implements FoodItemAdap
         startActivity(intent);
     }
 
+    // Adds one portion to the cart if it is in stock.
     @Override
     public void onAddToCartClick(FoodItem foodItem) {
         if (foodItem == null) {

@@ -83,6 +83,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
     private Sensor lightSensor;
     private float originalBrightness = -1;
 
+    // Reads the order, sets up the screen and the light sensor.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -116,6 +117,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         }
     }
 
+    // Finds the views and wires the buttons.
     private void initViews() {
         ImageView ivBack = findViewById(R.id.ivBack);
         tvOrderStatus = findViewById(R.id.tvOrderStatus);
@@ -170,6 +172,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
 
         mDatabase.child("hotels").child(order.getHotelId())
                 .addListenerForSingleValueEvent(new ValueEventListener() {
+                    // Starts navigation if the hotel's position is known.
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         double lat = readCoordinate(snapshot, "latitude", "lat", "hotelLatitude");
@@ -181,6 +184,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
                         }
                     }
 
+                    // Position not found; open the route another way.
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
                         openPickupRoute();
@@ -188,6 +192,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
                 });
     }
 
+    // Opens Google Maps directions to the hotel.
     private void launchMapsNavigation(double lat, double lng) {
         Intent googleMaps = new Intent(Intent.ACTION_VIEW, Uri.parse(HotelNavigation.navigationUri(lat, lng)));
         googleMaps.setPackage("com.google.android.apps.maps");
@@ -207,6 +212,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         }
     }
 
+    // Reads a coordinate from the first key that has one.
     private static double readCoordinate(DataSnapshot hotel, String... keys) {
         for (String key : keys) {
             Object raw = hotel.child(key).getValue();
@@ -227,6 +233,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         return 0;
     }
 
+    // Opens a route to the hotel's pickup address.
     private void openPickupRoute() {
         if (order == null || order.getHotelId() == null || order.getHotelId().trim().isEmpty()) {
             ToastUtils.showCustomToast(this, R.string.order_detail_hotel_route_not_available);
@@ -239,6 +246,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         startActivity(intent);
     }
 
+    // Loads the order and keeps it up to date live.
     private void loadOrderFromFirebase(String orderId) {
         currentOrderId = orderId;
 
@@ -248,6 +256,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         }
 
         orderListener = new ValueEventListener() {
+            // Shows the latest order data.
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 Order loaded = SafeSnapshot.getValue(snapshot, Order.class);
@@ -260,6 +269,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
                 }
             }
 
+            // Tells the user the order did not load.
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 ToastUtils.showCustomToast(OrderDetailActivity.this, R.string.order_detail_failed_to_load_order);
@@ -269,6 +279,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         mDatabase.child("orders").child(orderId).addValueEventListener(orderListener);
     }
 
+    // Fills in the status, hotel, total, QR code and OTP.
     private void displayOrderDetails() {
         String id = order.getOrderId();
         tvOrderId.setText("Order #" + (id != null ? id.substring(Math.max(0, id.length() - 8)) : "N/A"));
@@ -461,6 +472,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         }
     }
 
+    // Lists the dishes with their prices.
     private void showOrderItems() {
         View card = findViewById(R.id.cardOrderItems);
         LinearLayout list = findViewById(R.id.layoutOrderItems);
@@ -506,6 +518,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         card.setVisibility(View.VISIBLE);
     }
 
+    // Adds one label and value row to the list.
     private void addOrderLine(LinearLayout list, String label, String value, boolean emphasised, int color) {
         View row = getLayoutInflater().inflate(R.layout.item_order_line, list, false);
         TextView tvLabel = row.findViewById(R.id.tvLineLabel);
@@ -522,6 +535,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         list.addView(row);
     }
 
+    // Turns a stored value into a number, or 0.
     private static double numberOf(Object value) {
         if (value instanceof Number) return ((Number) value).doubleValue();
         try {
@@ -531,6 +545,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         }
     }
 
+    // Shows the review form only for finished orders.
     private void updateReviewSection() {
         if (reviewSection == null || order == null) return;
 
@@ -614,6 +629,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         });
     }
 
+    // Opens a text message to the hotel.
     private void smsHotel() {
         resolveHotelPhone(phone -> {
             String message = "Hi " + (order != null && order.getHotelName() != null ? order.getHotelName() : "Hotel")
@@ -628,6 +644,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         });
     }
 
+    // Finds the hotel's real phone number.
     private void resolveHotelPhone(PhoneCallback callback) {
         // Never fall back to a made-up number: the customer would end up calling a stranger.
         PhoneCallback onlyRealNumber = phone -> {
@@ -645,6 +662,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
 
         mDatabase.child("hotels").child(order.getHotelId()).child("phone")
                 .addListenerForSingleValueEvent(new ValueEventListener() {
+                    // Reads the hotel phone number.
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         String raw = null;
@@ -656,6 +674,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
                         onlyRealNumber.onPhone(TelephonyUtils.normalizePhone(raw, ""));
                     }
 
+                    // No number found.
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
                         onlyRealNumber.onPhone("");
@@ -690,6 +709,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {}
 
+    // Start reading the light sensor.
     @Override
     protected void onResume() {
         super.onResume();
@@ -698,6 +718,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         }
     }
 
+    // Stop the light sensor and reset the brightness.
     @Override
     protected void onPause() {
         super.onPause();
@@ -708,6 +729,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         getWindow().setAttributes(params);
     }
 
+    // Checks the rating, then saves the review.
     private void submitReview() {
         if (order == null || order.getOrderId() == null) return;
         if (!order.isCompleted()) {
@@ -762,6 +784,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         if (order.getHotelAddress() != null && !order.getHotelAddress().trim().isEmpty()) return;
         mDatabase.child("hotels").child(order.getHotelId()).child("address")
                 .addListenerForSingleValueEvent(new ValueEventListener() {
+                    // Shows the hotel address when it is found.
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         String address = com.replate.app.utils.SafeSnapshot.string(snapshot);
@@ -770,6 +793,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
                         }
                     }
 
+                    // Keep the placeholder address text.
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
                         // The placeholder text stays
@@ -777,11 +801,13 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
                 });
     }
 
+    // Tells the hotel owner about the new review.
     private void pushReviewNotificationToHotel(float rating, String comment) {
         if (order == null || order.getHotelId() == null || order.getHotelId().trim().isEmpty()) return;
 
         mDatabase.child("hotels").child(order.getHotelId()).child("userId")
                 .addListenerForSingleValueEvent(new ValueEventListener() {
+                    // Sends the notification to the hotel owner.
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         String hotelUserId = snapshot.getValue(String.class);
@@ -800,12 +826,14 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
                         mDatabase.child("notifications").child(hotelUserId).push().setValue(notif);
                     }
 
+                    // Notification could not be sent; ignore.
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
                     }
                 });
     }
 
+    // Stops listening to the order.
     @Override
     protected void onDestroy() {
         super.onDestroy();

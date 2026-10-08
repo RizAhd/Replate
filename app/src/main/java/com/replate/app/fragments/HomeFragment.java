@@ -154,6 +154,7 @@ public class HomeFragment extends Fragment implements
     private final Handler uiHandler = new Handler(Looper.getMainLooper());
 
     private final Runnable bannerAutoScrollRunnable = new Runnable() {
+        // Moves the banner carousel to the next banner.
         @Override
         public void run() {
             if (bannerViewPager == null || bannerAdapter == null || bannerAdapter.getItemCount() <= 1 || !isAdded()) {
@@ -165,6 +166,7 @@ public class HomeFragment extends Fragment implements
         }
     };
 
+    // Builds the Home screen and starts loading its data.
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -294,6 +296,7 @@ public class HomeFragment extends Fragment implements
         return view;
     }
 
+    // Fills the category chips with the built-in six.
     private void setupCategories() {
         categories.clear();
         categories.add(new Category("all", "All", R.drawable.ic_category_all));
@@ -317,6 +320,7 @@ public class HomeFragment extends Fragment implements
         }
         serverCategoriesQuery = mDatabase.child("categories").orderByChild("order");
         serverCategoriesListener = new ValueEventListener() {
+            // Replaces the chips with the admin's category list.
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (!isAdded() || categoryAdapter == null) return;
@@ -353,6 +357,7 @@ public class HomeFragment extends Fragment implements
                 categoryAdapter.resetSelection(selectedIndex);
             }
 
+            // Keeps the built-in chips when the read fails.
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 // Offline or denied: the built-in chips stay
@@ -362,6 +367,7 @@ public class HomeFragment extends Fragment implements
         serverCategoriesQuery.addValueEventListener(serverCategoriesListener);
     }
 
+    // Sets up the banner carousel and its dots.
     private void setupBanner() {
         bannerAdapter = new BannerAdapter(this::onBannerClicked);
 
@@ -384,6 +390,7 @@ public class HomeFragment extends Fragment implements
 
         // Don't fight the user: pause auto-scroll while swiping, and restart the timer afterwards
         bannerViewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            // Pauses auto-scroll while the user swipes.
             @Override
             public void onPageScrollStateChanged(int state) {
                 if (state == ViewPager2.SCROLL_STATE_DRAGGING) {
@@ -398,11 +405,13 @@ public class HomeFragment extends Fragment implements
         loadServerBanners();
     }
 
+    // Loads banners from the server and shows them.
     private void loadServerBanners() {
         if (getContext() == null) {
             return;
         }
         BannerRepository.load(requireContext(), new BannerRepository.Callback() {
+            // Shows the server banners.
             @Override
             public void onLoaded(@NonNull List<BannerItem> banners) {
                 if (!isAdded() || bannerAdapter == null || bannerViewPager == null) {
@@ -416,6 +425,7 @@ public class HomeFragment extends Fragment implements
                 bannerViewPager.setCurrentItem(0, false);
             }
 
+            // Keeps the current banners.
             @Override
             public void onError() {
                 // Offline or denied: the cached/bundled banners stay on screen
@@ -423,6 +433,7 @@ public class HomeFragment extends Fragment implements
         });
     }
 
+    // Opens the place a tapped banner points to.
     private void onBannerClicked(@NonNull BannerItem banner) {
         String link = banner.getDeepLink() == null ? "" : banner.getDeepLink().trim();
         if (link.isEmpty() || !isAdded()) {
@@ -442,6 +453,7 @@ public class HomeFragment extends Fragment implements
         }
     }
 
+    // Selects the category named by the banner.
     private void openCategoryFromBanner(@NonNull String categoryName) {
         for (int i = 0; i < categories.size(); i++) {
             Category category = categories.get(i);
@@ -454,6 +466,7 @@ public class HomeFragment extends Fragment implements
         }
     }
 
+    // Switches to the tab named by the banner.
     private void openTabFromBanner(@NonNull String tabName) {
         if (!(getActivity() instanceof MainActivity)) {
             return;
@@ -490,6 +503,7 @@ public class HomeFragment extends Fragment implements
                 android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f) != 0f;
     }
 
+    // Wires up the menu, bell, search bar and refresh.
     private void setupClickListeners() {
         // Menu click - Open sidebar
         if (ivMenu != null) {
@@ -530,6 +544,7 @@ public class HomeFragment extends Fragment implements
 
         notifBadgeRef = mDatabase.child("notifications").child(uid);
         notifBadgeListener = new ValueEventListener() {
+            // Counts the unread notifications and shows the badge.
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (!isAdded()) return;
@@ -541,6 +556,7 @@ public class HomeFragment extends Fragment implements
                 updateNotifBadge(unread);
             }
 
+            // Logs the read error.
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 com.replate.app.utils.DatabaseErrorLogger.log("HomeFragment", "notification badge", error);
@@ -549,6 +565,7 @@ public class HomeFragment extends Fragment implements
         notifBadgeRef.addValueEventListener(notifBadgeListener);
     }
 
+    // Shows or hides the red count on the bell.
     private void updateNotifBadge(int count) {
         if (tvNotifBadge == null) return;
         if (count > 0) {
@@ -559,6 +576,7 @@ public class HomeFragment extends Fragment implements
         }
     }
 
+    // Gets the user's location, or shows a hint if not allowed.
     private void getUserLocation() {
         if (!isAdded()) return;
         boolean fineGranted = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
@@ -586,6 +604,7 @@ public class HomeFragment extends Fragment implements
             .addOnFailureListener(e -> requestFreshCurrentLocation());
     }
 
+    // Asks the phone for a fresh location fix.
     private void requestFreshCurrentLocation() {
         if (!isAdded()) return;
         boolean fineGranted = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
@@ -632,6 +651,7 @@ public class HomeFragment extends Fragment implements
         });
     }
 
+    // Shows the area name for the location at the top.
     private void updateCurrentLocationLabel(double latitude, double longitude) {
         if (!isAdded() || tvCurrentLocation == null) return;
         tvCurrentLocation.setOnClickListener(null);
@@ -668,6 +688,7 @@ public class HomeFragment extends Fragment implements
         worker.start();
     }
 
+    // Works out each dish's distance and sorts the feed by it.
     private void applyDistanceSortAndRefresh() {
         if (allFoodItems == null || allFoodItems.isEmpty()) {
             return;
@@ -754,6 +775,7 @@ public class HomeFragment extends Fragment implements
         }, 8000);
     }
 
+    // Listens to Firebase for live dish changes.
     private void loadFoodItems() {
         // Keep cached content visible while refreshing from network.
         if (allFoodItems == null || allFoodItems.isEmpty()) {
@@ -776,6 +798,7 @@ public class HomeFragment extends Fragment implements
         // Use addValueEventListener for REAL-TIME updates — fires instantly
         // when any food item is added, updated, or removed in Firebase
         foodItemsListener = new ValueEventListener() {
+            // Parses the dishes in the background and updates the feed.
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 // Process Firebase data on a background thread to prevent UI jank
@@ -886,6 +909,7 @@ public class HomeFragment extends Fragment implements
                 }
             }
 
+            // Stops loading and shows an error if nothing is on screen.
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 showLoading(false);
@@ -900,6 +924,7 @@ public class HomeFragment extends Fragment implements
         foodItemsRef.addValueEventListener(foodItemsListener);
     }
 
+    // Listens for the user's favourites on the server.
     private void observeFavorites() {
         if (mAuth.getCurrentUser() == null) {
             updateFavorites();
@@ -910,6 +935,7 @@ public class HomeFragment extends Fragment implements
         }
         favoritesRef = mDatabase.child("favorites").child(mAuth.getCurrentUser().getUid());
         favoritesListener = new ValueEventListener() {
+                    // Remembers the favourite dish ids and refreshes the row.
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         favoriteFoodIds.clear();
@@ -933,6 +959,7 @@ public class HomeFragment extends Fragment implements
                         updateFavorites();
                     }
 
+                    // Logs the read error.
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
                         android.util.Log.w("HomeFragment", "Favorites listener cancelled: " + error.getMessage());
@@ -941,6 +968,7 @@ public class HomeFragment extends Fragment implements
         favoritesRef.addValueEventListener(favoritesListener);
     }
 
+    // Fills the Hot deals row with the biggest discounts.
     private void updateHotDeals() {
         hotDeals.clear();
         if (allFoodItems.isEmpty()) {
@@ -964,6 +992,7 @@ public class HomeFragment extends Fragment implements
         hotDealsAdapter.updateData(new ArrayList<>(hotDeals));
     }
 
+    // Fills the Your favourites row.
     private void updateFavorites() {
         favoriteItems.clear();
         // Favourites are saved on the phone (the heart on a dish); the server copy is only a bonus
@@ -995,6 +1024,7 @@ public class HomeFragment extends Fragment implements
         }
     }
 
+    // Returns the first non-empty text found under any key.
     private String getStringAny(DataSnapshot snapshot, String... keys) {
         for (String key : keys) {
             Object v = snapshot.child(key).getValue();
@@ -1006,6 +1036,7 @@ public class HomeFragment extends Fragment implements
         return null;
     }
 
+    // Returns the first value found under any key.
     private Object getObjectAny(DataSnapshot snapshot, String... keys) {
         for (String key : keys) {
             Object v = snapshot.child(key).getValue();
@@ -1032,6 +1063,7 @@ public class HomeFragment extends Fragment implements
         return R * c;
     }
 
+    // Shows only the dishes in the chosen category.
     private void filterByCategory(String category) {
         foodItems.clear();
 
@@ -1068,6 +1100,7 @@ public class HomeFragment extends Fragment implements
         }
     }
 
+    // True when the dish category fits the chosen one.
     private boolean matchesCategory(String itemCategoryRaw, String selectedCategoryRaw) {
         if (itemCategoryRaw == null || selectedCategoryRaw == null) return false;
 
@@ -1101,6 +1134,7 @@ public class HomeFragment extends Fragment implements
         return itemCategory.contains(selectedCategory);
     }
 
+    // Makes a category name lower case with plain spacing.
     private String normalizeCategory(String value) {
         return value.toLowerCase()
                 .replace("&", "and")
@@ -1131,6 +1165,7 @@ public class HomeFragment extends Fragment implements
         }
     }
 
+    // Shows or hides the loading placeholders.
     private void showLoading(boolean show) {
         feedLoading = show;
         setSkeletonVisible(show);
@@ -1149,6 +1184,7 @@ public class HomeFragment extends Fragment implements
         startActivity(intent);
     }
 
+    // Adds the dish to the cart and tells the user.
     @Override
     public void onAddToCartClick(FoodItem foodItem) {
         // Add to cart using SQLite
@@ -1156,6 +1192,7 @@ public class HomeFragment extends Fragment implements
         ToastUtils.showCustomToast(getContext(), foodItem.getFoodName() + " added to cart!");
     }
 
+    // Saves the dish in the cart database.
     private void addToCart(FoodItem foodItem) {
         CartDatabaseHelper cartDb = CartDatabaseHelper.getInstance(requireContext());
         com.replate.app.models.CartItem cartItem = new com.replate.app.models.CartItem(
@@ -1180,6 +1217,7 @@ public class HomeFragment extends Fragment implements
         filterByCategory(selectedCategory);
     }
 
+    // Starts shake detection and refreshes the favourites.
     @Override
     public void onResume() {
         super.onResume();
@@ -1194,6 +1232,7 @@ public class HomeFragment extends Fragment implements
         if (favoritesAdapter != null && rvFavorites != null) updateFavorites();
     }
 
+    // Stops shake detection.
     @Override
     public void onPause() {
         super.onPause();
@@ -1204,6 +1243,7 @@ public class HomeFragment extends Fragment implements
         bannerHandler.removeCallbacks(bannerAutoScrollRunnable);
     }
 
+    // Removes listeners and timers when the screen goes away.
     @Override
     public void onDestroyView() {
         super.onDestroyView();

@@ -12,6 +12,7 @@ public final class TelephonyUtils {
     private TelephonyUtils() {
     }
 
+    // Removes spaces and dashes and turns a leading 00 into +.
     public static String normalizePhone(String raw, String fallback) {
         String value = raw == null || raw.isEmpty() ? fallback : raw;
         if (value == null) {
@@ -45,6 +46,7 @@ public final class TelephonyUtils {
         activity.startActivity(intent);
     }
 
+    // Opens the messages app with the number and text filled in.
     public static void openSms(Activity activity, String phone, String message) {
         Intent intent = new Intent(Intent.ACTION_SENDTO);
         intent.setData(Uri.parse("smsto:" + Uri.encode(phone)));

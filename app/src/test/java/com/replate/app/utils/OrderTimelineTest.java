@@ -7,6 +7,7 @@ import com.replate.app.R;
 
 import org.junit.Test;
 
+// Checks which step of the order timeline each status shows.
 public class OrderTimelineTest {
 
     @Test

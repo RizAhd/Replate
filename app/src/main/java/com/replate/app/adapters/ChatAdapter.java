@@ -35,6 +35,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         this.currentUserId = currentUserId;
     }
 
+    // Tells sent messages from received ones.
     @Override
     public int getItemViewType(int position) {
         ChatMessage msg = messages.get(position);
@@ -54,6 +55,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
     }
 
+    // Fills a message bubble and its date separator.
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         ChatMessage msg = messages.get(position);
@@ -91,12 +93,14 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         return messages.size();
     }
 
+    // Replaces all messages in the list.
     public void setMessages(List<ChatMessage> newMessages) {
         messages.clear();
         messages.addAll(newMessages);
         notifyDataSetChanged();
     }
 
+    // Adds a new message, or updates it if it is already there.
     public void addMessage(ChatMessage message) {
         // Check if already exists (by messageId)
         for (int i = 0; i < messages.size(); i++) {
@@ -111,6 +115,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         notifyItemInserted(messages.size() - 1);
     }
 
+    // Removes every message.
     public void clearMessages() {
         messages.clear();
         notifyDataSetChanged();

@@ -15,6 +15,7 @@ public class ReplateApplication extends Application {
 
     private static final String TAG = "ReplateApplication";
 
+    // Runs once at app start: theme, notification channel, Firebase setup.
     @Override
     public void onCreate() {
         super.onCreate();

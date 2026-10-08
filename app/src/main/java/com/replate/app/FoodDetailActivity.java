@@ -54,6 +54,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+// Food detail screen: dish info, cart, reviews, hotel contact.
 public class FoodDetailActivity extends AppCompatActivity {
 
     private ImageView ivFoodImage, ivBack, ivFavorite, ivFavoriteHotel;
@@ -85,6 +86,7 @@ public class FoodDetailActivity extends AppCompatActivity {
     private ValueEventListener reviewsListener;
     private DatabaseReference reviewsRef;
 
+    // Reads the dish, sets up the screen, loads reviews and ideas.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -113,6 +115,7 @@ public class FoodDetailActivity extends AppCompatActivity {
         updateDistanceFromLiveLocation();
     }
 
+    // Finds the views on the screen.
     private void initViews() {
         ivFoodImage = findViewById(R.id.ivFoodImage);
         ivBack = findViewById(R.id.ivBack);
@@ -146,16 +149,19 @@ public class FoodDetailActivity extends AppCompatActivity {
         rvRecommended = findViewById(R.id.rvRecommended);
     }
 
+    // Sets up the review list and the similar dishes list.
     private void setupReviewAndRecommendationLists() {
         currentUserId = FirebaseAuth.getInstance().getUid() == null ? "" : FirebaseAuth.getInstance().getUid();
 
         if (rvReviews != null) {
             reviewAdapter = new ReviewAdapter(currentUserId, new ReviewAdapter.ReviewActionListener() {
+                // Edit button: fill the form with this review.
                 @Override
                 public void onEditReview(Review review) {
                     startReviewEdit(review);
                 }
 
+                // Delete button: ask before deleting this review.
                 @Override
                 public void onDeleteReview(Review review) {
                     confirmDeleteReview(review);
@@ -174,6 +180,7 @@ public class FoodDetailActivity extends AppCompatActivity {
         }
     }
 
+    // Shows the dish photo, price, hotel and stock.
     private void displayFoodDetails() {
         if (foodItem == null) {
             finish();
@@ -210,6 +217,7 @@ public class FoodDetailActivity extends AppCompatActivity {
         updateQuantityDisplay();
     }
 
+    // Wires the buttons: favourite, quantity, cart, call, chat.
     private void setupClickListeners() {
         ivBack.setOnClickListener(v -> finish());
 
@@ -270,6 +278,7 @@ public class FoodDetailActivity extends AppCompatActivity {
         if (btnSubmitReview != null) btnSubmitReview.setOnClickListener(v -> submitReview());
     }
 
+    // Shows the heart as filled or empty.
     private void updateFavoriteIcon(boolean isFavorite) {
         if (ivFavorite == null) return;
         ivFavorite.setImageResource(R.drawable.ic_favorite);
@@ -279,10 +288,12 @@ public class FoodDetailActivity extends AppCompatActivity {
         ivFavorite.setContentDescription(isFavorite ? "Remove from favorites" : "Add to favorites");
     }
 
+    // True if the dish cannot be ordered now.
     private boolean isSoldOut() {
         return foodItem != null && (!foodItem.isAvailableValue() || !foodItem.hasStock() || foodItem.isPickupClosedNow());
     }
 
+    // Shows the quantity and the button state.
     private void updateQuantityDisplay() {
         tvQuantity.setText(String.valueOf(quantity));
         if (isSoldOut()) {
@@ -295,6 +306,7 @@ public class FoodDetailActivity extends AppCompatActivity {
         btnAddToCart.setText(getString(R.string.food_detail_add_to_cart_total, Money.format(total)));
     }
 
+    // Adds the chosen quantity to the cart, within the stock.
     private void addToCart() {
         if (foodItem == null) {
             ToastUtils.showCustomToast(this, R.string.food_detail_error_food_item_not_available);
@@ -338,12 +350,14 @@ public class FoodDetailActivity extends AppCompatActivity {
         startActivity(new Intent(this, CartActivity.class));
     }
 
+    // Gets the user's name to put on reviews.
     private void loadCurrentUserName() {
         String uid = FirebaseAuth.getInstance().getUid();
         if (uid == null || uid.trim().isEmpty()) return;
 
         mDatabase.child("users").child(uid).child("name")
                 .addListenerForSingleValueEvent(new ValueEventListener() {
+                    // Saves the name.
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         String name = snapshot.getValue(String.class);
@@ -352,6 +366,7 @@ public class FoodDetailActivity extends AppCompatActivity {
                         }
                     }
 
+                    // Logs the error.
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
                         com.replate.app.utils.DatabaseErrorLogger.log("FoodDetailActivity", "load user name", error);
@@ -359,6 +374,7 @@ public class FoodDetailActivity extends AppCompatActivity {
                 });
     }
 
+    // Loads this dish's reviews and keeps them live.
     private void loadReviews() {
         if (foodItem == null || mDatabase == null) {
             return;
@@ -382,6 +398,7 @@ public class FoodDetailActivity extends AppCompatActivity {
         reviewsRef = mDatabase.child("reviews");
 
         reviewsListener = new ValueEventListener() {
+                    // Builds the review list and the average rating.
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         if (isFinishing() || isDestroyed()) return;
@@ -440,6 +457,7 @@ public class FoodDetailActivity extends AppCompatActivity {
                         }
                     }
 
+                    // Shows the no-reviews message.
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
                         if (tvNoReviews != null) {
@@ -451,6 +469,7 @@ public class FoodDetailActivity extends AppCompatActivity {
         reviewsRef.orderByChild("foodId").equalTo(foodId).addValueEventListener(reviewsListener);
     }
 
+    // Checks the rating, then saves a new or edited review.
     private void submitReview() {
         String uid = FirebaseAuth.getInstance().getUid();
         if (uid == null || uid.trim().isEmpty()) {
@@ -475,6 +494,7 @@ public class FoodDetailActivity extends AppCompatActivity {
         createReviewWithPurchaseVerification(uid, rating, comment);
     }
 
+    // Saves a review, marked verified if they bought it.
     private void createReviewWithPurchaseVerification(String uid, float rating, String comment) {
         hasCompletedOrderForFood(uid, foodItem.getFoodId(), (verified, orderId) -> {
             DatabaseReference ref = mDatabase.child("reviews").push();
@@ -515,6 +535,7 @@ public class FoodDetailActivity extends AppCompatActivity {
         });
     }
 
+    // Changes the rating and comment of an existing review.
     private void updateExistingReview(String reviewId, float rating, String comment) {
         DatabaseReference ref = mDatabase.child("reviews").child(reviewId);
         ref.child("rating").setValue(rating);
@@ -533,6 +554,7 @@ public class FoodDetailActivity extends AppCompatActivity {
                 });
     }
 
+    // Puts the review in the form to be edited.
     private void startReviewEdit(Review review) {
         if (review == null) return;
         editingReviewId = review.getReviewId();
@@ -544,6 +566,7 @@ public class FoodDetailActivity extends AppCompatActivity {
         etReviewComment.requestFocus();
     }
 
+    // Empties the review form.
     private void clearReviewInput() {
         editingReviewId = null;
         ratingInput.setRating(0f);
@@ -553,6 +576,7 @@ public class FoodDetailActivity extends AppCompatActivity {
         if (btnToggleReviewComposer != null) btnToggleReviewComposer.setText(getString(R.string.food_detail_review_write));
     }
 
+    // Asks before deleting a review.
     private void confirmDeleteReview(Review review) {
         if (review == null || review.getReviewId() == null || review.getReviewId().trim().isEmpty()) return;
 
@@ -564,6 +588,7 @@ public class FoodDetailActivity extends AppCompatActivity {
                 .show();
     }
 
+    // Deletes the review and updates the dish rating.
     private void deleteReview(Review review) {
         if (review == null || review.getReviewId() == null || review.getReviewId().trim().isEmpty()) return;
 
@@ -578,6 +603,7 @@ public class FoodDetailActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> ToastUtils.showCustomToast(this, R.string.food_detail_failed_to_delete_review));
     }
 
+    // Recalculates the dish's average rating and count.
     private void updateFoodRatingAggregate(String foodId) {
         if (foodId == null || foodId.trim().isEmpty()) return;
 
@@ -585,6 +611,7 @@ public class FoodDetailActivity extends AppCompatActivity {
                 .orderByChild("foodId")
                 .equalTo(foodId)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
+                    // Adds up the ratings.
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         int count = 0;
@@ -615,6 +642,7 @@ public class FoodDetailActivity extends AppCompatActivity {
                         }
                     }
 
+                    // Logs the error.
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
                         com.replate.app.utils.DatabaseErrorLogger.log("FoodDetailActivity", "update rating summary", error);
@@ -622,11 +650,13 @@ public class FoodDetailActivity extends AppCompatActivity {
                 });
     }
 
+    // Checks if the user already received this dish.
     private void hasCompletedOrderForFood(String uid, String foodId, PurchaseCheckCallback callback) {
         mDatabase.child("orders")
                 .orderByChild("userId")
                 .equalTo(uid)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
+                    // Looks for a completed order containing this dish.
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         boolean hasPurchase = false;
@@ -660,6 +690,7 @@ public class FoodDetailActivity extends AppCompatActivity {
                         callback.onResult(hasPurchase, latestOrderId);
                     }
 
+                    // Treat it as not bought.
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
                         callback.onResult(false, "");
@@ -671,11 +702,13 @@ public class FoodDetailActivity extends AppCompatActivity {
         void onResult(boolean verified, String orderId);
     }
 
+    // Finds similar dishes to suggest.
     private void loadRecommendations() {
         if (foodItem == null || mDatabase == null) {
             return;
         }
         mDatabase.child("foodItems").addListenerForSingleValueEvent(new ValueEventListener() {
+            // Scores every other dish and keeps the best matches.
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (isFinishing() || isDestroyed()) return;
@@ -702,6 +735,7 @@ public class FoodDetailActivity extends AppCompatActivity {
                 }
             }
 
+            // Shows the no-suggestions message.
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 if (tvNoRecommendations != null) {
@@ -711,6 +745,7 @@ public class FoodDetailActivity extends AppCompatActivity {
         });
     }
 
+    // Gives a similarity score; higher is closer.
     private int scoreRecommendation(FoodItem candidate) {
         int score = 0;
         if (sameIgnoreCase(foodItem.getCategory(), candidate.getCategory())) score += 4;
@@ -742,17 +777,20 @@ public class FoodDetailActivity extends AppCompatActivity {
         return score;
     }
 
+    // Compares two texts, ignoring case and spaces.
     private boolean sameIgnoreCase(String a, String b) {
         if (a == null || b == null) return false;
         return a.trim().equalsIgnoreCase(b.trim());
     }
 
+    // Opens another dish's detail screen.
     private void openRelatedFoodItem(FoodItem item) {
         Intent intent = new Intent(this, FoodDetailActivity.class);
         intent.putExtra("foodItem", item);
         startActivity(intent);
     }
 
+    // Calls the hotel.
     private void callHotel() {
         resolveHotelPhone(phone -> {
             // Direct call when CALL_PHONE is granted (asked for here), dialer otherwise
@@ -761,6 +799,7 @@ public class FoodDetailActivity extends AppCompatActivity {
         });
     }
 
+    // Opens a chat with the hotel; needs login.
     private void openChat() {
         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
             ToastUtils.showCustomToast(this, R.string.food_detail_please_login_to_chat_with);
@@ -778,6 +817,7 @@ public class FoodDetailActivity extends AppCompatActivity {
         startActivity(chatIntent);
     }
 
+    // Opens a text message to the hotel.
     private void smsHotel() {
         resolveHotelPhone(phone -> {
             String message = "Hi " + (foodItem.getHotelName() != null ? foodItem.getHotelName() : "Hotel")
@@ -790,6 +830,7 @@ public class FoodDetailActivity extends AppCompatActivity {
         });
     }
 
+    // Finds the hotel's phone number.
     private void resolveHotelPhone(PhoneCallback callback) {
         String fromItem = TelephonyUtils.normalizePhone(foodItem.getHotelPhone(), "");
         if (!fromItem.isEmpty()) {
@@ -805,6 +846,7 @@ public class FoodDetailActivity extends AppCompatActivity {
 
         mDatabase.child("hotels").child(hotelId).child("phone")
                 .addListenerForSingleValueEvent(new ValueEventListener() {
+                    // Uses the phone number from the hotel record.
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         String phone = TelephonyUtils.normalizePhone(com.replate.app.utils.SafeSnapshot.string(snapshot), "");
@@ -815,6 +857,7 @@ public class FoodDetailActivity extends AppCompatActivity {
                         }
                     }
 
+                    // Tells the user the number could not load.
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
                         ToastUtils.showCustomToast(FoodDetailActivity.this, R.string.food_detail_could_not_load_phone_number);
@@ -826,11 +869,13 @@ public class FoodDetailActivity extends AppCompatActivity {
         void onPhone(String phone);
     }
 
+    // Reads a field as trimmed text, or empty.
     private String getStringValue(DataSnapshot parent, String key) {
         Object value = parent.child(key).getValue();
         return value == null ? "" : String.valueOf(value).trim();
     }
 
+    // Works out how far the hotel is from the phone.
     private void updateDistanceFromLiveLocation() {
         if (foodItem == null || tvDistance == null || fusedLocationClient == null) {
             return;
@@ -854,6 +899,7 @@ public class FoodDetailActivity extends AppCompatActivity {
         loadFallbackLastLocation(targetLat, targetLng);
     }
 
+    // Uses the last known location if no live one.
     @SuppressLint("MissingPermission")
     private void loadFallbackLastLocation(double targetLat, double targetLng) {
         if (fusedLocationClient == null) return;
@@ -877,6 +923,7 @@ public class FoodDetailActivity extends AppCompatActivity {
         }
     }
 
+    // Shows the distance in km.
     private void bindDistanceText(Location location, double targetLat, double targetLng) {
         if (location == null || tvDistance == null) return;
         double distanceKm = LocationUtils.calculateDistance(
@@ -893,6 +940,7 @@ public class FoodDetailActivity extends AppCompatActivity {
         }
     }
 
+    // Stops listening for reviews.
     @Override
     protected void onDestroy() {
         super.onDestroy();

@@ -32,6 +32,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
         this.lastOnline = NetworkUtils.isOnline(context);
     }
 
+    // Tells the listener only when online or offline really changes.
     @Override
     public void onReceive(Context context, Intent intent) {
         if (intent == null || !ConnectivityManager.CONNECTIVITY_ACTION.equals(intent.getAction())) {

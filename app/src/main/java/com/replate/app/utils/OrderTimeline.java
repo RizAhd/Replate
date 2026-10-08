@@ -23,6 +23,7 @@ public final class OrderTimeline {
 
     private OrderTimeline() {}
 
+    // Gives the text for one step of the order timeline.
     @StringRes
     public static int labelFor(int step, boolean delivery) {
         int[] labels = delivery ? DELIVERY_LABELS : PICKUP_LABELS;

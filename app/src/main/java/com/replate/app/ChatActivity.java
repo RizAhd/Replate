@@ -102,6 +102,7 @@ public class ChatActivity extends AppCompatActivity {
     private ChatAdapter chatAdapter;
     private ChatDatabaseHelper chatDb;
 
+    // Reads the chat details, sets up the screen, loads messages.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -162,6 +163,7 @@ public class ChatActivity extends AppCompatActivity {
         listenForNewMessages();
     }
 
+    // Finds the views on the screen.
     private void initViews() {
         toolbar = findViewById(R.id.toolbar);
         ivAvatar = findViewById(R.id.ivAvatar);
@@ -182,6 +184,7 @@ public class ChatActivity extends AppCompatActivity {
         conversationsRef = FirebaseDatabase.getInstance().getReference("conversations");
     }
 
+    // Sets up the top bar: name, avatar, back and call button.
     private void setupToolbar() {
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
@@ -216,6 +219,7 @@ public class ChatActivity extends AppCompatActivity {
         }
     }
 
+    // Sets up the message list, starting at the newest.
     private void setupRecyclerView() {
         chatAdapter = new ChatAdapter(currentUserId);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
@@ -224,12 +228,14 @@ public class ChatActivity extends AppCompatActivity {
         rvMessages.setAdapter(chatAdapter);
     }
 
+    // Wires the message box and the send button.
     private void setupInputListeners() {
         // Text change listener to enable/disable send button
         etMessage.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
+            // Send is only enabled when there is text.
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 btnSend.setEnabled(s != null && !s.toString().trim().isEmpty());
@@ -243,12 +249,14 @@ public class ChatActivity extends AppCompatActivity {
         btnSend.setOnClickListener(v -> sendMessage());
     }
 
+    // Gets the signed-in user's name for the messages.
     private void loadCurrentUserName() {
         // Load user's actual name from database
         FirebaseDatabase.getInstance().getReference("users")
                 .child(currentUserId)
                 .child("name")
                 .addListenerForSingleValueEvent(new ValueEventListener() {
+                    // Saves the user's name if one was found.
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         if (snapshot.exists()) {
@@ -262,6 +270,7 @@ public class ChatActivity extends AppCompatActivity {
                         }
                     }
 
+                    // Name not found; keep going without it.
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
                         if (BuildConfig.DEBUG) Log.w(TAG, "Failed to load user name", error.toException());
@@ -306,6 +315,7 @@ public class ChatActivity extends AppCompatActivity {
 
         // ── Step 2: Sync from Firebase (fills gaps & catches new messages) ──
         messagesRef.orderByChild("timestamp").addListenerForSingleValueEvent(new ValueEventListener() {
+            // Adds messages that are new to the list.
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 progressBar.setVisibility(View.GONE);
@@ -330,6 +340,7 @@ public class ChatActivity extends AppCompatActivity {
                 scrollToBottom();
             }
 
+            // Hides the spinner when loading fails.
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 progressBar.setVisibility(View.GONE);
@@ -383,6 +394,7 @@ public class ChatActivity extends AppCompatActivity {
 
     private void listenForNewMessages() {
         messagesListener = new ChildEventListener() {
+            // Shows a message that just arrived.
             @Override
             public void onChildAdded(@NonNull DataSnapshot snapshot, String previousChildName) {
                 ChatMessage msg = SafeSnapshot.getValue(snapshot, ChatMessage.class);
@@ -408,6 +420,7 @@ public class ChatActivity extends AppCompatActivity {
                 }
             }
 
+            // Updates a message that changed, like read status.
             @Override
             public void onChildChanged(@NonNull DataSnapshot snapshot, String previousChildName) {
                 ChatMessage msg = SafeSnapshot.getValue(snapshot, ChatMessage.class);
@@ -423,6 +436,7 @@ public class ChatActivity extends AppCompatActivity {
             @Override
             public void onChildMoved(@NonNull DataSnapshot snapshot, String previousChildName) {}
 
+            // Logs a listener error.
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 Log.e(TAG, "Messages listener cancelled", error.toException());
@@ -529,17 +543,20 @@ public class ChatActivity extends AppCompatActivity {
                 foodId, foodName, lastMessage, timestamp);
     }
 
+    // Marks a message as read in Firebase.
     private void markAsRead(String messageId) {
         if (messageId == null) return;
         messagesRef.child(messageId).child("read").setValue(true);
     }
 
+    // Shows the empty message when there are no chats.
     private void updateEmptyState() {
         boolean isEmpty = chatAdapter.getItemCount() == 0;
         layoutEmpty.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
         rvMessages.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
     }
 
+    // Scrolls to the newest message.
     private void scrollToBottom() {
         if (chatAdapter.getItemCount() > 0) {
             rvMessages.smoothScrollToPosition(chatAdapter.getItemCount() - 1);
@@ -557,6 +574,7 @@ public class ChatActivity extends AppCompatActivity {
             FirebaseDatabase.getInstance().getReference("hotels")
                     .child(hotelId).child("phone")
                     .addListenerForSingleValueEvent(new ValueEventListener() {
+                        // Calls the number found in the database.
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
                             String ph = com.replate.app.utils.SafeSnapshot.string(snapshot);
@@ -567,6 +585,7 @@ public class ChatActivity extends AppCompatActivity {
                             }
                         }
 
+                        // Tells the user the number could not be found.
                         @Override
                         public void onCancelled(@NonNull DatabaseError error) {
                             ToastUtils.showCustomToast(ChatActivity.this, R.string.chat_failed_to_get_phone_number);
@@ -577,12 +596,14 @@ public class ChatActivity extends AppCompatActivity {
         }
     }
 
+    // Starts the call, or opens the dialer.
     private void initiateCall(String phone) {
         // Direct call when CALL_PHONE is granted (asked for here), dialer otherwise
         callHelper.call(phone, () ->
                 ToastUtils.showCustomToast(this, R.string.chat_no_phone_app_available));
     }
 
+    // Stops listening for messages.
     @Override
     protected void onDestroy() {
         super.onDestroy();

@@ -106,6 +106,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
     private ValueEventListener foodItemsListener;
     private DatabaseReference foodItemsRef;
 
+    // Builds the Search screen and loads the dishes.
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -157,6 +158,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         setLoadingState(false);
     }
 
+    // Gets the last known location to sort by distance.
     private void getUserLocation() {
         if (ActivityCompat.checkSelfPermission(requireContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED
@@ -174,6 +176,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         }
     }
 
+    // Updates each dish's distance from the user.
     private void refreshDistancesFromCurrentLocation() {
         if (currentLat == 0 || currentLng == 0 || allFoodItems.isEmpty()) {
             return;
@@ -196,6 +199,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         }
     }
 
+    // Finds the views on the screen.
     private void initViews(View view) {
         etSearch = view.findViewById(R.id.etSearch);
         rvSearchResults = view.findViewById(R.id.rvSearchResults);
@@ -233,6 +237,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         });
     }
 
+    // Picks how many dish columns fit the screen.
     private int getAdaptiveSpanCount() {
         int screenWidthPx = getResources().getDisplayMetrics().widthPixels;
         int minCardWidthPx = (int) TypedValue.applyDimension(
@@ -244,6 +249,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         return Math.min(span, 3);
     }
 
+    // Sets up the search box, keyboard key and history.
     private void setupSearch(@NonNull View root) {
         // Back arrow only when Search is its own screen (opened from Home), not when it is a tab
         View back = root.findViewById(R.id.ivSearchBack);
@@ -288,6 +294,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
+            // Runs the search after a short pause in typing.
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 String text = s == null ? "" : s.toString().trim();
@@ -328,6 +335,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         return names;
     }
 
+    // Shows the recent or suggested searches.
     private void showRecentSearches() {
         if (localDb == null || recentSearchesSection == null || chipGroupRecentSearches == null) return;
 
@@ -383,6 +391,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         recentSearchesSection.setVisibility(View.VISIBLE);
     }
 
+    // Hides the recent searches list.
     private void hideRecentSearches() {
         if (recentSearchesSection != null) {
             recentSearchesSection.setVisibility(View.GONE);
@@ -394,11 +403,13 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         // This method is kept for compatibility
     }
 
+    // Wires up the filter button.
     private void setupAdvancedFilterAction() {
         if (cardFilterAction == null) return;
         cardFilterAction.setOnClickListener(this::showAdvancedFilterMenu);
     }
 
+    // Shows the sort and filter dialog.
     private void showAdvancedFilterMenu(View anchor) {
         if (!isAdded() || getContext() == null) return;
 
@@ -448,6 +459,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         java.util.concurrent.atomic.AtomicReference<String> pendingCategory =
                 new java.util.concurrent.atomic.AtomicReference<>(selectedCategory);
         spCategory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            // Remembers the chosen sort option.
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 pendingCategory.set(categoryList.get(position));
@@ -483,6 +495,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         dialog.show();
     }
 
+    // Saves the filter and refreshes the results.
     private void onFilterChangedByUser() {
         saveFilterPreference(currentFilter);
         updateActiveFilterLabel();
@@ -494,6 +507,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         // This method is kept for compatibility but does nothing
     }
 
+    // Shows the name of the active filter.
     private void updateActiveFilterLabel() {
         if (tvActiveFilter == null) return;
 
@@ -534,6 +548,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         tvActiveFilter.setText(getString(R.string.search_active_filter_template, label));
     }
 
+    // Restores the filter the user chose last time.
     private void loadSavedFilterPreference() {
         SharedPreferences prefs = requireContext().getSharedPreferences(PREFS, android.content.Context.MODE_PRIVATE);
         currentFilter = prefs.getString(PREF_SEARCH_FILTER, "for_you");
@@ -543,6 +558,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         updateActiveFilterLabel();
     }
 
+    // Saves the current filter on the phone.
     private void saveFilterPreference(String filter) {
         SharedPreferences prefs = requireContext().getSharedPreferences(PREFS, android.content.Context.MODE_PRIVATE);
         prefs.edit()
@@ -552,6 +568,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
                 .apply();
     }
 
+    // Applies a filter or search text sent by the previous screen.
     private void applyLaunchOverrides() {
         if (!isAdded() || getActivity() == null) return;
         Intent intent = getActivity().getIntent();
@@ -587,6 +604,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
     }
 
 
+    // Listens to Firebase for all dishes.
     private void loadAllFoodItems() {
         if (allFoodItems.isEmpty()) {
             setLoadingState(true);
@@ -598,6 +616,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
 
         foodItemsRef = mDatabase.child("foodItems");
         foodItemsListener = new ValueEventListener() {
+            // Reads the dishes and refreshes the results.
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (!isAdded()) return;
@@ -651,6 +670,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
                 }
             }
 
+            // Stops loading and shows an error if nothing is listed.
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 if (!isAdded()) return;
@@ -664,6 +684,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         foodItemsRef.addValueEventListener(foodItemsListener);
     }
 
+    // Shows or hides the loading placeholders.
     private void setLoadingState(boolean loading) {
         if (loading && progressBar != null) {
             // Firebase never answers while offline with nothing cached: stop the spinner and say so
@@ -682,6 +703,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         }
     }
 
+    // Waits a moment, then runs the search.
     private void scheduleFilter(String query) {
         if (searchRunnable != null) {
             searchDebounceHandler.removeCallbacks(searchRunnable);
@@ -693,6 +715,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         searchDebounceHandler.postDelayed(searchRunnable, 80);
     }
 
+    // Applies the text, category and filters, then sorts the dishes.
     private void filterItems(String query) {
         filteredItems.clear();
 
@@ -768,10 +791,12 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         updateUI();
     }
 
+    // Gives lower-case text, or empty text for null.
     private String safeLower(String value) {
         return value == null ? "" : value.toLowerCase();
     }
 
+    // Gives the rating, or a guess from the discount if none.
     private double getRatingForSort(FoodItem item) {
         if (item == null) {
             return 0.0;
@@ -787,6 +812,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         return Math.min(5.0, 3.0 + (item.getDiscountPercentValue() / 100.0) * 2.0);
     }
 
+    // Shows the result count and the list, or the empty message.
     private void updateUI() {
         if (tvResultsCount != null) {
             tvResultsCount.setText(getString(R.string.search_results_count_template, filteredItems.size()));
@@ -809,6 +835,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         }
     }
 
+    // Opens the dish details.
     @Override
     public void onFoodItemClick(FoodItem foodItem) {
         Intent intent = new Intent(getContext(), FoodDetailActivity.class);
@@ -816,6 +843,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         startActivity(intent);
     }
 
+    // Adds the dish to the cart.
     @Override
     public void onAddToCartClick(FoodItem foodItem) {
         if (foodItem == null || foodItem.getFoodId() == null || getContext() == null) {
@@ -839,6 +867,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         ToastUtils.showCustomToast(getContext(), foodItem.getFoodName() + " added to cart!");
     }
 
+    // Removes the timer and the Firebase listener.
     @Override
     public void onDestroyView() {
         super.onDestroyView();
@@ -850,6 +879,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         }
     }
 
+    // Returns the first non-empty text found under any key.
     private String getStringAny(DataSnapshot snapshot, String... keys) {
         for (String key : keys) {
             Object value = snapshot.child(key).getValue();
@@ -863,6 +893,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         return null;
     }
 
+    // Returns the first value found under any key.
     private Object getObjectAny(DataSnapshot snapshot, String... keys) {
         for (String key : keys) {
             Object value = snapshot.child(key).getValue();

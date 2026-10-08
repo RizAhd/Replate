@@ -28,6 +28,7 @@ public final class AccountActions {
 
     private AccountActions() {}
 
+    // Asks the user to confirm before signing out.
     public static void confirmLogout(@NonNull Activity activity) {
         new AlertDialog.Builder(activity)
                 .setTitle(R.string.profile_logout_2)
@@ -37,6 +38,7 @@ public final class AccountActions {
                 .show();
     }
 
+    // Signs out and clears local data, then opens Login.
     private static void logout(@NonNull Activity activity) {
         if (activity instanceof MainActivity) {
             ((MainActivity) activity).logoutToLogin();
@@ -72,6 +74,7 @@ public final class AccountActions {
         activity.finish();
     }
 
+    // Asks the user to confirm before deleting the account.
     public static void confirmDelete(@NonNull Activity activity) {
         new AlertDialog.Builder(activity)
                 .setTitle(R.string.delete_account_confirm_title)
@@ -88,6 +91,7 @@ public final class AccountActions {
                 .show();
     }
 
+    // Asks for the password before deleting the account.
     private static void askPassword(@NonNull Activity activity) {
         EditText etPassword = new EditText(activity);
         etPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
@@ -110,6 +114,7 @@ public final class AccountActions {
                 .show();
     }
 
+    // Deletes the account while a progress dialog is shown.
     private static void performDeletion(@NonNull Activity activity, @Nullable String password) {
         final Context app = activity.getApplicationContext();
         AlertDialog progress = new AlertDialog.Builder(activity)
@@ -119,6 +124,7 @@ public final class AccountActions {
         progress.show();
 
         AccountDeletionManager.deleteAccount(app, password, new AccountDeletionManager.DeletionCallback() {
+            // Signs out and opens the Login screen.
             @Override
             public void onSuccess() {
                 dismiss(progress);
@@ -137,6 +143,7 @@ public final class AccountActions {
                 }
             }
 
+            // Tells the user and asks for the password again.
             @Override
             public void onWrongPassword() {
                 dismiss(progress);
@@ -146,12 +153,14 @@ public final class AccountActions {
                 }
             }
 
+            // Tells the user to sign in again first.
             @Override
             public void onRecentLoginRequired() {
                 dismiss(progress);
                 ToastUtils.showCustomToast(app, R.string.delete_account_recent_login);
             }
 
+            // Tells the user the deletion failed.
             @Override
             public void onFailure(@NonNull String reason) {
                 dismiss(progress);
@@ -161,6 +170,7 @@ public final class AccountActions {
         });
     }
 
+    // Closes the dialog without crashing.
     private static void dismiss(@NonNull AlertDialog dialog) {
         try {
             if (dialog.isShowing()) dialog.dismiss();

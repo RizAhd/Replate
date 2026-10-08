@@ -62,6 +62,7 @@ import lk.payhere.androidsdk.model.InitRequest;
 import lk.payhere.androidsdk.model.Item;
 import lk.payhere.androidsdk.model.StatusResponse;
 
+// Checkout screen: pickup or delivery, pay time, payment, saving the order.
 public class CheckoutActivity extends AppCompatActivity {
 
     private static final String TAG = "PAYHERE_CHECKOUT";
@@ -119,6 +120,7 @@ public class CheckoutActivity extends AppCompatActivity {
             new android.os.Handler(android.os.Looper.getMainLooper());
     private Runnable submitTimeoutRunnable;
 
+    // Sets up the screen and shows the cart summary.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -136,6 +138,7 @@ public class CheckoutActivity extends AppCompatActivity {
         restoreUnsavedPayment();
     }
 
+    // Registers the map picker and PayHere result handlers.
     private void initResultLaunchers() {
         mapPickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
@@ -157,6 +160,7 @@ public class CheckoutActivity extends AppCompatActivity {
         );
     }
 
+    // Finds the views and wires the options and buttons.
     private void initViews() {
         ImageView ivBack = findViewById(R.id.ivBack);
         orderItemsContainer = findViewById(R.id.orderItemsContainer);
@@ -216,6 +220,7 @@ public class CheckoutActivity extends AppCompatActivity {
         updatePlaceOrderButton();
     }
 
+    // Lists the cart items and works out the subtotal.
     private void loadOrderSummary() {
         cartItems = cartDb.getAllItems();
 
@@ -277,6 +282,7 @@ public class CheckoutActivity extends AppCompatActivity {
         recalculateTotals();
     }
 
+    // Adds the delivery fee when delivery is chosen.
     private void recalculateTotals() {
         boolean isDelivery = rgOrderType != null && rgOrderType.getCheckedRadioButtonId() == R.id.rbDelivery;
         deliveryFee = isDelivery ? DELIVERY_FEE_LKR : 0;
@@ -290,6 +296,7 @@ public class CheckoutActivity extends AppCompatActivity {
         tvTotal.setText(Money.format(totalAmount));
     }
 
+    // Updates the button text for the chosen options.
     private void updatePlaceOrderButton() {
         boolean isDelivery = rgOrderType != null && rgOrderType.getCheckedRadioButtonId() == R.id.rbDelivery;
         boolean isCard = rgPayment != null && rgPayment.getCheckedRadioButtonId() == R.id.rbCard;
@@ -301,11 +308,13 @@ public class CheckoutActivity extends AppCompatActivity {
         }
     }
 
+    // Fills in the user's name, phone and address.
     private void loadUserData() {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
             mDatabase.child("users").child(user.getUid())
                     .addListenerForSingleValueEvent(new ValueEventListener() {
+                        // Prefills the form with the saved profile.
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
                             String name = snapshot.child("name").getValue(String.class);
@@ -315,6 +324,7 @@ public class CheckoutActivity extends AppCompatActivity {
                             if (phone != null && isEmpty(etCustomerPhone)) etCustomerPhone.setText(phone);
                         }
 
+                        // Prefill failed; the user can type the details.
                         @Override
                         public void onCancelled(@NonNull DatabaseError error) {
                             // Prefill is a convenience only; the customer can still type their details
@@ -324,6 +334,7 @@ public class CheckoutActivity extends AppCompatActivity {
         }
     }
 
+    // Lets the user pick a pickup time within the allowed window.
     private void showTimePicker() {
         Calendar cal = Calendar.getInstance();
         com.replate.app.utils.PickupSlot.Window window = cachedPickupWindow();
@@ -379,6 +390,7 @@ public class CheckoutActivity extends AppCompatActivity {
         }
     }
 
+    // Checks the form, then pays and saves the order.
     private void placeOrder() {
         // A card payment already went through but saving the order failed: only retry saving.
         // Starting another payment here would charge the customer twice.
@@ -517,6 +529,7 @@ public class CheckoutActivity extends AppCompatActivity {
         }
     }
 
+    // Handles the result of re-checking the cart stock and prices.
     private void finishCartCheck(java.util.concurrent.atomic.AtomicBoolean finished, Runnable onTimeout,
                                  CartCheck.Line[] lines, Runnable proceed) {
         if (!finished.compareAndSet(false, true)) {
@@ -559,6 +572,7 @@ public class CheckoutActivity extends AppCompatActivity {
                 .show();
     }
 
+    // True if the field has no text.
     private static boolean isEmpty(TextInputEditText field) {
         return field.getText() == null || field.getText().toString().trim().isEmpty();
     }
@@ -645,6 +659,7 @@ public class CheckoutActivity extends AppCompatActivity {
                 .show();
     }
 
+    // Opens the PayHere card payment.
     private void startSandboxPayment() {
         if (!PayHereConfig.isConfigured(MERCHANT_ID)) {
             showLoading(false);
@@ -710,6 +725,7 @@ public class CheckoutActivity extends AppCompatActivity {
         payHereLauncher.launch(intent);
     }
 
+    // Saves the order if the payment succeeded.
     private void handlePayHereResult(int resultCode, @Nullable Intent data) {
         // Always reset loading/button state first
         showLoading(false);
@@ -763,6 +779,7 @@ public class CheckoutActivity extends AppCompatActivity {
         }
     }
 
+    // Tells the user the payment was cancelled.
     private void showPaymentCancelledDialog() {
         // Ensure UI is fully reset to prevent broken state
         showLoading(false);
@@ -784,6 +801,7 @@ public class CheckoutActivity extends AppCompatActivity {
                 .show();
     }
 
+    // Builds the order and saves it to Firebase.
     private void submitOrder(String paymentMethod, String paymentStatus) {
         if (orderCompleted || orderWriteInFlight) {
             return;
@@ -992,6 +1010,7 @@ public class CheckoutActivity extends AppCompatActivity {
         ToastUtils.showCustomToast(this, R.string.checkout_order_placed_successfully);
     }
 
+    // Stops the save timeout timer.
     private void cancelSubmitTimeout() {
         if (submitTimeoutRunnable != null) {
             submitTimeoutHandler.removeCallbacks(submitTimeoutRunnable);
@@ -1023,12 +1042,14 @@ public class CheckoutActivity extends AppCompatActivity {
         }
     }
 
+    // Stops the save timeout timer.
     @Override
     protected void onDestroy() {
         cancelSubmitTimeout();
         super.onDestroy();
     }
 
+    // Writes a text receipt to the phone.
     private void saveReceipt(String orderId, String otp, String name, double total) {
         try {
             String receipt = "======== REPLATE ORDER RECEIPT ========\n"
@@ -1047,12 +1068,14 @@ public class CheckoutActivity extends AppCompatActivity {
         }
     }
 
+    // Shows or hides the spinner and locks the Place Order button.
     private void showLoading(boolean show) {
         progressBar.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
         btnPlaceOrder.setEnabled(!show);
         btnPlaceOrder.setAlpha(show ? 0.65f : 1f);
     }
 
+    // Notifies the customer and the hotel about the new order.
     private void createOrderNotifications(String orderId,
                                           String hotelId,
                                           String hotelName,

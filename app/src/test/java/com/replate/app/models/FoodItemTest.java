@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+// Checks how a food item reads prices, stock, status, location and search.
 public class FoodItemTest {
 
     @Test

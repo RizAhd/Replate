@@ -125,6 +125,7 @@ public final class BannerRepository {
         final Context appContext = context.getApplicationContext();
         FirebaseDatabase.getInstance().getReference("banners")
                 .addListenerForSingleValueEvent(new ValueEventListener() {
+                    // Reads every banner, keeps the live ones and saves them.
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         List<BannerItem> parsed = new ArrayList<>();
@@ -140,6 +141,7 @@ public final class BannerRepository {
                         callback.onLoaded(live);
                     }
 
+                    // Reports the failure to the caller.
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
                         Log.w(TAG, "Banner load cancelled: " + error.getMessage());

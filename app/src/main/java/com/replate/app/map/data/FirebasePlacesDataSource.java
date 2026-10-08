@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+// Loads approved hotels with open dishes from Firebase for the map.
 public class FirebasePlacesDataSource implements PlacesDataSource {
 
     private static final java.util.concurrent.ExecutorService PARSE_EXECUTOR =
@@ -28,9 +29,11 @@ public class FirebasePlacesDataSource implements PlacesDataSource {
         this.foodItemsRef = FirebaseDatabase.getInstance().getReference("foodItems");
     }
 
+    // Reads hotels first, then their food listings, and builds the map pins.
     @Override
     public void fetchPlaces(@NonNull Callback callback) {
         hotelsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            // Keeps approved hotels that have a real location.
             @Override
             public void onDataChange(@NonNull DataSnapshot hotelSnapshot) {
                 if (!hotelSnapshot.exists()) {
@@ -77,6 +80,7 @@ public class FirebasePlacesDataSource implements PlacesDataSource {
                 }
 
                 foodItemsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    // Counts each hotel's available dishes and builds the pins.
                     @Override
                     public void onDataChange(@NonNull DataSnapshot foodSnapshot) {
                         // Scanning every listing can be slow on a big catalogue, so keep it off the UI thread
@@ -137,6 +141,7 @@ public class FirebasePlacesDataSource implements PlacesDataSource {
                         });
                     }
 
+                    // Sends the food read error to the caller.
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
                         callback.onError(error.getMessage());
@@ -144,6 +149,7 @@ public class FirebasePlacesDataSource implements PlacesDataSource {
                 });
             }
 
+            // Sends the hotel read error to the caller.
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 callback.onError(error.getMessage());
@@ -151,11 +157,13 @@ public class FirebasePlacesDataSource implements PlacesDataSource {
         });
     }
 
+    // Reads a text child, or empty text if missing.
     private String readString(DataSnapshot snapshot, String key) {
         Object value = snapshot.child(key).getValue();
         return value == null ? "" : String.valueOf(value).trim();
     }
 
+    // Reads a decimal child, or 0 if missing.
     private double readDouble(DataSnapshot snapshot, String key) {
         Object value = snapshot.child(key).getValue();
         if (value == null) {
@@ -171,6 +179,7 @@ public class FirebasePlacesDataSource implements PlacesDataSource {
         }
     }
 
+    // Reads a whole-number child, or 0 if missing.
     private int readInt(DataSnapshot snapshot, String key) {
         Object value = snapshot.child(key).getValue();
         if (value == null) {
@@ -186,6 +195,7 @@ public class FirebasePlacesDataSource implements PlacesDataSource {
         }
     }
 
+    // Reads the first number found under any of the keys, else null.
     private Integer readNullableInt(DataSnapshot snapshot, String... keys) {
         for (String key : keys) {
             Object value = snapshot.child(key).getValue();
@@ -199,6 +209,7 @@ public class FirebasePlacesDataSource implements PlacesDataSource {
         return null;
     }
 
+    // Reads the first non-zero decimal found under any of the keys.
     private double readDoubleAny(DataSnapshot snapshot, String... keys) {
         for (String key : keys) {
             double value = readDouble(snapshot, key);
@@ -207,6 +218,7 @@ public class FirebasePlacesDataSource implements PlacesDataSource {
         return 0;
     }
 
+    // Basic hotel details kept while the food listings are read.
     private static class HotelSeed {
         final String hotelId;
         final String name;

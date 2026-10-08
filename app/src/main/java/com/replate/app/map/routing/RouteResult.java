@@ -4,6 +4,7 @@ import com.google.android.gms.maps.model.LatLng;
 
 import java.util.List;
 
+// A route on the map: line points, distance and time.
 public class RouteResult {
     private final List<LatLng> polylinePoints;
     private final String distanceText;

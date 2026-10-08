@@ -17,7 +17,7 @@ import com.replate.app.models.Category;
 
 import java.util.List;
 
-// ...existing code...
+// Adapter for the row of category chips on Home.
 public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.CategoryViewHolder> {
 
     private Context context;
@@ -87,6 +87,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
             tvName = itemView.findViewById(R.id.tvCategoryName);
         }
 
+        // Shows one chip and colours it when it is selected.
         void bind(Category category, int position) {
             tvName.setText(category.getName());
             ivIcon.setImageResource(category.getIcon());
@@ -126,7 +127,6 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
                 int previousSelected = selectedPosition;
                 selectedPosition = position;
 
-// ...existing code...
                 cardView.animate()
                         .scaleX(0.96f)
                         .scaleY(0.96f)

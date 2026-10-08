@@ -16,6 +16,7 @@ public class SearchActivity extends AppCompatActivity {
     /** Optional text to search for as soon as the screen opens, such as a hotel name. */
     public static final String EXTRA_QUERY = "search_query";
 
+    // Builds an empty container and loads the search fragment into it.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

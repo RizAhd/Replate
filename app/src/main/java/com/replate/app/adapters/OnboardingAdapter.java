@@ -60,6 +60,7 @@ public class OnboardingAdapter extends RecyclerView.Adapter<OnboardingAdapter.On
             textDescription = itemView.findViewById(R.id.textDescription);
         }
 
+        // Shows one intro slide with its image and text.
         void bind(OnboardingItem onboardingItem) {
             imageOnboarding.setImageResource(onboardingItem.getImage());
             textTitle.setText(onboardingItem.getTitle());

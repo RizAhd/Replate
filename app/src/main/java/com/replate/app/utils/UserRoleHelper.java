@@ -24,6 +24,7 @@ public final class UserRoleHelper {
     private UserRoleHelper() {
     }
 
+    // Turns any role text into a known role.
     @NonNull
     public static String normalize(@Nullable String rawRole) {
         if (rawRole == null) return ROLE_CUSTOMER;
@@ -37,12 +38,14 @@ public final class UserRoleHelper {
         return ROLE_CUSTOMER;
     }
 
+    // Reads the saved role from the phone's storage.
     @NonNull
     public static String fromPrefs(@NonNull Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         return fromPrefs(prefs);
     }
 
+    // Reads the saved role from the given preferences.
     @NonNull
     public static String fromPrefs(@Nullable SharedPreferences prefs) {
         if (prefs == null) return ROLE_CUSTOMER;
@@ -51,6 +54,7 @@ public final class UserRoleHelper {
         return !isBlank(role) ? normalize(role) : normalize(userType);
     }
 
+    // Reads the role from a Firebase user record.
     @NonNull
     public static String fromSnapshot(@Nullable DataSnapshot snapshot) {
         if (snapshot == null || !snapshot.exists()) return ROLE_CUSTOMER;
@@ -59,19 +63,23 @@ public final class UserRoleHelper {
         return !isBlank(role) ? normalize(role) : normalize(userType);
     }
 
+    // Picks the role, using the older userType if needed.
     @NonNull
     public static String choose(@Nullable String role, @Nullable String userType) {
         return !isBlank(role) ? normalize(role) : normalize(userType);
     }
 
+    // True for a hotel account.
     public static boolean isHotel(@Nullable String role) {
         return ROLE_HOTEL.equals(normalize(role));
     }
 
+    // True for an admin account.
     public static boolean isAdmin(@Nullable String role) {
         return ROLE_ADMIN.equals(normalize(role));
     }
 
+    // True when the text is null or empty.
     private static boolean isBlank(@Nullable String value) {
         return value == null || value.trim().isEmpty();
     }

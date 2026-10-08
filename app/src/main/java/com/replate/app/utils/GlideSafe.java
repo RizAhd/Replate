@@ -12,6 +12,7 @@ public final class GlideSafe {
 
     private GlideSafe() {}
 
+    // True when the screen is still alive and safe to load into.
     public static boolean canLoad(Context context) {
         if (context == null) {
             return false;

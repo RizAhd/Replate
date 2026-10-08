@@ -5,6 +5,7 @@ import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 
+// Checks that the hotel key is read correctly from a chat id.
 public class ChatKeysTest {
 
     @Test

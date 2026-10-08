@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+// Small list of other dishes shown on the food detail screen.
 public class RelatedFoodAdapter extends RecyclerView.Adapter<RelatedFoodAdapter.RelatedViewHolder> {
 
     public interface OnRelatedClickListener {
@@ -53,6 +54,7 @@ public class RelatedFoodAdapter extends RecyclerView.Adapter<RelatedFoodAdapter.
         return items.size();
     }
 
+    // Replaces the related dishes.
     public void submitList(List<FoodItem> list) {
         items.clear();
         if (list != null) items.addAll(list);
@@ -71,6 +73,7 @@ public class RelatedFoodAdapter extends RecyclerView.Adapter<RelatedFoodAdapter.
             tvPrice = itemView.findViewById(R.id.tvRelatedPrice);
         }
 
+        // Shows one related dish.
         void bind(FoodItem item) {
             tvName.setText(item.getFoodName());
             tvPrice.setText(Money.format(item.getDiscountedPriceValue()));
@@ -80,6 +83,7 @@ public class RelatedFoodAdapter extends RecyclerView.Adapter<RelatedFoodAdapter.
             });
         }
 
+        // Loads the dish photo into the card.
         private void loadImage(String imageSource) {
             if (imageSource == null || imageSource.trim().isEmpty()) {
                 ivImage.setTag(null);

@@ -55,6 +55,7 @@ public class OrderSyncWorker extends Worker {
         super(context, workerParams);
     }
 
+    // Runs the background sync: last-active time, payment reminder, food cache.
     @NonNull
     @Override
     public Result doWork() {

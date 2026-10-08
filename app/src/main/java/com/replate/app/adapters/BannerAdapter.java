@@ -53,6 +53,7 @@ public class BannerAdapter extends RecyclerView.Adapter<BannerAdapter.BannerView
         return new BannerViewHolder(view);
     }
 
+    // Fills one banner with text, image and tap action.
     @Override
     public void onBindViewHolder(@NonNull BannerViewHolder holder, int position) {
         BannerItem banner = banners.get(position);
@@ -94,6 +95,7 @@ public class BannerAdapter extends RecyclerView.Adapter<BannerAdapter.BannerView
         });
     }
 
+    // Shows the text, or hides the view when there is none.
     private static void setTextOrHide(TextView view, @Nullable String text) {
         if (TextUtils.isEmpty(text)) {
             view.setVisibility(View.GONE);

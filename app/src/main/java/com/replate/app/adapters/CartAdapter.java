@@ -73,6 +73,7 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
             btnPlus = itemView.findViewById(R.id.btnPlus);
         }
 
+        // Shows one cart row: name, price, quantity and buttons.
         void bind(CartItem item) {
             tvFoodName.setText(item.getFoodName());
             String hotelName = item.getHotelName();

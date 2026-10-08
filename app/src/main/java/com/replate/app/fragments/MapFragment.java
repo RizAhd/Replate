@@ -178,6 +178,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 }
             });
 
+    // Builds the Map screen and starts the map.
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -207,6 +208,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         return view;
     }
 
+    // Finds the views on the screen.
     private void initViews(View view) {
         loadingOverlay = view.findViewById(R.id.loadingOverlay);
         topPanel = view.findViewById(R.id.topPanel);
@@ -244,6 +246,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         setupSearch();
     }
 
+    // Keeps the panels clear of the status and navigation bars.
     private void applyInsets(@NonNull View root) {
         ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
             int topInset = insets.getInsets(WindowInsetsCompat.Type.systemBars()).top;
@@ -289,18 +292,22 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         mMap.setPadding(dp(12), top, dp(12), bottom);
     }
 
+    // Converts dp to pixels.
     private int dp(int value) {
         return Math.round(value * requireContext().getResources().getDisplayMetrics().density);
     }
 
+    // True while the screen is still showing.
     private boolean isViewActive() {
         return isAdded() && getView() != null;
     }
 
+    // True when the screen and the map are both ready.
     private boolean isMapUsable() {
         return isViewActive() && mMap != null;
     }
 
+    // Asks the map fragment to load the map.
     private void initMap() {
         SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
         if (mapFragment != null) {
@@ -308,6 +315,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
+    // Wires up the location, route and deals buttons.
     private void setupClickListeners() {
         if (ivMyLocation != null) {
             ivMyLocation.setOnClickListener(v -> moveToCurrentLocation());
@@ -337,11 +345,13 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
+    // Sets up the search box that filters hotels or finds a place.
     private void setupSearch() {
         if (searchView == null) {
             return;
         }
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            // Runs the search when the user submits it.
             @Override
             public boolean onQueryTextSubmit(String query) {
                 String normalized = query == null ? "" : query.trim();
@@ -355,6 +365,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 return true;
             }
 
+            // Filters the hotel pins as the user types.
             @Override
             public boolean onQueryTextChange(String newText) {
                 String query = newText == null ? "" : newText.trim();
@@ -368,6 +379,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         });
     }
 
+    // Shows only the hotels that match the text.
     private boolean applyPlaceFilter(@NonNull String query, boolean moveCameraToFirst) {
         if (allPlaces.isEmpty()) {
             return false;
@@ -431,6 +443,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
+    // Looks up a place name and moves the map there.
     private void searchLocation(@NonNull String locationName) {
         if (!Geocoder.isPresent()) {
             ToastUtils.showCustomToast(getContext(), R.string.map_geocoder_not_available_on_this);
@@ -497,6 +510,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }).start();
     }
 
+    // Sets up the map settings and loads the hotel pins.
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         mMap = googleMap;
@@ -543,12 +557,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         loadAndRenderPlaceMarkers();
     }
 
+    // Loads the hotels and draws their pins.
     private void loadAndRenderPlaceMarkers() {
         final long requestId = ++placesLoadVersion;
         if (loadingOverlay != null) {
             loadingOverlay.setVisibility(View.VISIBLE);
         }
         placesDataSource.fetchPlaces(new PlacesDataSource.Callback() {
+            // Draws the pins for the loaded hotels.
             @Override
             public void onSuccess(@NonNull List<FoodPlace> places) {
                 if (!isViewActive() || requestId != placesLoadVersion) {
@@ -570,6 +586,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 fitCameraToPlaces(places);
             }
 
+            // Shows a message that hotels could not load.
             @Override
             public void onError(@NonNull String message) {
                 if (!isViewActive() || requestId != placesLoadVersion) {
@@ -660,6 +677,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         cardMapStatus.setVisibility(View.VISIBLE);
     }
 
+    // Shows a hint that no hotels are listed yet.
     private void showNoRegisteredHotelsState() {
         if (mMap != null) {
             mMap.clear();
@@ -671,6 +689,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         clearSelectedState();
     }
 
+    // Asks for location permission, or uses it if already given.
     private void requestOrLoadLocation() {
         if (!isAdded()) {
             return;
@@ -691,6 +710,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         enableMyLocationAndCenter();
     }
 
+    // Turns on the blue dot and centres the map on the user.
     @SuppressLint("MissingPermission")
     private void enableMyLocationAndCenter() {
         if (mMap == null || !isAdded()) {
@@ -730,6 +750,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         startLiveLocationUpdates();
     }
 
+    // Asks the phone for a fresh location fix.
     @SuppressLint("MissingPermission")
     private void requestFreshMapLocation() {
         if (!isAdded()) return;
@@ -750,6 +771,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 });
     }
 
+    // Starts getting location updates while the map is open.
     private void startLiveLocationUpdates() {
         if (!isAdded() || getContext() == null || getActivity() == null || isLocationUpdatesRunning) {
             return;
@@ -765,6 +787,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
         if (liveLocationCallback == null) {
             liveLocationCallback = new LocationCallback() {
+                // Handles each new location from the phone.
                 @Override
                 public void onLocationResult(@NonNull LocationResult locationResult) {
                     Location location = locationResult.getLastLocation();
@@ -810,6 +833,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
+    // Stops location updates.
     private void stopLiveLocationUpdates() {
         if (liveLocationCallback != null && isLocationUpdatesRunning) {
             fusedLocationClient.removeLocationUpdates(liveLocationCallback);
@@ -817,6 +841,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
+    // Remembers the user position and centres the map once.
     private void handleLocation(@Nullable Location location) {
         if (mMap == null) {
             return;
@@ -855,6 +880,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
+    // Offers to open the app settings to allow location.
     private void showOpenSettingsDialog() {
         if (!isAdded() || getContext() == null) {
             return;
@@ -897,6 +923,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 });
     }
 
+    // Moves the camera to the user.
     private void moveToCurrentLocation() {
         if (mMap == null || currentUserLatLng == null) {
             ToastUtils.showCustomToast(getContext(), R.string.map_current_location_not_available_yet);
@@ -906,6 +933,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentUserLatLng, 15f));
     }
 
+    // Draws one pin for each hotel.
     private void renderPlaceMarkers(@NonNull List<FoodPlace> places) {
         if (mMap == null) {
             return;
@@ -962,6 +990,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
+    // Selects the hotel a notification asked for, once its pin exists.
     private void maybeFocusDeepLinkedHotel() {
         if (pendingFocusHotelId == null || pendingFocusHotelId.trim().isEmpty()) {
             return;
@@ -981,6 +1010,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         pendingFocusHotelId = null;
     }
 
+    // Drops a pin on the searched place.
     private void renderSearchPin() {
         if (mMap == null || searchPin == null) {
             return;
@@ -996,6 +1026,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
     }
 
+    // Opens the hotel card and shows the straight-line distance.
     private void onPlaceSelected(@NonNull Marker marker, @NonNull FoodPlace place) {
         selectedPlace = place;
         selectedDestinationLatLng = new LatLng(place.getLatitude(), place.getLongitude());
@@ -1026,6 +1057,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(selectedDestinationLatLng, 15f));
     }
 
+    // Shows the straight-line distance to the hotel.
     private void showStraightLineHint(@Nullable LatLng origin, @Nullable LatLng destination) {
         if (tvRouteInfo == null) {
             return;
@@ -1039,6 +1071,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         tvRouteInfo.setText(getString(R.string.map_distance_hint_template, distanceKm));
     }
 
+    // Gets the driving route to the hotel and draws it.
     private void drawRouteToSelectedPlace() {
         if (selectedDestinationLatLng == null || selectedPlace == null) {
             ToastUtils.showCustomToast(getContext(), getString(R.string.map_select_destination_first));
@@ -1061,6 +1094,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             tvRouteInfo.setText(getString(R.string.map_calculating_route));
         }
         directionsApiClient.fetchRoute(currentUserLatLng, selectedDestinationLatLng, new DirectionsApiClient.Callback() {
+            // Draws the route if it is still the one wanted.
             @Override
             public void onSuccess(RouteResult result) {
                 if (!isMapUsable() || requestId != routeRequestVersion || !isSameLatLng(expectedDestination, selectedDestinationLatLng)) {
@@ -1072,6 +1106,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 drawPolyline(result);
             }
 
+            // Shows why the route could not be found.
             @Override
             public void onError(String message) {
                 if (!isViewActive() || requestId != routeRequestVersion || !isSameLatLng(expectedDestination, selectedDestinationLatLng)) {
@@ -1088,6 +1123,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         });
     }
 
+    // True when two points are almost the same spot.
     private boolean isSameLatLng(@Nullable LatLng a, @Nullable LatLng b) {
         if (a == null || b == null) {
             return false;
@@ -1096,6 +1132,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 && Math.abs(a.longitude - b.longitude) < 0.00001;
     }
 
+    // Updates the distance line unless a route is already drawn.
     private void maybeUpdateRouteInfo(@NonNull LatLng origin, @NonNull LatLng destination) {
         // A drawn route already shows road distance and ETA; don't replace it with a straight-line figure
         if (currentRoutePolyline != null) {
@@ -1124,6 +1161,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         lastRouteInfoOrigin = origin;
     }
 
+    // Draws the route line on the map.
     private void drawPolyline(@NonNull RouteResult routeResult) {
         if (mMap == null || currentUserLatLng == null || selectedDestinationLatLng == null || !isAdded() || getContext() == null) {
             return;
@@ -1150,6 +1188,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, dp(96)));
     }
 
+    // Removes the route line but keeps the selected hotel.
     private void clearRouteOnly() {
         if (currentRoutePolyline != null) {
             currentRoutePolyline.remove();
@@ -1157,6 +1196,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
+    // Counts the hotel's available dishes for the card.
     private void loadAvailableItemsPreview(@NonNull String hotelId) {
         Long cachedAt = hotelFoodPreviewCachedAt.get(hotelId);
         if (hotelFoodPreviewCache.containsKey(hotelId) && cachedAt != null
@@ -1169,6 +1209,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         // Use orderByChild query to avoid scanning all food items
         foodItemsRef.orderByChild("hotelId").equalTo(hotelId)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
+            // Counts the available dishes and updates the card.
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (!isAdded()) return;
@@ -1221,6 +1262,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 }
             }
 
+            // Shows that the dish count could not load.
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 if (!isAdded()) return;
@@ -1266,10 +1308,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         return null;
     }
 
+    // Turns a value into trimmed text.
     private String asString(Object value) {
         return value == null ? "" : String.valueOf(value).trim();
     }
 
+    // Turns a value into a whole number, or 0.
     private int asInt(Object value) {
         if (value == null) return 0;
         if (value instanceof Number) return ((Number) value).intValue();
@@ -1280,6 +1324,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
+    // Turns a value into a decimal number, or 0.
     private double asDouble(Object value) {
         if (value == null) return 0;
         if (value instanceof Number) return ((Number) value).doubleValue();
@@ -1290,6 +1335,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
+    // True when the phone allows animations.
     private boolean sheetAnimationsEnabled() {
         return Build.VERSION.SDK_INT < Build.VERSION_CODES.O || android.animation.ValueAnimator.areAnimatorsEnabled();
     }
@@ -1314,6 +1360,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
+    // Slides the hotel card down and hides it.
     private void hideSheet() {
         if (bottomSheet == null || bottomSheet.getVisibility() != View.VISIBLE) {
             return;
@@ -1334,6 +1381,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 }).start();
     }
 
+    // Forgets the selected hotel and its route.
     private void clearSelectedState() {
         selectedPlace = null;
         selectedDestinationLatLng = null;
@@ -1356,6 +1404,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
+    // Picks a pin colour from the distance to the user.
     private float markerColorForDistance(@NonNull LatLng destination) {
         if (currentUserLatLng == null) {
             return BitmapDescriptorFactory.HUE_RED;
@@ -1376,6 +1425,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         return BitmapDescriptorFactory.HUE_RED;
     }
 
+    // Rechecks GPS, restarts location updates and reloads old hotels.
     @Override
     public void onResume() {
         super.onResume();
@@ -1397,6 +1447,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
+    // Stops location updates and cancels pending route work.
     @Override
     public void onPause() {
         super.onPause();
@@ -1416,6 +1467,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
+    // Clears everything tied to the destroyed view and map.
     @Override
     public void onDestroyView() {
         stopLiveLocationUpdates();

@@ -43,6 +43,7 @@ public class MessagesActivity extends AppCompatActivity {
     private ValueEventListener listener;
     private String currentUserId;
 
+    // Sets up the list and back button; closes if not signed in.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -70,18 +71,21 @@ public class MessagesActivity extends AppCompatActivity {
         btnRetry.setOnClickListener(v -> startListening());
     }
 
+    // Start listening for chats when the screen is shown.
     @Override
     protected void onStart() {
         super.onStart();
         if (currentUserId != null) startListening();
     }
 
+    // Stop listening when the screen is hidden.
     @Override
     protected void onStop() {
         super.onStop();
         stopListening();
     }
 
+    // Loads the customer's chats from Firebase and keeps them live.
     private void startListening() {
         stopListening();
         progressBar.setVisibility(View.VISIBLE);
@@ -89,6 +93,7 @@ public class MessagesActivity extends AppCompatActivity {
 
         conversationsRef = FirebaseDatabase.getInstance().getReference("conversations").child(currentUserId);
         listener = new ValueEventListener() {
+            // Reads the chats, sorts newest first, shows them.
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 progressBar.setVisibility(View.GONE);
@@ -121,6 +126,7 @@ public class MessagesActivity extends AppCompatActivity {
                 showList(!sorted.isEmpty(), false);
             }
 
+            // Shows the retry state if loading fails.
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 DatabaseErrorLogger.log("MessagesActivity", "load conversations", error);
@@ -133,6 +139,7 @@ public class MessagesActivity extends AppCompatActivity {
         conversationsRef.addValueEventListener(listener);
     }
 
+    // Removes the Firebase listener.
     private void stopListening() {
         if (conversationsRef != null && listener != null) {
             conversationsRef.removeEventListener(listener);
@@ -140,6 +147,7 @@ public class MessagesActivity extends AppCompatActivity {
         listener = null;
     }
 
+    // Shows the list, or the empty / retry message.
     private void showList(boolean hasItems, boolean failed) {
         rvConversations.setVisibility(hasItems ? View.VISIBLE : View.GONE);
         emptyState.setVisibility(hasItems ? View.GONE : View.VISIBLE);
@@ -147,11 +155,13 @@ public class MessagesActivity extends AppCompatActivity {
         tvEmptyBody.setText(failed ? R.string.messages_load_failed : R.string.messages_empty_subtitle);
     }
 
+    // Gets the last message time, or 0 if missing.
     private static long timestampOf(Map<String, Object> conversation) {
         Object value = conversation.get("lastTimestamp");
         return value instanceof Number ? ((Number) value).longValue() : 0L;
     }
 
+    // Opens the chat screen for the tapped conversation.
     private void openConversation(Map<String, Object> conversation, String conversationId) {
         Intent intent = new Intent(this, ChatActivity.class);
         intent.putExtra(ChatActivity.EXTRA_HOTEL_ID, stringOf(conversation, "hotelId"));
@@ -164,6 +174,7 @@ public class MessagesActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    // Reads a text value from the map, or null.
     private static String stringOf(Map<String, Object> map, String key) {
         Object value = map.get(key);
         return value instanceof String ? (String) value : null;

@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+// Checks how many meals an order adds to the food rescued count.
 public class OrderImpactTest {
 
     private static Map<String, Object> line(Object quantity) {

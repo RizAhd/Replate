@@ -100,6 +100,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         return new NotifViewHolder(view);
     }
 
+    // Fills a header row or a notification row.
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         if (holder instanceof HeaderViewHolder) {
@@ -163,6 +164,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             tvSectionHeader = itemView.findViewById(R.id.tvSectionHeader);
         }
 
+        // Shows the section title.
         void bind(String sectionTitle) {
             tvSectionHeader.setText(sectionTitle);
         }
@@ -186,6 +188,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             tvCategoryChip = itemView.findViewById(R.id.tvCategoryChip);
         }
 
+        // Shows one notification with its icon, colour and time.
         void bind(AppNotification notif) {
             tvTitle.setText(notif.getTitle());
             tvBody.setText(notif.getBody());
@@ -253,6 +256,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             }
         }
 
+        // Turns a time into text like "5 mins ago".
         private String formatRelativeTime(long timestamp) {
             long diff = System.currentTimeMillis() - timestamp;
             long minutes = diff / (60 * 1000);

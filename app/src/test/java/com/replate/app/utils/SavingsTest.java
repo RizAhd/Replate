@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+// Checks how much money an order saved the customer.
 public class SavingsTest {
 
     @Test

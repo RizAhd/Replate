@@ -22,10 +22,12 @@ public class ShakeDetector implements SensorEventListener {
         void onShake(int count);
     }
 
+    // Sets who is told when a shake happens.
     public void setOnShakeListener(OnShakeListener listener) {
         this.listener = listener;
     }
 
+    // Works out the force and counts quick shakes.
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (listener == null) return;

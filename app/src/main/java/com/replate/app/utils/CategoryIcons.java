@@ -15,6 +15,7 @@ public final class CategoryIcons {
 
     private CategoryIcons() {}
 
+    // Picks an icon that fits the category name.
     @DrawableRes
     public static int forName(@Nullable String name) {
         String n = name == null ? "" : name.toLowerCase(Locale.ROOT);
@@ -25,6 +26,7 @@ public final class CategoryIcons {
         return R.drawable.ic_category_meals;
     }
 
+    // True when the text has any of the words.
     private static boolean containsAny(String text, String... words) {
         for (String word : words) {
             if (text.contains(word)) {

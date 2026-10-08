@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+// Checks the map and directions links built for a hotel.
 public class HotelNavigationTest {
 
     @Test

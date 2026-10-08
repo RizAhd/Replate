@@ -19,6 +19,7 @@ public class NotificationActionReceiver extends BroadcastReceiver {
     public static final String EXTRA_NOTIFICATION_KEY = "notification_key";
     public static final String EXTRA_SYSTEM_ID = "system_notification_id";
 
+    // Clears the notification and marks it read in Firebase.
     @Override
     public void onReceive(Context context, Intent intent) {
         if (intent == null || !ACTION_MARK_READ.equals(intent.getAction())) {

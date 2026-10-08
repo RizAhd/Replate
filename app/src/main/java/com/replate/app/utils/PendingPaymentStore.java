@@ -11,10 +11,12 @@ public final class PendingPaymentStore {
 
     private PendingPaymentStore() {}
 
+    // Opens the private storage file.
     private static SharedPreferences prefs(Context context) {
         return context.getApplicationContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
     }
 
+    // Writes the unsaved payment to the phone.
     public static void save(Context context, PendingPayment payment) {
         // commit(), not apply(): the record must be on disk before the app can be closed
         prefs(context).edit().putString(KEY, payment.encode()).commit();
@@ -26,6 +28,7 @@ public final class PendingPaymentStore {
         return payment != null && payment.userId.equals(userId) ? payment : null;
     }
 
+    // Deletes the saved payment.
     public static void clear(Context context) {
         prefs(context).edit().remove(KEY).commit();
     }

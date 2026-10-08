@@ -23,6 +23,7 @@ public final class SafeSnapshot {
         return stringOf(snapshot == null ? null : snapshot.getValue());
     }
 
+    // Turns any plain value into text, or null when empty.
     @Nullable
     public static String stringOf(@Nullable Object value) {
         if (value == null || value instanceof java.util.Map || value instanceof java.util.List) {
@@ -43,6 +44,7 @@ public final class SafeSnapshot {
         return fallback;
     }
 
+    // Reads a record as the given class, or null if it is malformed.
     @Nullable
     public static <T> T getValue(@Nullable DataSnapshot snapshot, Class<T> type) {
         if (snapshot == null) {

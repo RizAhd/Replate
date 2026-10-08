@@ -5,6 +5,7 @@ import com.google.firebase.database.IgnoreExtraProperties;
 
 import java.io.Serializable;
 
+// A customer review of a dish, saved in Firebase.
 @IgnoreExtraProperties
 public class Review implements Serializable {
     private String reviewId;
@@ -108,6 +109,7 @@ public class Review implements Serializable {
         this.verifiedPurchase = verifiedPurchase;
     }
 
+    // True when the review comes from a real purchase.
     @Exclude
     public boolean isVerified() {
         if (verifiedPurchase == null) return false;

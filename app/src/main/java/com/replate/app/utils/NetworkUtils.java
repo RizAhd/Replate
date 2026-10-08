@@ -7,6 +7,7 @@ import android.net.NetworkCapabilities;
 
 import androidx.annotation.Nullable;
 
+// Checks whether the phone is online.
 public final class NetworkUtils {
 
     private NetworkUtils() {}

@@ -59,6 +59,7 @@ public final class PickupSlot {
         }
     }
 
+    // Minutes since midnight to "HH:mm" text.
     public static String format(int minutes) {
         int m = Math.max(0, Math.min(minutes, DAY_MINUTES - 1));
         return String.format(Locale.US, "%02d:%02d", m / 60, m % 60);

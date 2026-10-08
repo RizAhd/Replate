@@ -106,6 +106,7 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
     private static ReplateDatabaseHelper instance;
     private final Gson gson = new Gson();
 
+    // Returns the one shared helper for the whole app.
     public static synchronized ReplateDatabaseHelper getInstance(Context context) {
         if (instance == null) {
             instance = new ReplateDatabaseHelper(context.getApplicationContext());
@@ -197,6 +198,7 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
         Log.d(TAG, "Database created with 7 tables");
     }
 
+    // Adds tables that older app versions did not have.
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         if (oldVersion < 2) {
@@ -242,6 +244,7 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
+    // Gives the SQL that creates the favourite hotels table.
     private static String createFavoriteHotelsSql() {
         return "CREATE TABLE IF NOT EXISTS " + TABLE_FAVORITE_HOTELS + " ("
                 + FH_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
@@ -252,6 +255,7 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
     }
 
     // SEARCH HISTORY — CRUD
+    // Remembers a search word, newest first.
     public void saveSearchQuery(String query) {
         if (query == null || query.trim().isEmpty()) return;
         try {
@@ -315,6 +319,7 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
     }
 
     // FAVORITES — CRUD
+    // Saves a dish as a favourite.
     public void addFavorite(FoodItem item) {
         if (item == null || item.getFoodId() == null) return;
         try {
@@ -432,6 +437,7 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
     }
 
     // FAVORITE HOTELS — CRUD
+    // Saves a hotel as a favourite.
     public void addFavoriteHotel(String hotelId, String name, String address) {
         if (hotelId == null || hotelId.trim().isEmpty()) return;
         try {
@@ -447,6 +453,7 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
+    // Removes a hotel from favourites.
     public void removeFavoriteHotel(String hotelId) {
         if (hotelId == null) return;
         try {
@@ -457,6 +464,7 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
+    // Tells if the hotel is a favourite.
     public boolean isFavoriteHotel(String hotelId) {
         if (hotelId == null) return false;
         try {
@@ -471,6 +479,7 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
+    // Returns all favourite hotels.
     public List<FavoriteHotel> getFavoriteHotels() {
         List<FavoriteHotel> hotels = new ArrayList<>();
         try {
@@ -491,6 +500,7 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
         return hotels;
     }
 
+    // Removes all favourite hotels.
     public void clearFavoriteHotels() {
         try {
             getWritableDatabase().delete(TABLE_FAVORITE_HOTELS, null, null);
@@ -512,6 +522,7 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
         writeNotifications(notifications, true);
     }
 
+    // Saves notifications, optionally removing the ones not in the list.
     private void writeNotifications(List<AppNotification> notifications, boolean replaceAll) {
         SQLiteDatabase db = null;
         try {
@@ -602,6 +613,7 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
         writeOrders(orders, true);
     }
 
+    // Saves orders, optionally removing the ones not in the list.
     private void writeOrders(List<Order> orders, boolean replaceAll) {
         SQLiteDatabase db = null;
         try {
@@ -679,6 +691,7 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
     }
 
     // FOOD ITEMS CACHE — CRUD
+    // Replaces the saved dish list with the new one.
     public void cacheFoodItems(List<FoodItem> items) {
         if (items == null || items.isEmpty()) return;
         SQLiteDatabase db = null;
@@ -783,6 +796,7 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
     }
 
     // USER PROFILE CACHE — CRUD
+    // Saves the signed-in user's profile for offline use.
     public void cacheUserProfile(String userId, String name, String email, String phone, String photoUrl, String address) {
         if (userId == null) return;
         try {
@@ -842,21 +856,25 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
     }
 
     // UTILITY — safe cursor reading
+    // Reads a text column safely.
     private String getStr(Cursor c, String col) {
         int idx = c.getColumnIndex(col);
         return idx >= 0 ? c.getString(idx) : null;
     }
 
+    // Reads a long column safely.
     private long getLng(Cursor c, String col) {
         int idx = c.getColumnIndex(col);
         return idx >= 0 ? c.getLong(idx) : 0;
     }
 
+    // Reads an int column safely.
     private int getInt(Cursor c, String col) {
         int idx = c.getColumnIndex(col);
         return idx >= 0 ? c.getInt(idx) : 0;
     }
 
+    // Reads a decimal column safely.
     private double getDbl(Cursor c, String col) {
         int idx = c.getColumnIndex(col);
         return idx >= 0 ? c.getDouble(idx) : 0.0;

@@ -41,10 +41,12 @@ public final class PendingPayment {
         this.lng = lng;
     }
 
+    // Turns null text into empty text.
     private static String nz(String s) {
         return s == null ? "" : s;
     }
 
+    // Makes the text safe to store in one line.
     private static String enc(String s) {
         try {
             return URLEncoder.encode(s, "UTF-8");
@@ -53,6 +55,7 @@ public final class PendingPayment {
         }
     }
 
+    // Reverses enc to get the original text.
     private static String dec(String s) {
         try {
             return URLDecoder.decode(s, "UTF-8");
@@ -61,6 +64,7 @@ public final class PendingPayment {
         }
     }
 
+    // Turns the record into one line of text.
     public String encode() {
         return "v1|" + enc(userId) + "|" + enc(orderId) + "|" + enc(otp) + "|" + enc(method) + "|" + paymentRef
                 + "|" + (delivery ? "1" : "0") + "|" + enc(customerName) + "|" + enc(customerPhone)

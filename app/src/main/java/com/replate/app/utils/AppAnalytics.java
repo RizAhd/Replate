@@ -17,6 +17,7 @@ public final class AppAnalytics {
 
     private AppAnalytics() {}
 
+    // Records that a dish was added to the cart.
     public static void addToCart(@Nullable Context context, @Nullable String itemId, @Nullable String itemName,
                                  double price, int quantity) {
         Bundle item = new Bundle();
@@ -32,6 +33,7 @@ public final class AppAnalytics {
         log(context, FirebaseAnalytics.Event.ADD_TO_CART, params);
     }
 
+    // Records a finished purchase.
     public static void purchase(@Nullable Context context, @Nullable String orderId, double value,
                                 @Nullable String paymentMethod) {
         Bundle params = new Bundle();
@@ -42,12 +44,14 @@ public final class AppAnalytics {
         log(context, FirebaseAnalytics.Event.PURCHASE, params);
     }
 
+    // Records a sign-in and the method used.
     public static void login(@Nullable Context context, String method) {
         Bundle params = new Bundle();
         params.putString(FirebaseAnalytics.Param.METHOD, safe(method));
         log(context, FirebaseAnalytics.Event.LOGIN, params);
     }
 
+    // Sends one event to analytics.
     private static void log(@Nullable Context context, String event, Bundle params) {
         if (context == null) {
             return;
@@ -59,6 +63,7 @@ public final class AppAnalytics {
         }
     }
 
+    // Turns null text into an empty string.
     private static String safe(@Nullable String value) {
         return value == null ? "" : value;
     }

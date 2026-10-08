@@ -19,6 +19,7 @@ public class GpsStateReceiver extends BroadcastReceiver {
         this.onChanged = onChanged;
     }
 
+    // Runs the callback when location is switched on or off.
     @Override
     public void onReceive(Context context, Intent intent) {
         if (intent != null && LocationManager.PROVIDERS_CHANGED_ACTION.equals(intent.getAction())) {

@@ -38,6 +38,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
     private CartAdapter adapter;
     private List<CartItem> cartItems = new ArrayList<>();
 
+    // Opens the cart database, finds the views, loads the items.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,12 +50,14 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
         loadCartItems();
     }
 
+    // Reload the cart each time the screen comes back.
     @Override
     protected void onResume() {
         super.onResume();
         loadCartItems();
     }
 
+    // Finds the views and sets up the list and buttons.
     private void initViews() {
         try {
             ImageView ivBack = findViewById(R.id.ivBack);
@@ -80,6 +83,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
             }
 
             if (tvClearCart != null) {
+                // Ask before emptying the whole cart.
                 tvClearCart.setOnClickListener(v -> {
                     if (!cartItems.isEmpty()) {
                         new AlertDialog.Builder(this)
@@ -99,6 +103,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
             }
 
             if (btnCheckout != null) {
+                // Go to checkout.
                 btnCheckout.setOnClickListener(v -> {
                     Intent intent = new Intent(this, CheckoutActivity.class);
                     startActivity(intent);
@@ -106,6 +111,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
             }
 
             if (btnBrowse != null) {
+                // Empty cart: go and browse nearby food.
                 btnBrowse.setOnClickListener(v -> {
                     Intent browseIntent = new Intent(this, SearchActivity.class);
                     browseIntent.putExtra("initial_filter", "nearby");
@@ -119,6 +125,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
         }
     }
 
+    // Reads the saved cart items and refreshes the screen.
     private void loadCartItems() {
         try {
             cartItems.clear();
@@ -134,6 +141,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
         }
     }
 
+    // Shows the empty state, or the total, count and savings.
     private void updateUI() {
         try {
             if (cartItems.isEmpty()) {
@@ -148,6 +156,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
                 if (emptyState != null) emptyState.setVisibility(View.GONE);
                 if (checkoutSection != null) checkoutSection.setVisibility(View.VISIBLE);
 
+                // Add up the item count and the money saved.
                 double total = cartDb != null ? cartDb.getCartTotal() : 0;
                 double savings = 0;
                 int itemCount = 0;
@@ -178,6 +187,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
         }
     }
 
+    // Saves the new quantity and reloads the cart.
     @Override
     public void onQuantityChanged(CartItem item, int newQuantity) {
         if (cartDb == null || item == null || item.getFoodId() == null) {
@@ -187,6 +197,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
         loadCartItems();
     }
 
+    // Removes the item and tells the user.
     @Override
     public void onRemoveItem(CartItem item) {
         if (cartDb == null || item == null || item.getFoodId() == null) {

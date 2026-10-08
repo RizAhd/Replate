@@ -84,6 +84,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
             statusIndicator = itemView.findViewById(R.id.statusIndicator);
         }
 
+        // Fills one order card with its details and buttons.
         void bind(Order order) {
             // Order ID (show last 8 characters)
             String orderId = order.getOrderId();
@@ -181,6 +182,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
             });
         }
 
+        // Colours the status label to match the order status.
         private void setStatusColor(String status) {
             int color;
             if (status == null) {

@@ -43,6 +43,7 @@ public final class ToastUtils {
         showCustomToast(context, message);
     }
 
+    // Shows the branded toast with the given text.
     public static void showCustomToast(Context context, String message) {
         if (context == null) {
             return;
@@ -61,6 +62,7 @@ public final class ToastUtils {
         }
     }
 
+    // Builds and shows the toast view.
     private static void showInternal(@NonNull Context context, @NonNull String message) {
         try {
             LayoutInflater inflater = LayoutInflater.from(context);
@@ -92,6 +94,7 @@ public final class ToastUtils {
         }
     }
 
+    // Converts dp to pixels.
     private static int dpToPx(@NonNull Context context, int dp) {
         float density = context.getResources().getDisplayMetrics().density;
         return Math.round(dp * density);

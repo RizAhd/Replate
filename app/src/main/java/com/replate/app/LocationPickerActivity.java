@@ -33,6 +33,7 @@ import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+// Map screen where the customer picks a pickup or delivery spot.
 public class LocationPickerActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
@@ -61,6 +62,7 @@ public class LocationPickerActivity extends AppCompatActivity implements OnMapRe
                 }
             });
 
+    // Finds the views, loads the map, wires search and buttons.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -83,6 +85,7 @@ public class LocationPickerActivity extends AppCompatActivity implements OnMapRe
 
         btnUseLiveLocation.setOnClickListener(v -> moveToLiveLocation(false));
 
+        // Confirm sends the chosen spot and address back.
         btnConfirmLocation.setOnClickListener(v -> {
             if (selectedLatLng != null && positionChosen) {
                 // The address lookup may still be running; fall back to the coordinates
@@ -101,6 +104,7 @@ public class LocationPickerActivity extends AppCompatActivity implements OnMapRe
         });
     }
 
+    // Runs a place search when the user submits text.
     private void setupSearch() {
         if (searchLocation == null) return;
 
@@ -121,6 +125,7 @@ public class LocationPickerActivity extends AppCompatActivity implements OnMapRe
         });
     }
 
+    // Finds the typed place and moves the map to it.
     private void searchAndMove(@NonNull String query) {
         if (!Geocoder.isPresent()) {
             ToastUtils.showCustomToast(this, getString(R.string.location_picker_search_failed));
@@ -156,6 +161,7 @@ public class LocationPickerActivity extends AppCompatActivity implements OnMapRe
         });
     }
 
+    // Sets up the map and tracks where the pin ends up.
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         mMap = googleMap;
@@ -179,6 +185,7 @@ public class LocationPickerActivity extends AppCompatActivity implements OnMapRe
         });
     }
 
+    // Asks for permission if needed, then jumps to the phone's position.
     private void moveToLiveLocation(boolean silent) {
         boolean fineGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED;
@@ -228,6 +235,7 @@ public class LocationPickerActivity extends AppCompatActivity implements OnMapRe
         }
     }
 
+    // Moves the map to the found position, or a default city.
     private void handleLocationResult(Location location) {
         if (mMap == null || isFinishing() || isDestroyed()) return;
 
@@ -245,10 +253,12 @@ public class LocationPickerActivity extends AppCompatActivity implements OnMapRe
         getAddress(target);
     }
 
+    // Formats a position as plain numbers.
     private static String coordinatesText(LatLng latLng) {
         return String.format(Locale.getDefault(), "%.5f, %.5f", latLng.latitude, latLng.longitude);
     }
 
+    // Remembers the address and shows it.
     private void applyAddress(String address) {
         selectedAddress = address;
         tvSelectedAddress.setText(address);
@@ -261,6 +271,7 @@ public class LocationPickerActivity extends AppCompatActivity implements OnMapRe
         }
     };
 
+    // Looks up the street address for a position.
     private void getAddress(LatLng latLng) {
         if (!Geocoder.isPresent()) {
             applyAddress(coordinatesText(latLng));
@@ -297,6 +308,7 @@ public class LocationPickerActivity extends AppCompatActivity implements OnMapRe
         }
     }
 
+    // Stops pending lookups.
     @Override
     protected void onDestroy() {
         super.onDestroy();

@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+// Checks which home banners are shown and in what order.
 public class BannerRepositoryTest {
 
     private static final long NOW = 1_700_000_000_000L;

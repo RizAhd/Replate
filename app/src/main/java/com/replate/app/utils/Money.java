@@ -15,6 +15,7 @@ public final class Money {
 
     private Money() {}
 
+    // Formats an amount like "LKR 1,250.00".
     public static String format(double amount) {
         // DecimalFormat is not thread-safe, so build one per call; this is cheap next to the UI work
         DecimalFormat df = new DecimalFormat("#,##0.00", DecimalFormatSymbols.getInstance(Locale.US));

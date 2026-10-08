@@ -9,6 +9,7 @@ import org.junit.Test;
 import java.util.Calendar;
 import java.util.TimeZone;
 
+// Checks when a pickup code expires.
 public class PickupWindowTest {
 
     private static final TimeZone UTC = TimeZone.getTimeZone("UTC");

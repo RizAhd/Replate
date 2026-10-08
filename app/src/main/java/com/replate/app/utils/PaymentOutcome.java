@@ -21,6 +21,7 @@ public final class PaymentOutcome {
 
     private PaymentOutcome() {}
 
+    // Turns the PayHere result into success, cancelled, unauthorised or failed.
     public static Kind classify(boolean resultOk, int responseStatus, int paymentStatus, String text) {
         String lower = text == null ? "" : text.toLowerCase(Locale.US);
         if (lower.contains("unauthorized")) return Kind.UNAUTHORIZED;

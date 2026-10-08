@@ -52,6 +52,7 @@ public class ConversationAdapter extends RecyclerView.Adapter<ConversationAdapte
         return new ViewHolder(view);
     }
 
+    // Fills one chat row with name, last message and time.
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Map<String, Object> conv = conversations.get(position);
@@ -102,6 +103,7 @@ public class ConversationAdapter extends RecyclerView.Adapter<ConversationAdapte
         return conversations.size();
     }
 
+    // Replaces the chat list with new data.
     public void setConversations(List<Map<String, Object>> newConversations, List<String> newIds) {
         conversations.clear();
         conversationIds.clear();
@@ -110,6 +112,7 @@ public class ConversationAdapter extends RecyclerView.Adapter<ConversationAdapte
         notifyDataSetChanged();
     }
 
+    // Reads a text value from the map, or uses the fallback.
     private String getString(Map<String, Object> map, String key, String fallback) {
         Object val = map.get(key);
         return val instanceof String ? (String) val : fallback;

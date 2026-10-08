@@ -21,6 +21,7 @@ public final class LocalDataCleaner {
 
     private LocalDataCleaner() {}
 
+    // Clears every local store, one step at a time.
     public static void clearAll(Context context) {
         if (context == null) {
             return;

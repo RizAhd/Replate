@@ -53,6 +53,7 @@ public final class CallHelper {
         permissionLauncher.launch(Manifest.permission.CALL_PHONE);
     }
 
+    // Calls directly if allowed, else opens the dialer.
     private void dial(String phone, boolean canCallDirectly, @Nullable Runnable onUnavailable) {
         try {
             if (canCallDirectly) {

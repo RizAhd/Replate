@@ -63,6 +63,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+// Login and sign-up screen: email, Google, Facebook, phone, password reset.
 public class LoginActivity extends AppCompatActivity {
 
     // Firebase
@@ -107,6 +108,7 @@ public class LoginActivity extends AppCompatActivity {
     private static final int RC_GOOGLE_SIGN_IN = 9001;
 
 
+    // Sets up Firebase, the social sign-in tools and the screen.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -130,16 +132,19 @@ public class LoginActivity extends AppCompatActivity {
         callbackManager = CallbackManager.Factory.create();
         LoginManager.getInstance().registerCallback(callbackManager,
                 new FacebookCallback<LoginResult>() {
+                    // Facebook login worked; sign in to Firebase with it.
                     @Override
                     public void onSuccess(LoginResult loginResult) {
                         firebaseAuthWithFacebook(loginResult.getAccessToken().getToken());
                     }
 
+                    // Facebook login was cancelled.
                     @Override
                     public void onCancel() {
                         showLoading(false);
                     }
 
+                    // Facebook login failed.
                     @Override
                     public void onError(@NonNull FacebookException error) {
                         showLoading(false);
@@ -174,6 +179,7 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
+    // Asks for notification permission when the phone requires it.
     private void requestNotificationPermissionIfNeeded() {
         if (!NotificationPermissionHelper.isRuntimePermissionRequired()
                 || NotificationPermissionHelper.hasPermission(this)) {
@@ -189,6 +195,7 @@ public class LoginActivity extends AppCompatActivity {
         NotificationPermissionHelper.request(this, REQ_POST_NOTIFICATIONS);
     }
 
+    // Finds all the views on the screen.
     private void initializeViews() {
         tabLayout = findViewById(R.id.tabLayout);
         loginForm = findViewById(R.id.loginForm);
@@ -223,6 +230,7 @@ public class LoginActivity extends AppCompatActivity {
         btnPhoneRegister = findViewById(R.id.btnPhoneRegister);
     }
 
+    // Switches between the login and register forms.
     private void setupTabLayout() {
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
@@ -254,6 +262,7 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
+    // Wires the buttons: login, register, social, forgot password.
     private void setupClickListeners() {
         // Login button
         btnLogin.setOnClickListener(new View.OnClickListener() {
@@ -304,6 +313,7 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
+    // Checks the form, then signs in with email and password.
     private void loginUser() {
         String email = etLoginEmail.getText().toString().trim();
         String password = etLoginPassword.getText().toString().trim();
@@ -319,6 +329,7 @@ public class LoginActivity extends AppCompatActivity {
         // Firebase Authentication
         mAuth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                // Handles the sign-in result and the email-verified check.
                 @Override
                 public void onComplete(@NonNull Task<AuthResult> task) {
                     if (!task.isSuccessful()) {
@@ -381,9 +392,11 @@ public class LoginActivity extends AppCompatActivity {
             });
     }
 
+    // Finds the user's role, then opens their home screen.
     private void resolveUserRoleAndProceed(FirebaseUser user) {
         mDatabase.child("users").child(user.getUid())
             .addListenerForSingleValueEvent(new ValueEventListener() {
+                // Creates a basic profile if missing, saves the session, goes home.
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     String role = snapshot.exists()
@@ -420,6 +433,7 @@ public class LoginActivity extends AppCompatActivity {
                     goToHomeByRole(role, user.getUid());
                 }
 
+                // Role check failed: sign out and show an error.
                 @Override
                 public void onCancelled(@NonNull DatabaseError error) {
                     // Do not guess the role: a hotel or admin sent to the customer screens would be confusing and wrong
@@ -430,6 +444,7 @@ public class LoginActivity extends AppCompatActivity {
             });
     }
 
+    // Checks the register form, then creates the account.
     private void registerUser() {
         String name = etRegisterName.getText().toString().trim();
         String email = etRegisterEmail.getText().toString().trim();
@@ -445,6 +460,7 @@ public class LoginActivity extends AppCompatActivity {
         performFirebaseRegistration(name, email, phone, password);
     }
 
+    // Creates the Firebase account for a new customer.
     private void performFirebaseRegistration(String name, String email, String phone, String password) {
         // Show loading
         showLoading(true);
@@ -452,6 +468,7 @@ public class LoginActivity extends AppCompatActivity {
         // Create user with Firebase
         mAuth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                // If the account was created, save the profile.
                 @Override
                 public void onComplete(@NonNull Task<AuthResult> task) {
                     if (!task.isSuccessful()) {
@@ -495,6 +512,7 @@ public class LoginActivity extends AppCompatActivity {
 
         mDatabase.child("users").child(userId).setValue(userData)
             .addOnCompleteListener(new OnCompleteListener<Void>() {
+                // Sends the verification email once the profile is saved.
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
                     if (!task.isSuccessful()) {
@@ -590,6 +608,7 @@ public class LoginActivity extends AppCompatActivity {
         }).start();
     }
 
+    // Reads the Firebase project id from the app config.
     private String getFirebaseProjectId() {
         try {
             com.google.firebase.FirebaseApp app = com.google.firebase.FirebaseApp.getInstance();
@@ -646,6 +665,7 @@ public class LoginActivity extends AppCompatActivity {
         return isValid;
     }
 
+    // Checks every register field and shows errors.
     private boolean validateRegisterInputs(String name, String email, String phone,
                                            String password, String confirmPassword) {
         boolean isValid = true;
@@ -727,6 +747,7 @@ public class LoginActivity extends AppCompatActivity {
             .show();
     }
 
+    // Tells the user to verify their email first.
     private void showEmailNotVerifiedDialog(String email) {
         new AlertDialog.Builder(this)
             .setTitle(R.string.login_email_not_verified)
@@ -757,6 +778,7 @@ public class LoginActivity extends AppCompatActivity {
             .show();
     }
 
+    // Opens the Google account picker.
     private void signInWithGoogle() {
         if (mGoogleSignInClient == null) {
             ToastUtils.showCustomToast(this, R.string.login_google_sign_in_is_not);
@@ -769,6 +791,7 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
+    // Handles the Google and Facebook sign-in results.
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -803,6 +826,7 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
+    // Signs in to Firebase with the Google account.
     private void firebaseAuthWithGoogle(String idToken) {
         showLoading(true);
         AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
@@ -822,6 +846,7 @@ public class LoginActivity extends AppCompatActivity {
                 // Check if user profile exists; if not, create it
                 mDatabase.child("users").child(user.getUid())
                     .addListenerForSingleValueEvent(new ValueEventListener() {
+                        // Creates a profile for a new Google user, then goes home.
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
                             if (!snapshot.exists()) {
@@ -842,6 +867,7 @@ public class LoginActivity extends AppCompatActivity {
                                     ToastUtils.showCustomToast(LoginActivity.this, "Welcome, " + (user.getDisplayName() != null ? user.getDisplayName() : "there") + "!");
                             goToHomeByRole(role, user.getUid());
                         }
+                        // Role check failed: sign out and show an error.
                         @Override
                         public void onCancelled(@NonNull DatabaseError error) {
                             // Do not guess the role: a hotel or admin sent to the customer screens would be confusing and wrong
@@ -859,6 +885,7 @@ public class LoginActivity extends AppCompatActivity {
         LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("email", "public_profile"));
     }
 
+    // Signs in to Firebase with the Facebook token.
     private void firebaseAuthWithFacebook(String token) {
         showLoading(true);
         AuthCredential credential = FacebookAuthProvider.getCredential(token);
@@ -908,6 +935,7 @@ public class LoginActivity extends AppCompatActivity {
 
         final PhoneAuthProvider.OnVerificationStateChangedCallbacks callbacks =
                 new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
+                    // The phone was verified automatically; sign in.
                     @Override
                     public void onVerificationCompleted(@NonNull PhoneAuthCredential credential) {
                         phoneAuthProgress.setVisibility(View.GONE);
@@ -915,6 +943,7 @@ public class LoginActivity extends AppCompatActivity {
                         signInWithPhoneCredential(credential);
                     }
 
+                    // Phone check failed; let the user try again.
                     @Override
                     public void onVerificationFailed(@NonNull com.google.firebase.FirebaseException e) {
                         android.util.Log.w("LoginActivity", "Phone verification failed", e);
@@ -924,6 +953,7 @@ public class LoginActivity extends AppCompatActivity {
                                 R.string.login_phone_verification_failed_please_try);
                     }
 
+                    // SMS sent: remember the id and show the code box.
                     @Override
                     public void onCodeSent(@NonNull String verificationId,
                                            @NonNull PhoneAuthProvider.ForceResendingToken token) {
@@ -1024,6 +1054,7 @@ public class LoginActivity extends AppCompatActivity {
         dialog.show();
     }
 
+    // Signs in to Firebase with the verified phone.
     private void signInWithPhoneCredential(PhoneAuthCredential credential) {
         showLoading(true);
         mAuth.signInWithCredential(credential)
@@ -1049,6 +1080,7 @@ public class LoginActivity extends AppCompatActivity {
     private void handleSocialAuthUser(FirebaseUser user) {
         mDatabase.child("users").child(user.getUid())
             .addListenerForSingleValueEvent(new ValueEventListener() {
+                // Creates a profile if new, then goes home.
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     if (!snapshot.exists()) {
@@ -1072,6 +1104,7 @@ public class LoginActivity extends AppCompatActivity {
                     goToHomeByRole(role, user.getUid());
                 }
 
+                // Role check failed: sign out and show an error.
                 @Override
                 public void onCancelled(@NonNull DatabaseError error) {
                     // Do not guess the role: a hotel or admin sent to the customer screens would be confusing and wrong
@@ -1082,6 +1115,7 @@ public class LoginActivity extends AppCompatActivity {
             });
     }
 
+    // Asks for an email to send a reset link.
     private void showForgotPasswordDialog() {
         // Create input field
         final TextInputEditText input = new TextInputEditText(this);
@@ -1106,6 +1140,7 @@ public class LoginActivity extends AppCompatActivity {
             .show();
     }
 
+    // Sends the password reset email.
     private void sendPasswordResetEmail(String email) {
         showLoading(true);
         mAuth.sendPasswordResetEmail(email)
@@ -1121,6 +1156,7 @@ public class LoginActivity extends AppCompatActivity {
             });
     }
 
+    // Saves the user id, role and name on the phone.
     private void saveUserSession(FirebaseUser user, String role) {
         if (user != null) {
             SharedPreferences prefs = getSharedPreferences("REPLATE_PREFS", MODE_PRIVATE);
@@ -1141,6 +1177,7 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
+    // Clears all the form error messages.
     private void clearErrors() {
         tilLoginEmail.setError(null);
         tilLoginPassword.setError(null);
@@ -1151,6 +1188,7 @@ public class LoginActivity extends AppCompatActivity {
         tilRegisterConfirmPassword.setError(null);
     }
 
+    // Shows or hides the progress bar and locks the buttons.
     private void showLoading(boolean show) {
         // INVISIBLE (not GONE) so the card does not jump when the bar appears
         progressBar.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
@@ -1164,6 +1202,7 @@ public class LoginActivity extends AppCompatActivity {
         if (btnPhoneRegister != null) btnPhoneRegister.setEnabled(!show);
     }
 
+    // Opens onboarding, or the home screen for this role.
     private void goToHomeByRole(String role, String userId) {
         // Show onboarding for first-time users before entering the app
         SharedPreferences prefs = getSharedPreferences("REPLATE_PREFS", MODE_PRIVATE);
@@ -1203,6 +1242,7 @@ public class LoginActivity extends AppCompatActivity {
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
     }
 
+    // Opens the hotel dashboard for hotel accounts.
     private void checkHotelApprovalStatus(String userId) {
         // Attempt hotel dashboard if present, otherwise fallback to main customer shell.
         try {

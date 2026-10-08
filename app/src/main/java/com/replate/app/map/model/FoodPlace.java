@@ -1,5 +1,6 @@
 package com.replate.app.map.model;
 
+// One hotel pin on the map.
 public class FoodPlace {
     private final String id;
     private final String name;

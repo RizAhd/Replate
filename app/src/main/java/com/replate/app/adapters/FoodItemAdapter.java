@@ -44,6 +44,7 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
 
     private Style style = Style.LIST;
 
+    // Switches between list, carousel and grid cards.
     public void setStyle(Style newStyle) {
         if (newStyle != null && newStyle != style) {
             style = newStyle;
@@ -64,6 +65,7 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
         setHasStableIds(true);
     }
 
+    // Inflates the card layout for the current style.
     @NonNull
     @Override
     public FoodViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -98,6 +100,7 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
         return foodItems.size();
     }
 
+    // Gives each dish a steady id so rows keep their place.
     @Override
     public long getItemId(int position) {
         FoodItem item = foodItems.get(position);
@@ -108,6 +111,7 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
         return key.hashCode();
     }
 
+    // Compares old and new lists in the background, then refreshes only what changed.
     public void updateData(List<FoodItem> newFoodItems) {
         List<FoodItem> oldList = this.foodItems == null ? Collections.emptyList() : new ArrayList<>(this.foodItems);
         List<FoodItem> newList = newFoodItems == null ? Collections.emptyList() : new ArrayList<>(newFoodItems);
@@ -126,6 +130,7 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
                     return newList.size();
                 }
 
+                // Same dish if the ids match, else same name and hotel.
                 @Override
                 public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
                     FoodItem oldItem = oldList.get(oldItemPosition);
@@ -140,6 +145,7 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
                             && safe(oldItem.getHotelName()).equals(safe(newItem.getHotelName()));
                 }
 
+                // Checks if anything shown on the card has changed.
                 @Override
                 public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
                     FoodItem oldItem = oldList.get(oldItemPosition);
@@ -169,10 +175,12 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
         });
     }
 
+    // True when the text is null or empty.
     private boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
     }
 
+    // Turns null text into an empty string.
     private String safe(String value) {
         return value == null ? "" : value;
     }
@@ -205,6 +213,7 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
             ivAddToCart = addButton != null ? addButton : itemView.findViewById(R.id.cardView);
         }
 
+        // Fills one food card: name, hotel, prices, badges and photo.
         void bind(FoodItem item) {
             if (tvFoodName != null) tvFoodName.setText(item.getFoodName());
             if (tvHotelName != null) {
@@ -279,6 +288,7 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
             }
         }
 
+        // Loads the dish photo from a web link or Firebase Storage.
         private void loadFoodImage(String imageSource) {
             if (ivFoodImage == null) {
                 return;

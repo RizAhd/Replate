@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+// Checks how phone numbers are cleaned up.
 public class TelephonyUtilsTest {
 
     @Test

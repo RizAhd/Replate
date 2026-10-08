@@ -5,6 +5,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+// Checks the checkout rules for phone, pickup time and amount.
 public class CheckoutValidatorTest {
 
     @Test

@@ -18,6 +18,7 @@ public final class NotificationPrefs {
 
     private NotificationPrefs() {}
 
+    // True when the user's switches allow this type of notification.
     public static boolean isAllowed(Context context, String category) {
         SharedPreferences prefs = context.getSharedPreferences("REPLATE_PREFS", Context.MODE_PRIVATE);
         if (!prefs.getBoolean(KEY_ENABLED, true)) {

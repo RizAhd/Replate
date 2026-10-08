@@ -5,6 +5,7 @@ import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 
+// Checks that other status names map to the app's own statuses.
 public class OrderStatusAliasesTest {
 
     @Test

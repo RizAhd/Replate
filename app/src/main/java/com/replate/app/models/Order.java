@@ -56,6 +56,7 @@ public class Order implements Serializable {
         try { return Double.parseDouble(val.toString()); } catch (Exception e) { return 0.0; }
     }
 
+    // Turns a saved value into a long number.
     @Exclude
     private static long toLong(Object val) {
         if (val == null) return 0L;
@@ -130,6 +131,7 @@ public class Order implements Serializable {
     public long getReviewAtValue() { return toLong(reviewAt); }
     public Object getReviewAt() { return reviewAt; }
 
+    // True when the customer has already reviewed this order.
     @Exclude
     public boolean hasReview() {
         if (hasReview instanceof Boolean) return (Boolean) hasReview;
@@ -187,6 +189,7 @@ public class Order implements Serializable {
                 && com.replate.app.utils.PickupWindow.isExpired(getPickupExpiresAtValue(), nowMillis);
     }
 
+    // True while the order is still in progress.
     @Exclude
     public boolean isActive() {
         // accepted / ready_for_pickup count as confirmed / ready, so such orders stay in the Active tab
@@ -201,6 +204,7 @@ public class Order implements Serializable {
                 status.equals("out_for_delivery"));
     }
 
+    // True when the order was collected or delivered.
     @Exclude
     public boolean isCompleted() {
         String status = com.replate.app.utils.OrderStatusAliases.canonical(orderStatus);
@@ -208,17 +212,20 @@ public class Order implements Serializable {
                (status.equals("completed") || status.equals("delivered"));
     }
 
+    // True when the order was cancelled or rejected.
     @Exclude
     public boolean isCancelled() {
         // rejected counts as cancelled
         return "cancelled".equals(com.replate.app.utils.OrderStatusAliases.canonical(orderStatus));
     }
 
+    // True for delivery orders.
     @Exclude
     public boolean isDelivery() {
         return orderType != null && orderType.equalsIgnoreCase("Delivery");
     }
 
+    // Gives the status as readable text for the screen.
     @Exclude
     public String getStatusDisplay() {
         if (orderStatus == null) return "Unknown";

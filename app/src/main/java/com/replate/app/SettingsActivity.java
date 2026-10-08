@@ -113,6 +113,7 @@ public class SettingsActivity extends AppCompatActivity {
     private Double pickedLat = null;
     private Double pickedLng = null;
 
+    // Sets up Firebase, camera and gallery pickers, then the screen.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -227,6 +228,7 @@ public class SettingsActivity extends AppCompatActivity {
         });
     }
 
+    // Finds the views and wires the buttons and switches.
     private void initViews() {
         ImageView ivBack = findViewById(R.id.ivBack);
         // Always show the real build version instead of a hard-coded number that drifts
@@ -304,6 +306,7 @@ public class SettingsActivity extends AppCompatActivity {
         findViewById(R.id.rowDeleteAccount).setOnClickListener(v -> AccountActions.confirmDelete(this));
     }
 
+    // Refreshes the switches after returning from phone settings.
     @Override
     protected void onResume() {
         super.onResume();
@@ -312,6 +315,7 @@ public class SettingsActivity extends AppCompatActivity {
         if (switchNotifications != null) refreshNotificationSwitch();
     }
 
+    // Shows whether location permission is on.
     private void refreshLocationSwitch() {
         boolean granted = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED
@@ -320,12 +324,14 @@ public class SettingsActivity extends AppCompatActivity {
         switchLocation.setChecked(granted);
     }
 
+    // Turns the notification type switches on or off together.
     private void updateNotifyCategoryState(boolean masterEnabled) {
         for (SwitchMaterial s : new SwitchMaterial[]{switchNotifyOrders, switchNotifyDeals, switchNotifyPickup}) {
             if (s != null) s.setEnabled(masterEnabled);
         }
     }
 
+    // Opens a screen without crashing if no app can handle it.
     private void startSafely(Intent intent) {
         try {
             startActivity(intent);
@@ -334,11 +340,13 @@ public class SettingsActivity extends AppCompatActivity {
         }
     }
 
+    // Opens this app's page in phone settings.
     private void openAppDetailsSettings() {
         startSafely(new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
                 Uri.fromParts("package", getPackageName(), null)));
     }
 
+    // Opens this app's notification settings.
     private void openSystemNotificationSettings() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             startSafely(new Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS)
@@ -348,6 +356,7 @@ public class SettingsActivity extends AppCompatActivity {
         }
     }
 
+    // Opens an email to support.
     private void contactSupport() {
         Intent intent = new Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:"));
         intent.putExtra(Intent.EXTRA_EMAIL, new String[]{getString(R.string.settings_support_email)});
@@ -355,6 +364,7 @@ public class SettingsActivity extends AppCompatActivity {
         startSafely(intent);
     }
 
+    // Opens the store page to rate the app.
     private void rateApp() {
         Intent store = new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + getPackageName()));
         try {
@@ -365,6 +375,7 @@ public class SettingsActivity extends AppCompatActivity {
         }
     }
 
+    // Shares the app through the phone's share menu.
     private void shareApp() {
         Intent send = new Intent(Intent.ACTION_SEND);
         send.setType("text/plain");
@@ -394,6 +405,7 @@ public class SettingsActivity extends AppCompatActivity {
         showNotificationSwitch(prefs.getBoolean(NotificationPrefs.KEY_ENABLED, true) && osAllowsNotifications());
     }
 
+    // Turns notifications on, asking permission if needed.
     private void requestNotificationPermissionFromSettings() {
         if (osAllowsNotifications()) {
             prefs.edit().putBoolean(NotificationPrefs.KEY_ENABLED, true).apply();
@@ -421,6 +433,7 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
 
+    // Loads the profile into the form.
     private void loadUserData() {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user == null) return;
@@ -448,6 +461,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         mDatabase.child("users").child(user.getUid())
                 .addListenerForSingleValueEvent(new ValueEventListener() {
+                    // Fills in the name, phone, address and photo.
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         if (!canUseUi()) return;
@@ -482,6 +496,7 @@ public class SettingsActivity extends AppCompatActivity {
                         }
                     }
 
+                    // Tells the user the profile did not load.
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
                         if (canUseUi()) {
@@ -492,6 +507,7 @@ public class SettingsActivity extends AppCompatActivity {
                 });
     }
 
+    // Sets the switches from the saved choices.
     private void loadPreferences() {
         // Reflect the phone's state without overwriting the saved choice
         refreshNotificationSwitch();
@@ -501,6 +517,7 @@ public class SettingsActivity extends AppCompatActivity {
         refreshLocationSwitch();
     }
 
+    // Lets the user take a photo or pick one.
     private void showPhotoPicker() {
         String[] options = new String[]{"Take photo", "Choose from gallery"};
         new AlertDialog.Builder(this)
@@ -537,6 +554,7 @@ public class SettingsActivity extends AppCompatActivity {
         }
     }
 
+    // Opens the camera if permission was given.
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
@@ -581,6 +599,7 @@ public class SettingsActivity extends AppCompatActivity {
         }
     }
 
+    // Keeps a copy of the profile photo on the phone.
     private void savePhotoToInternalStorage(Bitmap bitmap) {
         try {
             File file = new File(getFilesDir(), "profile_photo.jpg");
@@ -592,21 +611,25 @@ public class SettingsActivity extends AppCompatActivity {
         }
     }
 
+    // True while the screen is still open.
     private boolean canUseUi() {
         return !isFinishing() && !(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR1 && isDestroyed());
     }
 
+    // Shows a toast if the screen is still open.
     private void showBrandedToast(String message) {
         if (!canUseUi()) return;
         ToastUtils.showCustomToast(this, message);
     }
 
+    // True if Firebase Storage refused the upload.
     private boolean isPermissionDenied(Throwable error) {
         if (!(error instanceof StorageException)) return false;
         StorageException se = (StorageException) error;
         return se.getErrorCode() == StorageException.ERROR_NOT_AUTHORIZED;
     }
 
+    // Gets the photo link and saves it to the profile.
     private void uploadProfilePhotoToRef(StorageReference photoRef, FirebaseUser user) {
         photoRef.getDownloadUrl()
                 .addOnSuccessListener(uri -> {
@@ -735,6 +758,7 @@ public class SettingsActivity extends AppCompatActivity {
         }
     }
 
+    // Checks the form and saves the profile to Firebase.
     private void saveProfile() {
         String name = etName.getText() != null ? etName.getText().toString().trim() : "";
         String phone = etPhone.getText() != null ? etPhone.getText().toString().trim() : "";
@@ -772,6 +796,7 @@ public class SettingsActivity extends AppCompatActivity {
         }
     }
 
+    // Stops background work.
     @Override
     protected void onDestroy() {
         super.onDestroy();

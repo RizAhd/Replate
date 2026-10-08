@@ -54,6 +54,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     static final String CHANNEL_ID = "replate_notifications_v4";
     private static final String CHANNEL_NAME = "REPLATE Alerts";
 
+    // Saves the new push token and sends it to the server.
     @Override
     public void onNewToken(@NonNull String token) {
         super.onNewToken(token);
@@ -62,6 +63,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         syncTokenToActiveUser(token);
     }
 
+    // Reads a push message, saves it to the inbox and shows it.
     @Override
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
@@ -125,6 +127,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         showNotification(title, body, data);
     }
 
+    // Sends the push token to the signed-in user's account.
     private void syncTokenToActiveUser(@NonNull String token) {
         if (token.trim().isEmpty()) {
             if (BuildConfig.DEBUG) Log.w(TAG, "Skipping token sync because token is blank");
@@ -197,6 +200,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         return notificationRef.getKey();
     }
 
+    // Builds and shows the notification in the status bar.
     private void showNotification(String title, String body, Map<String, String> data) {
         createChannelIfNeeded();
 
@@ -284,6 +288,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         managerCompat.notify(systemId, builder.build());
     }
 
+    // Makes sure the notification channel exists.
     private void createChannelIfNeeded() {
         createChannel(this);
     }
@@ -308,6 +313,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         manager.createNotificationChannel(channel);
     }
 
+    // Picks the screen to open when the notification is tapped.
     private Intent buildIntentForNotification(Map<String, String> data) {
         Intent intent = NotificationRouter.buildIntent(
                 this,
@@ -327,6 +333,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         return intent;
     }
 
+    // True when the app is open on screen.
     private boolean isAppInForeground() {
         ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         if (activityManager == null) return false;
@@ -345,6 +352,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         return false;
     }
 
+    // Reads a value from the map, or the fallback if empty.
     private String value(Map<String, String> map, String key, String fallback) {
         if (map == null) return fallback;
         String value = map.get(key);

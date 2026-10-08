@@ -5,6 +5,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+// Checks that missing or placeholder sign-in keys count as not set up.
 public class SignInConfigTest {
 
     @Test

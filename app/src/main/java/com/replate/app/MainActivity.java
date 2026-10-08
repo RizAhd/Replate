@@ -58,6 +58,7 @@ import com.replate.app.utils.UserRoleHelper;
 
 import java.util.concurrent.TimeUnit;
 
+// Main shell: bottom tabs, side drawer and shake to refresh.
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
     private static final float SHAKE_THRESHOLD = 12.0f;
@@ -106,6 +107,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 }
             });
 
+    // Needs a signed-in user; sets up tabs, drawer and background work.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -245,6 +247,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mainContent.postDelayed(this::maybeRequestLocationAfterAuth, 500);
     }
 
+    // Shows the user's name and photo in the side drawer.
     private void bindDrawerHeader() {
         if (navigationView == null || mAuth.getCurrentUser() == null) return;
 
@@ -269,6 +272,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         FirebaseDatabase.getInstance().getReference("users")
                 .child(mAuth.getCurrentUser().getUid())
                 .addListenerForSingleValueEvent(new ValueEventListener() {
+                    // Fills the drawer name from the profile.
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         if (tvDrawerName != null) {
@@ -294,6 +298,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         }
                     }
 
+                    // Falls back to a welcome message.
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
                         if (tvDrawerName != null) {
@@ -303,26 +308,31 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 });
     }
 
+    // Shows the chosen tab.
     private boolean switchFragment(Fragment fragment) {
         loadFragment(fragment);
         return true;
     }
 
+    // Creates the Home tab once and reuses it.
     private HomeFragment getHomeFragment() {
         if (homeFragment == null) homeFragment = new HomeFragment();
         return homeFragment;
     }
 
+    // Creates the Map tab once and reuses it.
     private MapFragment getMapFragment() {
         if (mapFragment == null) mapFragment = new MapFragment();
         return mapFragment;
     }
 
+    // Creates the Orders tab once and reuses it.
     private OrdersFragment getOrdersFragment() {
         if (ordersFragment == null) ordersFragment = new OrdersFragment();
         return ordersFragment;
     }
 
+    // Creates the Profile tab once and reuses it.
     private ProfileFragment getProfileFragment() {
         if (profileFragment == null) profileFragment = new ProfileFragment();
         return profileFragment;
@@ -380,10 +390,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         activeFragment = fragment;
     }
 
+    // Lets other screens change the selected tab.
     public void switchToTab(int tabId) {
         bottomNavigation.setSelectedItemId(tabId);
     }
 
+    // Opens the side drawer.
     public void openDrawer() {
         if (drawerLayout != null) {
             drawerLayout.openDrawer(GravityCompat.START);
@@ -409,6 +421,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 ContextCompat.RECEIVER_NOT_EXPORTED);
     }
 
+    // Syncs orders every 15 minutes when online.
     private void scheduleBackgroundSync() {
         Constraints constraints = new Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -426,6 +439,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         );
     }
 
+    // Asks for notification permission if the phone needs it.
     private void checkNotificationPermissions() {
         if (!NotificationPermissionHelper.isRuntimePermissionRequired()
                 || NotificationPermissionHelper.hasPermission(this)) {
@@ -441,6 +455,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         NotificationPermissionHelper.request(this, 101);
     }
 
+    // Keeps content clear of the status and navigation bars.
     private void applySystemInsets() {
         if (drawerLayout == null) return;
 
@@ -479,6 +494,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         });
     }
 
+    // Stops the network watcher.
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -492,18 +508,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
+    // Start receiving in-app notifications.
     @Override
     protected void onStart() {
         super.onStart();
         com.replate.app.notifications.InAppNotificationCenter.register(inAppListener);
     }
 
+    // Stop receiving in-app notifications.
     @Override
     protected void onStop() {
         super.onStop();
         com.replate.app.notifications.InAppNotificationCenter.unregister(inAppListener);
     }
 
+    // Start listening for shakes.
     @Override
     protected void onResume() {
         super.onResume();
@@ -512,6 +531,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
+    // Stop listening for shakes.
     @Override
     protected void onPause() {
         super.onPause();
@@ -541,11 +561,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
+    // Sensor accuracy is not used.
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
         // Not needed
     }
 
+    // Vibrates and refreshes the current tab.
     private void onShakeDetected() {
         // The Home screen has its own shake handler, so do nothing here (it avoids a double refresh)
         if (activeFragment instanceof HomeFragment) return;
@@ -566,6 +588,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         refreshCurrentFragment();
     }
 
+    // Reloads whichever tab is showing, except the map.
     private void refreshCurrentFragment() {
         Fragment current = activeFragment;
         if (current instanceof HomeFragment) {
@@ -579,6 +602,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
+    // Opens the right tab when a notification is tapped.
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
@@ -609,6 +633,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         handleDeepLinkFromNotification(intent);
     }
 
+    // Opens the order a notification is about.
     private void handleDeepLinkFromNotification(Intent intent) {
         if (intent == null) return;
 
@@ -627,6 +652,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
+    // Works out which tab a notification should open.
     private String resolveOpenTabFromNotificationIntent(Intent intent) {
         if (intent == null) return null;
 
@@ -651,6 +677,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     // Back navigation handled via OnBackPressedDispatcher in onCreate
 
+    // Shows the help message.
     private void showHelpDialog() {
         if (isFinishing() || isDestroyed()) return;
         new AlertDialog.Builder(this)
@@ -660,6 +687,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 .show();
     }
 
+    // Signs out, wipes local data and returns to the start.
     public void logoutToLogin() {
         if (isFinishing() || isDestroyed()) {
             return;
@@ -703,6 +731,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         finish();
     }
 
+    // Asks for location once after the first login.
     private void maybeRequestLocationAfterAuth() {
         SharedPreferences prefs = getSharedPreferences("REPLATE_PREFS", MODE_PRIVATE);
         boolean shouldPrompt = prefs.getBoolean("pending_location_permission_prompt", false);
@@ -734,6 +763,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         });
     }
 
+    // Explains why location is needed before asking.
     private void showLocationRationaleDialog() {
         if (isFinishing() || isDestroyed()) return;
         new AlertDialog.Builder(this)
@@ -748,6 +778,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 .show();
     }
 
+    // Sends the user to settings to allow location.
     private void showLocationSettingsDialog() {
         if (isFinishing() || isDestroyed()) return;
         new AlertDialog.Builder(this)

@@ -6,6 +6,7 @@ import com.replate.app.map.model.FoodPlace;
 
 import java.util.List;
 
+// Source of the places shown on the map.
 public interface PlacesDataSource {
 
     interface Callback {

@@ -6,6 +6,7 @@ import com.replate.app.R;
 
 import org.junit.Test;
 
+// Checks that each category name gets the right icon.
 public class CategoryIconsTest {
 
     @Test

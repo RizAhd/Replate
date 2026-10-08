@@ -2,6 +2,7 @@ package com.replate.app.notifications;
 
 import java.util.Locale;
 
+// The notification types and a helper that cleans up a type name.
 public final class NotificationCategories {
     public static final String WELCOME = "welcome";
     public static final String NEW_DEALS = "new_deals";
@@ -23,6 +24,7 @@ public final class NotificationCategories {
 
     private NotificationCategories() {}
 
+    // Maps any type text to one of the known types.
     public static String normalize(String raw) {
         String category = raw == null ? "" : raw.trim().toLowerCase(Locale.US);
         if (category.isEmpty()) return GENERAL;

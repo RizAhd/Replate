@@ -33,6 +33,7 @@ public class CartDatabaseHelper extends SQLiteOpenHelper {
 
     private static CartDatabaseHelper instance;
 
+    // Returns the one shared helper for the whole app.
     public static synchronized CartDatabaseHelper getInstance(Context context) {
         if (instance == null) {
             instance = new CartDatabaseHelper(context.getApplicationContext());
@@ -44,6 +45,7 @@ public class CartDatabaseHelper extends SQLiteOpenHelper {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
+    // Creates the cart table the first time.
     @Override
     public void onCreate(SQLiteDatabase db) {
         String createTable = "CREATE TABLE " + TABLE_CART + " ("
@@ -60,6 +62,7 @@ public class CartDatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(createTable);
     }
 
+    // Rebuilds the cart table when the version changes.
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_CART);

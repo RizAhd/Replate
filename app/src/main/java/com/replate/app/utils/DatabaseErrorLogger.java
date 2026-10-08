@@ -16,6 +16,7 @@ public final class DatabaseErrorLogger {
 
     private DatabaseErrorLogger() {}
 
+    // Writes the database error to the log.
     public static void log(@NonNull String tag, @NonNull String where, @NonNull DatabaseError error) {
         Log.w(tag, where + " cancelled: " + error.getMessage() + " (code " + error.getCode() + ")");
         try {

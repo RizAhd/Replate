@@ -10,6 +10,7 @@ import org.junit.Test;
 
 import java.util.Collections;
 
+// Checks that saved routes are reused for a while and then expire.
 public class RouteCacheTest {
 
     private static RouteResult route(String distance) {

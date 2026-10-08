@@ -19,6 +19,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+// List of customer reviews with edit and delete for your own.
 public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewViewHolder> {
 
     public interface ReviewActionListener {
@@ -53,6 +54,7 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
         return reviews.size();
     }
 
+    // Replaces all reviews in the list.
     public void submitList(List<Review> newReviews) {
         reviews.clear();
         if (newReviews != null) reviews.addAll(newReviews);
@@ -81,6 +83,7 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
             ratingBar = itemView.findViewById(R.id.ratingReviewItem);
         }
 
+        // Shows one review; edit and delete only for the owner.
         void bind(Review review) {
             tvReviewer.setText(review.getUserName() != null ? review.getUserName() : "Anonymous");
             ratingBar.setRating(review.getRatingValue());

@@ -21,6 +21,7 @@ public final class ReviewWriter {
 
     private ReviewWriter() {}
 
+    // Writes the order review and a copy for each dish.
     public static void saveOrderReview(@NonNull DatabaseReference root, @NonNull Order order,
                                        @NonNull String userId, float rating, @NonNull String comment) {
         String orderId = order.getOrderId();

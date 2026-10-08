@@ -46,6 +46,7 @@ public final class RouteCache {
         return String.format(Locale.US, "%.3f,%.3f>%.5f,%.5f", originLat, originLng, destLat, destLng);
     }
 
+    // Returns a saved route if it is still fresh, else null.
     @Nullable
     public RouteResult get(@NonNull String key, long now) {
         Entry entry = entries.get(key);
@@ -59,6 +60,7 @@ public final class RouteCache {
         return entry.result;
     }
 
+    // Saves a route, clearing the cache first if it is full.
     public void put(@NonNull String key, @NonNull RouteResult result, long now) {
         if (entries.size() >= MAX_ENTRIES) {
             entries.clear();

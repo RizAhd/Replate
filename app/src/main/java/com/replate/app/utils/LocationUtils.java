@@ -2,6 +2,7 @@ package com.replate.app.utils;
 
 import android.location.Location;
 
+// Distance helper for locations.
 public class LocationUtils {
 
     /**

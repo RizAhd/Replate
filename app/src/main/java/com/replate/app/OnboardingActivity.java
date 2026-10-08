@@ -38,6 +38,7 @@ public class OnboardingActivity extends AppCompatActivity {
     /** True when we were launched right after the user registered / signed in. */
     private boolean isPostAuth = false;
 
+    // Shows the slides, or skips them if already seen.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -83,6 +84,7 @@ public class OnboardingActivity extends AppCompatActivity {
 
         // Handle page changes
         viewPagerOnboarding.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            // Changes the button text and hides Skip on the last page.
             @Override
             public void onPageSelected(int position) {
                 super.onPageSelected(position);
@@ -112,6 +114,7 @@ public class OnboardingActivity extends AppCompatActivity {
         });
     }
 
+    // Checks that the phone allows animations.
     private boolean animationsEnabled() {
         return Build.VERSION.SDK_INT < Build.VERSION_CODES.O || ValueAnimator.areAnimatorsEnabled();
     }
@@ -210,6 +213,7 @@ public class OnboardingActivity extends AppCompatActivity {
         private static final float MIN_SCALE = 0.85f;
         private static final float MIN_ALPHA = 0.5f;
 
+        // Fades and shrinks pages as they slide away.
         @Override
         public void transformPage(View page, float position) {
             int pageWidth = page.getWidth();

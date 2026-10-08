@@ -9,10 +9,12 @@ import androidx.annotation.NonNull;
 import com.google.android.material.snackbar.Snackbar;
 import com.replate.app.R;
 
+// Shows a banner at the bottom of the screen for a new notification.
 public final class InAppNotificationPopup {
 
     private InAppNotificationPopup() {}
 
+    // Shows the banner with a View button.
     public static void show(@NonNull Activity activity,
                             @NonNull InAppNotificationCenter.InAppNotificationMessage message) {
         View root = activity.findViewById(android.R.id.content);
@@ -33,6 +35,7 @@ public final class InAppNotificationPopup {
         snackbar.show();
     }
 
+    // Picks the screen the View button should open.
     private static Intent buildIntent(Activity activity, InAppNotificationCenter.InAppNotificationMessage message) {
         String category = NotificationCategories.normalize(message.category);
 
@@ -65,6 +68,7 @@ public final class InAppNotificationPopup {
         return intent;
     }
 
+    // Picks the banner colour for the notification type.
     private static int backgroundByCategory(Activity activity, String category) {
         String normalized = NotificationCategories.normalize(category);
         if (NotificationCategories.ORDER_CANCELLED.equals(normalized)

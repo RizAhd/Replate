@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+// Checks the map rules for coordinates, dish status, stock and rating.
 public class MapRulesTest {
 
     @Test

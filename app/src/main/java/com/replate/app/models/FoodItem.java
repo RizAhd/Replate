@@ -52,6 +52,7 @@ public class FoodItem implements Serializable {
 
     public FoodItem() {}
 
+    // Turns a saved value into a decimal number.
     @Exclude
     private static double toDouble(Object val) {
         if (val == null) return 0.0;
@@ -59,6 +60,7 @@ public class FoodItem implements Serializable {
         try { return Double.parseDouble(String.valueOf(val)); } catch (Exception e) { return 0.0; }
     }
 
+    // Turns a saved value into a whole number.
     @Exclude
     private static int toInt(Object val) {
         if (val == null) return 0;
@@ -66,6 +68,7 @@ public class FoodItem implements Serializable {
         try { return Integer.parseInt(String.valueOf(val)); } catch (Exception e) { return 0; }
     }
 
+    // Turns a saved value into a long number.
     @Exclude
     private static long toLong(Object val) {
         if (val == null) return 0L;
@@ -73,6 +76,7 @@ public class FoodItem implements Serializable {
         try { return Long.parseLong(String.valueOf(val)); } catch (Exception e) { return 0L; }
     }
 
+    // Turns a saved value into true or false.
     @Exclude
     private static boolean toBool(Object val) {
         if (val == null) return false;
@@ -95,6 +99,7 @@ public class FoodItem implements Serializable {
     public double getDiscountedPriceValue() { return toDouble(discountedPrice); }
     public Object getDiscountedPrice() { return discountedPrice; }
 
+    // Gives the discount percent from either saved field name.
     @Exclude
     public int getDiscountPercentValue() {
         if (discountPercent != null) return toInt(discountPercent);
@@ -114,11 +119,13 @@ public class FoodItem implements Serializable {
     public int getQuantityValue() { return toInt(quantity); }
     public Object getQuantity() { return quantity; }
 
+    // Gives the pickup start time from either saved field name.
     public String getPickupTimeStart() {
         if (pickupTimeStart != null && !pickupTimeStart.isEmpty()) return pickupTimeStart;
         return pickupStart;
     }
 
+    // Gives the pickup end time from either saved field name.
     public String getPickupTimeEnd() {
         if (pickupTimeEnd != null && !pickupTimeEnd.isEmpty()) return pickupTimeEnd;
         return pickupEnd;
@@ -128,6 +135,7 @@ public class FoodItem implements Serializable {
     public long getCreatedAtValue() { return toLong(createdAt); }
     public Object getCreatedAt() { return createdAt; }
 
+    // True when the dish status says it can be ordered.
     @Exclude
     public boolean isAvailableValue() {
         String normalizedStatus = status == null ? "" : status.trim().toLowerCase();
@@ -226,6 +234,7 @@ public class FoodItem implements Serializable {
     public void setHotelRating(Object hotelRating) { this.hotelRating = hotelRating; }
     public void setDistance(double distance) { this.distance = distance; }
 
+    // Gives the pickup window as "start - end" text.
     @Exclude
     public String getPickupTimeFormatted() {
         String start = getPickupTimeStart() != null ? getPickupTimeStart() : "";
@@ -233,12 +242,14 @@ public class FoodItem implements Serializable {
         return start + " - " + end;
     }
 
+    // Shows the distance in metres or kilometres.
     @Exclude
     public String getDistanceFormatted() {
         if (distance < 1) return String.format("%.0f m", distance * 1000);
         return String.format("%.1f km", distance);
     }
 
+    // True when no quantity is set or some portions remain.
     @Exclude
     public boolean hasStock() {
         return quantity == null || getQuantityValue() > 0;
@@ -250,11 +261,13 @@ public class FoodItem implements Serializable {
         return quantity != null && getQuantityValue() >= 1 && getQuantityValue() <= LOW_STOCK_MAX;
     }
 
+    // True when the hotel location is set.
     @Exclude
     public boolean hasValidCoordinates() {
         return getLatitudeValue() != 0 && getLongitudeValue() != 0;
     }
 
+    // True when the dish should be shown to customers.
     @Exclude
     public boolean isListable() {
         return isAvailableValue() && hasStock() && !isPickupClosedNow();
@@ -269,6 +282,7 @@ public class FoodItem implements Serializable {
                 com.replate.app.utils.PickupSlot.windowOf(getPickupTimeStart(), getPickupTimeEnd()), minutes);
     }
 
+    // True when the dish belongs to the chosen category.
     @Exclude
     public boolean matchesCategory(String selectedCategory) {
         if (selectedCategory == null || selectedCategory.trim().isEmpty() || "All".equalsIgnoreCase(selectedCategory)) {
@@ -277,6 +291,7 @@ public class FoodItem implements Serializable {
         return selectedCategory.equalsIgnoreCase(category == null ? "" : category.trim());
     }
 
+    // True when the search text is in the name, hotel, category or description.
     @Exclude
     public boolean matchesQuery(String query) {
         if (query == null || query.trim().isEmpty()) return true;

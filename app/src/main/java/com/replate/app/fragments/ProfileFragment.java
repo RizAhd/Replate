@@ -64,12 +64,14 @@ public class ProfileFragment extends Fragment {
     private DatabaseReference mDatabase;
     private ReplateDatabaseHelper localDb;
 
+    // Turns a saved value into a decimal number.
     private static double toDouble(Object val) {
         if (val == null) return 0.0;
         if (val instanceof Number) return ((Number) val).doubleValue();
         try { return Double.parseDouble(val.toString()); } catch (Exception e) { return 0.0; }
     }
 
+    // Builds the Profile screen and loads the user's data.
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -89,6 +91,7 @@ public class ProfileFragment extends Fragment {
         return view;
     }
 
+    // Finds the views on the screen.
     private void initViews(View view) {
         ivProfileImage = view.findViewById(R.id.ivProfileImage);
         tvUserName = view.findViewById(R.id.tvUserName);
@@ -136,6 +139,7 @@ public class ProfileFragment extends Fragment {
         }
     }
 
+    // Reads the user's profile from Firebase and shows it.
     private void loadUserData() {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user == null) return;
@@ -148,6 +152,7 @@ public class ProfileFragment extends Fragment {
 
         mDatabase.child("users").child(user.getUid())
                 .addListenerForSingleValueEvent(new ValueEventListener() {
+                    // Shows the fresh profile and saves a copy.
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         if (snapshot.exists()) {
@@ -187,6 +192,7 @@ public class ProfileFragment extends Fragment {
                         }
                     }
 
+                    // Logs why the refresh failed.
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
                         // Cached data is already on screen; just record why the refresh failed
@@ -195,12 +201,14 @@ public class ProfileFragment extends Fragment {
                 });
     }
 
+    // Gives the email, or the phone number if there is none.
     private String contactLine(FirebaseUser user) {
         if (user.getEmail() != null && !user.getEmail().trim().isEmpty()) return user.getEmail();
         if (user.getPhoneNumber() != null && !user.getPhoneNumber().trim().isEmpty()) return user.getPhoneNumber();
         return "";
     }
 
+    // Gives a name from the account, the email or a guest name.
     private String fallbackName(FirebaseUser user) {
         if (user.getDisplayName() != null && !user.getDisplayName().trim().isEmpty()) return user.getDisplayName();
         String email = user.getEmail();
@@ -208,6 +216,7 @@ public class ProfileFragment extends Fragment {
         return getString(R.string.profile_guest_name);
     }
 
+    // Counts the user's orders and the money saved.
     private void loadStats() {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user == null) return;
@@ -217,6 +226,7 @@ public class ProfileFragment extends Fragment {
                 .orderByChild("userId")
                 .equalTo(user.getUid())
                 .addListenerForSingleValueEvent(new ValueEventListener() {
+                    // Adds up the orders and savings and shows them.
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         int orderCount = 0;
@@ -243,6 +253,7 @@ public class ProfileFragment extends Fragment {
                         renderSavingsChart(savedPerOrder);
                     }
 
+                    // Logs the read error.
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
                         com.replate.app.utils.DatabaseErrorLogger.log("ProfileFragment", "order stats", error);
@@ -281,6 +292,7 @@ public class ProfileFragment extends Fragment {
         dataSet.setValueTextColor(grey);
         dataSet.setValueTextSize(10f);
         dataSet.setValueFormatter(new ValueFormatter() {
+            // Labels each bar with its saved amount.
             @Override
             public String getBarLabel(BarEntry barEntry) {
                 return Money.formatWhole(barEntry.getY());
@@ -310,6 +322,7 @@ public class ProfileFragment extends Fragment {
         chartSavings.invalidate();
     }
 
+    // Wires up the profile buttons.
     private void setupClickListeners() {
         btnEditProfile.setOnClickListener(v -> {
             // SettingsActivity contains the complete photo upload/edit flow.
@@ -351,6 +364,7 @@ public class ProfileFragment extends Fragment {
         btnDeleteAccount.setOnClickListener(v -> showDeleteAccountDialog());
     }
 
+    // Reloads the profile when the screen returns.
     @Override
     public void onResume() {
         super.onResume();
@@ -358,10 +372,12 @@ public class ProfileFragment extends Fragment {
         loadStats();
     }
 
+    // Asks to confirm sign out.
     private void showLogoutDialog() {
         AccountActions.confirmLogout(requireActivity());
     }
 
+    // Asks to confirm account deletion.
     private void showDeleteAccountDialog() {
         AccountActions.confirmDelete(requireActivity());
     }
