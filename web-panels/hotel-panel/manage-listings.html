@@ -228,6 +228,9 @@
             if (!ok) return;
             try {
                 await database.ref('foodItems/' + key).remove();
+                // Also clear the dish from the hotel's food index
+                await Promise.all(Array.from(hotelIds).map((id) =>
+                    database.ref('indexes/foodByHotel/' + id + '/' + key).remove().catch(() => {})));
                 ReplateUI.toast('Listing deleted.', 'success');
             } catch (error) {
                 console.error(error);

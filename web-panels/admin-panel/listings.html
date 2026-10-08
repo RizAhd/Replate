@@ -252,6 +252,9 @@
         ReplateUI.setButtonLoading(buttonId, true, 'Deleting...');
         try {
             await database.ref('foodItems/' + id).remove();
+            // Also clear the dish from the hotel's food index
+            if (item.hotelId) await database.ref('indexes/foodByHotel/' + item.hotelId + '/' + id).remove().catch(() => {});
+            if (item.hotelUserId) await database.ref('indexes/foodByHotel/' + item.hotelUserId + '/' + id).remove().catch(() => {});
             ReplateUI.toast('Listing deleted.', 'success');
         } catch (error) {
             console.error(error);
