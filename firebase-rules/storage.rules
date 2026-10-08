@@ -7,6 +7,7 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
 
+    // Helper checks used by the rules below.
     function signedIn() {
       return request.auth != null;
     }
@@ -18,10 +19,12 @@ service firebase.storage {
       return signedIn() && request.auth.token.email in ['admin@replate.com', 'superadmin@replate.com'];
     }
 
+    // True when the uploaded file is an image.
     function isImage() {
       return request.resource.contentType.matches('image/.*');
     }
 
+    // True when the uploaded file is under the given size in MB.
     function smallerThanMb(limit) {
       return request.resource.size < limit * 1024 * 1024;
     }

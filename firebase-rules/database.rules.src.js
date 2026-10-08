@@ -6,6 +6,7 @@
  * and commit both files. See firebase-rules/README.md for the reasoning behind each rule.
  */
 
+// Short names for the checks used again and again in the rules below.
 const SIGNED_IN = 'auth != null';
 
 // users/{uid}/role is set to "admin" by hand in the Firebase console; clients can never grant it.
@@ -36,14 +37,18 @@ const CHAT_PARTICIPANT = (conv) =>
   ` || (${MY_HOTEL_KEY} != null && ${conv}.beginsWith(${MY_HOTEL_KEY} + '_')` +
   ` && root.child('hotels').child(${MY_HOTEL_KEY}).child('userId').val() === auth.uid))`;
 
+// The signed-in user is the customer who placed this order.
 const ORDER_OWNER = "data.parent().child('userId').val() === auth.uid";
+// The signed-in user owns the hotel this order is for.
 const ORDER_HOTEL = OWNS("data.parent().child('hotelId').val()");
 
+// The order has not been accepted yet.
 const PENDING_ORDER =
   "(data.child('orderStatus').val() === 'pending_pickup' || data.child('orderStatus').val() === 'pending_delivery')";
 
 // Orders that can no longer change: nobody (except an admin) may move them to another state
 const FINAL_ORDER_STATUS = "(data.val() === 'completed' || data.val() === 'delivered' || data.val() === 'cancelled')";
+// The only status values an order may have.
 const VALID_ORDER_STATUS =
   "(newData.val() === 'pending_pickup' || newData.val() === 'pending_delivery' || newData.val() === 'pending'" +
   " || newData.val() === 'confirmed' || newData.val() === 'accepted' || newData.val() === 'preparing'" +
@@ -76,6 +81,7 @@ const PAYMENT_UNCHANGED =
   " && data.child('paymentMethod').val() === newData.child('paymentMethod').val()" +
   " && data.child('paymentRef').val() === newData.child('paymentRef').val())";
 
+// The rules themselves, one block per top-level data node.
 const rules = {
   rules: {
     // ---------------------------------------------------------------- users
@@ -253,6 +259,7 @@ const rules = {
       },
     },
 
+    // Chat summary rows, one list per customer or hotel.
     conversations: {
       $ownerId: {
         '.indexOn': ['lastTimestamp'],

@@ -232,6 +232,7 @@
 
 <script>
 
+    // Admin analytics: revenue, orders, food rescued and charts for the chosen date range.
     let growthChartInstance = null;
     let statusChartInstance = null;
     let paymentChartInstance = null;
@@ -244,6 +245,7 @@
     let allUsers = [];
     let categoryByFood = {};
 
+    // Waits for an admin sign-in, then starts all the live data loads.
     (async () => {
         const user = await ReplateUI.requireRole('admin');
         if (!user) return;
@@ -254,6 +256,7 @@
         loadHotelStats();
     })();
 
+    // The date range chosen in the drop-down.
     function currentRange() { return document.getElementById('rangeFilter').value; }
 
     // ── Helpers ─────────────────────────────────────────────
@@ -264,11 +267,13 @@
         return d.getFullYear() + '-W' + String(weekNum).padStart(2, '0');
     }
 
+    // Makes a short label like W41 from a week key.
     function getWeekLabel(weekKey) {
         const [year, week] = weekKey.split('-W');
         return 'W' + parseInt(week);
     }
 
+    // Shows the percent change versus the last period with an arrow.
     function setDelta(elId, current, previous) {
         const el = document.getElementById(elId);
         if (!el) return;
@@ -351,6 +356,7 @@
         document.getElementById('topHotelsTable').innerHTML = '<tr><td colspan="5">' + ReplateUI.errorState(message) + '</td></tr>';
     }
 
+    // Listens for orders and redraws the page when they change.
     async function loadAdminAnalytics() {
         // Orders saved before the app wrote a category on each item are matched through their dish
         try {

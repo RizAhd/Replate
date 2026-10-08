@@ -130,6 +130,7 @@
 <script src="../js/ui-shell.js"></script>
 
 <script>
+    // Admin reports: hotel performance, cancelled orders and reviews, with CSV export.
     const esc = ReplateUI.esc;
     const MAX_REVIEW_ROWS = 500; // newest first; the CSV still has every row in the range
 
@@ -139,6 +140,7 @@
     // Rows currently shown (used by the CSV buttons)
     let hotelRows = [], cancelledRows = [], reviewRows = [];
 
+    // Waits for an admin sign-in, then loads the data.
     (async () => {
         const user = await ReplateUI.requireRole('admin');
         if (!user) return;
@@ -156,9 +158,13 @@
         loadData();
     })();
 
+    // The date range chosen in the drop-down.
     function currentRange() { return document.getElementById('rangeFilter').value; }
+    // Shows a time as readable text.
     function stamp(ts) { return ts ? new Date(Number(ts)).toLocaleString() : '—'; }
+    // Writes a time in a standard format for the CSV.
     function csvDate(ts) { return ts ? new Date(Number(ts)).toISOString() : ''; }
+    // A table row that shows an error message.
     function errorRow(cols, message) { return '<tr><td colspan="' + cols + '">' + ReplateUI.errorState(message) + '</td></tr>'; }
 
     // ── Live data ───────────────────────────────────────────
@@ -193,6 +199,7 @@
         }, (error) => console.warn('Could not load listings for dish names', error));
     }
 
+    // Redraws all three reports for the chosen range.
     function renderAll() {
         renderHotels();
         renderCancelled();
@@ -229,6 +236,7 @@
                 </tr>`).join('');
     }
 
+    // Downloads the hotel performance rows as CSV.
     function exportHotels() {
         if (hotelRows.length === 0) { ReplateUI.toast('There is nothing to export for this range.', 'warning'); return; }
         const csv = ReplateSchema.toCsv(hotelRows, [
@@ -250,6 +258,7 @@
         return `<span class="badge ${cls}">${esc(kind)}</span>`;
     }
 
+    // Draws the cancelled and expired orders table.
     function renderCancelled() {
         const body = document.getElementById('cancelledBody');
         if (ordersState === 'loading') return;
@@ -282,6 +291,7 @@
                 </tr>`).join('');
     }
 
+    // Downloads the cancelled and expired rows as CSV.
     function exportCancelled() {
         if (cancelledRows.length === 0) { ReplateUI.toast('There is nothing to export for this range.', 'warning'); return; }
         const csv = ReplateSchema.toCsv(cancelledRows, [
@@ -315,6 +325,7 @@
         };
     }
 
+    // Draws the reviews table.
     function renderReviews() {
         const body = document.getElementById('reviewsBody');
         if (reviewsState === 'loading') return;
@@ -348,6 +359,7 @@
                 </tr>`).join('');
     }
 
+    // Downloads the review rows as CSV.
     function exportReviews() {
         if (reviewRows.length === 0) { ReplateUI.toast('There is nothing to export for this range.', 'warning'); return; }
         const csv = ReplateSchema.toCsv(reviewRows, [
@@ -373,6 +385,7 @@
         await database.ref('foodItems/' + foodId).update({ avgRating: count ? sum / count : 0, reviewCount: count });
     }
 
+    // Asks to confirm, then deletes a review.
     async function deleteReview(id) {
         const review = allReviews.find((r) => r.id === id);
         if (!review) return;

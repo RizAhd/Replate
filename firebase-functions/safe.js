@@ -9,6 +9,7 @@ const MAX_ORDER_LINE_QUANTITY = 50;
 /** The most people one targeted notification may name. */
 const MAX_TARGETED_USERS = 500;
 
+// Rate limit: each email or caller gets a few requests per 10 minutes.
 const RATE_WINDOW_MS = 10 * 60 * 1000;
 const RATE_LIMIT_PER_EMAIL = 5;
 const RATE_LIMIT_PER_IP = 20;
@@ -134,6 +135,7 @@ function payhereSignature(fields, merchantSecret) {
   return crypto.createHash("md5").update(text).digest("hex").toUpperCase();
 }
 
+// True only when the PayHere signature matches ours.
 function verifyPayhereNotification(fields, merchantSecret) {
   if (!merchantSecret || !fields || !fields.md5sig) return false;
   const expected = payhereSignature(fields, merchantSecret);

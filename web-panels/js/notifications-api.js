@@ -3,6 +3,7 @@
  * Calls secure Firebase Functions endpoints with current Firebase ID token.
  */
 const NotificationApi = (() => {
+    // Sends a signed request to a cloud function and returns its reply.
     async function call(functionName, payload) {
         const user = auth.currentUser;
         if (!user) throw new Error("Not authenticated");
@@ -44,6 +45,7 @@ const NotificationApi = (() => {
         return body;
     }
 
+    // Adds default category and route to a notification.
     function normalizePayload(payload, defaults = {}) {
         return {
             category: "admin_broadcast",

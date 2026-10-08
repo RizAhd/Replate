@@ -163,12 +163,14 @@
 
 <script>
 
+    // Hotel analytics: revenue, orders and top dishes for this hotel only.
     let resolvedHotelIds = new Set();
     let revenueChartInstance = null;
     let statusChartInstance = null;
     let ordersLineInstance = null;
     let topItemsInstance = null;
 
+    // Waits for a hotel sign-in and an approved hotel, then loads the numbers.
     (async () => {
         const user = await ReplateUI.requireRole('hotel');
         if (!user) return;
@@ -190,12 +192,14 @@
         return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
     }
 
+    // Makes a short label like Oct 5 from a day text.
     function getDayLabel(key) {
         const parts = key.split('-');
         const d = new Date(parts[0], parts[1]-1, parts[2]);
         return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     }
 
+    // Turns a time into text like "5m ago".
     function timeAgo(ts) {
         if (!ts) return '—';
         const diff = Math.floor((Date.now() - ts) / 1000);
@@ -205,11 +209,13 @@
         return Math.floor(diff/86400) + 'd ago';
     }
 
+    // True when the order belongs to this hotel.
     function isMyOrder(order) {
         const hid = order.hotelId || order.hotelKey || '';
         return resolvedHotelIds.has(hid);
     }
 
+    // Shows the percent change versus the last period with an arrow.
     function setDelta(elId, current, previous) {
         const el = document.getElementById(elId);
         if (!el) return;

@@ -154,6 +154,7 @@
 <script src="../js/notifications-api.js"></script>
 
 <script>
+    // Hotel orders: move orders along, scan a QR code or enter an OTP to hand over food.
     const esc = ReplateUI.esc;
     let hotelIds = new Set();
     let html5QrcodeScanner = null;
@@ -161,11 +162,13 @@
     let verificationModalInstance = null;
     const tableBody = document.getElementById('ordersTable');
 
+    // True when the order is for this hotel.
     function orderBelongsToHotel(order) {
         const id = String(order.hotelId || order.hotelKey || order.hotelUserId || '').trim();
         return hotelIds.has(id);
     }
 
+    // Waits for a hotel sign-in and an approved hotel, then loads the orders.
     (async () => {
         const user = await ReplateUI.requireRole('hotel');
         if (!user) return;
@@ -191,6 +194,7 @@
         return null;
     }
 
+    // Builds the buttons for one order row.
     function actionButtons(key, status, isDelivery, isActive) {
         const k = esc(key);
         let html = `<button class="btn btn-sm btn-outline-primary" data-action="view" data-key="${k}"><i class="fas fa-eye" aria-hidden="true"></i> View</button>`;
@@ -217,6 +221,7 @@
         return html;
     }
 
+    // Listens for this hotel's orders and redraws the table.
     function loadOrders() {
         ReplateSchema.hotelOrders(database, hotelIds).on((snapshot) => {
             const rows = [];
@@ -299,6 +304,7 @@
     document.getElementById('pills-all-tab').addEventListener('shown.bs.tab', stopScanner);
     document.getElementById('pills-otp-tab').addEventListener('shown.bs.tab', stopScanner);
 
+    // Turns the camera scanner off.
     function stopScanner() {
         if (html5QrcodeScanner) {
             html5QrcodeScanner.stop()
@@ -356,6 +362,7 @@
         return true;
     }
 
+    // Finds the order for a scanned or typed code.
     function checkOrderByCode(code) {
         if (!code) return;
 
@@ -445,6 +452,7 @@
 
     document.getElementById('btnConfirmPickup').addEventListener('click', confirmPickup);
 
+    // Completes the pickup after the hotel confirms.
     function confirmPickup() {
         if (!currentOrderKey) return;
         const key = currentOrderKey;
@@ -473,6 +481,7 @@
         });
     }
 
+    // Asks to confirm, then marks the order as on its way.
     async function markOutForDelivery(key) {
         const ok = await ReplateUI.confirmAction('The customer will be told their order is on its way.', {
             title: 'Dispatch this order?', confirmText: 'Dispatch' });
@@ -490,6 +499,7 @@
         }
     }
 
+    // Asks to confirm, then marks the order as delivered.
     async function markDelivered(key) {
         const ok = await ReplateUI.confirmAction('This closes the order as delivered.', {
             title: 'Mark as delivered?', confirmText: 'Delivered' });
@@ -512,6 +522,7 @@
         viewOrderByKey(key);
     }
 
+    // Loads one order and opens the confirmation sheet.
     function viewOrderByKey(key) {
         database.ref('orders/' + key).once('value').then((snap) => {
             if (snap.exists()) showVerificationModal(key, snap.val() || {});
@@ -538,6 +549,7 @@
         }
     }
 
+    // Asks to confirm, then cancels the order.
     async function cancelOrder(key) {
         const ok = await ReplateUI.confirmAction('The customer will be told you cancelled their order. This cannot be undone.', {
             title: 'Cancel this order?', confirmText: 'Cancel order', cancelText: 'Keep order', danger: true });

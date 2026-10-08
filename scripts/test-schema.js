@@ -8,10 +8,12 @@ const path = require('path');
 const vm = require('vm');
 const assert = require('assert');
 
+// Loads the shared schema file the way a browser page would.
 const code = fs.readFileSync(path.join(__dirname, '..', 'web-panels', 'js', 'data-schema.js'), 'utf8');
 const S = vm.runInNewContext(code + '\nReplateSchema', {});
 
 let passed = 0;
+// Runs one check and prints ok or FAIL.
 function test(name, fn) {
     try { fn(); passed++; console.log('  ok   ', name); }
     catch (e) { console.log('  FAIL ', name, '->', e.message); process.exitCode = 1; }

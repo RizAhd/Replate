@@ -121,9 +121,11 @@
 <script src="../js/hotel-shell-config.js"></script>
 
 <script>
+    // Hotel dashboard: today's numbers, recent orders and earnings.
     const esc = ReplateUI.esc;
     let hotelIds = new Set();
 
+    // Shows the hotel's approval status as a badge.
     function setApprovalBadge(status) {
         const badge = document.getElementById('approvalStatus');
         const s = ReplateSchema.normalizeHotelStatus(status);
@@ -132,6 +134,7 @@
         badge.textContent = label;
     }
 
+    // Waits for a hotel sign-in, then loads the dashboard.
     (async () => {
         const user = await ReplateUI.requireRole('hotel');
         if (!user) return;
@@ -169,6 +172,7 @@
             : '<li class="list-group-item text-muted">Your best sellers appear here once customers order.</li>';
     }
 
+    // Listens for this hotel's orders and listings and redraws the numbers.
     function loadDashboard() {
         ReplateSchema.hotelOrders(database, hotelIds).on((snapshot) => {
             let revenue = 0;

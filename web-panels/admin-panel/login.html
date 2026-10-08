@@ -67,10 +67,12 @@
 <script src="../js/ui-shell.js"></script>
 
 <script>
+    // Admin sign-in: only the admin email addresses may sign in or reset a password.
     // The admin addresses live in js/ui-shell.js (and in firebase-rules); change them there
     const ADMIN_EMAILS = ReplateUI.ADMIN_EMAILS;
     ReplateUI.attachPasswordToggle('password', 'toggleAdminPassword', 'toggleAdminPasswordIcon');
 
+    // Turns a sign-in error into a simple message.
     function friendlyAuthError(error) {
         switch (error && error.code) {
             case 'auth/invalid-credential':
@@ -86,6 +88,7 @@
         }
     }
 
+    // Signs in when the form is sent.
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const email = document.getElementById('email').value.trim().toLowerCase();
@@ -111,6 +114,7 @@
         }
     });
 
+    // Sends a password reset email.
     document.getElementById('forgotPasswordLink').addEventListener('click', async (e) => {
         e.preventDefault();
         const email = document.getElementById('email').value.trim().toLowerCase();

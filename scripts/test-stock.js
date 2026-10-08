@@ -7,17 +7,21 @@ process.env.GCLOUD_PROJECT = 'demo-replate';
 const admin = require('../firebase-functions/node_modules/firebase-admin');
 const { createStock } = require('../firebase-functions/stock');
 
+// Connect to the local emulator, never the real database.
 admin.initializeApp({ projectId: 'demo-replate', databaseURL: 'http://127.0.0.1:9000/?ns=demo-replate' });
 const db = admin.database();
 const { adjustStockForOrder, restoreStockForOrder } = createStock(db);
 
 let passed = 0, failed = 0;
+// Runs one check and prints ok or FAIL.
 async function test(name, fn) {
     try { await fn(); passed++; console.log('  ok   ', name); }
     catch (e) { failed++; console.log('  FAIL ', name, '->', e.message); }
 }
+// Reads one value from the emulator database.
 const val = async (path) => (await db.ref(path).get()).val();
 
+// Sets up sample dishes, then runs every stock check.
 (async () => {
     await db.ref('/').set({
         foodItems: {

@@ -130,6 +130,7 @@
 
 <script>
 
+    // Admin page to add, switch on or off and delete the app's home banners.
     const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
     const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
@@ -140,12 +141,14 @@
         }[c]));
     }
 
+    // Shows a green or red message under the form.
     function showMessage(text, isError) {
         const el = document.getElementById('bnMessage');
         el.textContent = text;
         el.className = 'small mt-3 ' + (isError ? 'text-danger' : 'text-success');
     }
 
+    // Gives the "show from / until" dates as text.
     function formatWindow(b) {
         const fmt = (ms) => new Date(ms).toLocaleString();
         if (!b.startAt && !b.endAt) return 'Always';
@@ -153,11 +156,13 @@
                (b.endAt ? 'Until ' + fmt(b.endAt) : '');
     }
 
+    // Waits for an admin sign-in, then loads the banners.
     (async () => {
         const user = await ReplateUI.requireRole('admin');
         if (user) loadBanners();
     })();
 
+    // Listens for banners and redraws the table.
     function loadBanners() {
         database.ref('banners').orderByChild('order').on('value', (snapshot) => {
             const tbody = document.getElementById('bannerTable');
@@ -198,6 +203,7 @@
         });
     }
 
+    // Checks the form, uploads the image and saves the new banner.
     document.getElementById('addBannerForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const submit = document.getElementById('bnSubmit');
@@ -250,12 +256,14 @@
         }
     });
 
+    // Turns a banner on or off.
     window.toggleBanner = function (key, active) {
         database.ref('banners/' + key + '/active').set(!!active).catch((err) => {
             showMessage('Could not update the banner: ' + err.message, true);
         });
     };
 
+    // Asks to confirm, then deletes the banner and its image.
     window.deleteBanner = async function (key) {
         const ok = await ReplateUI.confirmAction('The banner will stop showing in the app.', {
             title: 'Delete this banner?', confirmText: 'Delete', danger: true });

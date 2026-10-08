@@ -124,11 +124,13 @@
 <script src="../js/ui-shell.js"></script>
 
 <script>
+    // Admin page to list users and suspend or enable their accounts.
     const esc = ReplateUI.esc;
     let currentAdminUid = null;
     let hotelNameByUserId = {};
     let peopleByUid = {}; // uid -> person, for the CSV export
 
+    // Waits for an admin sign-in, then loads the users.
     (async () => {
         const user = await ReplateUI.requireRole('admin');
         if (!user) return;
@@ -172,6 +174,7 @@
         });
     });
 
+    // Listens for hotels and users and redraws the table.
     function loadUsers() {
         // Hotel names come from the hotels list so a hotel owner is easy to recognise
         database.ref('hotels').on('value', (snap) => {
@@ -206,6 +209,7 @@
         });
     }
 
+    // Draws the users table.
     function renderUsers(people) {
         document.getElementById('countAll').textContent = people.length;
         document.getElementById('countCustomers').textContent = people.filter((p) => p.role === 'customer').length;
@@ -266,6 +270,7 @@
         }
     }
 
+    // Asks to confirm, then suspends or enables the account.
     async function setSuspended(uid, name, suspended) {
         let reason = '';
         if (suspended) {

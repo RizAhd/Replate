@@ -78,6 +78,7 @@ const ReplateUI = (() => {
         try { sessionStorage.setItem('replate.flash', JSON.stringify({ message, type })); } catch (e) { /* storage blocked */ }
     }
 
+    // Shows the message left by flash on the new page.
     function showPendingFlash() {
         try {
             const raw = sessionStorage.getItem('replate.flash');
@@ -254,6 +255,7 @@ const ReplateUI = (() => {
     // ── Sidebar ─────────────────────────────────────────────────────────────
     let sidebarBound = false;
 
+    // Works out which sidebar link matches this page.
     function currentPageKey(links) {
         const file = window.location.pathname.split('/').pop() || '';
         const hit = links.find((l) => l.href === file);
@@ -410,6 +412,7 @@ const ReplateUI = (() => {
         });
     }
 
+    // Disables a button and shows a waiting label while it works.
     function setButtonLoading(buttonId, isLoading, loadingText = 'Please wait...') {
         const btn = document.getElementById(buttonId);
         if (!btn) return;
@@ -446,12 +449,14 @@ const ReplateUI = (() => {
         return `<div class="skeleton-group" aria-hidden="true">${one.repeat(count)}</div>`;
     }
 
+    // Returns the "nothing here yet" message box.
     function emptyState(title, text = '', icon = 'fa-inbox') {
         return `<div class="empty-state" role="status">
             <div class="empty-icon"><i class="fas ${esc(icon)}" aria-hidden="true"></i></div>
             <h3>${esc(title)}</h3>${text ? `<p>${esc(text)}</p>` : ''}</div>`;
     }
 
+    // Returns an error box with a Try again button.
     function errorState(message = 'Could not load this data.', retryLabel = 'Try again') {
         return `<div class="empty-state error" role="alert">
             <div class="empty-icon"><i class="fas fa-triangle-exclamation" aria-hidden="true"></i></div>

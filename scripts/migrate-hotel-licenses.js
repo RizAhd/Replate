@@ -22,6 +22,7 @@ if (!databaseURL) {
 admin.initializeApp({ databaseURL });
 const db = admin.database();
 
+// Finds licence links on hotel records and moves them to hotelLicenses.
 (async () => {
     const hotels = (await db.ref('hotels').get()).val() || {};
     const updates = {};

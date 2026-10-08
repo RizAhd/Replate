@@ -22,10 +22,12 @@ const database = firebase.database();
 // Only pages that load firebase-storage-compat have this; everywhere else it is null (and never used)
 const storage = typeof firebase.storage === 'function' ? firebase.storage() : null;
 
+// True for the login and register pages.
 function isAuthPage(pathname) {
     return pathname.includes('login.html') || pathname.includes('register.html');
 }
 
+// Reads the user's role from the database.
 async function resolveUserRole(uid) {
     const userSnap = await database.ref('users/' + uid).once('value');
     if (!userSnap.exists()) return null;
@@ -33,6 +35,7 @@ async function resolveUserRole(uid) {
     return (val.role || val.userType || '').toLowerCase();
 }
 
+// Finds the role and remembers the hotel id for hotel owners.
 async function checkUserRole(uid) {
     try {
         const role = await resolveUserRole(uid);

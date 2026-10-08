@@ -506,6 +506,7 @@
 
 <script>
 
+    // Hotel chat: list of customer conversations and the live messages.
     /* ────────────────────────────────────────────────────────
        STATE
        ──────────────────────────────────────────────────────── */
@@ -545,6 +546,7 @@
         loadConversations();
     })();
 
+    // Shows a Connected or Offline badge.
     function updateConnectionStatus() {
         const badge = document.getElementById('chatStatus');
         if (!badge) return;
@@ -664,6 +666,7 @@
         });
     }
 
+    // Shows only conversations that match the search text.
     function filterConversations() {
         const q = (document.getElementById('convSearch').value || '').trim().toLowerCase();
         if (!q) { renderConversations(allConversations); return; }
@@ -797,6 +800,7 @@
         ref.orderByChild('timestamp').on('child_changed', cbChanged);
     }
 
+    // Adds one message bubble to the chat and scrolls down.
     function appendMessageBubble(messageId, msg, isSent, isPending) {
         const container = document.getElementById('messagesContainer');
         if (!container) return;
@@ -810,6 +814,7 @@
         requestAnimationFrame(() => { container.scrollTop = container.scrollHeight; });
     }
 
+    // Updates a bubble that is already shown (for example after it is sent).
     function updateExistingBubble(messageId, msg, isSent) {
         const container = document.getElementById('messagesContainer');
         if (!container || !messageId) return;
@@ -900,6 +905,7 @@
 
     // Escapes quotes as well as angle brackets, so it is safe inside attributes too
     function esc(t) { return ReplateUI.esc(t); }
+    // Makes a value safe to use inside a CSS selector.
     function cssEsc(value) {
         if (window.CSS && typeof window.CSS.escape === 'function') return window.CSS.escape(value || '');
         return String(value || '').replace(/["\\]/g, '\\$&');

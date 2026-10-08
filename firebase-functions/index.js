@@ -1,3 +1,4 @@
+// REPLATE cloud functions: emails, OTP codes, push notifications, stock, reminders and PayHere.
 const crypto = require("crypto");
 const admin = require("firebase-admin");
 const functions = require("firebase-functions");
@@ -50,10 +51,12 @@ const VALID_NOTIFICATION_CATEGORIES = new Set([
   "login_success",
 ]);
 
+// Makes a one-way hash of a text value.
 function sha256(value) {
   return crypto.createHash("sha256").update(value).digest("hex");
 }
 
+// Turns an email into a safe database key.
 function keyFromEmail(email) {
   return Buffer.from(email.toLowerCase().trim()).toString("base64url");
 }
@@ -81,6 +84,7 @@ async function allowRequest(req, email, kind) {
   return true;
 }
 
+// Sets up the Gmail sender from the secret settings.
 function getTransporter() {
   const email = process.env.OTP_EMAIL;
   const pass = process.env.OTP_EMAIL_APP_PASSWORD;
@@ -95,21 +99,25 @@ function getTransporter() {
   });
 }
 
+// Lets the web panels call these functions from the browser.
 function setCorsHeaders(res) {
   res.set("Access-Control-Allow-Origin", "*");
   res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
 }
 
+// Cleans a role name; empty means customer.
 function normalizeRole(role) {
   const value = String(role || "customer").trim().toLowerCase();
   return value || "customer";
 }
 
+// Reads the role from a user record.
 function roleFromUser(user) {
   return normalizeRole((user && (user.role || user.userType)) || "customer");
 }
 
+// Checks the sign-in token and that the caller has an allowed role.
 async function verifyRequestAuth(req, allowedRoles = ["admin"]) {
   const authHeader = req.headers.authorization || "";
   if (!authHeader.startsWith("Bearer ")) {
@@ -141,6 +149,7 @@ async function verifyRequestAuth(req, allowedRoles = ["admin"]) {
   return { uid, role };
 }
 
+// Maps any category text to one of the known categories.
 function normalizeCategory(rawCategory, fallback = "admin_broadcast") {
   const candidate = String(rawCategory || fallback).trim().toLowerCase();
   if (VALID_NOTIFICATION_CATEGORIES.has(candidate)) return candidate;
@@ -163,6 +172,7 @@ function normalizeCategory(rawCategory, fallback = "admin_broadcast") {
   return fallback;
 }
 
+// Builds the notification title, text and data to send.
 function buildPayload(input = {}) {
   const title = String(input.title || "REPLATE").trim();
   const body = String(input.body || "You have a new update").trim();
@@ -200,12 +210,14 @@ function buildPayload(input = {}) {
   };
 }
 
+// Splits a list into smaller lists.
 function chunk(arr, size) {
   const out = [];
   for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
   return out;
 }
 
+// Loads all users, or only those with one role.
 async function loadUsersByRole(targetRole) {
   const usersSnap = await db.ref("users").get();
   if (!usersSnap.exists()) return [];
@@ -223,6 +235,7 @@ async function loadUsersByRole(targetRole) {
   return users;
 }
 
+// Finds a user's push token and where to clear it if bad.
 async function loadUserNotificationRecord(uid) {
   if (!uid) return null;
 
@@ -254,6 +267,7 @@ async function loadUserNotificationRecord(uid) {
   return { uid, role, token, cleanupPaths, user };
 }
 
+// Finds the push token for a hotel's owner.
 async function loadHotelNotificationRecord(hotelId) {
   if (!hotelId) return null;
 
@@ -280,6 +294,7 @@ async function loadHotelNotificationRecord(hotelId) {
   return loadUserNotificationRecord(String(hotelId).trim());
 }
 
+// Saves the notification in each user's inbox.
 async function persistNotificationForUsers(userIds, payload, source = "system") {
   if (!Array.isArray(userIds) || userIds.length === 0) return;
 
@@ -304,6 +319,7 @@ async function persistNotificationForUsers(userIds, payload, source = "system") 
   await db.ref().update(updates);
 }
 
+// Removes push tokens that Firebase says are no longer valid.
 async function cleanupInvalidTokens(records, failures) {
   const removals = [];
   failures.forEach((failure) => {
@@ -334,6 +350,7 @@ function markServerSaved(payload) {
   return payload;
 }
 
+// Sends a push to each user, in batches, and counts the results.
 async function sendToUserRecords(userRecords, payload) {
   const valid = userRecords.filter((u) => u && u.token);
   console.log(`[sendToUserRecords] Total records=${userRecords.length}, valid (with token)=${valid.length}`);
@@ -375,6 +392,7 @@ async function sendToUserRecords(userRecords, payload) {
   return { successCount, failureCount };
 }
 
+// Sends a push to everyone following a topic.
 async function sendToTopic(topic, payload) {
   const message = {
     topic,
@@ -487,6 +505,7 @@ exports.sendCustomVerificationEmail = functions.region(REGION).https.onRequest(a
   }
 });
 
+// Creates a 6-digit code, stores its hash and emails it.
 exports.sendOtpEmail = functions.region(REGION).https.onRequest(async (req, res) => {
   try {
     if (req.method !== "POST") {
@@ -588,6 +607,7 @@ exports.sendOtpEmail = functions.region(REGION).https.onRequest(async (req, res)
   }
 });
 
+// Checks the code the user typed against the stored one.
 exports.verifyOtp = functions.region(REGION).https.onRequest(async (req, res) => {
   try {
     if (req.method !== "POST") {
@@ -640,6 +660,7 @@ exports.verifyOtp = functions.region(REGION).https.onRequest(async (req, res) =>
   }
 });
 
+// Admin only: sends a push to a topic or to a group of users.
 exports.sendBroadcastNotification = functions.region(REGION).https.onRequest(async (req, res) => {
   setCorsHeaders(res);
   if (req.method === "OPTIONS") return res.status(204).send("");
@@ -701,6 +722,7 @@ exports.sendBroadcastNotification = functions.region(REGION).https.onRequest(asy
   }
 });
 
+// Admin or hotel: sends a push to chosen users.
 exports.sendTargetedNotification = functions.region(REGION).https.onRequest(async (req, res) => {
   setCorsHeaders(res);
   if (req.method === "OPTIONS") return res.status(204).send("");
@@ -779,6 +801,7 @@ async function hotelIdsForUser(uid, userProfile) {
   return Array.from(ids);
 }
 
+// Hides or restores a hotel and its dishes when its owner is suspended or enabled.
 async function setHotelVisibility(hotelIds, suspended) {
   const updates = {};
   for (const hotelId of hotelIds) {
@@ -811,6 +834,7 @@ async function setHotelVisibility(hotelIds, suspended) {
   if (Object.keys(updates).length > 0) await db.ref().update(updates);
 }
 
+// Admin only: blocks or re-enables a user account.
 exports.setUserSuspended = functions.region(REGION).https.onRequest(async (req, res) => {
   setCorsHeaders(res);
   if (req.method === "OPTIONS") return res.status(204).send("");
@@ -867,6 +891,7 @@ exports.setUserSuspended = functions.region(REGION).https.onRequest(async (req, 
   }
 });
 
+// Sends a test push to the signed-in user's own phone.
 const sendSelfTestPushHandler = async (req, res) => {
   setCorsHeaders(res);
   if (req.method === "OPTIONS") return res.status(204).send("");
@@ -1016,6 +1041,7 @@ exports.sendDealNotification = functions.region(REGION).https.onRequest(async (r
 });
 
 
+// When a new profile is created, sends a welcome message.
 exports.onUserProfileCreatedNotify = functions
   .region(REGION)
   .database.ref("/users/{userId}")
@@ -1040,6 +1066,7 @@ exports.onUserProfileCreatedNotify = functions
     return null;
   });
 
+// Tells the customer and the hotel that a new order was placed.
 async function notifyOrderCreated(orderId, order) {
     const customerId = String(order.userId || "").trim();
     const hotelId = String(order.hotelId || "").trim();
@@ -1108,6 +1135,7 @@ async function notifyOrderCreated(orderId, order) {
     console.log(`[onOrderCreatedNotify] COMPLETED for orderId=${orderId}`);
 }
 
+// When an order is created, takes its stock and sends the pushes.
 exports.onOrderCreatedNotify = functions
   .region(REGION)
   .database.ref("/orders/{orderId}")
@@ -1131,6 +1159,7 @@ exports.onOrderCreatedNotify = functions
     return null;
   });
 
+// When an order status changes, gives stock back if cancelled and tells the customer.
 exports.onOrderStatusChangedNotify = functions
   .region(REGION)
   .database.ref("/orders/{orderId}")
@@ -1312,6 +1341,7 @@ async function setHotelDishesHidden(hotelId, hidden) {
   if (Object.keys(updates).length > 0) await db.ref().update(updates);
 }
 
+// When a hotel is approved or rejected, updates its dishes and tells the owner.
 exports.onHotelStatusChangedNotify = functions
   .region(REGION)
   .database.ref("/hotels/{hotelId}")
@@ -1526,6 +1556,7 @@ exports.payhereNotify = functions.region(REGION).https.onRequest(async (req, res
   }
 });
 
+// Every 2 hours: sends a meal-time deals reminder to all customers.
 exports.sendScheduledEngagementNotifications = functions
   .region(REGION)
   .pubsub.schedule("every 2 hours")

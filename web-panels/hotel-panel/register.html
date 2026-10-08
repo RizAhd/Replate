@@ -130,14 +130,17 @@
 <script src="../js/ui-shell.js"></script>
 
 <script>
+    // Hotel registration: creates the account, the hotel record and the licence upload.
     const MAX_LICENSE_BYTES = 10 * 1024 * 1024;
     const LICENSE_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
 
     ReplateUI.attachPasswordToggle('password', 'toggleRegPassword', 'toggleRegPasswordIcon');
     ReplateUI.attachPasswordToggle('confirmPassword', 'toggleRegConfirmPassword', 'toggleRegConfirmPasswordIcon');
 
+    // Short way to get a form field by id.
     function field(id) { return document.getElementById(id); }
 
+    // Turns a sign-up error into a simple message.
     function friendlyAuthError(error) {
         switch (error && error.code) {
             case 'auth/email-already-in-use': return 'An account with this email already exists. Sign in instead.';
@@ -148,6 +151,7 @@
         }
     }
 
+    // Fills the coordinates from the browser's location.
     field('btnUseLocation').addEventListener('click', () => {
         if (!navigator.geolocation) {
             ReplateUI.toast('Your browser cannot share its location. Type the coordinates instead.', 'warning');
@@ -188,6 +192,7 @@
         return null;
     }
 
+    // Creates the account, hotel record and licence upload.
     field('registerForm').addEventListener('submit', async (e) => {
         e.preventDefault();
 

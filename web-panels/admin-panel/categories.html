@@ -87,6 +87,7 @@
 <script src="../js/ui-shell.js"></script>
 
 <script>
+    // Admin page to add, rename, reorder and delete food categories.
     const esc = ReplateUI.esc;
     const tbody = document.getElementById('categoryTable');
     const COLUMNS = 4;
@@ -95,8 +96,10 @@
     let dishesByCategory = {};    // lower-cased category name -> number of dishes using it
     let dishCategories = [];      // [{ id, category }] so a rename can move the dishes with it
 
+    // True when two names match, ignoring case and spaces.
     const sameName = (a, b) => String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase();
 
+    // Waits for an admin sign-in, then loads the categories.
     (async () => {
         const user = await ReplateUI.requireRole('admin');
         if (!user) return;
@@ -105,6 +108,7 @@
         loadDishCounts();
     })();
 
+    // Listens for categories and redraws the table.
     function loadCategories() {
         database.ref('categories').orderByChild('order').on('value', (snapshot) => {
             const list = [];
@@ -122,6 +126,7 @@
         });
     }
 
+    // Counts how many dishes use each category.
     function loadDishCounts() {
         database.ref('foodItems').on('value', (snapshot) => {
             const counts = {};
@@ -139,6 +144,7 @@
         }, (error) => console.warn('Could not count dishes per category', error));
     }
 
+    // Draws the category table.
     function render() {
         if (categories.length === 0) {
             tbody.innerHTML = '<tr><td colspan="' + COLUMNS + '">' +
@@ -167,6 +173,7 @@
         }).join('');
     }
 
+    // Returns an error text if the name is empty or already used.
     function validateName(name, ignoreKey) {
         if (!name) return 'Enter a category name.';
         if (name.length > 40) return 'Keep the category name under 40 characters.';
@@ -175,6 +182,7 @@
         return null;
     }
 
+    // Adds a new category.
     document.getElementById('addCategoryForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const name = document.getElementById('catName').value.trim();
@@ -217,6 +225,7 @@
         }
     }
 
+    // Asks for a new name and moves its dishes along.
     async function rename(key) {
         const cat = categories.find((c) => c.key === key);
         if (!cat) return;
@@ -244,6 +253,7 @@
         }
     }
 
+    // Asks to confirm, then deletes the category.
     async function remove(key) {
         const cat = categories.find((c) => c.key === key);
         if (!cat) return;
@@ -262,6 +272,7 @@
         }
     }
 
+    // One click handler for the row buttons.
     tbody.addEventListener('click', (event) => {
         const button = event.target.closest('button[data-action]');
         if (!button || button.disabled) return;

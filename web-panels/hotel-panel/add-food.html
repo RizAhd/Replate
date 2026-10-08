@@ -134,15 +134,18 @@
 <script src="../js/hotel-shell-config.js"></script>
 
 <script>
+    // Hotel page to add a new food listing with a photo.
     const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
     const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
     let resolvedHotel = null;
 
+    // Shows a message on the next page and goes there.
     function leave(page, message, type) {
         ReplateUI.flash(message, type);
         window.location.href = page;
     }
 
+    // Waits for a hotel sign-in and checks the hotel is approved.
     (async () => {
         const user = await ReplateUI.requireRole('hotel');
         if (!user) return;
@@ -167,6 +170,7 @@
         loadCategories();
     })();
 
+    // Fills the category drop-down from the database.
     function loadCategories() {
         const categorySelect = document.getElementById('category');
         categorySelect.innerHTML = '<option value="" selected disabled>Select category</option>';
@@ -191,11 +195,13 @@
     const previewImage = document.getElementById('preview');
     const placeholder = document.getElementById('uploadPlaceholder');
 
+    // Clicking the photo box opens the file chooser.
     previewContainer.addEventListener('click', () => imageInput.click());
     previewContainer.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); imageInput.click(); }
     });
 
+    // Checks the chosen photo and shows a preview.
     imageInput.addEventListener('change', function () {
         const file = this.files && this.files[0];
         if (!file) return;
@@ -218,6 +224,7 @@
         reader.readAsDataURL(file);
     });
 
+    // Checks prices, quantity and pickup times; returns an error text or nothing.
     function validateForm() {
         const original = parseFloat(document.getElementById('originalPrice').value);
         const discounted = parseFloat(document.getElementById('discountedPrice').value);
@@ -238,6 +245,7 @@
         return null;
     }
 
+    // Uploads the photo and saves the new listing.
     document.getElementById('addFoodForm').addEventListener('submit', async (e) => {
         e.preventDefault();
 

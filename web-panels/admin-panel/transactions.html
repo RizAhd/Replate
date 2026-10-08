@@ -105,11 +105,13 @@
 <script src="../js/ui-shell.js"></script>
 
 <script>
+    // Admin page listing the latest orders and payments, with filters and CSV export.
     const esc = ReplateUI.esc;
     const MAX_ROWS = 500; // newest first; keeps the page quick as the order history grows
     const COLUMNS = 9;
     let ordersByKey = {}; // order key -> order, for the CSV export
 
+    // Waits for an admin sign-in, then loads the orders.
     (async () => {
         const user = await ReplateUI.requireRole('admin');
         if (!user) return;
@@ -142,6 +144,7 @@
 
     // ── Filters (on top of the search box) ──────────────────
     function dayStart(value) { return value ? new Date(value + 'T00:00:00').getTime() : null; }
+    // End of the chosen day as a time number.
     function dayEnd(value) { return value ? new Date(value + 'T23:59:59.999').getTime() : null; }
 
     $.fn.dataTable.ext.search.push((settings, data, dataIndex) => {
@@ -168,6 +171,7 @@
         });
     });
 
+    // Updates the totals above the table for the rows shown.
     function updateSummary(table) {
         const nodes = table.rows({ search: 'applied' }).nodes().toArray();
         let earned = 0;
@@ -176,6 +180,7 @@
             ' shown. Completed revenue in this view: LKR ' + earned.toLocaleString(undefined, { maximumFractionDigits: 0 }) + '.';
     }
 
+    // Refills the hotel drop-down with the hotel names.
     function refreshHotelFilter(names) {
         const select = document.getElementById('hotelFilter');
         const current = select.value;
@@ -184,6 +189,7 @@
         if (names.includes(current)) select.value = current;
     }
 
+    // Builds the payment column text for an order.
     function paymentCell(order) {
         const method = String(order.paymentMethod || '—');
         const paid = String(order.paymentStatus || '').toLowerCase();
@@ -192,6 +198,7 @@
         return `${esc(method)}<br><span class="badge ${cls}">${esc(label)}</span>`;
     }
 
+    // Listens for the latest orders and redraws the table.
     function loadTransactions() {
         database.ref('orders').orderByChild('createdAt').limitToLast(MAX_ROWS).on('value', (snapshot) => {
             const tbody = document.getElementById('tableBody');

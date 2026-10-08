@@ -7,6 +7,7 @@ const { reminderFor, reminderText, LOOKAHEAD_MS } = require('../firebase-functio
 const safe = require('../firebase-functions/safe');
 
 let passed = 0;
+// Runs one check and prints ok or FAIL.
 function test(name, fn) {
     try { fn(); passed++; console.log('  ok   ', name); }
     catch (e) { console.log('  FAIL ', name, '->', e.message); process.exitCode = 1; }

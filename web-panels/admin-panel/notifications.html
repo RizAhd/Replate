@@ -304,6 +304,7 @@
 
 <script>
 
+    // Admin page to send notifications, watch live activity and see what was sent.
     // ── State ──────────────────────────────────────────────
     const MAX_ACTIVITY_ITEMS = 50;
     let activityCount = 0;
@@ -323,6 +324,7 @@
         return new Date(ts).toLocaleDateString();
     }
 
+    // Shows a time as a readable date and time.
     function formatDateTime(ts) {
         if (!ts) return 'N/A';
         const d = new Date(ts);
@@ -330,6 +332,7 @@
                d.toLocaleTimeString('en-LK', { hour: '2-digit', minute: '2-digit' });
     }
 
+    // True when the time is today.
     function isToday(ts) {
         if (!ts) return false;
         const d = new Date(ts);
@@ -345,6 +348,7 @@
         }
     }
 
+    // Adds one line to the top of the live feed.
     function addActivityItem(iconClass, title, description, timestamp) {
         clearActivityPlaceholder();
         const feed = document.getElementById('activityFeed');
@@ -379,6 +383,7 @@
         }
     }
 
+    // Picks the icon for a feed line type.
     function getIconForClass(cls) {
         const map = {
             'icon-order': 'fa-receipt',
@@ -394,6 +399,7 @@
     // Escapes quotes as well as angle brackets, so it is safe inside attributes too
     function escapeHtml(text) { return ReplateUI.esc(text); }
 
+    // Empties the live feed.
     window.clearActivityFeed = function() {
         const feed = document.getElementById('activityFeed');
         if (feed) feed.innerHTML = '<div class="text-center py-5" style="color:var(--text-tertiary);"><i class="fas fa-satellite-dish fa-2x mb-2 d-block" style="opacity:0.3;"></i>Listening for events...</div>';
@@ -601,6 +607,7 @@
         });
     }
 
+    // Midnight today as a time number.
     function todayStart() {
         const d = new Date();
         d.setHours(0, 0, 0, 0);
@@ -719,6 +726,7 @@
         return { written: count };
     }
 
+    // Records a send in the notification log.
     async function logNotificationSend(action, target, payload, result) {
         try {
             await database.ref('notificationLogs').push({
@@ -796,6 +804,7 @@
         }
     });
 
+    // Sends a notification to chosen users.
     document.getElementById('targetedForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         ReplateUI.setButtonLoading('btnTargetSend', true, 'Sending...');
@@ -858,6 +867,7 @@
         }
     });
 
+    // Sends a deal notification to customers.
     document.getElementById('dealForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         ReplateUI.setButtonLoading('btnDealSend', true, 'Sending deal...');

@@ -133,6 +133,7 @@
 <script src="../js/hotel-shell-config.js"></script>
 
 <script>
+    // Hotel page to see, edit, pause and delete this hotel's listings.
     const esc = ReplateUI.esc;
     let hotelIds = new Set();
     const tableBody = document.getElementById('listingsTable');
@@ -140,6 +141,7 @@
     let editingKey = null;
     let editModal = null;
 
+    // Waits for a hotel sign-in and an approved hotel, then loads the listings.
     (async () => {
         const user = await ReplateUI.requireRole('hotel');
         if (!user) return;
@@ -152,6 +154,7 @@
         loadListings();
     })();
 
+    // Listens for this hotel's listings and redraws the table.
     function loadListings() {
         ReplateSchema.hotelFoodItems(database, hotelIds).on((snapshot) => {
             const rows = [];
@@ -211,6 +214,7 @@
         });
     }
 
+    // One click handler for the row buttons.
     tableBody.addEventListener('click', async (event) => {
         const button = event.target.closest('button[data-action]');
         if (!button) return;
@@ -286,6 +290,7 @@
         editModal.show();
     }
 
+    // Checks the edit form; returns an error text or nothing.
     function editProblem() {
         const original = parseFloat(field('editOriginal').value);
         const discounted = parseFloat(field('editDiscounted').value);
@@ -305,6 +310,7 @@
         return null;
     }
 
+    // Saves the changes made to a listing.
     field('editForm').addEventListener('submit', async (event) => {
         event.preventDefault();
         if (!editingKey) return;

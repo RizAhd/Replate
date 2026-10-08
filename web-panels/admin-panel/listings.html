@@ -81,11 +81,13 @@
 <script src="../js/ui-shell.js"></script>
 
 <script>
+    // Admin page to see, hide, show and delete every hotel's food listings.
     const esc = ReplateUI.esc;
     const COLUMNS = 9;
     let listings = {};      // foodId -> listing, as last read from the database
     let loaded = false;
 
+    // Waits for an admin sign-in, then loads the listings.
     (async () => {
         const user = await ReplateUI.requireRole('admin');
         if (!user) return;
@@ -111,17 +113,20 @@
         return { key: 'available', label: 'Available', cls: 'badge-success' };
     }
 
+    // Gives the pickup time range as text.
     function pickupWindow(item) {
         const start = item.pickupTimeStart || item.pickupStart || '';
         const end = item.pickupTimeEnd || item.pickupEnd || '';
         return start || end ? (start || '?') + ' – ' + (end || '?') : '—';
     }
 
+    // Reads the discounted price as a number.
     function priceOf(item) {
         const price = parseFloat(item.discountedPrice);
         return Number.isFinite(price) ? price : 0;
     }
 
+    // Listens for listings and redraws the table.
     function loadListings() {
         database.ref('foodItems').on('value', (snapshot) => {
             listings = {};
@@ -137,6 +142,7 @@
         });
     }
 
+    // Draws the listings table with its search and paging.
     function renderListings() {
         const tbody = document.getElementById('tableBody');
         const ids = Object.keys(listings).sort((a, b) => (Number(listings[b].createdAt) || 0) - (Number(listings[a].createdAt) || 0));
@@ -233,6 +239,7 @@
         }
     }
 
+    // Asks to confirm, then deletes the listing.
     async function deleteListing(id) {
         const item = listings[id];
         if (!item) return;

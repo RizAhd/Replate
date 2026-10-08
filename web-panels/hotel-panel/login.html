@@ -86,20 +86,24 @@
 <script src="../js/ui-shell.js"></script>
 
 <script>
+    // Hotel sign-in with email, Google or Facebook; only approved hotels enter.
     ReplateUI.attachPasswordToggle('password', 'togglePassword', 'togglePasswordIcon');
 
     const notice = document.getElementById('statusNotice');
 
+    // Shows a coloured notice box above the form.
     function showNotice(kind, title, text) {
         notice.className = 'status-notice status-' + kind + ' text-start';
         notice.innerHTML = '<strong>' + ReplateUI.esc(title) + '</strong><span>' + ReplateUI.esc(text) + '</span>';
     }
 
+    // Hides the notice box.
     function clearNotice() {
         notice.className = 'status-notice d-none text-start';
         notice.textContent = '';
     }
 
+    // Turns a sign-in error into a simple message.
     function friendlyAuthError(error) {
         switch (error && error.code) {
             case 'auth/user-not-found':
@@ -159,6 +163,7 @@
         await auth.signOut();
     }
 
+    // Sends a password reset email.
     document.getElementById('forgotPasswordLink').addEventListener('click', async (e) => {
         e.preventDefault();
         const email = document.getElementById('email').value.trim();
@@ -174,6 +179,7 @@
         }
     });
 
+    // Signs in with email and password.
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         clearNotice();
@@ -195,6 +201,7 @@
         }
     });
 
+    // Signs in with a Google or Facebook popup.
     async function socialLogin(provider, btnId, providerName) {
         clearNotice();
         const btn = document.getElementById(btnId);

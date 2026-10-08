@@ -57,6 +57,7 @@ function createStock(db) {
     }
   }
 
+  // Takes the order's portions out of stock, only once.
   async function adjustStockForOrder(orderId, order) {
     const flag = await db.ref(`orders/${orderId}/stockAdjusted`).transaction((current) => (current ? undefined : true));
     if (!flag.committed) {
@@ -72,6 +73,7 @@ function createStock(db) {
     await changeStockForOrder(order, -1);
   }
 
+  // Puts a cancelled order's portions back, only once.
   async function restoreStockForOrder(orderId, order) {
     const adjusted = (await db.ref(`orders/${orderId}/stockAdjusted`).get()).val();
     if (!adjusted) return;

@@ -12,6 +12,7 @@ const vm = require('vm');
 const root = path.join(__dirname, '..', 'web-panels');
 const problems = [];
 
+// Lists every file under a folder.
 function walk(dir) {
     return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
         const full = path.join(dir, entry.name);
@@ -21,12 +22,14 @@ function walk(dir) {
 
 const files = walk(root);
 
+// Check 1a: every .js file parses.
 for (const file of files.filter((f) => f.endsWith('.js'))) {
     // env-config.js is generated per environment and may be absent in CI
     try { new vm.Script(fs.readFileSync(file, 'utf8'), { filename: file }); }
     catch (e) { problems.push(`syntax: ${path.relative(root, file)}: ${e.message}`); }
 }
 
+// Checks 1b, 2 and 3 for every page.
 for (const file of files.filter((f) => f.endsWith('.html'))) {
     const rel = path.relative(root, file);
     const html = fs.readFileSync(file, 'utf8');

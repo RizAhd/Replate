@@ -69,6 +69,7 @@
 <script src="../js/ui-shell.js"></script>
 
 <script>
+    // Admin page to approve, reject or revoke hotels.
     const esc = ReplateUI.esc;
     const lists = {
         pending: document.getElementById('pendingList'),
@@ -79,10 +80,12 @@
     // hotelLicenses/{hotelKey}: the licence link is kept out of the openly readable hotels node
     let licenseUrls = {};
 
+    // Shows placeholder cards while hotels load.
     function showLoading() {
         Object.values(lists).forEach((el) => { el.innerHTML = ReplateUI.skeleton('cards', 3); });
     }
 
+    // Waits for an admin sign-in, then loads the hotels.
     (async () => {
         const user = await ReplateUI.requireRole('admin');
         if (!user) return;
@@ -90,6 +93,7 @@
         loadHotels();
     })();
 
+    // Listens for hotels and licence links and redraws the lists.
     function loadHotels() {
         let latestHotels = null;
         const render = () => { if (latestHotels) renderHotels(latestHotels); };
@@ -110,6 +114,7 @@
         });
     }
 
+    // Puts each hotel into its tab by status.
     function renderHotels(snapshot) {
         {
             // Hotels with a blank or older status (active, declined) still land in the right tab
@@ -128,6 +133,7 @@
         }
     }
 
+    // Builds the card for one hotel.
     function createHotelCard(hotel, key, status) {
         let buttons = '';
         if (status === 'pending') {
@@ -171,6 +177,7 @@
             </div>`;
     }
 
+    // Asks to confirm, then sets the hotel status.
     async function updateStatus(key, status) {
         const ok = await ReplateUI.confirmAction(`This hotel will be marked as ${status}.`, {
             title: status === 'approved' ? 'Approve this hotel?' : 'Update hotel?',
@@ -186,6 +193,7 @@
         }
     }
 
+    // Asks for a reason, then takes the approval back.
     async function revokeHotel(key) {
         const reason = await ReplateUI.askText('The hotel is hidden from the app and cannot add listings or manage orders until you approve it again.', {
             title: 'Revoke this approval?',
@@ -207,6 +215,7 @@
         }
     }
 
+    // Asks for a reason, then rejects the hotel.
     async function rejectHotel(key) {
         const reason = await ReplateUI.askText('Tell the hotel why the registration was declined.', {
             title: 'Reject this hotel?',

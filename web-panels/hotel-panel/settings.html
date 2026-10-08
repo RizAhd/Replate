@@ -93,10 +93,13 @@
 <script src="../js/hotel-shell-config.js"></script>
 
 <script>
+    // Hotel settings: approval status, profile details and sign out.
     let currentHotelId = null;
 
+    // Sign out button.
     document.getElementById('btnSignOut').addEventListener('click', () => logout());
 
+    // Shows the approval status box with its reason.
     function showApproval(data) {
         const status = ReplateSchema.normalizeHotelStatus(data.status);
         const view = {
@@ -111,6 +114,7 @@
         document.getElementById('approvalNote').textContent = view[2];
     }
 
+    // Waits for a hotel sign-in, then fills in the profile.
     (async () => {
         const user = await ReplateUI.requireRole('hotel');
         if (!user) return;
@@ -134,6 +138,7 @@
         }
     })();
 
+    // Saves the hotel name, owner name and phone.
     document.getElementById('profileForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         if (!currentHotelId) {

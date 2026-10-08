@@ -1,6 +1,8 @@
+// Shared order, hotel and report rules used by every admin and hotel page.
 
 const ReplateSchema = (() => {
 
+    // Turns any old or new status text into one known status.
     function normalizeOrderStatus(raw) {
         if (!raw) return 'pending_pickup';
         const s = String(raw).toLowerCase().trim();
@@ -16,6 +18,7 @@ const ReplateSchema = (() => {
         return 'pending_pickup';
     }
 
+    // Picks the badge colour class for a status.
     function statusBadgeClass(status) {
         const s = normalizeOrderStatus(status);
         switch (s) {
@@ -34,6 +37,7 @@ const ReplateSchema = (() => {
         }
     }
 
+    // Gives the words shown for a status.
     function statusLabel(status) {
         const s = normalizeOrderStatus(status);
         switch (s) {
@@ -50,6 +54,7 @@ const ReplateSchema = (() => {
         }
     }
 
+    // Picks the background colour class for a status.
     function statusBgClass(status) {
         const s = normalizeOrderStatus(status);
         switch (s) {
@@ -68,6 +73,7 @@ const ReplateSchema = (() => {
         }
     }
 
+    // Makes text like "Rice x2, Soup x1" from the order items.
     function extractItemNames(order) {
         const items = order.items;
         if (!items) return 'N/A';
@@ -82,6 +88,7 @@ const ReplateSchema = (() => {
         return 'N/A';
     }
 
+    // Returns the order items as a plain list.
     function extractItemsArray(order) {
         const items = order.items;
         if (!items) return [];
@@ -99,19 +106,23 @@ const ReplateSchema = (() => {
         return s === 'completed' || s === 'delivered';
     }
 
+    // True when the order was cancelled.
     function isCancelledOrder(order) {
         return normalizeOrderStatus(order && order.orderStatus) === 'cancelled';
     }
 
+    // True when the order is neither finished nor cancelled.
     function isOpenOrder(order) {
         return !isSuccessfulOrder(order) && !isCancelledOrder(order);
     }
 
+    // Reads the order total as a number, 0 if missing.
     function orderAmount(order) {
         const n = parseFloat((order && (order.totalAmount || order.totalPrice)) || 0);
         return Number.isFinite(n) ? n : 0;
     }
 
+    // Reads an item's quantity as a number.
     function itemQuantity(item) {
         const q = parseInt(item && item.quantity, 10);
         return q > 0 ? q : 1;
@@ -122,6 +133,7 @@ const ReplateSchema = (() => {
         return extractItemsArray(order || {}).reduce((sum, item) => sum + itemQuantity(item), 0);
     }
 
+    // Turns a time into a day text like 2026-10-05.
     function dayKey(ts) {
         const d = new Date(ts);
         return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
@@ -170,16 +182,19 @@ const ReplateSchema = (() => {
             .slice(0, limit);
     }
 
+    // Shows an amount with two decimals.
     function formatAmount(val) {
         const n = parseFloat(val);
         return isNaN(n) ? '0.00' : n.toFixed(2);
     }
 
+    // Shortens the order id to its last 8 characters.
     function shortOrderId(order, firebaseKey) {
         const id = order.orderId || order.qrCode || order.pickupCode || firebaseKey || '';
         return id.length > 8 ? id.substring(id.length - 8) : id;
     }
 
+    // Returns admin, hotel or customer; anything else is customer.
     function normalizeUserRole(userLike) {
         const raw = userLike?.role || userLike?.userType || 'customer';
         const role = String(raw).toLowerCase().trim();
@@ -187,6 +202,7 @@ const ReplateSchema = (() => {
         return 'customer';
     }
 
+    // Returns pending, approved, rejected or suspended.
     function normalizeHotelStatus(raw) {
         if (!raw) return 'pending';
         const s = String(raw).toLowerCase().trim();
@@ -207,11 +223,13 @@ const ReplateSchema = (() => {
         return !isDelivery && now > expiresAt;
     }
 
+    // Turns a value into a number, or the fallback.
     function toNumber(val, fallback = 0) {
         const n = Number(val);
         return Number.isFinite(n) ? n : fallback;
     }
 
+    // Makes a simple lowercase region key from a place name.
     function toSearchRegion(text) {
         if (!text) return 'unknown_region';
         return String(text)
@@ -220,6 +238,7 @@ const ReplateSchema = (() => {
             .replace(/^_+|_+$/g, '') || 'unknown_region';
     }
 
+    // Finds the hotel owned by this user, new or old style.
     async function findHotelByUserId(database, uid) {
         const byUser = await database.ref('hotels').orderByChild('userId').equalTo(uid).once('value');
         if (byUser.exists()) {
@@ -266,6 +285,7 @@ const ReplateSchema = (() => {
         const list = Array.from(new Set(Array.from(ids || []).map(String).filter(Boolean)));
         const queries = list.map((id) => database.ref(path).orderByChild(childKey).equalTo(id));
 
+        // Joins the results of several queries without repeats.
         function merge(snaps) {
             const seen = new Set();
             const items = [];
