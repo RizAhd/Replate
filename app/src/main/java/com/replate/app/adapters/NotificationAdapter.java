@@ -226,12 +226,13 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                     bg.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
                     bg.setCornerRadius(8 * context.getResources().getDisplayMetrics().density);
                     bg.setColor(adjustAlpha(accentColor, 0.1f));
-                    bg.setPadding(
+                    tvCategoryChip.setBackground(bg);
+                    // GradientDrawable.setPadding needs API 29; the view's own padding works on every version
+                    tvCategoryChip.setPadding(
                             (int)(8 * context.getResources().getDisplayMetrics().density),
                             (int)(2 * context.getResources().getDisplayMetrics().density),
                             (int)(8 * context.getResources().getDisplayMetrics().density),
                             (int)(2 * context.getResources().getDisplayMetrics().density));
-                    tvCategoryChip.setBackground(bg);
                 } else {
                     tvCategoryChip.setVisibility(View.GONE);
                 }

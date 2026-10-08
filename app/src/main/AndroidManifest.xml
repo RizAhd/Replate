@@ -15,6 +15,12 @@
     <uses-feature
         android:name="android.hardware.telephony"
         android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.location.gps"
+        android:required="false" />
 
     <!-- Lets resolveActivity() find a camera app on Android 11+ (profile photo from the camera) -->
     <queries>

@@ -30,6 +30,11 @@
 -keep class lk.payhere.** { *; }
 -dontwarn lk.payhere.**
 
+# ── OkHttp (pulled in by the PayHere SDK) looks for optional TLS providers that are not shipped ──
+-dontwarn org.conscrypt.**
+-dontwarn org.bouncycastle.**
+-dontwarn org.openjsse.**
+
 # ── ZXing (QR codes) ─────────────────────────────────────────────────────────
 -keep class com.google.zxing.** { *; }
 

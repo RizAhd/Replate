@@ -439,7 +439,7 @@ Total: LKR %1$.2f</string>
     <!-- Facebook SDK (replace with your actual Facebook App ID and Client Token) -->
     <string name="facebook_app_id">YOUR_FACEBOOK_APP_ID</string>
     <string name="facebook_client_token">YOUR_FACEBOOK_CLIENT_TOKEN</string>
-    <string name="fb_login_protocol_scheme">fbYOUR_FACEBOOK_APP_ID</string>
+    <string name="fb_login_protocol_scheme">fbyour_facebook_app_id</string>
 
     <!-- Social login labels -->
     <string name="auth_continue_google">Continue with Google</string>
