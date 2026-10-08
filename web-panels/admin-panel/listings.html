@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="Listings - REPLATE Admin - REPLATE food rescue.">
+    <meta name="theme-color" content="#1a6b3c">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Listings - REPLATE Admin</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <!-- DataTables -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+    <link rel="icon" href="../assets/favicon.ico" sizes="any">
+    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+    <link rel="manifest" href="../manifest.webmanifest">
+    <style>
+        .listing-thumb { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; background: var(--bg); display: block; }
+        .listing-thumb-empty { width: 48px; height: 48px; border-radius: 8px; background: var(--bg); color: var(--text-tertiary); display: flex; align-items: center; justify-content: center; }
+        .old-price { text-decoration: line-through; color: var(--text-tertiary); font-size: 0.78rem; }
+    </style>
+</head>
+<body>
+<a class="skip-link" href="#mainContent">Skip to content</a>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Admin Sidebar -->
+        <nav id="appShellSidebar" class="sidebar"></nav>
+
+        <main id="mainContent">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <div>
+                    <h1 class="panel-title">Food Listings</h1>
+                    <p class="panel-subtitle mb-0">Every dish hotels have published. Hide a listing to take it off the app without deleting it.</p>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-primary" id="exportListings"><i class="fas fa-download me-1" aria-hidden="true"></i>Export CSV</button>
+            </div>
+
+            <div class="card data-panel p-3">
+                <p id="summary" class="small text-muted mb-3" role="status"></p>
+                <div class="table-responsive">
+                    <table id="listingsTable" class="table table-striped align-middle table-stack" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Photo</th>
+                                <th>Dish</th>
+                                <th>Hotel</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Qty</th>
+                                <th>Pickup window</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Loaded via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="../js/env-config.js"></script>
+<script src="../js/firebase-config.js"></script>
+<script src="../js/data-schema.js"></script>
+<script src="../js/admin-shell-config.js"></script>
+<script src="../js/ui-shell.js"></script>
+
+<script>
+    const esc = ReplateUI.esc;
+    const COLUMNS = 9;
+    let listings = {};      // foodId -> listing, as last read from the database
+    let loaded = false;
+
+    (async () => {
+        const user = await ReplateUI.requireRole('admin');
+        if (!user) return;
+        document.getElementById('tableBody').innerHTML =
+            '<tr><td colspan="' + COLUMNS + '">' + ReplateUI.skeleton('rows', 5) + '</td></tr>';
+        document.getElementById('exportListings').addEventListener('click', exportListings);
+        document.getElementById('tableBody').addEventListener('click', (event) => {
+            const button = event.target.closest('button[data-action]');
+            if (!button) return;
+            if (button.dataset.action === 'delete') deleteListing(button.dataset.id);
+            else setHidden(button.dataset.id, button.dataset.action === 'hide');
+        });
+        loadListings();
+    })();
+
+    // The status the app shows for a listing
+    function listingState(item) {
+        const status = String(item.status || '').toLowerCase();
+        if (item.suspendedByAdmin) return { key: 'hidden', label: 'Hidden by admin', cls: 'badge-danger' };
+        if (status === 'inactive') return { key: 'inactive', label: 'Inactive', cls: 'badge-warning' };
+        if (status === 'sold_out' || Number(item.quantity) <= 0) return { key: 'soldout', label: 'Sold out', cls: 'badge-warning' };
+        if (item.isAvailable === false) return { key: 'inactive', label: 'Unavailable', cls: 'badge-warning' };
+        return { key: 'available', label: 'Available', cls: 'badge-success' };
+    }
+
+    function pickupWindow(item) {
+        const start = item.pickupTimeStart || item.pickupStart || '';
+        const end = item.pickupTimeEnd || item.pickupEnd || '';
+        return start || end ? (start || '?') + ' – ' + (end || '?') : '—';
+    }
+
+    function priceOf(item) {
+        const price = parseFloat(item.discountedPrice);
+        return Number.isFinite(price) ? price : 0;
+    }
+
+    function loadListings() {
+        database.ref('foodItems').on('value', (snapshot) => {
+            listings = {};
+            snapshot.forEach((child) => { listings[child.key] = child.val() || {}; });
+            loaded = true;
+            renderListings();
+        }, (error) => {
+            console.error('Could not load listings', error);
+            loaded = false;
+            document.getElementById('summary').textContent = '';
+            document.getElementById('tableBody').innerHTML =
+                '<tr><td colspan="' + COLUMNS + '">' + ReplateUI.errorState('Listings could not be loaded. Check your admin access and connection.') + '</td></tr>';
+        });
+    }
+
+    function renderListings() {
+        const tbody = document.getElementById('tableBody');
+        const ids = Object.keys(listings).sort((a, b) => (Number(listings[b].createdAt) || 0) - (Number(listings[a].createdAt) || 0));
+
+        // Redraw in place, keeping the search text and page the admin was on
+        let previous = null;
+        if ($.fn.DataTable.isDataTable('#listingsTable')) {
+            const existing = $('#listingsTable').DataTable();
+            previous = { search: existing.search(), page: existing.page() };
+            existing.destroy();
+        }
+
+        const hiddenCount = ids.filter((id) => listingState(listings[id]).key === 'hidden').length;
+        document.getElementById('summary').textContent = ids.length + (ids.length === 1 ? ' listing' : ' listings') +
+            (hiddenCount ? ', ' + hiddenCount + ' hidden by admin' : '') + '.';
+
+        if (ids.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="' + COLUMNS + '">' +
+                ReplateUI.emptyState('No listings yet', 'Dishes appear here as hotels publish them.', 'fa-utensils') + '</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = ids.map((id) => {
+            const item = listings[id];
+            const state = listingState(item);
+            const image = ReplateUI.safeUrl(item.imageUrl);
+            const original = parseFloat(item.originalPrice);
+            const hidden = state.key === 'hidden';
+            return `
+                <tr data-id="${esc(id)}">
+                    <td data-label="Photo">${image
+                        ? `<img class="listing-thumb" src="${esc(image)}" alt="" loading="lazy">`
+                        : '<div class="listing-thumb-empty"><i class="fas fa-image" aria-hidden="true"></i></div>'}</td>
+                    <td data-label="Dish">${esc(item.foodName || 'Untitled')}</td>
+                    <td data-label="Hotel">${esc(item.hotelName || '—')}</td>
+                    <td data-label="Category">${esc(item.category || '—')}</td>
+                    <td data-label="Price" data-order="${esc(priceOf(item))}">LKR ${esc(ReplateSchema.formatAmount(item.discountedPrice))}${Number.isFinite(original) && original > priceOf(item) ? `<br><span class="old-price">LKR ${esc(ReplateSchema.formatAmount(original))}</span>` : ''}</td>
+                    <td data-label="Qty" data-order="${esc(Number(item.quantity) || 0)}">${esc(Number(item.quantity) || 0)}</td>
+                    <td data-label="Pickup window">${esc(pickupWindow(item))}</td>
+                    <td data-label="Status"><span class="badge ${state.cls}">${esc(state.label)}</span></td>
+                    <td data-label="Action" class="actions-cell">
+                        <button type="button" id="toggle_${esc(id)}" class="btn btn-sm ${hidden ? 'btn-success' : 'btn-outline-secondary'}" data-action="${hidden ? 'show' : 'hide'}" data-id="${esc(id)}">
+                            <i class="fas ${hidden ? 'fa-eye' : 'fa-eye-slash'}" aria-hidden="true"></i> ${hidden ? 'Show' : 'Hide'}
+                        </button>
+                        <button type="button" id="delete_${esc(id)}" class="btn btn-sm btn-outline-danger" data-action="delete" data-id="${esc(id)}">
+                            <i class="fas fa-trash" aria-hidden="true"></i> Delete
+                        </button>
+                    </td>
+                </tr>`;
+        }).join('');
+
+        const table = $('#listingsTable').DataTable({
+            pageLength: 25,
+            order: [],
+            autoWidth: false,
+            columnDefs: [{ orderable: false, targets: [0, 8] }]
+        });
+        if (previous) table.search(previous.search).page(previous.page).draw(false);
+    }
+
+    // Hide = same fields the suspend-hotel function uses, so un-hiding restores the old status
+    async function setHidden(id, hide) {
+        const item = listings[id];
+        if (!item) return;
+        const name = item.foodName || 'This dish';
+        const ok = await ReplateUI.confirmAction(
+            hide ? `${name} will disappear from the app until you show it again.` : `${name} will be visible in the app again.`,
+            { title: hide ? 'Hide this listing?' : 'Show this listing?', confirmText: hide ? 'Hide' : 'Show', danger: hide });
+        if (!ok) return;
+
+        const buttonId = 'toggle_' + id;
+        ReplateUI.setButtonLoading(buttonId, true, hide ? 'Hiding...' : 'Showing...');
+        try {
+            if (hide) {
+                await database.ref('foodItems/' + id).update({
+                    status: 'inactive',
+                    suspendedByAdmin: true,
+                    // keep the first remembered status if it is already hidden
+                    statusBeforeSuspension: item.suspendedByAdmin ? (item.statusBeforeSuspension || null) : (item.status || null)
+                });
+            } else {
+                await database.ref('foodItems/' + id).update({
+                    status: item.statusBeforeSuspension || 'available',
+                    statusBeforeSuspension: null,
+                    suspendedByAdmin: null
+                });
+            }
+            ReplateUI.toast(hide ? 'Listing hidden.' : 'Listing is visible again.', 'success');
+        } catch (error) {
+            console.error(error);
+            ReplateUI.toast(error.message || 'Could not update the listing. Please try again.', 'danger');
+        } finally {
+            ReplateUI.setButtonLoading(buttonId, false);
+        }
+    }
+
+    async function deleteListing(id) {
+        const item = listings[id];
+        if (!item) return;
+        const ok = await ReplateUI.confirmAction(
+            `${item.foodName || 'This dish'} from ${item.hotelName || 'this hotel'} will be removed for good. Existing orders keep their copy of the dish. This cannot be undone.`,
+            { title: 'Delete this listing?', confirmText: 'Delete', danger: true });
+        if (!ok) return;
+
+        const buttonId = 'delete_' + id;
+        ReplateUI.setButtonLoading(buttonId, true, 'Deleting...');
+        try {
+            await database.ref('foodItems/' + id).remove();
+            ReplateUI.toast('Listing deleted.', 'success');
+        } catch (error) {
+            console.error(error);
+            ReplateUI.toast(error.message || 'Could not delete the listing. Please try again.', 'danger');
+        } finally {
+            ReplateUI.setButtonLoading(buttonId, false);
+        }
+    }
+
+    // Exports the rows the search box currently shows
+    function exportListings() {
+        let ids = Object.keys(listings);
+        if ($.fn.DataTable.isDataTable('#listingsTable')) {
+            ids = $('#listingsTable').DataTable().rows({ search: 'applied' }).nodes().toArray().map((tr) => tr.dataset.id);
+        }
+        const rows = ids.filter((id) => listings[id]).map((id) => Object.assign({ id }, listings[id]));
+        if (!loaded || rows.length === 0) { ReplateUI.toast('There are no listings to export.', 'warning'); return; }
+        const csv = ReplateSchema.toCsv(rows, [
+            { label: 'Dish', get: (r) => r.foodName || '' },
+            { label: 'Hotel', get: (r) => r.hotelName || '' },
+            { label: 'Category', get: (r) => r.category || '' },
+            { label: 'Price (LKR)', get: (r) => priceOf(r).toFixed(2) },
+            { label: 'Original price (LKR)', get: (r) => Number.isFinite(parseFloat(r.originalPrice)) ? parseFloat(r.originalPrice).toFixed(2) : '' },
+            { label: 'Quantity', get: (r) => Number(r.quantity) || 0 },
+            { label: 'Pickup window', get: (r) => pickupWindow(r) },
+            { label: 'Status', get: (r) => listingState(r).label },
+            { label: 'Image URL', get: (r) => r.imageUrl || '' },
+            { label: 'Listing ID', key: 'id' }
+        ]);
+        ReplateUI.downloadCsv('replate-listings.csv', csv);
+    }
+</script>
+</body>
+</html>

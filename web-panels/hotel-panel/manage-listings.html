@@ -295,7 +295,9 @@
         if (!field('editName').value.trim()) return 'Enter the food name.';
         if (!(original > 0) || !(discounted > 0)) return 'Enter both prices (more than 0).';
         if (discounted >= original) return 'The discounted price must be lower than the original price.';
+        if (original > 1000000) return 'The price is too high (maximum 1,000,000).';
         if (!Number.isFinite(quantity) || quantity < 0) return 'Quantity must be 0 or more.';
+        if (quantity > 1000) return 'Quantity can be at most 1000.';
         if (!start || !end) return 'Set the pickup start and end times.';
         if (end <= start) return 'Pickup must end after it starts.';
         const file = field('editPhoto').files[0];

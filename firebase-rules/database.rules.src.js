@@ -212,7 +212,8 @@ const rules = {
       '.read': SIGNED_IN,
       '.indexOn': ['foodId'],
       $reviewId: {
-        '.write': `auth != null && ((!data.exists() && newData.child('userId').val() === auth.uid) || (data.exists() && data.child('userId').val() === auth.uid && (!newData.exists() || newData.child('userId').val() === auth.uid)))`,
+        // An admin can also remove an abusive review (admin Reports page)
+        '.write': `auth != null && (${ADMIN} || (!data.exists() && newData.child('userId').val() === auth.uid) || (data.exists() && data.child('userId').val() === auth.uid && (!newData.exists() || newData.child('userId').val() === auth.uid)))`,
         rating: { '.validate': 'newData.isNumber() && newData.val() >= 0 && newData.val() <= 5' },
         comment: { '.validate': 'newData.isString() && newData.val().length <= 1000' },
       },

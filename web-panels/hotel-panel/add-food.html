@@ -230,7 +230,9 @@
         if (!document.getElementById('category').value) return 'Choose a category.';
         if (!(original > 0) || !(discounted > 0)) return 'Enter both prices (more than 0).';
         if (discounted >= original) return 'The discounted price must be lower than the original price.';
+        if (original > 1000000) return 'The price is too high (maximum 1,000,000).';
         if (!(quantity >= 1)) return 'Quantity must be at least 1.';
+        if (quantity > 1000) return 'Quantity can be at most 1000.';
         if (!start || !end) return 'Set the pickup start and end times.';
         if (end <= start) return 'Pickup must end after it starts.';
         return null;

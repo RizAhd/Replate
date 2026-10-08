@@ -153,7 +153,7 @@
         "foodId"
       ],
       "$reviewId": {
-        ".write": "auth != null && ((!data.exists() && newData.child('userId').val() === auth.uid) || (data.exists() && data.child('userId').val() === auth.uid && (!newData.exists() || newData.child('userId').val() === auth.uid)))",
+        ".write": "auth != null && ((root.child('users').child(auth.uid).child('role').val() === 'admin' && (auth.token.email === 'admin@replate.com' || auth.token.email === 'superadmin@replate.com')) || (!data.exists() && newData.child('userId').val() === auth.uid) || (data.exists() && data.child('userId').val() === auth.uid && (!newData.exists() || newData.child('userId').val() === auth.uid)))",
         "rating": {
           ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 5"
         },

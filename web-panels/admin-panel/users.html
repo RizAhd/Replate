@@ -64,6 +64,9 @@
             </div>
 
             <div class="card data-panel p-3">
+                <div class="d-flex justify-content-end mb-2">
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="exportUsers"><i class="fas fa-download me-1" aria-hidden="true"></i>Export CSV</button>
+                </div>
                 <div class="row g-2 mb-3">
                     <div class="col-sm-6 col-md-3">
                         <label for="roleFilter" class="form-label small mb-1">Role</label>
@@ -124,6 +127,7 @@
     const esc = ReplateUI.esc;
     let currentAdminUid = null;
     let hotelNameByUserId = {};
+    let peopleByUid = {}; // uid -> person, for the CSV export
 
     (async () => {
         const user = await ReplateUI.requireRole('admin');
@@ -131,8 +135,27 @@
         currentAdminUid = user.uid;
         document.getElementById('tableBody').innerHTML =
             '<tr><td colspan="7">' + ReplateUI.skeleton('rows', 5) + '</td></tr>';
+        document.getElementById('exportUsers').addEventListener('click', exportUsers);
         loadUsers();
     })();
+
+    // Exports the rows the filters and search box currently show
+    function exportUsers() {
+        if (!$.fn.DataTable.isDataTable('#usersTable')) { ReplateUI.toast('There are no users to export.', 'warning'); return; }
+        const rows = $('#usersTable').DataTable().rows({ search: 'applied' }).nodes().toArray()
+            .map((tr) => peopleByUid[tr.dataset.uid]).filter(Boolean);
+        if (rows.length === 0) { ReplateUI.toast('There are no users to export.', 'warning'); return; }
+        const csv = ReplateSchema.toCsv(rows, [
+            { label: 'Name', get: (p) => p.name || hotelNameByUserId[p.uid] || '' },
+            { label: 'Email', key: 'email' },
+            { label: 'Phone', key: 'phone' },
+            { label: 'Role', key: 'role' },
+            { label: 'Joined', get: (p) => p.createdAt ? new Date(p.createdAt).toISOString() : '' },
+            { label: 'Status', get: (p) => p.suspended ? 'Suspended' : 'Active' },
+            { label: 'Suspension reason', get: (p) => p.suspended ? p.reason : '' }
+        ]);
+        ReplateUI.downloadCsv('replate-users.csv', csv);
+    }
 
     // Role / status drop-downs filter the table on top of the search box
     $.fn.dataTable.ext.search.push((settings, data) => {
@@ -204,6 +227,8 @@
         }
 
         people.sort((a, b) => b.createdAt - a.createdAt);
+        peopleByUid = {};
+        people.forEach((p) => { peopleByUid[p.uid] = p; });
         tbody.innerHTML = people.map((p) => {
             const hotelName = p.role === 'hotel' ? hotelNameByUserId[p.uid] : '';
             const displayName = p.name || hotelName || '—';
@@ -220,7 +245,7 @@
             }
 
             return `
-                <tr>
+                <tr data-uid="${esc(p.uid)}">
                     <td data-label="Name">${esc(displayName)}${hotelName && p.name && hotelName !== p.name ? `<br><small class="text-muted">${esc(hotelName)}</small>` : ''}</td>
                     <td data-label="Email">${esc(p.email || '—')}</td>
                     <td data-label="Phone">${esc(p.phone || '—')}</td>

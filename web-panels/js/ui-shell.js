@@ -423,6 +423,20 @@ const ReplateUI = (() => {
         }
     }
 
+    // ── File download ───────────────────────────────────────────────────────
+    /** Save CSV text as a file (UTF-8 with a BOM so Excel shows accents and currency correctly). */
+    function downloadCsv(filename, csvText) {
+        const blob = new Blob(['﻿', csvText], { type: 'text/csv;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
     // ── Loading / empty / error states for lists and tables ────────────────
     /** Placeholder rows while data loads. kind: 'cards' | 'rows' */
     function skeleton(kind = 'rows', count = 4) {
@@ -460,6 +474,7 @@ const ReplateUI = (() => {
         renderSidebar,
         attachPasswordToggle,
         setButtonLoading,
+        downloadCsv,
         skeleton,
         emptyState,
         errorState

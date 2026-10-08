@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="Reports - REPLATE Admin - REPLATE food rescue.">
+    <meta name="theme-color" content="#1a6b3c">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Reports - REPLATE Admin</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+    <link rel="icon" href="../assets/favicon.ico" sizes="any">
+    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+    <link rel="manifest" href="../manifest.webmanifest">
+    <style>
+        .review-comment { max-width: 340px; white-space: normal; word-break: break-word; }
+        @media (max-width: 767.98px) {
+            .review-comment { max-width: none; }
+        }
+    </style>
+</head>
+<body>
+<a class="skip-link" href="#mainContent">Skip to content</a>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Admin Sidebar -->
+        <nav id="appShellSidebar" class="sidebar"></nav>
+
+        <main id="mainContent">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <div>
+                    <h1 class="panel-title">Reports</h1>
+                    <p class="panel-subtitle mb-0">Hotel performance, cancelled and expired orders, and customer reviews. Export any table to CSV.</p>
+                </div>
+                <div>
+                    <label for="rangeFilter" class="form-label small mb-1">Date range</label>
+                    <select id="rangeFilter" class="form-select form-select-sm">
+                        <option value="today">Today</option>
+                        <option value="7d">Last 7 days</option>
+                        <option value="30d">Last 30 days</option>
+                        <option value="all" selected>All time</option>
+                    </select>
+                </div>
+            </div>
+
+            <ul class="nav nav-tabs mb-3" id="reportTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="tabPerformance" data-bs-toggle="tab" data-bs-target="#paneHotels" type="button" role="tab" aria-controls="paneHotels" aria-selected="true">Hotel performance</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="tabCancelled" data-bs-toggle="tab" data-bs-target="#paneCancelled" type="button" role="tab" aria-controls="paneCancelled" aria-selected="false">Cancelled &amp; expired</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="tabReviews" data-bs-toggle="tab" data-bs-target="#paneReviews" type="button" role="tab" aria-controls="paneReviews" aria-selected="false">Reviews</button>
+                </li>
+            </ul>
+
+            <div class="tab-content">
+                <!-- Hotel performance -->
+                <div class="tab-pane fade show active" id="paneHotels" role="tabpanel" aria-labelledby="tabPerformance">
+                    <div class="card data-panel p-3">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                            <p id="hotelsSummary" class="small text-muted mb-0" role="status"></p>
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="exportHotels"><i class="fas fa-download me-1" aria-hidden="true"></i>Export CSV</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle table-stack">
+                                <thead>
+                                    <tr><th>Hotel</th><th>Orders</th><th>Completed</th><th>Cancelled</th><th>Cancel rate</th><th>Revenue</th><th>Rating</th></tr>
+                                </thead>
+                                <tbody id="hotelsBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cancelled and expired -->
+                <div class="tab-pane fade" id="paneCancelled" role="tabpanel" aria-labelledby="tabCancelled">
+                    <div class="card data-panel p-3">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                            <p id="cancelledSummary" class="small text-muted mb-0" role="status"></p>
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="exportCancelled"><i class="fas fa-download me-1" aria-hidden="true"></i>Export CSV</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle table-stack">
+                                <thead>
+                                    <tr><th>Order ID</th><th>Placed</th><th>Customer</th><th>Hotel</th><th>Items</th><th>Amount</th><th>Payment</th><th>What happened</th></tr>
+                                </thead>
+                                <tbody id="cancelledBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reviews -->
+                <div class="tab-pane fade" id="paneReviews" role="tabpanel" aria-labelledby="tabReviews">
+                    <div class="card data-panel p-3">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                            <p id="reviewsSummary" class="small text-muted mb-0" role="status"></p>
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="exportReviews"><i class="fas fa-download me-1" aria-hidden="true"></i>Export CSV</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle table-stack">
+                                <thead>
+                                    <tr><th>Hotel</th><th>Dish</th><th>Rating</th><th>Comment</th><th>Customer</th><th>Date</th><th>Action</th></tr>
+                                </thead>
+                                <tbody id="reviewsBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="../js/env-config.js"></script>
+<script src="../js/firebase-config.js"></script>
+<script src="../js/data-schema.js"></script>
+<script src="../js/admin-shell-config.js"></script>
+<script src="../js/ui-shell.js"></script>
+
+<script>
+    const esc = ReplateUI.esc;
+    const MAX_REVIEW_ROWS = 500; // newest first; the CSV still has every row in the range
+
+    // Latest data and load state ('loading' | 'ok' | 'error') for each source
+    let allOrders = [], allReviews = [], foodById = {};
+    let ordersState = 'loading', reviewsState = 'loading';
+    // Rows currently shown (used by the CSV buttons)
+    let hotelRows = [], cancelledRows = [], reviewRows = [];
+
+    (async () => {
+        const user = await ReplateUI.requireRole('admin');
+        if (!user) return;
+        ['hotelsBody', 'cancelledBody', 'reviewsBody'].forEach((id) => {
+            document.getElementById(id).innerHTML = '<tr><td colspan="8">' + ReplateUI.skeleton('rows', 4) + '</td></tr>';
+        });
+        document.getElementById('rangeFilter').addEventListener('change', renderAll);
+        document.getElementById('exportHotels').addEventListener('click', exportHotels);
+        document.getElementById('exportCancelled').addEventListener('click', exportCancelled);
+        document.getElementById('exportReviews').addEventListener('click', exportReviews);
+        document.getElementById('reviewsBody').addEventListener('click', (event) => {
+            const button = event.target.closest('button[data-action="delete"]');
+            if (button) deleteReview(button.dataset.id);
+        });
+        loadData();
+    })();
+
+    function currentRange() { return document.getElementById('rangeFilter').value; }
+    function stamp(ts) { return ts ? new Date(Number(ts)).toLocaleString() : '—'; }
+    function csvDate(ts) { return ts ? new Date(Number(ts)).toISOString() : ''; }
+    function errorRow(cols, message) { return '<tr><td colspan="' + cols + '">' + ReplateUI.errorState(message) + '</td></tr>'; }
+
+    // ── Live data ───────────────────────────────────────────
+    function loadData() {
+        database.ref('orders').on('value', (snapshot) => {
+            allOrders = [];
+            snapshot.forEach((child) => { allOrders.push(Object.assign({ orderId: child.key }, child.val() || {})); });
+            ordersState = 'ok';
+            renderAll();
+        }, (error) => {
+            console.error('Could not load orders', error);
+            ordersState = 'error';
+            renderAll();
+        });
+
+        database.ref('reviews').on('value', (snapshot) => {
+            allReviews = [];
+            snapshot.forEach((child) => { allReviews.push(Object.assign({}, child.val() || {}, { id: child.key })); });
+            reviewsState = 'ok';
+            renderAll();
+        }, (error) => {
+            console.error('Could not load reviews', error);
+            reviewsState = 'error';
+            renderAll();
+        });
+
+        // Dish names for the reviews table; the reports still work without them
+        database.ref('foodItems').on('value', (snapshot) => {
+            foodById = {};
+            snapshot.forEach((child) => { foodById[child.key] = child.val() || {}; });
+            if (reviewsState === 'ok') renderReviews();
+        }, (error) => console.warn('Could not load listings for dish names', error));
+    }
+
+    function renderAll() {
+        renderHotels();
+        renderCancelled();
+        renderReviews();
+    }
+
+    // ── Hotel performance ───────────────────────────────────
+    function renderHotels() {
+        const body = document.getElementById('hotelsBody');
+        if (ordersState === 'loading') return;
+        if (ordersState === 'error') {
+            body.innerHTML = errorRow(7, 'Orders could not be loaded. Check your admin access and connection.');
+            document.getElementById('hotelsSummary').textContent = '';
+            hotelRows = [];
+            return;
+        }
+        const range = currentRange();
+        const orders = allOrders.filter((o) => ReplateSchema.withinRange(o, range));
+        const reviews = allReviews.filter((r) => ReplateSchema.withinRange(r, range));
+        hotelRows = ReplateSchema.hotelPerformance(orders, reviews);
+        document.getElementById('hotelsSummary').textContent = hotelRows.length + (hotelRows.length === 1 ? ' hotel' : ' hotels') +
+            ' with orders. Revenue counts completed and delivered orders only.';
+        body.innerHTML = hotelRows.length === 0
+            ? '<tr><td colspan="7">' + ReplateUI.emptyState('No orders in this range', 'Try a longer date range.', 'fa-hotel') + '</td></tr>'
+            : hotelRows.map((h) => `
+                <tr>
+                    <td data-label="Hotel">${esc(h.hotelName)}</td>
+                    <td data-label="Orders">${esc(h.orders)}</td>
+                    <td data-label="Completed">${esc(h.completed)}</td>
+                    <td data-label="Cancelled">${esc(h.cancelled)}</td>
+                    <td data-label="Cancel rate">${esc(h.cancelRatePct)}%</td>
+                    <td data-label="Revenue" class="num">LKR ${esc(h.revenue.toLocaleString(undefined, { maximumFractionDigits: 0 }))}</td>
+                    <td data-label="Rating">${h.ratingCount ? `<i class="fas fa-star text-warning" aria-hidden="true"></i> ${esc(h.avgRating.toFixed(1))} (${esc(h.ratingCount)})` : '<span class="text-muted">—</span>'}</td>
+                </tr>`).join('');
+    }
+
+    function exportHotels() {
+        if (hotelRows.length === 0) { ReplateUI.toast('There is nothing to export for this range.', 'warning'); return; }
+        const csv = ReplateSchema.toCsv(hotelRows, [
+            { label: 'Hotel', key: 'hotelName' },
+            { label: 'Orders', key: 'orders' },
+            { label: 'Completed', key: 'completed' },
+            { label: 'Cancelled', key: 'cancelled' },
+            { label: 'Cancel rate %', key: 'cancelRatePct' },
+            { label: 'Revenue (LKR)', get: (h) => h.revenue.toFixed(2) },
+            { label: 'Average rating', get: (h) => h.ratingCount ? h.avgRating.toFixed(2) : '' },
+            { label: 'Ratings', key: 'ratingCount' }
+        ]);
+        ReplateUI.downloadCsv('replate-hotel-performance-' + currentRange() + '.csv', csv);
+    }
+
+    // ── Cancelled and expired orders ────────────────────────
+    function kindBadge(kind) {
+        const cls = kind === 'Expired pickup' ? 'badge-warning' : 'badge-danger';
+        return `<span class="badge ${cls}">${esc(kind)}</span>`;
+    }
+
+    function renderCancelled() {
+        const body = document.getElementById('cancelledBody');
+        if (ordersState === 'loading') return;
+        if (ordersState === 'error') {
+            body.innerHTML = errorRow(8, 'Orders could not be loaded. Check your admin access and connection.');
+            document.getElementById('cancelledSummary').textContent = '';
+            cancelledRows = [];
+            return;
+        }
+        const range = currentRange();
+        const now = Date.now();
+        cancelledRows = ReplateSchema.cancelledReport(allOrders.filter((o) => ReplateSchema.withinRange(o, range, now)), now);
+        const byHotel = cancelledRows.filter((r) => r.kind === 'Cancelled by hotel').length;
+        const byCustomer = cancelledRows.filter((r) => r.kind === 'Cancelled by customer').length;
+        const expired = cancelledRows.length - byHotel - byCustomer;
+        document.getElementById('cancelledSummary').textContent =
+            byCustomer + ' cancelled by customers, ' + byHotel + ' cancelled by hotels, ' + expired + ' expired pickups.';
+        body.innerHTML = cancelledRows.length === 0
+            ? '<tr><td colspan="8">' + ReplateUI.emptyState('No cancelled or expired orders', 'Nothing to report for this range.', 'fa-circle-check') + '</td></tr>'
+            : cancelledRows.map(({ kind, order }) => `
+                <tr>
+                    <td data-label="Order ID"><code>#${esc(ReplateSchema.shortOrderId(order, order.orderId))}</code></td>
+                    <td data-label="Placed">${esc(stamp(ReplateSchema.placedAt(order)))}</td>
+                    <td data-label="Customer">${esc(order.customerName || '—')}</td>
+                    <td data-label="Hotel">${esc(order.hotelName || '—')}</td>
+                    <td data-label="Items">${esc(ReplateSchema.extractItemNames(order))}</td>
+                    <td data-label="Amount" class="num">LKR ${esc(ReplateSchema.formatAmount(order.totalAmount || order.totalPrice))}</td>
+                    <td data-label="Payment">${esc(order.paymentMethod || '—')}<br><small class="text-muted">${esc(order.paymentStatus || 'pending')}</small></td>
+                    <td data-label="What happened">${kindBadge(kind)}</td>
+                </tr>`).join('');
+    }
+
+    function exportCancelled() {
+        if (cancelledRows.length === 0) { ReplateUI.toast('There is nothing to export for this range.', 'warning'); return; }
+        const csv = ReplateSchema.toCsv(cancelledRows, [
+            { label: 'Order ID', get: (r) => ReplateSchema.shortOrderId(r.order, r.order.orderId) },
+            { label: 'Placed', get: (r) => csvDate(ReplateSchema.placedAt(r.order)) },
+            { label: 'What happened', key: 'kind' },
+            { label: 'Customer', get: (r) => r.order.customerName || '' },
+            { label: 'Hotel', get: (r) => r.order.hotelName || '' },
+            { label: 'Items', get: (r) => ReplateSchema.extractItemNames(r.order) },
+            { label: 'Amount (LKR)', get: (r) => ReplateSchema.orderAmount(r.order).toFixed(2) },
+            { label: 'Payment method', get: (r) => r.order.paymentMethod || '' },
+            { label: 'Payment status', get: (r) => r.order.paymentStatus || '' },
+            { label: 'Pickup expired at', get: (r) => r.kind === 'Expired pickup' ? csvDate(r.order.pickupExpiresAt) : '' }
+        ]);
+        ReplateUI.downloadCsv('replate-cancelled-expired-' + currentRange() + '.csv', csv);
+    }
+
+    // ── Reviews ─────────────────────────────────────────────
+    // Fills in hotel, dish and customer names that older reviews did not store
+    function describeReview(review, orderById) {
+        const order = orderById[review.orderId] || {};
+        const food = foodById[review.foodId] || {};
+        return {
+            id: review.id,
+            hotel: review.hotelName || food.hotelName || order.hotelName || '—',
+            dish: review.foodId ? (food.foodName || 'Removed dish') : 'Whole order',
+            rating: Number(review.rating) || 0,
+            comment: review.comment || '',
+            customer: review.userName || order.customerName || '—',
+            createdAt: Number(review.createdAt) || 0
+        };
+    }
+
+    function renderReviews() {
+        const body = document.getElementById('reviewsBody');
+        if (reviewsState === 'loading') return;
+        if (reviewsState === 'error') {
+            body.innerHTML = errorRow(7, 'Reviews could not be loaded. Check your admin access and connection.');
+            document.getElementById('reviewsSummary').textContent = '';
+            reviewRows = [];
+            return;
+        }
+        const range = currentRange();
+        const orderById = {};
+        allOrders.forEach((o) => { orderById[o.orderId] = o; });
+        reviewRows = allReviews.filter((r) => ReplateSchema.withinRange(r, range))
+            .map((r) => describeReview(r, orderById)).sort((a, b) => b.createdAt - a.createdAt);
+        const shown = reviewRows.slice(0, MAX_REVIEW_ROWS);
+        document.getElementById('reviewsSummary').textContent = reviewRows.length + (reviewRows.length === 1 ? ' review' : ' reviews') +
+            (reviewRows.length > shown.length ? ' (newest ' + shown.length + ' shown, the CSV has all of them)' : '') + '.';
+        body.innerHTML = shown.length === 0
+            ? '<tr><td colspan="7">' + ReplateUI.emptyState('No reviews in this range', 'Customer reviews appear here after they rate an order.', 'fa-star') + '</td></tr>'
+            : shown.map((r) => `
+                <tr>
+                    <td data-label="Hotel">${esc(r.hotel)}</td>
+                    <td data-label="Dish">${esc(r.dish)}</td>
+                    <td data-label="Rating"><i class="fas fa-star text-warning" aria-hidden="true"></i> ${esc(r.rating.toFixed(1))}</td>
+                    <td data-label="Comment" class="review-comment">${r.comment ? esc(r.comment) : '<span class="text-muted">No comment</span>'}</td>
+                    <td data-label="Customer">${esc(r.customer)}</td>
+                    <td data-label="Date">${esc(stamp(r.createdAt))}</td>
+                    <td data-label="Action" class="actions-cell">
+                        <button type="button" id="delReview_${esc(r.id)}" class="btn btn-sm btn-outline-danger" data-action="delete" data-id="${esc(r.id)}"><i class="fas fa-trash" aria-hidden="true"></i> Delete</button>
+                    </td>
+                </tr>`).join('');
+    }
+
+    function exportReviews() {
+        if (reviewRows.length === 0) { ReplateUI.toast('There is nothing to export for this range.', 'warning'); return; }
+        const csv = ReplateSchema.toCsv(reviewRows, [
+            { label: 'Hotel', key: 'hotel' },
+            { label: 'Dish', key: 'dish' },
+            { label: 'Rating', key: 'rating' },
+            { label: 'Comment', key: 'comment' },
+            { label: 'Customer', key: 'customer' },
+            { label: 'Date', get: (r) => csvDate(r.createdAt) }
+        ]);
+        ReplateUI.downloadCsv('replate-reviews-' + currentRange() + '.csv', csv);
+    }
+
+    // Recount a dish's average after reviews were removed (the app reads these two fields)
+    async function refreshDishRating(foodId) {
+        if (!foodById[foodId]) return;
+        const snap = await database.ref('reviews').orderByChild('foodId').equalTo(foodId).once('value');
+        let sum = 0, count = 0;
+        snap.forEach((child) => {
+            const rating = Number((child.val() || {}).rating);
+            if (Number.isFinite(rating) && rating >= 0 && rating <= 5) { sum += rating; count++; }
+        });
+        await database.ref('foodItems/' + foodId).update({ avgRating: count ? sum / count : 0, reviewCount: count });
+    }
+
+    async function deleteReview(id) {
+        const review = allReviews.find((r) => r.id === id);
+        if (!review) return;
+        // The same order review is saved once for the hotel and once per dish; remove them together
+        const copies = review.orderId
+            ? allReviews.filter((r) => r.orderId === review.orderId && r.userId === review.userId && r.comment === review.comment && r.rating === review.rating)
+            : [review];
+        const ok = await ReplateUI.confirmAction(
+            copies.length > 1
+                ? 'This review and ' + (copies.length - 1) + (copies.length === 2 ? ' copy' : ' copies') + ' saved from the same order will be removed for everyone. This cannot be undone.'
+                : 'This review will be removed for everyone. This cannot be undone.',
+            { title: 'Delete this review?', confirmText: 'Delete', danger: true });
+        if (!ok) return;
+
+        const buttonId = 'delReview_' + id;
+        ReplateUI.setButtonLoading(buttonId, true, 'Deleting...');
+        try {
+            const updates = {};
+            copies.forEach((r) => { updates['reviews/' + r.id] = null; });
+            // Let the customer see the order as not reviewed again
+            if (review.orderId && allOrders.some((o) => o.orderId === review.orderId)) {
+                ['reviewRating', 'reviewComment', 'reviewAt', 'hasReview'].forEach((field) => { updates['orders/' + review.orderId + '/' + field] = null; });
+            }
+            await database.ref().update(updates);
+            ReplateUI.toast('Review deleted.', 'success');
+            try {
+                const foodIds = Array.from(new Set(copies.map((r) => r.foodId).filter(Boolean)));
+                await Promise.all(foodIds.map(refreshDishRating));
+            } catch (error) {
+                console.warn('Review deleted but the dish rating was not refreshed', error);
+            }
+        } catch (error) {
+            console.error(error);
+            ReplateUI.toast(error.message || 'Could not delete the review. Please try again.', 'danger');
+        } finally {
+            ReplateUI.setButtonLoading(buttonId, false);
+        }
+    }
+</script>
+</body>
+</html>

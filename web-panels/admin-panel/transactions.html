@@ -62,7 +62,10 @@
                         <input type="date" id="toDate" class="form-control form-control-sm">
                     </div>
                 </div>
-                <p id="summary" class="small text-muted mb-3" role="status"></p>
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                    <p id="summary" class="small text-muted mb-0" role="status"></p>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="exportTransactions"><i class="fas fa-download me-1" aria-hidden="true"></i>Export CSV</button>
+                </div>
 
                 <div class="table-responsive">
                     <table id="transactionsTable" class="table table-striped align-middle table-stack" style="width:100%">
@@ -105,14 +108,37 @@
     const esc = ReplateUI.esc;
     const MAX_ROWS = 500; // newest first; keeps the page quick as the order history grows
     const COLUMNS = 9;
+    let ordersByKey = {}; // order key -> order, for the CSV export
 
     (async () => {
         const user = await ReplateUI.requireRole('admin');
         if (!user) return;
         document.getElementById('tableBody').innerHTML =
             '<tr><td colspan="' + COLUMNS + '">' + ReplateUI.skeleton('rows', 5) + '</td></tr>';
+        document.getElementById('exportTransactions').addEventListener('click', exportTransactions);
         loadTransactions();
     })();
+
+    // Exports the rows the filters and search box currently show
+    function exportTransactions() {
+        if (!$.fn.DataTable.isDataTable('#transactionsTable')) { ReplateUI.toast('There are no transactions to export.', 'warning'); return; }
+        const rows = $('#transactionsTable').DataTable().rows({ search: 'applied' }).nodes().toArray()
+            .map((tr) => Object.assign({ key: tr.dataset.key }, ordersByKey[tr.dataset.key])).filter((r) => r.key);
+        if (rows.length === 0) { ReplateUI.toast('There are no transactions to export.', 'warning'); return; }
+        const csv = ReplateSchema.toCsv(rows, [
+            { label: 'Order ID', get: (o) => ReplateSchema.shortOrderId(o, o.key) },
+            { label: 'Date', get: (o) => o.createdAt ? new Date(Number(o.createdAt)).toISOString() : '' },
+            { label: 'Customer', get: (o) => o.customerName || '' },
+            { label: 'Hotel', get: (o) => o.hotelName || '' },
+            { label: 'Items', get: (o) => ReplateSchema.extractItemNames(o) },
+            { label: 'Amount (LKR)', get: (o) => ReplateSchema.formatAmount(o.totalAmount || o.totalPrice) },
+            { label: 'Payment method', get: (o) => o.paymentMethod || '' },
+            { label: 'Payment status', get: (o) => o.paymentStatus || '' },
+            { label: 'Review rating', get: (o) => Number(o.reviewRating) > 0 ? Number(o.reviewRating) : '' },
+            { label: 'Status', get: (o) => ReplateSchema.statusLabel(o.orderStatus) }
+        ]);
+        ReplateUI.downloadCsv('replate-transactions.csv', csv);
+    }
 
     // ── Filters (on top of the search box) ──────────────────
     function dayStart(value) { return value ? new Date(value + 'T00:00:00').getTime() : null; }
@@ -172,8 +198,10 @@
             const hotels = new Set();
 
             const rows = [];
+            ordersByKey = {};
             snapshot.forEach((child) => {
                 const order = child.val() || {};
+                ordersByKey[child.key] = order;
                 const date = order.createdAt ? new Date(order.createdAt).toLocaleString() : 'N/A';
                 const status = ReplateSchema.normalizeOrderStatus(order.orderStatus);
                 const label = ReplateSchema.statusLabel(status);
@@ -188,7 +216,7 @@
                 const earned = state === 'completed' ? ReplateSchema.orderAmount(order) : 0;
 
                 rows.push(`
-                    <tr data-ts="${esc(order.createdAt || 0)}" data-state="${state}" data-hotel="${esc(hotelName)}" data-earned="${earned}">
+                    <tr data-key="${esc(child.key)}" data-ts="${esc(order.createdAt || 0)}" data-state="${state}" data-hotel="${esc(hotelName)}" data-earned="${earned}">
                         <td data-label="Order ID"><code>#${esc(displayId)}</code></td>
                         <td data-label="Date" data-order="${esc(order.createdAt || 0)}">${esc(date)}</td>
                         <td data-label="Customer">${esc(order.customerName || '—')}</td>

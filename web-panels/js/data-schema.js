@@ -319,7 +319,124 @@ const ReplateSchema = (() => {
         return scopedList(database, 'foodItems', 'hotelId', ids);
     }
 
+    // ── Reporting helpers (admin analytics and reports) ─────────────────────────────────
+    /** True for an unfinished pickup order whose QR code and OTP have run out (nobody collected it). */
+    function isExpiredPickupOrder(order, now = Date.now()) {
+        return isOpenOrder(order) && isPickupExpired(order, now);
+    }
+
+    /** When an order was placed (older orders used `timestamp`); 0 when unknown. */
+    function placedAt(order) {
+        return Number(order && (order.createdAt || order.timestamp)) || 0;
+    }
+
+    /** True when the row was created inside 'today' | '7d' | '30d' | 'all' (calendar days, today included). */
+    function withinRange(order, rangeKey, now = Date.now()) {
+        const days = { today: 1, '7d': 7, '30d': 30 }[rangeKey];
+        if (!days) return true;
+        const start = new Date(now);
+        start.setHours(0, 0, 0, 0);
+        start.setDate(start.getDate() - (days - 1));
+        return placedAt(order) >= start.getTime();
+    }
+
+    /** Average star rating, counting one rating per order (an order review and its per-dish copies count once). */
+    function averageRating(reviews) {
+        const seen = new Set();
+        let sum = 0, count = 0;
+        (reviews || []).forEach((review, i) => {
+            const rating = Number(review && review.rating);
+            if (!Number.isFinite(rating) || rating <= 0 || rating > 5) return;
+            const key = review.orderId ? 'o:' + review.orderId : 'r:' + (review.id || i);
+            if (seen.has(key)) return;
+            seen.add(key);
+            sum += rating;
+            count++;
+        });
+        return { average: count ? sum / count : 0, count };
+    }
+
+    /**
+     * One row per hotel that has orders, best revenue first. Revenue counts completed and delivered
+     * orders only. Ratings come from that hotel's reviews (matched by hotelId, or through the order).
+     */
+    function hotelPerformance(orders, reviews) {
+        const rows = Object.create(null);
+        const hotelByOrder = Object.create(null);
+        (orders || []).forEach((order) => {
+            if (!order) return;
+            const id = String(order.hotelId || order.hotelName || 'unknown');
+            if (order.orderId) hotelByOrder[order.orderId] = id;
+            const row = rows[id] || (rows[id] = {
+                hotelId: id, hotelName: '', orders: 0, completed: 0, cancelled: 0,
+                cancelRatePct: 0, revenue: 0, avgRating: 0, ratingCount: 0
+            });
+            if (!row.hotelName && order.hotelName) row.hotelName = order.hotelName;
+            row.orders++;
+            if (isSuccessfulOrder(order)) { row.completed++; row.revenue += orderAmount(order); }
+            else if (isCancelledOrder(order)) row.cancelled++;
+        });
+
+        const byHotel = Object.create(null);
+        (reviews || []).forEach((review) => {
+            if (!review) return;
+            const id = String(review.hotelId || hotelByOrder[review.orderId] || '');
+            if (id in rows) (byHotel[id] = byHotel[id] || []).push(review);
+        });
+
+        return Object.values(rows).map((row) => {
+            const rating = averageRating(byHotel[row.hotelId]);
+            row.hotelName = row.hotelName || 'Unknown';
+            row.cancelRatePct = Math.round((row.cancelled / row.orders) * 1000) / 10;
+            row.avgRating = rating.average;
+            row.ratingCount = rating.count;
+            return row;
+        }).sort((a, b) => b.revenue - a.revenue || b.orders - a.orders || a.hotelName.localeCompare(b.hotelName));
+    }
+
+    /**
+     * Cancelled orders and expired pickups as { kind, order }, newest first. A cancelled order with
+     * no cancelledBy was cancelled by the customer (the app does not set the field).
+     */
+    function cancelledReport(orders, now = Date.now()) {
+        const rows = [];
+        (orders || []).forEach((order) => {
+            if (!order) return;
+            let kind = '';
+            if (isCancelledOrder(order)) {
+                kind = String(order.cancelledBy || '').toLowerCase() === 'hotel' ? 'Cancelled by hotel' : 'Cancelled by customer';
+            } else if (isExpiredPickupOrder(order, now)) {
+                kind = 'Expired pickup';
+            }
+            if (kind) rows.push({ kind, order });
+        });
+        return rows.sort((a, b) => placedAt(b.order) - placedAt(a.order));
+    }
+
+    /** One CSV cell: quoted when needed; text starting with = + - @ gets a leading quote so spreadsheets never run it as a formula. */
+    function csvEscape(value) {
+        let text = value === null || value === undefined ? '' : String(value);
+        if (typeof value !== 'number' && /^[=+\-@\t\r]/.test(text)) text = "'" + text;
+        return /[",\r\n]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text;
+    }
+
+    /** rows: objects; columns: [{ label, key | get(row) }]. Returns CSV text with a header line. */
+    function toCsv(rows, columns) {
+        const header = columns.map((c) => csvEscape(c.label)).join(',');
+        const lines = (rows || []).map((row) => columns.map((c) =>
+            csvEscape(typeof c.get === 'function' ? c.get(row) : row[c.key])).join(','));
+        return [header].concat(lines).join('\r\n');
+    }
+
     return {
+        isExpiredPickupOrder,
+        placedAt,
+        withinRange,
+        averageRating,
+        hotelPerformance,
+        cancelledReport,
+        csvEscape,
+        toCsv,
         scopedList,
         hotelOrders,
         hotelFoodItems,

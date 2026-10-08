@@ -194,6 +194,9 @@ async function check(name, promise) {
   await check('customer edits own review', assertSucceeds(update(ref(cust1, 'reviews/r1'), { rating: 5 })));
   await check('other customer cannot edit it', assertFails(update(ref(cust2, 'reviews/r1'), { rating: 1 })));
   await check('rating above 5 rejected', assertFails(set(ref(cust1, 'reviews/r3'), { userId: 'cust1', foodId: 'f1', rating: 9 })));
+  await check('customer creates a second review', assertSucceeds(set(ref(cust1, 'reviews/r5'), { userId: 'cust1', foodId: 'f1', rating: 2 })));
+  await check('admin deletes any review', assertSucceeds(remove(ref(admin, 'reviews/r5'))));
+  await check('another customer cannot delete a review', assertFails(remove(ref(cust2, 'reviews/r1'))));
   await check('customer deletes own review', assertSucceeds(remove(ref(cust1, 'reviews/r1'))));
   await check('customer queries reviews by food', assertSucceeds(get(query(ref(cust1, 'reviews'), orderByChild('foodId'), equalTo('f1')))));
 

@@ -62,7 +62,18 @@
                     <h1 class="panel-title">Platform Analytics</h1>
                     <p class="panel-subtitle mb-0">Real-time insights across all hotels, orders, and users.</p>
                 </div>
-                <span style="font-size:0.82rem;font-weight:600;color:var(--text-secondary);"><i class="fas fa-sync-alt me-1"></i>Real-time</span>
+                <div class="d-flex align-items-end gap-3">
+                    <div>
+                        <label for="rangeFilter" class="form-label small mb-1">Date range</label>
+                        <select id="rangeFilter" class="form-select form-select-sm">
+                            <option value="today">Today</option>
+                            <option value="7d">Last 7 days</option>
+                            <option value="30d">Last 30 days</option>
+                            <option value="all" selected>All time</option>
+                        </select>
+                    </div>
+                    <span style="font-size:0.82rem;font-weight:600;color:var(--text-secondary);"><i class="fas fa-sync-alt me-1"></i>Real-time</span>
+                </div>
             </div>
 
             <!-- Stat Cards -->
@@ -92,6 +103,29 @@
                     <div class="stat-card card">
                         <h6><i class="fas fa-leaf me-1"></i>Food Rescued (collected)</h6>
                         <h3 id="foodSaved">0 items</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order quality cards -->
+            <div class="row mb-4 g-3">
+                <div class="col-md-3 col-6">
+                    <div class="stat-card card">
+                        <h6><i class="fas fa-ban me-1"></i>Cancelled orders</h6>
+                        <h3 id="cancelledOrders">0</h3>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-card card">
+                        <h6><i class="fas fa-hourglass-end me-1"></i>Expired pickups</h6>
+                        <h3 id="expiredPickups">0</h3>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-card card">
+                        <h6><i class="fas fa-star me-1"></i>Average rating</h6>
+                        <h3 id="averageRating">—</h3>
+                        <span class="delta flat" id="ratingCount"></span>
                     </div>
                 </div>
             </div>
@@ -169,6 +203,19 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Top hotels table -->
+            <div class="card p-4 mb-4 chart-card">
+                <h5><i class="fas fa-ranking-star"></i> Top hotels</h5>
+                <div class="table-responsive">
+                    <table class="table align-middle table-stack mb-0">
+                        <thead>
+                            <tr><th>Hotel</th><th>Orders</th><th>Revenue</th><th>Cancel rate</th><th>Rating</th></tr>
+                        </thead>
+                        <tbody id="topHotelsTable"></tbody>
+                    </table>
+                </div>
+            </div>
         </main>
     </div>
 </div>
@@ -191,13 +238,23 @@
     let revenueChartInstance = null;
     let categoryChartInstance = null;
 
+    // Latest data from the database; the date range filters these in the browser
+    let allOrders = [];
+    let allReviews = [];
+    let allUsers = [];
+    let categoryByFood = {};
+
     (async () => {
         const user = await ReplateUI.requireRole('admin');
         if (!user) return;
+        document.getElementById('rangeFilter').addEventListener('change', () => { renderAnalytics(); renderUserCount(); });
         loadAdminAnalytics();
+        loadReviews();
         loadCustomerCount();
         loadHotelStats();
     })();
+
+    function currentRange() { return document.getElementById('rangeFilter').value; }
 
     // ── Helpers ─────────────────────────────────────────────
     function getWeekKey(timestamp) {
@@ -229,20 +286,37 @@
     // ── Customer count (real-time) ──────────────────────────
     function loadCustomerCount() {
         database.ref('users').on('value', (snapshot) => {
-            let total = 0, customers = 0, hotels = 0;
-            if (snapshot.exists()) {
-                snapshot.forEach(child => {
-                    const role = ReplateSchema.normalizeUserRole(child.val() || {});
-                    total++;
-                    if (role === 'customer') customers++;
-                    else if (role === 'hotel') hotels++;
-                });
-            }
-            document.getElementById('totalCustomers').textContent = total;
-            document.getElementById('userSplit').textContent = customers + ' customers · ' + hotels + ' hotels';
+            allUsers = [];
+            snapshot.forEach(child => {
+                const u = child.val() || {};
+                allUsers.push({ role: ReplateSchema.normalizeUserRole(u), createdAt: Number(u.createdAt) || 0 });
+            });
+            renderUserCount();
         }, (error) => {
             console.error('Could not load users', error);
             document.getElementById('totalCustomers').textContent = '—';
+        });
+    }
+
+    // Users who signed up inside the chosen date range
+    function renderUserCount() {
+        const range = currentRange();
+        const users = allUsers.filter((u) => ReplateSchema.withinRange(u, range));
+        const customers = users.filter((u) => u.role === 'customer').length;
+        const hotels = users.filter((u) => u.role === 'hotel').length;
+        document.getElementById('totalCustomers').textContent = users.length;
+        document.getElementById('userSplit').textContent = customers + ' customers · ' + hotels + ' hotels';
+    }
+
+    // ── Reviews (real-time) ─────────────────────────────────
+    function loadReviews() {
+        database.ref('reviews').on('value', (snapshot) => {
+            allReviews = [];
+            snapshot.forEach((child) => { allReviews.push(Object.assign({ id: child.key }, child.val() || {})); });
+            renderAnalytics();
+        }, (error) => {
+            console.error('Could not load reviews', error);
+            document.getElementById('averageRating').textContent = '—';
         });
     }
 
@@ -272,13 +346,13 @@
     // delivered). Cancelled orders count for nothing; every other state is still pending.
     function showAnalyticsError(message) {
         ReplateUI.toast(message, 'danger', 8000);
-        ['totalRevenue', 'totalOrders', 'foodSaved'].forEach((id) => { document.getElementById(id).textContent = '—'; });
+        ['totalRevenue', 'totalOrders', 'foodSaved', 'cancelledOrders', 'expiredPickups'].forEach((id) => { document.getElementById(id).textContent = '—'; });
         document.getElementById('topHotelsLeaderboard').innerHTML = ReplateUI.errorState(message);
+        document.getElementById('topHotelsTable').innerHTML = '<tr><td colspan="5">' + ReplateUI.errorState(message) + '</td></tr>';
     }
 
     async function loadAdminAnalytics() {
         // Orders saved before the app wrote a category on each item are matched through their dish
-        const categoryByFood = {};
         try {
             const foods = await database.ref('foodItems').once('value');
             foods.forEach((child) => { categoryByFood[child.key] = (child.val() || {}).category || ''; });
@@ -287,227 +361,266 @@
         }
 
         database.ref('orders').on('value', (snapshot) => {
-            const now = Date.now();
-            const DAY = 86400000;
-            const currentWeekKey = getWeekKey(now);
-            const lastWeekKey = getWeekKey(now - 7 * DAY);
-
-            let revenue = 0, total = 0;
-            let completed = 0, pending = 0, cancelled = 0;
-            let cash = 0, online = 0;
-            let thisWeekRevenue = 0, lastWeekRevenue = 0;
-            let thisWeekOrders = 0, lastWeekOrders = 0;
-            let totalItemsRescued = 0;
-            const weeklyOrders = {};
-            const weeklyRevenue = {};
-            const hotelOrders = {};
-            const categoryRevenue = {};
-
-            snapshot.forEach((child) => {
-                const order = child.val() || {};
-                total++;
-
-                const ts = order.createdAt || order.timestamp || now;
-                const wk = getWeekKey(ts);
-                const amount = ReplateSchema.orderAmount(order);
-                weeklyOrders[wk] = (weeklyOrders[wk] || 0) + 1;
-
-                if (ReplateSchema.isSuccessfulOrder(order)) {
-                    completed++;
-                    revenue += amount;
-                    weeklyRevenue[wk] = (weeklyRevenue[wk] || 0) + amount;
-                    totalItemsRescued += ReplateSchema.orderItemCount(order);
-                    if (wk === currentWeekKey) thisWeekRevenue += amount;
-                    else if (wk === lastWeekKey) lastWeekRevenue += amount;
-
-                    // Revenue by category (price x quantity per dish)
-                    ReplateSchema.extractItemsArray(order).forEach((item) => {
-                        const cat = String(item.category || categoryByFood[item.foodId] || 'Other').trim() || 'Other';
-                        const line = (parseFloat(item.price) || 0) * ReplateSchema.itemQuantity(item);
-                        categoryRevenue[cat] = (categoryRevenue[cat] || 0) + line;
-                    });
-                } else if (ReplateSchema.isCancelledOrder(order)) {
-                    cancelled++;
-                } else {
-                    pending++;
-                }
-
-                if (!ReplateSchema.isCancelledOrder(order)) {
-                    const hName = order.hotelName || 'Unknown';
-                    hotelOrders[hName] = (hotelOrders[hName] || 0) + 1;
-                    if (wk === currentWeekKey) thisWeekOrders++;
-                    else if (wk === lastWeekKey) lastWeekOrders++;
-                }
-
-                const method = String(order.paymentMethod || 'Cash').toLowerCase();
-                if (method.includes('cash')) cash++;
-                else online++;
-            });
-
-            // ── Update stat cards ──
-            document.getElementById('totalRevenue').textContent = 'LKR ' + revenue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-            document.getElementById('totalOrders').textContent = total;
-            document.getElementById('foodSaved').textContent = totalItemsRescued + ' items';
-            setDelta('deltaRevenue', thisWeekRevenue, lastWeekRevenue);
-            setDelta('deltaOrders', thisWeekOrders, lastWeekOrders);
-
-            // ── Sort weeks ──
-            const sortedWeeks = Object.keys(weeklyOrders).sort();
-            const recentWeeks = sortedWeeks.slice(-8);
-            const weekLabels = recentWeeks.map(getWeekLabel);
-            const weekData = recentWeeks.map(w => weeklyOrders[w] || 0);
-            const weekRevenueData = recentWeeks.map(w => weeklyRevenue[w] || 0);
-
-            // Destroy old charts
-            if (statusChartInstance) statusChartInstance.destroy();
-            if (paymentChartInstance) paymentChartInstance.destroy();
-            if (growthChartInstance) growthChartInstance.destroy();
-            if (revenueChartInstance) revenueChartInstance.destroy();
-            if (categoryChartInstance) categoryChartInstance.destroy();
-
-            // ── Order status doughnut ──
-            const hasStatusData = completed + pending + cancelled > 0;
-            statusChartInstance = new Chart(document.getElementById('statusChart'), {
-                type: 'doughnut',
-                data: {
-                    labels: ['Completed', 'Pending', 'Cancelled'],
-                    datasets: [{
-                        data: hasStatusData ? [completed, pending, cancelled] : [1],
-                        backgroundColor: hasStatusData ? ['#059669', '#d97706', '#dc2626'] : ['#e5e7eb'],
-                        borderWidth: 0,
-                        hoverOffset: 6
-                    }]
-                },
-                options: {
-                    maintainAspectRatio: false,
-                    responsive: true,
-                    cutout: '65%',
-                    plugins: {
-                        legend: { position: 'bottom', labels: { padding: 14, usePointStyle: true, pointStyle: 'circle', font: { size: 12, weight: 600 } } },
-                        tooltip: { enabled: hasStatusData }
-                    }
-                }
-            });
-
-            // ── Payment pie ──
-            const hasPayData = cash + online > 0;
-            paymentChartInstance = new Chart(document.getElementById('paymentChart'), {
-                type: 'doughnut',
-                data: {
-                    labels: ['Cash', 'Online'],
-                    datasets: [{
-                        data: hasPayData ? [cash, online] : [1],
-                        backgroundColor: hasPayData ? ['#1a6b3c', '#f97316'] : ['#e5e7eb'],
-                        borderWidth: 0,
-                        hoverOffset: 6
-                    }]
-                },
-                options: {
-                    maintainAspectRatio: false,
-                    responsive: true,
-                    cutout: '60%',
-                    plugins: {
-                        legend: { position: 'bottom', labels: { padding: 14, usePointStyle: true, pointStyle: 'circle', font: { size: 12, weight: 600 } } },
-                        tooltip: { enabled: hasPayData }
-                    }
-                }
-            });
-
-            // ── Growth line chart ──
-            growthChartInstance = new Chart(document.getElementById('growthChart'), {
-                type: 'line',
-                data: {
-                    labels: weekLabels.length > 0 ? weekLabels : ['No data'],
-                    datasets: [{
-                        label: 'Orders',
-                        data: weekData.length > 0 ? weekData : [0],
-                        borderColor: '#1a6b3c',
-                        backgroundColor: 'rgba(26, 107, 60, 0.08)',
-                        fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: '#1a6b3c',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 5,
-                        pointHoverRadius: 7,
-                    }]
-                },
-                options: {
-                    maintainAspectRatio: false,
-                    responsive: true,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,0.04)' } }, x: { grid: { display: false } } }
-                }
-            });
-
-            // ── Revenue bar chart ──
-            revenueChartInstance = new Chart(document.getElementById('revenueChart'), {
-                type: 'bar',
-                data: {
-                    labels: weekLabels.length > 0 ? weekLabels : ['No data'],
-                    datasets: [{
-                        label: 'Revenue (LKR)',
-                        data: weekRevenueData.length > 0 ? weekRevenueData : [0],
-                        backgroundColor: 'rgba(26, 107, 60, 0.15)',
-                        borderColor: '#1a6b3c',
-                        borderWidth: 2,
-                        borderRadius: 8,
-                        hoverBackgroundColor: 'rgba(26, 107, 60, 0.35)',
-                    }]
-                },
-                options: {
-                    maintainAspectRatio: false,
-                    responsive: true,
-                    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => 'LKR ' + ctx.parsed.y.toLocaleString() } } },
-                    scales: { y: { beginAtZero: true, ticks: { callback: v => 'LKR ' + (v >= 1000 ? (v/1000).toFixed(0) + 'k' : v) }, grid: { color: 'rgba(0,0,0,0.04)' } }, x: { grid: { display: false } } }
-                }
-            });
-
-            // ── Revenue by category (doughnut) ──
-            const sortedCats = Object.entries(categoryRevenue).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).slice(0, 8);
-            const catColors = ['#1a6b3c', '#059669', '#f97316', '#d97706', '#fb923c', '#0f4d2b', '#dc2626', '#6ee7b7'];
-            const hasCatData = sortedCats.length > 0;
-            categoryChartInstance = new Chart(document.getElementById('categoryChart'), {
-                type: 'doughnut',
-                data: {
-                    labels: hasCatData ? sortedCats.map(c => c[0]) : ['No completed orders yet'],
-                    datasets: [{
-                        data: hasCatData ? sortedCats.map(c => Math.round(c[1])) : [1],
-                        backgroundColor: hasCatData ? sortedCats.map((_, i) => catColors[i % catColors.length]) : ['#e5e7eb'],
-                        borderWidth: 0,
-                        hoverOffset: 6
-                    }]
-                },
-                options: {
-                    maintainAspectRatio: false,
-                    responsive: true,
-                    cutout: '55%',
-                    plugins: {
-                        legend: { position: 'bottom', labels: { padding: 14, usePointStyle: true, pointStyle: 'circle', font: { size: 12, weight: 600 } } },
-                        tooltip: { enabled: hasCatData, callbacks: { label: ctx => ctx.label + ': LKR ' + ctx.parsed.toLocaleString() } }
-                    }
-                }
-            });
-
-            // ── Top Hotels Leaderboard ──
-            const sortedHotels = Object.entries(hotelOrders).sort((a, b) => b[1] - a[1]).slice(0, 5);
-            const leaderboard = document.getElementById('topHotelsLeaderboard');
-            if (sortedHotels.length === 0) {
-                leaderboard.innerHTML = '<p class="text-center py-3" style="color:var(--text-tertiary);font-size:0.85rem;">No order data yet.</p>';
-            } else {
-                leaderboard.innerHTML = sortedHotels.map(([name, count], i) => {
-                    const rankClass = i < 3 ? `r${i+1}` : `r${Math.min(i+1, 5)}`;
-                    return `<div class="leaderboard-row">
-                        <div class="leaderboard-rank ${rankClass}">${i+1}</div>
-                        <div class="leaderboard-name" title="${escapeHtml(name)}">${escapeHtml(name)}</div>
-                        <div class="leaderboard-value">${count} orders</div>
-                    </div>`;
-                }).join('');
-            }
+            allOrders = [];
+            snapshot.forEach((child) => { allOrders.push(Object.assign({ orderId: child.key }, child.val() || {})); });
+            renderAnalytics();
         }, (error) => {
             console.error('Could not load orders', error);
             showAnalyticsError('Orders could not be loaded. Check your admin access and connection.');
         });
+    }
+
+    // Draws every card and chart for the orders and reviews inside the chosen date range
+    function renderAnalytics() {
+        const now = Date.now();
+        const DAY = 86400000;
+        const range = currentRange();
+        const orders = allOrders.filter((o) => ReplateSchema.withinRange(o, range, now));
+        const reviews = allReviews.filter((r) => ReplateSchema.withinRange(r, range, now));
+        const currentWeekKey = getWeekKey(now);
+        const lastWeekKey = getWeekKey(now - 7 * DAY);
+        let expiredCount = 0;
+
+        let revenue = 0, total = 0;
+        let completed = 0, pending = 0, cancelled = 0;
+        let cash = 0, online = 0;
+        let thisWeekRevenue = 0, lastWeekRevenue = 0;
+        let thisWeekOrders = 0, lastWeekOrders = 0;
+        let totalItemsRescued = 0;
+        const weeklyOrders = {};
+        const weeklyRevenue = {};
+        const hotelOrders = {};
+        const categoryRevenue = {};
+
+        orders.forEach((order) => {
+            total++;
+
+            const ts = ReplateSchema.placedAt(order) || now;
+            const wk = getWeekKey(ts);
+            const amount = ReplateSchema.orderAmount(order);
+            weeklyOrders[wk] = (weeklyOrders[wk] || 0) + 1;
+
+            if (ReplateSchema.isSuccessfulOrder(order)) {
+                completed++;
+                revenue += amount;
+                weeklyRevenue[wk] = (weeklyRevenue[wk] || 0) + amount;
+                totalItemsRescued += ReplateSchema.orderItemCount(order);
+
+                // Revenue by category (price x quantity per dish)
+                ReplateSchema.extractItemsArray(order).forEach((item) => {
+                    const cat = String(item.category || categoryByFood[item.foodId] || 'Other').trim() || 'Other';
+                    const line = (parseFloat(item.price) || 0) * ReplateSchema.itemQuantity(item);
+                    categoryRevenue[cat] = (categoryRevenue[cat] || 0) + line;
+                });
+            } else if (ReplateSchema.isCancelledOrder(order)) {
+                cancelled++;
+            } else {
+                pending++;
+                if (ReplateSchema.isExpiredPickupOrder(order, now)) expiredCount++;
+            }
+
+            if (!ReplateSchema.isCancelledOrder(order)) {
+                const hName = order.hotelName || 'Unknown';
+                hotelOrders[hName] = (hotelOrders[hName] || 0) + 1;
+            }
+
+            const method = String(order.paymentMethod || 'Cash').toLowerCase();
+            if (method.includes('cash')) cash++;
+            else online++;
+        });
+
+        // Week-over-week change always compares this week with last week, whatever the range
+        allOrders.forEach((order) => {
+            const wk = getWeekKey(ReplateSchema.placedAt(order) || now);
+            if (wk !== currentWeekKey && wk !== lastWeekKey) return;
+            const thisWeek = wk === currentWeekKey;
+            if (ReplateSchema.isSuccessfulOrder(order)) {
+                if (thisWeek) thisWeekRevenue += ReplateSchema.orderAmount(order); else lastWeekRevenue += ReplateSchema.orderAmount(order);
+            }
+            if (!ReplateSchema.isCancelledOrder(order)) {
+                if (thisWeek) thisWeekOrders++; else lastWeekOrders++;
+            }
+        });
+
+        // ── Update stat cards ──
+        document.getElementById('cancelledOrders').textContent = cancelled;
+        document.getElementById('expiredPickups').textContent = expiredCount;
+        const rating = ReplateSchema.averageRating(reviews);
+        document.getElementById('averageRating').textContent = rating.count ? rating.average.toFixed(1) + ' / 5' : '—';
+        document.getElementById('ratingCount').textContent = rating.count ? rating.count + (rating.count === 1 ? ' rating' : ' ratings') : 'No ratings yet';
+
+        document.getElementById('totalRevenue').textContent = 'LKR ' + revenue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        document.getElementById('totalOrders').textContent = total;
+        document.getElementById('foodSaved').textContent = totalItemsRescued + ' items';
+        setDelta('deltaRevenue', thisWeekRevenue, lastWeekRevenue);
+        setDelta('deltaOrders', thisWeekOrders, lastWeekOrders);
+
+        // ── Sort weeks ──
+        const sortedWeeks = Object.keys(weeklyOrders).sort();
+        const recentWeeks = sortedWeeks.slice(-8);
+        const weekLabels = recentWeeks.map(getWeekLabel);
+        const weekData = recentWeeks.map(w => weeklyOrders[w] || 0);
+        const weekRevenueData = recentWeeks.map(w => weeklyRevenue[w] || 0);
+
+        // Destroy old charts
+        if (statusChartInstance) statusChartInstance.destroy();
+        if (paymentChartInstance) paymentChartInstance.destroy();
+        if (growthChartInstance) growthChartInstance.destroy();
+        if (revenueChartInstance) revenueChartInstance.destroy();
+        if (categoryChartInstance) categoryChartInstance.destroy();
+
+        // ── Order status doughnut ──
+        const hasStatusData = completed + pending + cancelled > 0;
+        statusChartInstance = new Chart(document.getElementById('statusChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Completed', 'Pending', 'Cancelled'],
+                datasets: [{
+                    data: hasStatusData ? [completed, pending, cancelled] : [1],
+                    backgroundColor: hasStatusData ? ['#059669', '#d97706', '#dc2626'] : ['#e5e7eb'],
+                    borderWidth: 0,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                cutout: '65%',
+                plugins: {
+                    legend: { position: 'bottom', labels: { padding: 14, usePointStyle: true, pointStyle: 'circle', font: { size: 12, weight: 600 } } },
+                    tooltip: { enabled: hasStatusData }
+                }
+            }
+        });
+
+        // ── Payment pie ──
+        const hasPayData = cash + online > 0;
+        paymentChartInstance = new Chart(document.getElementById('paymentChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Cash', 'Online'],
+                datasets: [{
+                    data: hasPayData ? [cash, online] : [1],
+                    backgroundColor: hasPayData ? ['#1a6b3c', '#f97316'] : ['#e5e7eb'],
+                    borderWidth: 0,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                cutout: '60%',
+                plugins: {
+                    legend: { position: 'bottom', labels: { padding: 14, usePointStyle: true, pointStyle: 'circle', font: { size: 12, weight: 600 } } },
+                    tooltip: { enabled: hasPayData }
+                }
+            }
+        });
+
+        // ── Growth line chart ──
+        growthChartInstance = new Chart(document.getElementById('growthChart'), {
+            type: 'line',
+            data: {
+                labels: weekLabels.length > 0 ? weekLabels : ['No data'],
+                datasets: [{
+                    label: 'Orders',
+                    data: weekData.length > 0 ? weekData : [0],
+                    borderColor: '#1a6b3c',
+                    backgroundColor: 'rgba(26, 107, 60, 0.08)',
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#1a6b3c',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,0.04)' } }, x: { grid: { display: false } } }
+            }
+        });
+
+        // ── Revenue bar chart ──
+        revenueChartInstance = new Chart(document.getElementById('revenueChart'), {
+            type: 'bar',
+            data: {
+                labels: weekLabels.length > 0 ? weekLabels : ['No data'],
+                datasets: [{
+                    label: 'Revenue (LKR)',
+                    data: weekRevenueData.length > 0 ? weekRevenueData : [0],
+                    backgroundColor: 'rgba(26, 107, 60, 0.15)',
+                    borderColor: '#1a6b3c',
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    hoverBackgroundColor: 'rgba(26, 107, 60, 0.35)',
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => 'LKR ' + ctx.parsed.y.toLocaleString() } } },
+                scales: { y: { beginAtZero: true, ticks: { callback: v => 'LKR ' + (v >= 1000 ? (v/1000).toFixed(0) + 'k' : v) }, grid: { color: 'rgba(0,0,0,0.04)' } }, x: { grid: { display: false } } }
+            }
+        });
+
+        // ── Revenue by category (doughnut) ──
+        const sortedCats = Object.entries(categoryRevenue).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).slice(0, 8);
+        const catColors = ['#1a6b3c', '#059669', '#f97316', '#d97706', '#fb923c', '#0f4d2b', '#dc2626', '#6ee7b7'];
+        const hasCatData = sortedCats.length > 0;
+        categoryChartInstance = new Chart(document.getElementById('categoryChart'), {
+            type: 'doughnut',
+            data: {
+                labels: hasCatData ? sortedCats.map(c => c[0]) : ['No completed orders yet'],
+                datasets: [{
+                    data: hasCatData ? sortedCats.map(c => Math.round(c[1])) : [1],
+                    backgroundColor: hasCatData ? sortedCats.map((_, i) => catColors[i % catColors.length]) : ['#e5e7eb'],
+                    borderWidth: 0,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                cutout: '55%',
+                plugins: {
+                    legend: { position: 'bottom', labels: { padding: 14, usePointStyle: true, pointStyle: 'circle', font: { size: 12, weight: 600 } } },
+                    tooltip: { enabled: hasCatData, callbacks: { label: ctx => ctx.label + ': LKR ' + ctx.parsed.toLocaleString() } }
+                }
+            }
+        });
+
+        // ── Top Hotels Leaderboard ──
+        const sortedHotels = Object.entries(hotelOrders).sort((a, b) => b[1] - a[1]).slice(0, 5);
+        const leaderboard = document.getElementById('topHotelsLeaderboard');
+        if (sortedHotels.length === 0) {
+            leaderboard.innerHTML = '<p class="text-center py-3" style="color:var(--text-tertiary);font-size:0.85rem;">No order data yet.</p>';
+        } else {
+            leaderboard.innerHTML = sortedHotels.map(([name, count], i) => {
+                const rankClass = i < 3 ? `r${i+1}` : `r${Math.min(i+1, 5)}`;
+                return `<div class="leaderboard-row">
+                    <div class="leaderboard-rank ${rankClass}">${i+1}</div>
+                    <div class="leaderboard-name" title="${escapeHtml(name)}">${escapeHtml(name)}</div>
+                    <div class="leaderboard-value">${count} orders</div>
+                </div>`;
+            }).join('');
+        }
+
+        // ── Top hotels table ──
+        const performance = ReplateSchema.hotelPerformance(orders, reviews).slice(0, 10);
+        document.getElementById('topHotelsTable').innerHTML = performance.length === 0
+            ? '<tr><td colspan="5">' + ReplateUI.emptyState('No orders in this range', 'Try a longer date range.', 'fa-hotel') + '</td></tr>'
+            : performance.map((h) => `
+                <tr>
+                    <td data-label="Hotel">${escapeHtml(h.hotelName)}</td>
+                    <td data-label="Orders">${h.orders}</td>
+                    <td data-label="Revenue">LKR ${h.revenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                    <td data-label="Cancel rate">${h.cancelRatePct}%</td>
+                    <td data-label="Rating">${h.ratingCount ? '<i class="fas fa-star text-warning" aria-hidden="true"></i> ' + h.avgRating.toFixed(1) + ' (' + h.ratingCount + ')' : '<span class="text-muted">—</span>'}</td>
+                </tr>`).join('');
     }
 </script>
 </body>
