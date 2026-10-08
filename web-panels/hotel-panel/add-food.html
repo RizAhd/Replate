@@ -158,7 +158,11 @@
             }
             const status = ReplateSchema.normalizeHotelStatus(hotelRecord.value.status);
             if (status !== 'approved') {
-                leave('dashboard.html', 'Your hotel is still waiting for admin approval.', 'warning');
+                const reasons = {
+                    rejected: 'Your hotel registration was not approved. Contact REPLATE support for details.',
+                    suspended: 'Your hotel is suspended. Contact REPLATE support.'
+                };
+                leave('dashboard.html', reasons[status] || 'Your hotel is still waiting for admin approval.', 'warning');
                 return;
             }
             resolvedHotel = { userId: user.uid, hotelId: hotelRecord.key, data: hotelRecord.value };

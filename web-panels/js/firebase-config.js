@@ -69,6 +69,8 @@ auth.onAuthStateChanged(async (user) => {
 
 // The one logout used by every page and by the sidebar link
 function logout() {
+    // Stop live listeners first so they do not report permission errors after sign-out
+    try { firebase.database().goOffline(); } catch (e) { /* ignore */ }
     auth.signOut().finally(() => {
         sessionStorage.removeItem('hotelId');
         window.location.href = 'login.html';

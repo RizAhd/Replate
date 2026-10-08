@@ -277,7 +277,7 @@
                 totalOrders++;
                 const ts = order.createdAt || order.timestamp || now;
                 const amount = ReplateSchema.orderAmount(order);
-                const dayKey = getDayKey(ts);
+                const dayKey = getDayKey(ReplateSchema.isSuccessfulOrder(order) ? (ReplateSchema.earnedAt(order) || ts) : ts);
 
                 // Revenue counts only orders that were really handed over (completed or delivered)
                 if (ReplateSchema.isSuccessfulOrder(order)) {

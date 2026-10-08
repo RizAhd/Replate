@@ -173,7 +173,7 @@
             rows.sort((a, b) => (b.item.createdAt || 0) - (a.item.createdAt || 0));
 
             tableBody.innerHTML = rows.map(({ key, item }) => {
-                const isAvailable = item.isAvailable === true || String(item.status || '').toLowerCase() === 'available';
+                const isAvailable = (item.isAvailable === true || String(item.status || '').toLowerCase() === 'available') && item.suspendedByAdmin !== true;
                 const pickupStart = item.pickupTimeStart || item.pickupStart || '--:--';
                 const pickupEnd = item.pickupTimeEnd || item.pickupEnd || '--:--';
                 const imageUrl = ReplateUI.safeUrl(item.imageUrl);

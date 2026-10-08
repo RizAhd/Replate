@@ -222,8 +222,10 @@
             }).join('');
         }, (error) => {
             console.error('Could not load orders', error);
+            const denied = error && String(error.code || error.message).toLowerCase().includes('permission');
             document.getElementById('recentOrdersTable').innerHTML = '<tr><td colspan="5">' +
-                ReplateUI.errorState('Orders could not be loaded. Check your connection and try again.') + '</td></tr>';
+                ReplateUI.errorState(denied ? 'Orders are not available while your hotel is not approved.'
+                    : 'Orders could not be loaded. Check your connection and try again.') + '</td></tr>';
         });
 
         ReplateSchema.hotelFoodItems(database, hotelIds).on((snapshot) => {
@@ -231,7 +233,7 @@
             snapshot.forEach((child) => {
                 const item = child.val() || {};
                 const available = item.isAvailable === true || String(item.status || '').toLowerCase() === 'available';
-                if (available) active++;
+                if (available && item.suspendedByAdmin !== true) active++;
             });
             document.getElementById('statActive').textContent = active;
         }, (error) => console.error('Could not load listings', error));

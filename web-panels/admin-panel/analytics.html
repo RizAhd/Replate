@@ -196,7 +196,7 @@
                                 </div>
                                 <div class="text-center">
                                     <div style="font-size:1.2rem;font-weight:800;color:var(--danger);" id="hotelRejected">0</div>
-                                    <div style="font-size:0.7rem;color:var(--text-tertiary);text-transform:uppercase;font-weight:600;">Rejected</div>
+                                    <div style="font-size:0.7rem;color:var(--text-tertiary);text-transform:uppercase;font-weight:600;">Rejected / suspended</div>
                                 </div>
                             </div>
                         </div>
@@ -328,13 +328,13 @@
     // ── Hotel stats (real-time) ─────────────────────────────
     function loadHotelStats() {
         database.ref('hotels').on('value', (snap) => {
-            let total = 0, approved = 0, pending = 0, rejected = 0;
+            let total = 0, approved = 0, pending = 0, rejected = 0;  // suspended hotels count with Rejected
             snap.forEach(child => {
                 total++;
                 const status = ReplateSchema.normalizeHotelStatus(child.val().status);
                 if (status === 'approved') approved++;
-                else if (status === 'rejected') rejected++;
                 else if (status === 'pending') pending++;
+                else rejected++;
             });
             document.getElementById('hotelCountBig').textContent = total;
             document.getElementById('hotelApproved').textContent = approved;
