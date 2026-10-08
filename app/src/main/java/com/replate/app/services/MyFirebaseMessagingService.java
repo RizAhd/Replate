@@ -283,9 +283,14 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     }
 
     private void createChannelIfNeeded() {
+        createChannel(this);
+    }
+
+    /** Also called when the app starts, so a push that arrives in the background already has its channel. */
+    public static void createChannel(Context context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
 
-        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if (manager == null) return;
 
         NotificationChannel channel = new NotificationChannel(

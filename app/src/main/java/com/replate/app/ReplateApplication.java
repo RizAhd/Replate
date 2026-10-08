@@ -23,6 +23,10 @@ public class ReplateApplication extends Application {
         // doesn't half-switch some screens.
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
 
+        // Create the notification channel now: a push that arrives while the app is closed is shown by the
+        // system, and without the channel it would land in "Miscellaneous"
+        com.replate.app.services.MyFirebaseMessagingService.createChannel(this);
+
         try {
             // Keep a local copy of the data Firebase has already delivered, so screens still show
             // content offline and writes made while the connection drops are sent when it returns.

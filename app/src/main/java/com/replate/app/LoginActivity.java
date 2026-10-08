@@ -968,7 +968,11 @@ public class LoginActivity extends AppCompatActivity {
 
             // A fresh send, so any token from an earlier number must not be reused
             phoneResendToken = null;
-            pendingPhone[0] = code + phone;
+            // Local numbers are often typed with the leading 0 (0771234567); the international form drops it
+            String digits = phone.replaceAll("[\\s-]", "");
+            if (digits.startsWith("0")) digits = digits.substring(1);
+            if (!code.startsWith("+")) code = "+" + code;
+            pendingPhone[0] = code + digits;
             startVerification.run();
         });
 

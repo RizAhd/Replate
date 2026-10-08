@@ -969,9 +969,20 @@ public class HomeFragment extends Fragment implements
 
     private void updateFavorites() {
         favoriteItems.clear();
-        if (!favoriteFoodIds.isEmpty()) {
+        // Favourites are saved on the phone (the heart on a dish); the server copy is only a bonus
+        java.util.Set<String> ids = new java.util.HashSet<>(favoriteFoodIds);
+        if (localDb != null) {
+            try {
+                for (FoodItem saved : localDb.getAllFavorites()) {
+                    if (saved.getFoodId() != null) ids.add(saved.getFoodId());
+                }
+            } catch (RuntimeException e) {
+                android.util.Log.w("HomeFragment", "Could not read saved favourites", e);
+            }
+        }
+        if (!ids.isEmpty()) {
             for (FoodItem item : allFoodItems) {
-                if (item.getFoodId() != null && favoriteFoodIds.contains(item.getFoodId())) {
+                if (item.getFoodId() != null && ids.contains(item.getFoodId())) {
                     favoriteItems.add(item);
                 }
             }
@@ -1182,6 +1193,8 @@ public class HomeFragment extends Fragment implements
         }
         bannerHandler.removeCallbacks(bannerAutoScrollRunnable);
         bannerHandler.postDelayed(bannerAutoScrollRunnable, BANNER_AUTO_SCROLL_MS);
+        // A dish may have been hearted (or un-hearted) on another screen
+        if (favoritesAdapter != null && rvFavorites != null) updateFavorites();
     }
 
     @Override
