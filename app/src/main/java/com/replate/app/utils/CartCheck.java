@@ -31,12 +31,27 @@ public final class CartCheck {
         final boolean available;
         final int quantity;
         final double price;
+        final PickupSlot.Window window;
 
         public Live(boolean available, int quantity, double price) {
+            this(available, quantity, price, PickupSlot.UNLIMITED);
+        }
+
+        public Live(boolean available, int quantity, double price, PickupSlot.Window window) {
             this.available = available;
             this.quantity = quantity;
             this.price = price;
+            this.window = window == null ? PickupSlot.UNLIMITED : window;
         }
+    }
+
+    /** The pickup times that suit every dish in the cart right now. */
+    public static PickupSlot.Window pickupWindow(List<Line> lines) {
+        List<PickupSlot.Window> windows = new ArrayList<>();
+        for (Line line : lines) {
+            if (line.live != null) windows.add(line.live.window);
+        }
+        return PickupSlot.overlap(windows);
     }
 
     /** Plain sentences, one per problem; empty when the cart can be paid as it is. */

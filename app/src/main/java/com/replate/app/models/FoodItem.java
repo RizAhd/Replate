@@ -257,7 +257,16 @@ public class FoodItem implements Serializable {
 
     @Exclude
     public boolean isListable() {
-        return isAvailableValue() && hasStock();
+        return isAvailableValue() && hasStock() && !isPickupClosedNow();
+    }
+
+    /** True when today's pickup window for this dish has already ended (it comes back tomorrow). */
+    @Exclude
+    public boolean isPickupClosedNow() {
+        java.util.Calendar now = java.util.Calendar.getInstance();
+        int minutes = now.get(java.util.Calendar.HOUR_OF_DAY) * 60 + now.get(java.util.Calendar.MINUTE);
+        return com.replate.app.utils.PickupSlot.isClosed(
+                com.replate.app.utils.PickupSlot.windowOf(getPickupTimeStart(), getPickupTimeEnd()), minutes);
     }
 
     @Exclude

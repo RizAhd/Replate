@@ -716,7 +716,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
             if (!item.matchesCategory(selectedCategory)) continue;
 
             // Available only filter
-            if (availableOnly && !item.isAvailableValue()) continue;
+            if (availableOnly && (!item.isAvailableValue() || item.isPickupClosedNow())) continue;
 
             filteredItems.add(item);
         }

@@ -113,6 +113,8 @@ public class CheckoutActivity extends AppCompatActivity {
     private boolean confirmDialogOpen;
     // PayHere's payment number, saved on the order so a payment can be traced
     private long pendingPaymentRef;
+    // Pickup times that suit every dish in the cart, set by the check just before paying
+    private com.replate.app.utils.PickupSlot.Window verifiedWindow;
     private static final long SUBMIT_TIMEOUT_MS = 25_000L;
     private final android.os.Handler submitTimeoutHandler =
             new android.os.Handler(android.os.Looper.getMainLooper());
@@ -325,10 +327,57 @@ public class CheckoutActivity extends AppCompatActivity {
 
     private void showTimePicker() {
         Calendar cal = Calendar.getInstance();
+        com.replate.app.utils.PickupSlot.Window window = cachedPickupWindow();
+        int nowMinutes = cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE);
+        // Start the picker at the first time that is allowed (now, or when the dishes become available)
+        int first = com.replate.app.utils.PickupSlot.earliest(window, nowMinutes);
         new TimePickerDialog(this, (view, hour, minute) -> {
             String time = String.format(Locale.getDefault(), "%02d:%02d", hour, minute);
+            String message = pickupProblem(time, window);
+            if (message != null) {
+                ToastUtils.showCustomToast(this, message);
+                return;
+            }
             etPickupTime.setText(time);
-        }, cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), true).show();
+        }, Math.min(first, 1439) / 60, Math.min(first, 1439) % 60, true).show();
+    }
+
+    /** The pickup window of the cart's dishes from the browsing cache (the live check before paying is the final word). */
+    private com.replate.app.utils.PickupSlot.Window cachedPickupWindow() {
+        Map<String, com.replate.app.models.FoodItem> byId = new HashMap<>();
+        for (com.replate.app.models.FoodItem cached
+                : com.replate.app.helpers.ReplateDatabaseHelper.getInstance(this).getCachedFoodItems()) {
+            if (cached.getFoodId() != null) byId.put(cached.getFoodId(), cached);
+        }
+        List<com.replate.app.utils.PickupSlot.Window> windows = new ArrayList<>();
+        if (cartItems != null) {
+            for (CartItem item : cartItems) {
+                com.replate.app.models.FoodItem food = byId.get(item.getFoodId());
+                if (food != null) {
+                    windows.add(com.replate.app.utils.PickupSlot.windowOf(food.getPickupTimeStart(), food.getPickupTimeEnd()));
+                }
+            }
+        }
+        return com.replate.app.utils.PickupSlot.overlap(windows);
+    }
+
+    /** A plain sentence when the chosen time does not fit the dishes' pickup window, otherwise null. */
+    private String pickupProblem(String chosen, com.replate.app.utils.PickupSlot.Window window) {
+        Calendar now = Calendar.getInstance();
+        int nowMinutes = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE);
+        switch (com.replate.app.utils.PickupSlot.check(chosen, window, nowMinutes)) {
+            case NO_COMMON_WINDOW:
+                return getString(R.string.checkout_pickup_no_common_window);
+            case CLOSED_TODAY:
+                return getString(R.string.checkout_pickup_closed_today, window.label());
+            case IN_THE_PAST:
+                return getString(R.string.checkout_pickup_time_has_already_passed);
+            case BEFORE_WINDOW:
+            case AFTER_WINDOW:
+                return getString(R.string.checkout_pickup_outside_window, window.label());
+            default:
+                return null;
+        }
     }
 
     private void placeOrder() {
@@ -452,7 +501,8 @@ public class CheckoutActivity extends AppCompatActivity {
                         com.replate.app.models.FoodItem food = snap.getValue(com.replate.app.models.FoodItem.class);
                         if (food != null) {
                             live = new CartCheck.Live(food.isAvailableValue(), food.getQuantityValue(),
-                                    food.getDiscountedPriceValue());
+                                    food.getDiscountedPriceValue(),
+                                    com.replate.app.utils.PickupSlot.windowOf(food.getPickupTimeStart(), food.getPickupTimeEnd()));
                         }
                     } catch (RuntimeException e) {
                         // A listing we cannot read is not proof that the dish is gone: leave this line unchecked
@@ -479,6 +529,21 @@ public class CheckoutActivity extends AppCompatActivity {
         }
         List<String> problems = CartCheck.problems(Arrays.asList(lines));
         if (problems.isEmpty()) {
+            // Pickup orders must also fit the time window the hotel set for these dishes
+            verifiedWindow = CartCheck.pickupWindow(Arrays.asList(lines));
+            boolean delivery = rgOrderType.getCheckedRadioButtonId() == R.id.rbDelivery;
+            if (!delivery) {
+                String message = pickupProblem(String.valueOf(etPickupTime.getText()).trim(), verifiedWindow);
+                if (message != null) {
+                    showLoading(false);
+                    new AlertDialog.Builder(this)
+                            .setTitle(R.string.checkout_pickup_time_title)
+                            .setMessage(message)
+                            .setPositiveButton(android.R.string.ok, null)
+                            .show();
+                    return;
+                }
+            }
             proceed.run();
             return;
         }
@@ -821,8 +886,8 @@ public class CheckoutActivity extends AppCompatActivity {
         orderData.put("pickupTime", pickupTime);
         if (!isDelivery) {
             // The pickup QR and OTP stop working when this window closes
-            long expiresAt = com.replate.app.utils.PickupWindow.expiresAt(
-                    pickupTime, System.currentTimeMillis(), java.util.TimeZone.getDefault());
+            long expiresAt = com.replate.app.utils.PickupSlot.expiresAt(
+                    pickupTime, verifiedWindow, System.currentTimeMillis(), java.util.TimeZone.getDefault());
             if (expiresAt > 0) {
                 orderData.put("pickupExpiresAt", expiresAt);
             }

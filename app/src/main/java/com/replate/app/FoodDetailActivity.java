@@ -279,7 +279,7 @@ public class FoodDetailActivity extends AppCompatActivity {
     }
 
     private boolean isSoldOut() {
-        return foodItem != null && (!foodItem.isAvailableValue() || !foodItem.hasStock());
+        return foodItem != null && (!foodItem.isAvailableValue() || !foodItem.hasStock() || foodItem.isPickupClosedNow());
     }
 
     private void updateQuantityDisplay() {

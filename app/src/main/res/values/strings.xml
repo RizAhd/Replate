@@ -845,4 +845,7 @@ Please go back to your cart and update it. You have not been charged.</string>
     <string name="login_role_check_failed">We could not check your account type. Check your connection and sign in again.</string>
     <string name="order_success_load_failed_hint">Your order was placed. Check your connection and try again to see your QR code, or find it under Orders.</string>
     <string name="loading_took_too_long">This is taking longer than usual. Check your connection; it will keep trying.</string>
+    <string name="checkout_pickup_outside_window">These dishes can only be collected between %1$s. Please choose a time in that window.</string>
+    <string name="checkout_pickup_closed_today">Pickup for these dishes is closed for today (it was %1$s).</string>
+    <string name="checkout_pickup_no_common_window">The dishes in your cart are available at different times, so they cannot be collected together. Order them separately.</string>
 </resources>
