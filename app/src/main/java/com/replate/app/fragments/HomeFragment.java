@@ -515,12 +515,9 @@ public class HomeFragment extends Fragment implements
                 startActivity(intent);
             });
 
-            searchView.setOnQueryTextFocusChangeListener((v, hasFocus) -> {
-                if (hasFocus) {
-                    Intent intent = new Intent(getContext(), SearchActivity.class);
-                    startActivity(intent);
-                }
-            });
+            // Open Search on a tap anywhere on the bar; the field itself never keeps the keyboard focus
+            searchView.setOnClickListener(v -> startActivity(new Intent(getContext(), SearchActivity.class)));
+            searchView.clearFocus();
         }
     }
 

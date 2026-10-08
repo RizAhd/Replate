@@ -319,6 +319,12 @@ async function cleanupInvalidTokens(records, failures) {
   }
 }
 
+// Tells the app this push is also saved in the inbox by the server, so the app must not save it a second time
+function markServerSaved(payload) {
+  payload.data.serverSaved = "1";
+  return payload;
+}
+
 async function sendToUserRecords(userRecords, payload) {
   const valid = userRecords.filter((u) => u && u.token);
   console.log(`[sendToUserRecords] Total records=${userRecords.length}, valid (with token)=${valid.length}`);
@@ -336,19 +342,9 @@ async function sendToUserRecords(userRecords, payload) {
 
     const response = await admin.messaging().sendEachForMulticast({
       tokens,
+      // Data-only: the app builds the notification itself, so Settings switches and "Mark as read" always apply
       data: payload.data,
-      android: {
-        priority: "high",
-        notification: {
-          title: payload.title || "",
-          body: payload.body || "",
-          channelId: "replate_notifications_v4",
-          icon: "replate",
-          color: "#1A6B3C",
-          defaultSound: true,
-          defaultVibrateTimings: true,
-        },
-      },
+      android: { priority: "high" },
     });
 
     successCount += response.successCount;
@@ -374,18 +370,7 @@ async function sendToTopic(topic, payload) {
   const message = {
     topic,
     data: payload.data,
-    android: {
-      priority: "high",
-      notification: {
-        title: payload.title || "",
-        body: payload.body || "",
-        channelId: "replate_notifications_v4",
-        icon: "replate",
-        color: "#1A6B3C",
-        defaultSound: true,
-        defaultVibrateTimings: true,
-      },
-    },
+    android: { priority: "high" },
   };
 
   const messageId = await admin.messaging().send(message);
@@ -684,6 +669,7 @@ exports.sendBroadcastNotification = functions.region(REGION).https.onRequest(asy
         cleanupPaths: [`users/${u.uid}/fcmToken`, `users/${u.uid}/notification/fcmToken`],
       }));
       targetUserIds = users.map((u) => u.uid);
+      markServerSaved(payload);
       result = await sendToUserRecords(userRecords, payload);
       await persistNotificationForUsers(targetUserIds, payload, "admin_broadcast");
     }
@@ -749,6 +735,7 @@ exports.sendTargetedNotification = functions.region(REGION).https.onRequest(asyn
     });
 
     const users = (await Promise.all(allowedUserIds.map((uid) => loadUserNotificationRecord(uid)))).filter(Boolean);
+    markServerSaved(payload);
     const result = await sendToUserRecords(users, payload);
     await persistNotificationForUsers(users.map((u) => u.uid), payload, requester.role === "hotel" ? "hotel_targeted" : "admin_targeted");
 
@@ -894,6 +881,7 @@ const sendSelfTestPushHandler = async (req, res) => {
       ...req.body,
     });
 
+    markServerSaved(payload);
     const result = await sendToUserRecords([record], payload);
     await persistNotificationForUsers([requester.uid], payload, "self_test");
 
@@ -976,6 +964,7 @@ exports.sendDealNotification = functions.region(REGION).https.onRequest(async (r
     // Send to deals topic
     let topicResult = null;
     try {
+      markServerSaved(payload);
       topicResult = await sendToTopic("deals_customers", payload);
     } catch (topicErr) {
       console.warn("[sendDealNotification] Topic send failed:", topicErr.message);
@@ -988,6 +977,7 @@ exports.sendDealNotification = functions.region(REGION).https.onRequest(async (r
       token: String(u.fcmToken || (u.notification && u.notification.fcmToken) || "").trim(),
       cleanupPaths: [`users/${u.uid}/fcmToken`, `users/${u.uid}/notification/fcmToken`],
     }));
+    markServerSaved(payload);
     const directResult = await sendToUserRecords(userRecords, payload);
     await persistNotificationForUsers(customers.map((u) => u.uid), payload, "deal_campaign");
 
@@ -1034,6 +1024,7 @@ exports.onUserProfileCreatedNotify = functions
     });
 
     if (token) {
+      markServerSaved(payload);
       await sendToUserRecords([{ uid, token }], payload);
     }
     await persistNotificationForUsers([uid], payload, "user_created");
@@ -1062,6 +1053,8 @@ async function notifyOrderCreated(orderId, order) {
         });
 
         if (customerRecord.token) {
+          // The app saves its own inbox entry for a new order, so this push must not add another
+          markServerSaved(payload);
           const result = await sendToUserRecords([customerRecord], payload);
           console.log(`[onOrderCreatedNotify] FCM send to customer result: ${JSON.stringify(result)}`);
         } else {
@@ -1088,6 +1081,8 @@ async function notifyOrderCreated(orderId, order) {
         });
 
         if (hotelRecord.token) {
+          // The app saves its own inbox entry for a new order, so this push must not add another
+          markServerSaved(payload);
           const result = await sendToUserRecords([hotelRecord], payload);
           console.log(`[onOrderCreatedNotify] FCM send to hotel result: ${JSON.stringify(result)}`);
         } else {
@@ -1249,6 +1244,7 @@ exports.onOrderStatusChangedNotify = functions
       console.log(`[onOrderStatusChangedNotify] Customer record: uid=${customerRecord?.uid}, hasToken=${!!customerRecord?.token}`);
       if (customerRecord) {
         if (customerRecord.token) {
+          markServerSaved(customerPayload);
           const result = await sendToUserRecords([customerRecord], customerPayload);
           console.log(`[onOrderStatusChangedNotify] FCM send to customer result: ${JSON.stringify(result)}`);
         } else {
@@ -1275,6 +1271,7 @@ exports.onOrderStatusChangedNotify = functions
         });
 
         if (hotelRecord.token) {
+          markServerSaved(hotelPayload);
           const result = await sendToUserRecords([hotelRecord], hotelPayload);
           console.log(`[onOrderStatusChangedNotify] FCM send to hotel result: ${JSON.stringify(result)}`);
         }
@@ -1371,6 +1368,7 @@ exports.onHotelStatusChangedNotify = functions
     }
 
     if (hotelRecord.token) {
+      markServerSaved(payload);
       const result = await sendToUserRecords([hotelRecord], payload);
       console.log(`[onHotelStatusChangedNotify] FCM send result: ${JSON.stringify(result)}`);
     } else {
@@ -1424,6 +1422,7 @@ exports.sendPickupReminders = functions
           data: { phase },
         });
         if (customer.token) {
+          markServerSaved(payload);
           await sendToUserRecords([customer], payload);
         }
         await persistNotificationForUsers([customer.uid], payload, "pickup_reminder");

@@ -320,6 +320,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         tvHotelAddress.setText(order.getHotelAddress() != null && !order.getHotelAddress().trim().isEmpty()
                 ? order.getHotelAddress()
                 : "Pickup address will be shared by the hotel");
+        loadHotelAddressIfMissing();
 
         // Show delivery address or pickup time depending on order type
         if (order.isDelivery()) {
@@ -751,6 +752,27 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
                 .addOnFailureListener(e -> {
                     btnSubmitReview.setEnabled(true);
                     ToastUtils.showCustomToast(this, R.string.order_success_failed_to_submit_review);
+                });
+    }
+
+    // Orders do not store the hotel address, so read it from the hotel record when it is missing
+    private void loadHotelAddressIfMissing() {
+        if (order == null || order.getHotelId() == null || order.getHotelId().trim().isEmpty()) return;
+        if (order.getHotelAddress() != null && !order.getHotelAddress().trim().isEmpty()) return;
+        mDatabase.child("hotels").child(order.getHotelId()).child("address")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        String address = com.replate.app.utils.SafeSnapshot.string(snapshot);
+                        if (address != null && !isFinishing() && !isDestroyed()) {
+                            tvHotelAddress.setText(address);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        // The placeholder text stays
+                    }
                 });
     }
 

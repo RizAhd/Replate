@@ -547,6 +547,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     private void onShakeDetected() {
+        // The Home screen has its own shake handler, so do nothing here (it avoids a double refresh)
+        if (activeFragment instanceof HomeFragment) return;
         // Short vibration feedback
         try {
             android.os.Vibrator vibrator = (android.os.Vibrator) getSystemService(VIBRATOR_SERVICE);
@@ -568,7 +570,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         Fragment current = activeFragment;
         if (current instanceof HomeFragment) {
             ((HomeFragment) current).refreshData();
-        } else if (current != null) {
+        } else if (current != null && !(current instanceof MapFragment)) {
+            // The map is left alone: rebuilding it on every shake is slow and loses the route
             // Detach then attach in separate transactions to force view recreation
             final Fragment frag = current;
             getSupportFragmentManager().beginTransaction().detach(frag).commitNow();

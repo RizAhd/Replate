@@ -97,7 +97,9 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             data.put("category", category);
         }
 
-        String notificationKey = saveNotification(title, body, data);
+        // The server (or checkout) already saved this one in the inbox: do not save a second copy
+        boolean alreadySaved = "1".equals(data.remove("serverSaved"));
+        String notificationKey = alreadySaved ? null : saveNotification(title, body, data);
         if (notificationKey != null) {
             data.put("notificationKey", notificationKey);
         }

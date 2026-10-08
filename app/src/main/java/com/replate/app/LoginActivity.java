@@ -388,7 +388,6 @@ public class LoginActivity extends AppCompatActivity {
 
                     showLoading(false);
                     saveUserSession(user, role);
-                    createLoginNotification(user.getUid(), role);
                     com.replate.app.notifications.InAppNotificationCenter.publish(
                             new com.replate.app.notifications.InAppNotificationCenter.InAppNotificationMessage(
                                     "Welcome back",
@@ -413,22 +412,6 @@ public class LoginActivity extends AppCompatActivity {
                     ToastUtils.showCustomToast(LoginActivity.this, R.string.login_role_check_failed);
                 }
             });
-    }
-
-    private void createLoginNotification(String userId, String role) {
-        if (userId == null || userId.trim().isEmpty()) return;
-
-        Map<String, Object> notif = new HashMap<>();
-        notif.put("title", "Welcome back");
-        notif.put("body", "You logged in successfully.");
-        notif.put("type", "login");
-        notif.put("category", com.replate.app.notifications.NotificationCategories.LOGIN_SUCCESS);
-        notif.put("route", "home");
-        notif.put("role", role == null ? "customer" : role);
-        notif.put("read", false);
-        notif.put("timestamp", System.currentTimeMillis());
-
-        mDatabase.child("notifications").child(userId).push().setValue(notif);
     }
 
     private void registerUser() {
@@ -840,8 +823,7 @@ public class LoginActivity extends AppCompatActivity {
                             String role = snapshot.exists() ? UserRoleHelper.fromSnapshot(snapshot) : UserRoleHelper.ROLE_CUSTOMER;
                             showLoading(false);
                             saveUserSession(user, role);
-                            createLoginNotification(user.getUid(), role);
-                            ToastUtils.showCustomToast(LoginActivity.this, "Welcome, " + (user.getDisplayName() != null ? user.getDisplayName() : "there") + "!");
+                                    ToastUtils.showCustomToast(LoginActivity.this, "Welcome, " + (user.getDisplayName() != null ? user.getDisplayName() : "there") + "!");
                             goToHomeByRole(role, user.getUid());
                         }
                         @Override
@@ -1068,7 +1050,6 @@ public class LoginActivity extends AppCompatActivity {
                     String role = snapshot.exists() ? UserRoleHelper.fromSnapshot(snapshot) : UserRoleHelper.ROLE_CUSTOMER;
                     showLoading(false);
                     saveUserSession(user, role);
-                    createLoginNotification(user.getUid(), role);
                     String displayName = user.getDisplayName() != null ? user.getDisplayName() :
                             (user.getPhoneNumber() != null ? user.getPhoneNumber() : "there");
                     ToastUtils.showCustomToast(LoginActivity.this, "Welcome, " + displayName + "!");
