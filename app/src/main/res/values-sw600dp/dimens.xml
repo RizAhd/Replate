@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Widest the single-column phone screens (cart, checkout, order detail, food detail)
+         are allowed to grow on a tablet; the column is centred and the page background fills the sides.
+         Only the layout-sw600dp variants read it, so no base-folder default is needed. -->
+    <dimen name="tablet_content_max_width" tools:ignore="MissingDefaultResource">600dp</dimen>
+</resources>
