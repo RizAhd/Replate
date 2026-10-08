@@ -60,7 +60,9 @@ const NEW_ORDER_FROM_CUSTOMER =
   " && !newData.child('stockAdjusted').exists() && !newData.child('stockRestored').exists()" +
   " && !newData.child('pickupReminderSent').exists() && !newData.child('completedAt').exists()" +
   " && !newData.child('dispatchedAt').exists() && !newData.child('cancelledAt').exists()" +
-  " && !newData.child('cancelledBy').exists()";
+  " && !newData.child('cancelledBy').exists()" +
+  " && !newData.child('paymentVerified').exists() && !newData.child('paymentVerifiedAt').exists()" +
+  " && !newData.child('paymentVerifiedRef').exists() && !newData.child('paymentAmountMismatch').exists()";
 
 // "paid" has to come with the PayHere payment number the app got back, so it cannot simply be typed in
 const PAYMENT_FIELDS_OK =

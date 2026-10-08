@@ -175,6 +175,8 @@ async function check(name, promise) {
   await check('customer cannot create an order with a completion time', assertFails(set(ref(cust1, 'orders/oSelf3'), { ...fresh, completedAt: 5 })));
   await check('customer cannot re-send an order the server already processed', assertFails(set(ref(cust1, 'orders/oProcessed'), fresh)));
   await check('customer cannot re-send a pending order as completed', assertFails(set(ref(cust1, 'orders/oSelf1'), { ...fresh, orderStatus: 'pending_pickup' }).then(() => set(ref(cust1, 'orders/oSelf1'), { ...fresh, orderStatus: 'completed' }))));
+  await check('customer cannot create an order already marked verified by PayHere', assertFails(set(ref(cust1, 'orders/oSelf4'), { ...fresh, paymentVerified: true })));
+  await check('hotel cannot mark a payment as verified', assertFails(update(ref(owner1, 'orders/o3'), { paymentVerified: true })));
   await check('cash order is created as pending payment', assertSucceeds(set(ref(cust1, 'orders/oPay1'), { ...fresh, paymentStatus: 'pending', paymentMethod: 'Cash' })));
   await check('card order with a PayHere payment number is accepted', assertSucceeds(set(ref(cust1, 'orders/oPay2'), { ...fresh, paymentStatus: 'paid', paymentMethod: 'PayHere Online', paymentRef: 320005678 })));
   await check('paid without a payment number is rejected', assertFails(set(ref(cust1, 'orders/oPay3'), { ...fresh, paymentStatus: 'paid', paymentMethod: 'PayHere Online' })));

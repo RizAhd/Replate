@@ -16,6 +16,10 @@ const {
   isReservedDataKey,
   limitUserIds,
   colomboHour,
+  chatRecipient,
+  messagePreview,
+  verifyPayhereNotification,
+  amountMatches,
 } = require("./safe");
 
 admin.initializeApp();
@@ -26,6 +30,8 @@ const REGION = "asia-southeast1";
 const MAX_MULTICAST = 500;
 const OTP_EXPIRY_MINUTES = 10;
 const OTP_MAX_ATTEMPTS = 5;
+// The same two admin addresses as the database rules and the admin panel
+const ADMIN_EMAILS = ["admin@replate.com", "superadmin@replate.com"];
 const VALID_NOTIFICATION_CATEGORIES = new Set([
   "welcome",
   "new_deals",
@@ -114,8 +120,10 @@ async function verifyRequestAuth(req, allowedRoles = ["admin"]) {
   const decoded = await admin.auth().verifyIdToken(idToken);
   const uid = decoded.uid;
 
+  const email = String(decoded.email || "").toLowerCase();
+  const isAdminEmail = ADMIN_EMAILS.includes(email);
   const roleFromClaim = normalizeRole(decoded.role || (decoded.roles && decoded.roles[0]));
-  if (allowedRoles.includes(roleFromClaim)) {
+  if (allowedRoles.includes(roleFromClaim) && (roleFromClaim !== "admin" || isAdminEmail)) {
     return { uid, role: roleFromClaim };
   }
 
@@ -125,7 +133,8 @@ async function verifyRequestAuth(req, allowedRoles = ["admin"]) {
   }
 
   const role = roleFromUser(userSnap.val());
-  if (!allowedRoles.includes(role)) {
+  // An admin role only counts together with an admin address, like the database rules
+  if (!allowedRoles.includes(role) || (role === "admin" && !isAdminEmail)) {
     throw new Error("Insufficient permissions");
   }
 
@@ -1435,6 +1444,87 @@ exports.sendPickupReminders = functions
     console.log(`[sendPickupReminders] ${sent} of ${due.length} reminder(s) sent`);
     return null;
   });
+
+// ── CHAT MESSAGE PUSH ──────────────────────────────────────
+// A new chat message notifies the other side (the hotel owner or the customer).
+exports.onChatMessageNotify = functions
+  .region(REGION)
+  .database.ref("/chats/{convId}/messages/{messageId}")
+  .onCreate(async (snapshot, context) => {
+    try {
+      const message = snapshot.val() || {};
+      const target = chatRecipient(context.params.convId, message.senderId);
+      if (!target) return null;
+
+      const record = target.to === "hotel"
+        ? await loadHotelNotificationRecord(target.hotelKey)
+        : await loadUserNotificationRecord(target.customerUid);
+      if (!record || !record.token) return null;
+
+      let senderName = "";
+      if (target.to === "customer") {
+        const hotel = (await db.ref(`hotels/${target.hotelKey}`).get()).val() || {};
+        senderName = String(hotel.hotelName || "");
+      } else {
+        const customer = (await db.ref(`users/${target.customerUid}`).get()).val() || {};
+        senderName = String(customer.name || "");
+      }
+
+      const payload = buildPayload({
+        title: senderName ? `New message from ${senderName}` : "New message",
+        body: messagePreview(message.message),
+        type: "chat_message",
+        category: "admin_announcement",
+        route: "chat",
+        hotelId: target.hotelKey,
+        data: { customerId: target.customerUid, hotelId: target.hotelKey },
+      });
+      // Chat messages already live in the chat itself, so they are not added to the inbox list
+      markServerSaved(payload);
+      await sendToUserRecords([record], payload);
+    } catch (err) {
+      console.error("[onChatMessageNotify] failed", err);
+    }
+    return null;
+  });
+
+// ── PAYHERE PAYMENT CONFIRMATION ───────────────────────────
+// PayHere calls this address after a payment. Only a request with a valid signature and the right amount
+// marks the order as verified; the secret stays in the function's environment (PAYHERE_MERCHANT_SECRET).
+exports.payhereNotify = functions.region(REGION).https.onRequest(async (req, res) => {
+  try {
+    if (req.method !== "POST") return res.status(405).send("Method not allowed");
+    const fields = req.body || {};
+    const secret = process.env.PAYHERE_MERCHANT_SECRET;
+    if (!verifyPayhereNotification(fields, secret)) {
+      console.warn("[payhereNotify] bad signature");
+      return res.status(403).send("Invalid signature");
+    }
+
+    const orderId = String(fields.order_id || "").trim();
+    if (!orderId || /[.#$\[\]/]/.test(orderId)) return res.status(400).send("Bad order id");
+    const orderRef = db.ref(`orders/${orderId}`);
+    const order = (await orderRef.get()).val();
+    if (!order) return res.status(404).send("Unknown order");
+
+    // status_code 2 means the payment succeeded
+    if (String(fields.status_code) === "2") {
+      const matches = amountMatches(fields.payhere_amount, order.totalAmount);
+      await orderRef.update({
+        paymentVerified: matches,
+        paymentVerifiedAt: Date.now(),
+        paymentVerifiedRef: String(fields.payment_id || ""),
+        paymentAmountMismatch: matches ? null : true,
+      });
+    } else {
+      await orderRef.update({ paymentVerified: false, paymentGatewayStatus: String(fields.status_code || "") });
+    }
+    return res.status(200).send("OK");
+  } catch (err) {
+    console.error("payhereNotify error", err);
+    return res.status(500).send("Server error");
+  }
+});
 
 exports.sendScheduledEngagementNotifications = functions
   .region(REGION)

@@ -100,6 +100,55 @@ function colomboHour(date = new Date()) {
   return Number(text) % 24;
 }
 
+/**
+ * Who a new chat message should notify. Conversation ids look like "<hotelKey>_<customerUid>" (a hotel key can
+ * contain "_", a Firebase uid cannot), so the customer is everything after the last "_".
+ */
+function chatRecipient(convId, senderId) {
+  const id = String(convId || "");
+  const cut = id.lastIndexOf("_");
+  if (cut <= 0 || cut === id.length - 1) return null;
+  const hotelKey = id.slice(0, cut);
+  const customerUid = id.slice(cut + 1);
+  const sender = String(senderId || "");
+  if (!sender) return null;
+  if (sender === customerUid) return { to: "hotel", hotelKey, customerUid };
+  return { to: "customer", hotelKey, customerUid };
+}
+
+/** A short single-line preview of a chat message for the push body. */
+function messagePreview(text, max = 80) {
+  const clean = String(text || "").replace(/\s+/g, " ").trim();
+  if (!clean) return "Sent you a message";
+  return clean.length > max ? clean.slice(0, max - 1) + "…" : clean;
+}
+
+/**
+ * PayHere calls our notify URL with a signature: MD5(merchant_id + order_id + amount + currency + status_code
+ * + UPPER(MD5(merchant_secret))), upper case. Only a request with a matching signature may mark an order paid.
+ */
+function payhereSignature(fields, merchantSecret) {
+  const secretHash = crypto.createHash("md5").update(String(merchantSecret)).digest("hex").toUpperCase();
+  const text = String(fields.merchant_id || "") + String(fields.order_id || "") + String(fields.payhere_amount || "")
+    + String(fields.payhere_currency || "") + String(fields.status_code || "") + secretHash;
+  return crypto.createHash("md5").update(text).digest("hex").toUpperCase();
+}
+
+function verifyPayhereNotification(fields, merchantSecret) {
+  if (!merchantSecret || !fields || !fields.md5sig) return false;
+  const expected = payhereSignature(fields, merchantSecret);
+  const given = String(fields.md5sig).toUpperCase();
+  if (expected.length !== given.length) return false;
+  return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(given));
+}
+
+/** True when the amount PayHere charged equals the order total (to the cent). */
+function amountMatches(payhereAmount, orderTotal) {
+  const a = Math.round(Number(payhereAmount) * 100);
+  const b = Math.round(Number(orderTotal) * 100);
+  return Number.isFinite(a) && Number.isFinite(b) && a === b && a > 0;
+}
+
 module.exports = {
   MAX_ORDER_LINE_QUANTITY,
   MAX_TARGETED_USERS,
@@ -115,4 +164,9 @@ module.exports = {
   isReservedDataKey,
   limitUserIds,
   colomboHour,
+  chatRecipient,
+  messagePreview,
+  payhereSignature,
+  verifyPayhereNotification,
+  amountMatches,
 };

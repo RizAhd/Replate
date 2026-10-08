@@ -155,4 +155,49 @@ test('the engagement schedule uses Sri Lankan time whatever the server clock say
     assert.strictEqual(safe.colomboHour(new Date(Date.UTC(2026, 9, 5, 19, 0))), 0);
 });
 
+// ---- chat push and PayHere confirmation ---------------------------------------------------
+
+test('a customer message goes to the hotel and a hotel message goes to the customer', () => {
+    assert.deepStrictEqual({ ...safe.chatRecipient('hotelA_cust1', 'cust1') }, { to: 'hotel', hotelKey: 'hotelA', customerUid: 'cust1' });
+    assert.deepStrictEqual({ ...safe.chatRecipient('hotelA_cust1', 'hotelOwner') }, { to: 'customer', hotelKey: 'hotelA', customerUid: 'cust1' });
+});
+
+test('a hotel key that contains an underscore still splits at the last one', () => {
+    const r = safe.chatRecipient('-Nab_cd_Xyz123', 'Xyz123');
+    assert.strictEqual(r.hotelKey, '-Nab_cd');
+    assert.strictEqual(r.customerUid, 'Xyz123');
+});
+
+test('broken conversation ids or missing senders notify nobody', () => {
+    ['', 'nounderscore', '_cust1', 'hotel_', null].forEach((id) => assert.strictEqual(safe.chatRecipient(id, 'x'), null, String(id)));
+    assert.strictEqual(safe.chatRecipient('h_c', ''), null);
+});
+
+test('chat previews are one short line', () => {
+    assert.strictEqual(safe.messagePreview('hi' + String.fromCharCode(10) + '  there'), 'hi there');
+    assert.strictEqual(safe.messagePreview('x'.repeat(200)).length, 80);
+    assert.strictEqual(safe.messagePreview('   '), 'Sent you a message');
+});
+
+test('PayHere signature: a correct one is accepted, any change is refused', () => {
+    const crypto = require('crypto');
+    const secret = 'my-secret';
+    const fields = { merchant_id: '1211149', order_id: 'ord1', payhere_amount: '1000.00', payhere_currency: 'LKR', status_code: '2' };
+    const hash = crypto.createHash('md5').update(secret).digest('hex').toUpperCase();
+    fields.md5sig = crypto.createHash('md5').update('1211149ord11000.00LKR2' + hash).digest('hex').toUpperCase();
+    assert.strictEqual(safe.verifyPayhereNotification(fields, secret), true);
+    assert.strictEqual(safe.verifyPayhereNotification({ ...fields, payhere_amount: '1.00' }, secret), false);
+    assert.strictEqual(safe.verifyPayhereNotification({ ...fields, status_code: '-2' }, secret), false);
+    assert.strictEqual(safe.verifyPayhereNotification(fields, 'other-secret'), false);
+    assert.strictEqual(safe.verifyPayhereNotification({ ...fields, md5sig: '' }, secret), false);
+    assert.strictEqual(safe.verifyPayhereNotification(fields, ''), false);
+});
+
+test('the charged amount must equal the order total to the cent', () => {
+    assert.strictEqual(safe.amountMatches('1000.00', 1000), true);
+    assert.strictEqual(safe.amountMatches('999.99', 1000), false);
+    assert.strictEqual(safe.amountMatches('abc', 1000), false);
+    assert.strictEqual(safe.amountMatches('0', 0), false);
+});
+
 console.log(`\n${passed} passed${process.exitCode ? ', some FAILED' : ''}`);

@@ -50,6 +50,13 @@ public final class NotificationRouter {
             return applyCommonExtras(mapIntent, normalizedCategory, normalizedRoute, safeOrderId, safeHotelId, safeDeepLink);
         }
 
+        // A new chat message opens that conversation
+        if ("chat".equals(normalizedRoute) && !safeHotelId.isEmpty()) {
+            Intent chatIntent = new Intent(context, com.replate.app.ChatActivity.class);
+            chatIntent.putExtra(com.replate.app.ChatActivity.EXTRA_HOTEL_ID, safeHotelId);
+            return applyCommonExtras(chatIntent, normalizedCategory, normalizedRoute, safeOrderId, safeHotelId, safeDeepLink);
+        }
+
         if (isOrderCategory(normalizedCategory) || normalizedRoute.contains("order")) {
             if (NotificationCategories.HOTEL_NEW_ORDER.equals(normalizedCategory)) {
                 Intent hotelOrders = tryHotelOrdersIntent(context);
