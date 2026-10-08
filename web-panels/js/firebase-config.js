@@ -72,6 +72,7 @@ function logout() {
     // Stop live listeners first so they do not report permission errors after sign-out
     try { firebase.database().goOffline(); } catch (e) { /* ignore */ }
     auth.signOut().finally(() => {
+        try { firebase.database().goOnline(); } catch (e) { /* ignore */ }
         sessionStorage.removeItem('hotelId');
         window.location.href = 'login.html';
     });
