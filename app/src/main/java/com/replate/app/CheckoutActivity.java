@@ -3,7 +3,6 @@ package com.replate.app;
 import android.app.Activity;
 import android.app.TimePickerDialog;
 import android.content.Intent;
-import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -696,8 +695,11 @@ public class CheckoutActivity extends AppCompatActivity {
         req.getCustomer().getAddress().setCity("Colombo");
         req.getCustomer().getAddress().setCountry("Sri Lanka");
 
-        // Do NOT send a fake/unregistered notify URL in sandbox.
-        // That can trigger PayHere "unauthorized domain" for merchants that haven't whitelisted it.
+        // PayHere confirms the payment to our Cloud Function (payhereNotify) when its address is set in local.properties.
+        // Left empty by default: a fake or unregistered address can trigger "unauthorized domain" in the sandbox.
+        if (!BuildConfig.PAYHERE_NOTIFY_URL.trim().isEmpty()) {
+            req.setNotifyUrl(BuildConfig.PAYHERE_NOTIFY_URL.trim());
+        }
 
         req.getItems().add(new Item(null, "REPLATE Food Order", 1, totalAmount));
 
@@ -963,7 +965,7 @@ public class CheckoutActivity extends AppCompatActivity {
         cartDb.clearCart();
         AppAnalytics.purchase(this, orderId, totalAmount, paymentMethod);
         saveReceipt(orderId, otpCode, customerName, totalAmount);
-        playPaymentSound();
+        // The payment sound plays once, on the order success screen (OrderSuccessActivity)
         createOrderNotifications(orderId, hotelId, hotelName, customerName, totalAmount);
 
         com.replate.app.notifications.InAppNotificationCenter.publish(
@@ -1042,18 +1044,6 @@ public class CheckoutActivity extends AppCompatActivity {
             fos.close();
         } catch (Exception e) {
             if (BuildConfig.DEBUG) Log.w(TAG, "Failed to save receipt", e);
-        }
-    }
-
-    private void playPaymentSound() {
-        try {
-            MediaPlayer mp = MediaPlayer.create(this, android.provider.Settings.System.DEFAULT_NOTIFICATION_URI);
-            if (mp != null) {
-                mp.setOnCompletionListener(MediaPlayer::release);
-                mp.start();
-            }
-        } catch (Exception e) {
-            // Non-critical: sound playback failure doesn't affect order
         }
     }
 

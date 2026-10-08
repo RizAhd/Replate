@@ -189,25 +189,29 @@ public class Order implements Serializable {
 
     @Exclude
     public boolean isActive() {
-        return orderStatus != null &&
-               (orderStatus.equals("pending") ||
-                orderStatus.equals("pending_pickup") ||
-                orderStatus.equals("pending_delivery") ||
-                orderStatus.equals("confirmed") ||
-                orderStatus.equals("preparing") ||
-                orderStatus.equals("ready") ||
-                orderStatus.equals("out_for_delivery"));
+        // accepted / ready_for_pickup count as confirmed / ready, so such orders stay in the Active tab
+        String status = com.replate.app.utils.OrderStatusAliases.canonical(orderStatus);
+        return status != null &&
+               (status.equals("pending") ||
+                status.equals("pending_pickup") ||
+                status.equals("pending_delivery") ||
+                status.equals("confirmed") ||
+                status.equals("preparing") ||
+                status.equals("ready") ||
+                status.equals("out_for_delivery"));
     }
 
     @Exclude
     public boolean isCompleted() {
-        return orderStatus != null &&
-               (orderStatus.equals("completed") || orderStatus.equals("delivered"));
+        String status = com.replate.app.utils.OrderStatusAliases.canonical(orderStatus);
+        return status != null &&
+               (status.equals("completed") || status.equals("delivered"));
     }
 
     @Exclude
     public boolean isCancelled() {
-        return orderStatus != null && orderStatus.equals("cancelled");
+        // rejected counts as cancelled
+        return "cancelled".equals(com.replate.app.utils.OrderStatusAliases.canonical(orderStatus));
     }
 
     @Exclude
@@ -218,7 +222,7 @@ public class Order implements Serializable {
     @Exclude
     public String getStatusDisplay() {
         if (orderStatus == null) return "Unknown";
-        switch (orderStatus) {
+        switch (com.replate.app.utils.OrderStatusAliases.canonical(orderStatus)) {
             case "pending":            return "Pending Confirmation";
             case "pending_pickup":     return "Pending Pickup";
             case "pending_delivery":   return "Pending Delivery";

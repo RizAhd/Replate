@@ -600,6 +600,8 @@ Total: LKR %1$.2f</string>
     <string name="checkout_cancel_order">Cancel Order</string>
     <string name="checkout_retry_saving_order">Retry saving order</string>
     <string name="checkout_payment_received">Payment received</string>
+    <string name="sync_unsaved_order_title">Finish saving your order</string>
+    <string name="sync_unsaved_order_body">Your card payment went through but the order was not saved. Tap to finish it. You will not be charged again.</string>
     <string name="checkout_retry">Retry</string>
     <string name="checkout_not_now">Not now</string>
     <string name="checkout_cart_is_empty">Cart is empty</string>
@@ -728,6 +730,7 @@ Total: LKR %1$.2f</string>
     <string name="settings_failed_to_read_selected_image">Failed to read selected image</string>
     <string name="settings_failed_to_load_profile">Failed to load profile</string>
     <string name="settings_camera_permission_required">Camera permission required</string>
+    <string name="settings_no_camera_app">No camera app found on this phone. Choose a photo from the gallery instead.</string>
     <string name="settings_please_fill_all_fields">Please fill all fields</string>
     <string name="settings_profile_updated">Profile Updated ✅</string>
     <string name="settings_update_failed">Update Failed ❌</string>

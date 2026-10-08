@@ -500,12 +500,24 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
     }
 
     // NOTIFICATION CACHE — CRUD
+    /** Adds or updates the given notifications (used for a single pushed message). */
     public void cacheNotifications(List<AppNotification> notifications) {
         if (notifications == null || notifications.isEmpty()) return;
+        writeNotifications(notifications, false);
+    }
+
+    /** Makes the cache match a full server snapshot: rows no longer on the server are removed. */
+    public void replaceCachedNotifications(List<AppNotification> notifications) {
+        if (notifications == null) return;
+        writeNotifications(notifications, true);
+    }
+
+    private void writeNotifications(List<AppNotification> notifications, boolean replaceAll) {
         SQLiteDatabase db = null;
         try {
             db = getWritableDatabase();
             db.beginTransaction();
+            if (replaceAll) db.delete(TABLE_NOTIFICATIONS, null, null);
             for (AppNotification n : notifications) {
                 if (n.getNotificationId() == null) continue;
                 ContentValues values = new ContentValues();
@@ -578,12 +590,24 @@ public class ReplateDatabaseHelper extends SQLiteOpenHelper {
     }
 
     // ORDER HISTORY CACHE — CRUD
+    /** Adds or updates the given orders. */
     public void cacheOrders(List<Order> orders) {
         if (orders == null || orders.isEmpty()) return;
+        writeOrders(orders, false);
+    }
+
+    /** Makes the cache match a full server snapshot: orders no longer on the server are removed. */
+    public void replaceCachedOrders(List<Order> orders) {
+        if (orders == null) return;
+        writeOrders(orders, true);
+    }
+
+    private void writeOrders(List<Order> orders, boolean replaceAll) {
         SQLiteDatabase db = null;
         try {
             db = getWritableDatabase();
             db.beginTransaction();
+            if (replaceAll) db.delete(TABLE_ORDERS, null, null);
             long now = System.currentTimeMillis();
             for (Order order : orders) {
                 String orderId = order.getOrderId();

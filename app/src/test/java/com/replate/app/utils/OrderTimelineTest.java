@@ -29,6 +29,13 @@ public class OrderTimelineTest {
     }
 
     @Test
+    public void otherAppsStatusNamesLandOnTheSameSteps() {
+        assertEquals(1, OrderTimeline.currentStep("accepted"));
+        assertEquals(3, OrderTimeline.currentStep("ready_for_pickup"));
+        assertEquals(-1, OrderTimeline.currentStep("rejected"));
+    }
+
+    @Test
     public void statusIsReadLeniently() {
         assertEquals(2, OrderTimeline.currentStep("  Preparing "));
     }

@@ -247,7 +247,8 @@ public class FoodDetailActivity extends AppCompatActivity {
         });
 
         btnPlus.setOnClickListener(v -> {
-            if (quantity < foodItem.getQuantityValue()) {
+            // No recorded quantity means the hotel did not limit the stock
+            if (foodItem.getQuantity() == null || quantity < foodItem.getQuantityValue()) {
                 quantity++;
                 updateQuantityDisplay();
             } else {

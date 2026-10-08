@@ -16,6 +16,12 @@ public class DirectionsApiClientTest {
     private static final String GOOGLE_EXAMPLE = "_p~iF~ps|U_ulLnnqC_mqNvxq`@";
 
     @Test
+    public void formatsCertificateBytesAsUppercaseHexWithoutColons() {
+        assertEquals("00FF10AB", DirectionsApiClient.toHex(new byte[]{0, (byte) 0xFF, 0x10, (byte) 0xAB}));
+        assertEquals("", DirectionsApiClient.toHex(new byte[0]));
+    }
+
+    @Test
     public void decodesGoogleDocumentationExample() {
         List<LatLng> points = DirectionsApiClient.decodePolyline(GOOGLE_EXAMPLE);
 

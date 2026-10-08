@@ -48,6 +48,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.replate.app.utils.FcmTokenManager;
 import com.replate.app.utils.NotificationPermissionHelper;
+import com.replate.app.utils.SignInConfig;
 import com.replate.app.utils.ToastUtils;
 import com.replate.app.utils.UserRoleHelper;
 
@@ -149,6 +150,7 @@ public class LoginActivity extends AppCompatActivity {
 
         // Initialize views
         initializeViews();
+        hideUnconfiguredSocialButtons();
 
         // Setup tab switching
         setupTabLayout();
@@ -156,6 +158,20 @@ public class LoginActivity extends AppCompatActivity {
         // Setup click listeners
         setupClickListeners();
         requestNotificationPermissionIfNeeded();
+    }
+
+    /** A sign-in button whose key is still the template placeholder could only fail, so it is hidden. */
+    private void hideUnconfiguredSocialButtons() {
+        String googleId = BuildConfig.GOOGLE_WEB_CLIENT_ID.isEmpty()
+                ? getString(R.string.default_web_client_id) : BuildConfig.GOOGLE_WEB_CLIENT_ID;
+        if (!SignInConfig.isConfigured(googleId)) {
+            if (btnGoogleLogin != null) btnGoogleLogin.setVisibility(View.GONE);
+            if (btnGoogleRegister != null) btnGoogleRegister.setVisibility(View.GONE);
+        }
+        if (!SignInConfig.isConfigured(getString(R.string.facebook_app_id))) {
+            if (btnFacebookLogin != null) btnFacebookLogin.setVisibility(View.GONE);
+            if (btnFacebookRegister != null) btnFacebookRegister.setVisibility(View.GONE);
+        }
     }
 
     private void requestNotificationPermissionIfNeeded() {

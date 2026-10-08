@@ -185,7 +185,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         View view = inflater.inflate(R.layout.fragment_map, container, false);
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
-        directionsApiClient = new DirectionsApiClient(getString(R.string.google_maps_key));
+        directionsApiClient = new DirectionsApiClient(requireContext(), getString(R.string.google_maps_key));
         placesDataSource = new FirebasePlacesDataSource();
         foodItemsRef = FirebaseDatabase.getInstance().getReference("foodItems");
 

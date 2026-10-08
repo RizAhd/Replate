@@ -16,8 +16,13 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,10 +33,11 @@ import java.util.Map;
  *  2. Anonymize orders (keep hotel/admin records, strip PII fields)
  *  3. Delete notifications/{uid}
  *  4. Delete indexes/ordersByUser/{uid}
- *  5. Clear FCM token + unsubscribe topics
- *  6. Delete users/{uid}
- *  7. Delete the Firebase Auth account (retried once) - the point of no return
- *  8. Clear local SQLite data + SharedPreferences
+ *  5. Delete the customer's chats, favorites/{uid} and profileImages/{uid}/ (each failure is logged, never fatal)
+ *  6. Clear FCM token + unsubscribe topics
+ *  7. Delete users/{uid}
+ *  8. Delete the Firebase Auth account (retried once) - the point of no return
+ *  9. Clear local SQLite data + SharedPreferences
  *
  * Every step is idempotent, so if step 7 still fails the user can simply run deletion again.
  * Local data is only cleared after the account is really gone.
@@ -172,7 +178,74 @@ public final class AccountDeletionManager {
                                           @NonNull DatabaseReference root,
                                           @NonNull DeletionCallback cb) {
         root.child("indexes").child("ordersByUser").child(user.getUid()).removeValue()
-                .addOnCompleteListener(t -> step4_clearFcm(ctx, user, root, cb));
+                .addOnCompleteListener(t -> step3b_deleteChatsAndFavorites(ctx, user, root, cb));
+    }
+
+    /** Step 3b: Delete the user's chats (as the customer) and favorites; failures are only logged */
+    private static void step3b_deleteChatsAndFavorites(@NonNull Context ctx,
+                                                       @NonNull FirebaseUser user,
+                                                       @NonNull DatabaseReference root,
+                                                       @NonNull DeletionCallback cb) {
+        String uid = user.getUid();
+        try {
+            root.child("conversations").child(uid).get().addOnCompleteListener(readTask -> {
+                List<Task<Void>> removals = new ArrayList<>();
+                try {
+                    if (readTask.isSuccessful() && readTask.getResult() != null) {
+                        for (DataSnapshot conv : readTask.getResult().getChildren()) {
+                            String convId = conv.getKey();
+                            String hotelKey = ChatKeys.hotelKeyForCustomerChat(convId, uid);
+                            if (hotelKey == null) continue;
+                            removals.add(logged(root.child("chats").child(convId).removeValue(), "chats/" + convId));
+                            removals.add(logged(root.child("conversations").child(hotelKey).child(convId).removeValue(),
+                                    "conversations/" + hotelKey + "/" + convId));
+                        }
+                    } else {
+                        Log.w(TAG, "Could not read conversations (non-fatal)", readTask.getException());
+                    }
+                    removals.add(logged(root.child("conversations").child(uid).removeValue(), "conversations/" + uid));
+                    removals.add(logged(root.child("favorites").child(uid).removeValue(), "favorites/" + uid));
+                } catch (Exception e) {
+                    Log.w(TAG, "Chat/favorites cleanup error (non-fatal)", e);
+                }
+                Tasks.whenAllComplete(removals)
+                        .addOnCompleteListener(t -> step3c_deleteProfileImages(ctx, user, root, cb));
+            });
+        } catch (Exception e) {
+            Log.w(TAG, "Chat/favorites cleanup error (non-fatal)", e);
+            step3c_deleteProfileImages(ctx, user, root, cb);
+        }
+    }
+
+    /** Step 3c: Delete the profile photos in Storage; failures are only logged */
+    private static void step3c_deleteProfileImages(@NonNull Context ctx,
+                                                   @NonNull FirebaseUser user,
+                                                   @NonNull DatabaseReference root,
+                                                   @NonNull DeletionCallback cb) {
+        try {
+            FirebaseStorage.getInstance().getReference().child("profileImages").child(user.getUid())
+                    .listAll()
+                    .addOnCompleteListener(listTask -> {
+                        List<Task<Void>> deletions = new ArrayList<>();
+                        if (listTask.isSuccessful() && listTask.getResult() != null) {
+                            for (com.google.firebase.storage.StorageReference file : listTask.getResult().getItems()) {
+                                deletions.add(logged(file.delete(), "profileImages/" + file.getName()));
+                            }
+                        } else {
+                            Log.w(TAG, "Could not list profile images (non-fatal)", listTask.getException());
+                        }
+                        Tasks.whenAllComplete(deletions)
+                                .addOnCompleteListener(t -> step4_clearFcm(ctx, user, root, cb));
+                    });
+        } catch (Exception e) {
+            Log.w(TAG, "Profile image cleanup error (non-fatal)", e);
+            step4_clearFcm(ctx, user, root, cb);
+        }
+    }
+
+    /** Logs a failed cleanup task and hands it back so the caller can wait for it. */
+    private static Task<Void> logged(@NonNull Task<Void> task, @NonNull String what) {
+        return task.addOnFailureListener(e -> Log.w(TAG, "Could not delete " + what + " (non-fatal)", e));
     }
 
     /** Step 4: Clear FCM token + unsubscribe topics */
@@ -236,12 +309,13 @@ public final class AccountDeletionManager {
     private static void step7_clearLocal(@NonNull Context ctx) {
         LocalDataCleaner.clearAll(ctx);
 
-        try {
-            for (String pref : new String[]{"REPLATE_PREFS", "REPLATE_SESSION", "FCM_PREFS", "REPLATE_FOOD_CACHE", "REPLATE_BANNERS"}) {
-                ctx.getSharedPreferences(pref, Context.MODE_PRIVATE).edit().clear().apply();
+        for (String pref : new String[]{"REPLATE_PREFS", "REPLATE_SESSION", "FCM_PREFS", "REPLATE_FOOD_CACHE",
+                "REPLATE_BANNERS", "REPLATE_PENDING_PAYMENT"}) {
+            try {
+                ctx.getSharedPreferences(pref, Context.MODE_PRIVATE).edit().clear().commit();
+            } catch (Exception e) {
+                Log.w(TAG, "Prefs clear error for " + pref + " (non-fatal)", e);
             }
-        } catch (Exception e) {
-            Log.w(TAG, "Prefs clear error (non-fatal)", e);
         }
     }
 }

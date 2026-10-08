@@ -118,7 +118,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
                 statusText = context.getString(R.string.order_status_delivery_prefix, statusText);
             }
             tvOrderStatus.setText(statusText);
-            setStatusColor(order.getOrderStatus());
+            setStatusColor(com.replate.app.utils.OrderStatusAliases.canonical(order.getOrderStatus()));
 
             // Order date
             // Orders without a timestamp used to show 1 January 1970

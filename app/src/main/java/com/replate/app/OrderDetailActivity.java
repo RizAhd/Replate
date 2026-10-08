@@ -273,7 +273,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         String id = order.getOrderId();
         tvOrderId.setText("Order #" + (id != null ? id.substring(Math.max(0, id.length() - 8)) : "N/A"));
 
-        String status = order.getOrderStatus();
+        String status = com.replate.app.utils.OrderStatusAliases.canonical(order.getOrderStatus());
         if (status == null) {
             // Without this the layout's placeholder "Order Confirmed" would stay on screen
             tvOrderStatus.setText(order.getStatusDisplay());
@@ -308,6 +308,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
                     break;
                 case "cancelled":
                     tvOrderStatus.setText("hotel".equals(order.getCancelledBy())
+                            || "rejected".equalsIgnoreCase(order.getOrderStatus())
                             ? R.string.order_detail_cancelled_by_hotel
                             : R.string.order_detail_order_cancelled);
                     break;

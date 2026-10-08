@@ -183,9 +183,9 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
                 Collections.sort(allOrders, (a, b) ->
                         Long.compare(b.getCreatedAtValue(), a.getCreatedAtValue()));
 
-                // Cache to SQLite for offline access
-                if (localDb != null && !allOrders.isEmpty()) {
-                    localDb.cacheOrders(allOrders);
+                // Mirror the server list in SQLite so removed orders do not come back offline
+                if (localDb != null) {
+                    localDb.replaceCachedOrders(allOrders);
                 }
 
                 progressBar.setVisibility(View.GONE);

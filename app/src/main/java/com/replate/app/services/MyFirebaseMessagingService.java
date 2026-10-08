@@ -51,7 +51,7 @@ import java.util.Map;
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     private static final String TAG = "FCMService";
-    private static final String CHANNEL_ID = "replate_notifications_v4";
+    static final String CHANNEL_ID = "replate_notifications_v4";
     private static final String CHANNEL_NAME = "REPLATE Alerts";
 
     @Override

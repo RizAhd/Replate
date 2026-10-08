@@ -241,7 +241,12 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
             }
 
             if (tvPickupTime != null) {
-                tvPickupTime.setText(context.getString(R.string.food_pickup_template, item.getPickupTimeFormatted()));
+                // Dishes without a pickup window just show no line
+                boolean hasWindow = !isBlank(item.getPickupTimeStart()) || !isBlank(item.getPickupTimeEnd());
+                tvPickupTime.setVisibility(hasWindow ? View.VISIBLE : View.GONE);
+                if (hasWindow) {
+                    tvPickupTime.setText(context.getString(R.string.food_pickup_template, item.getPickupTimeFormatted()));
+                }
             }
 
             // A little urgency, only when it is true: just a few portions are left

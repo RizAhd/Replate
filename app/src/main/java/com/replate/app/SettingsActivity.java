@@ -9,7 +9,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -21,7 +20,9 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.Tasks;
@@ -74,7 +75,9 @@ public class SettingsActivity extends AppCompatActivity {
 
     private static final int CAMERA_PERMISSION_REQUEST = 2001;
     private static final String TAG = "SettingsActivity";
+    private static final String KEY_NOTIF_PERMISSION_ASKED = "notif_permission_asked";
     private static final int MAX_PROFILE_PHOTO_PX = 1024;
+    private static final String CAMERA_FILE_NAME = "profile_capture.jpg";
 
     private CircleImageView ivProfileImage;
     private TextInputEditText etName, etPhone, etEmail, etAddress;
@@ -89,19 +92,22 @@ public class SettingsActivity extends AppCompatActivity {
     private ExecutorService networkExecutor;
     private ReplateDatabaseHelper localDb;
 
-    private Bitmap capturedPhoto;
-    private ActivityResultLauncher<Intent> cameraLauncher;
+    private ActivityResultLauncher<Uri> cameraLauncher;
+    private File cameraFile;
+    // True while the code (not the user) moves the master switch, so the listener ignores it
+    private boolean bindingNotificationSwitch;
     private ActivityResultLauncher<String> galleryLauncher;
     private ActivityResultLauncher<Intent> locationPickerLauncher;
     private final ActivityResultLauncher<String> notificationsPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
-                if (switchNotifications != null) {
-                    switchNotifications.setChecked(granted || !NotificationPermissionHelper.isRuntimePermissionRequired());
-                }
-                prefs.edit().putBoolean("notifications_enabled", granted || !NotificationPermissionHelper.isRuntimePermissionRequired()).apply();
-                if (!granted && NotificationPermissionHelper.isRuntimePermissionRequired()) {
+                prefs.edit().putBoolean(KEY_NOTIF_PERMISSION_ASKED, true).apply();
+                if (granted) {
+                    prefs.edit().putBoolean(NotificationPrefs.KEY_ENABLED, true).apply();
+                } else {
                     ToastUtils.showCustomToast(this, getString(R.string.notifications_permission_denied));
                 }
+                // A refusal is not saved, the switch just shows the real state
+                refreshNotificationSwitch();
             });
 
     private Double pickedLat = null;
@@ -119,19 +125,30 @@ public class SettingsActivity extends AppCompatActivity {
         networkExecutor = Executors.newSingleThreadExecutor();
         localDb = ReplateDatabaseHelper.getInstance(this);
 
-        cameraLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    if (result.getResultCode() == RESULT_OK && result.getData() != null && result.getData().getExtras() != null) {
-                        capturedPhoto = (Bitmap) result.getData().getExtras().get("data");
-                        if (capturedPhoto != null) {
-                            ivProfileImage.setImageBitmap(capturedPhoto);
-                            savePhotoToInternalStorage(capturedPhoto);
-                            uploadProfilePhoto(capturedPhoto);
-                        }
+        // The camera writes a full-size photo into our cache file through a FileProvider
+        cameraLauncher = registerForActivityResult(new ActivityResultContracts.TakePicture(), saved -> {
+            File photoFile = cameraFile != null ? cameraFile : new File(getCacheDir(), CAMERA_FILE_NAME);
+            try {
+                if (saved && photoFile.exists()) {
+                    Bitmap bitmap = decodeScaledBitmap(Uri.fromFile(photoFile), MAX_PROFILE_PHOTO_PX);
+                    if (bitmap != null) {
+                        ivProfileImage.setImageBitmap(bitmap);
+                        savePhotoToInternalStorage(bitmap);
+                        uploadProfilePhoto(bitmap);
+                    } else {
+                        ToastUtils.showCustomToast(this, R.string.settings_failed_to_read_selected_image);
                     }
                 }
-        );
+            } catch (Exception | OutOfMemoryError e) {
+                ToastUtils.showCustomToast(this, R.string.settings_failed_to_read_selected_image);
+            } finally {
+                // The temp photo is only needed until it has been read
+                if (photoFile.exists() && !photoFile.delete()) {
+                    Log.w(TAG, "Could not delete the temporary camera photo");
+                }
+                cameraFile = null;
+            }
+        });
 
         galleryLauncher = registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
             if (uri == null) return;
@@ -240,8 +257,9 @@ public class SettingsActivity extends AppCompatActivity {
         btnSaveProfile.setOnClickListener(v -> saveProfile());
 
         switchNotifications.setOnCheckedChangeListener((btn, checked) -> {
-            if (checked && !NotificationPermissionHelper.hasPermission(this)) {
-                switchNotifications.setChecked(false);
+            if (bindingNotificationSwitch) return;
+            if (checked && !osAllowsNotifications()) {
+                showNotificationSwitch(false);
                 requestNotificationPermissionFromSettings();
                 return;
             }
@@ -289,8 +307,9 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // The user may have changed location access in the phone settings
+        // The user may have changed location or notification access in the phone settings
         refreshLocationSwitch();
+        if (switchNotifications != null) refreshNotificationSwitch();
     }
 
     private void refreshLocationSwitch() {
@@ -353,16 +372,42 @@ public class SettingsActivity extends AppCompatActivity {
         startSafely(Intent.createChooser(send, getString(R.string.settings_share_title)));
     }
 
+    /** True when the phone itself lets this app post notifications. */
+    private boolean osAllowsNotifications() {
+        return NotificationPermissionHelper.hasPermission(this)
+                && NotificationManagerCompat.from(this).areNotificationsEnabled();
+    }
+
+    /** Moves the master switch without saving anything. */
+    private void showNotificationSwitch(boolean on) {
+        bindingNotificationSwitch = true;
+        try {
+            switchNotifications.setChecked(on);
+        } finally {
+            bindingNotificationSwitch = false;
+        }
+        updateNotifyCategoryState(on);
+    }
+
+    /** Shows the saved choice only while the phone also allows notifications. */
+    private void refreshNotificationSwitch() {
+        showNotificationSwitch(prefs.getBoolean(NotificationPrefs.KEY_ENABLED, true) && osAllowsNotifications());
+    }
+
     private void requestNotificationPermissionFromSettings() {
-        if (!NotificationPermissionHelper.isRuntimePermissionRequired()) {
-            prefs.edit().putBoolean("notifications_enabled", true).apply();
-            if (switchNotifications != null) switchNotifications.setChecked(true);
+        if (osAllowsNotifications()) {
+            prefs.edit().putBoolean(NotificationPrefs.KEY_ENABLED, true).apply();
+            showNotificationSwitch(true);
             return;
         }
 
-        if (NotificationPermissionHelper.hasPermission(this)) {
-            prefs.edit().putBoolean("notifications_enabled", true).apply();
-            if (switchNotifications != null) switchNotifications.setChecked(true);
+        // Ask in-app first; once the system stops showing the dialog, send the user to the app settings
+        boolean canAsk = NotificationPermissionHelper.isRuntimePermissionRequired()
+                && !NotificationPermissionHelper.hasPermission(this)
+                && (NotificationPermissionHelper.shouldShowRationale(this)
+                || !prefs.getBoolean(KEY_NOTIF_PERMISSION_ASKED, false));
+        if (!canAsk) {
+            openSystemNotificationSettings();
             return;
         }
 
@@ -448,15 +493,11 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void loadPreferences() {
-        boolean notificationsEnabled = prefs.getBoolean("notifications_enabled", true);
-        if (NotificationPermissionHelper.isRuntimePermissionRequired() && !NotificationPermissionHelper.hasPermission(this)) {
-            notificationsEnabled = false;
-        }
-        switchNotifications.setChecked(notificationsEnabled);
+        // Reflect the phone's state without overwriting the saved choice
+        refreshNotificationSwitch();
         switchNotifyOrders.setChecked(prefs.getBoolean(NotificationPrefs.KEY_ORDERS, true));
         switchNotifyDeals.setChecked(prefs.getBoolean(NotificationPrefs.KEY_DEALS, true));
         switchNotifyPickup.setChecked(prefs.getBoolean(NotificationPrefs.KEY_PICKUP, true));
-        updateNotifyCategoryState(notificationsEnabled);
         refreshLocationSwitch();
     }
 
@@ -486,9 +527,13 @@ public class SettingsActivity extends AppCompatActivity {
             return;
         }
 
-        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (cameraIntent.resolveActivity(getPackageManager()) != null) {
-            cameraLauncher.launch(cameraIntent);
+        try {
+            cameraFile = new File(getCacheDir(), CAMERA_FILE_NAME);
+            Uri photoUri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", cameraFile);
+            cameraLauncher.launch(photoUri);
+        } catch (android.content.ActivityNotFoundException | IllegalArgumentException | SecurityException e) {
+            Log.w(TAG, "No camera app could take the photo", e);
+            ToastUtils.showCustomToast(this, R.string.settings_no_camera_app);
         }
     }
 

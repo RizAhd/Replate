@@ -37,7 +37,7 @@ public final class OrderTimeline {
         if (orderStatus == null) {
             return 0;
         }
-        switch (orderStatus.trim().toLowerCase()) {
+        switch (OrderStatusAliases.canonical(orderStatus)) {
             case "cancelled":
                 return -1;
             case "confirmed":

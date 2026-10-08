@@ -350,9 +350,9 @@ public class NotificationsActivity extends AppCompatActivity
                         Collections.sort(allNotifications, (a, b) ->
                                 Long.compare(b.getTimestampValue(), a.getTimestampValue()));
 
-                        // Cache to SQLite for offline access
-                        if (localDb != null && !allNotifications.isEmpty()) {
-                            localDb.cacheNotifications(allNotifications);
+                        // Mirror the server list in SQLite so deleted rows do not come back offline
+                        if (localDb != null) {
+                            localDb.replaceCachedNotifications(allNotifications);
                         }
 
                         applyFilter();

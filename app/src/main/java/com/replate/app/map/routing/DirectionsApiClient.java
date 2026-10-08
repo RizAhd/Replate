@@ -1,10 +1,16 @@
 package com.replate.app.map.routing;
 
+import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.google.android.gms.maps.model.LatLng;
 
@@ -21,6 +27,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -42,10 +49,19 @@ public class DirectionsApiClient {
 
     private final String mapsApiKey;
     private final Handler mainHandler;
+    // Application context, used to tell Google which app (package + signing cert) is calling
+    private final Context appContext;
+    private volatile String certSha1;
+    private volatile boolean certLoaded;
 
     public DirectionsApiClient(@NonNull String mapsApiKey) {
+        this(null, mapsApiKey);
+    }
+
+    public DirectionsApiClient(@Nullable Context context, @NonNull String mapsApiKey) {
         this.mapsApiKey = mapsApiKey;
         this.mainHandler = new Handler(Looper.getMainLooper());
+        this.appContext = context != null ? context.getApplicationContext() : null;
     }
 
     public void fetchRoute(@NonNull LatLng origin,
@@ -76,6 +92,7 @@ public class DirectionsApiClient {
                 connection.setRequestMethod("GET");
                 connection.setConnectTimeout(10000);
                 connection.setReadTimeout(15000);
+                addAppIdentityHeaders(connection);
 
                 int code = connection.getResponseCode();
                 InputStream inputStream = (code >= 200 && code < 300)
@@ -139,6 +156,61 @@ public class DirectionsApiClient {
                 }
             }
         });
+    }
+
+    /** Lets a key that is restricted to this Android app be accepted; any failure just skips the headers. */
+    private void addAppIdentityHeaders(@NonNull HttpURLConnection connection) {
+        if (appContext == null) return;
+        try {
+            connection.setRequestProperty("X-Android-Package", appContext.getPackageName());
+            String sha1 = signingCertSha1();
+            if (sha1 != null) {
+                connection.setRequestProperty("X-Android-Cert", sha1);
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "Could not add the app identity headers", e);
+        }
+    }
+
+    @Nullable
+    private String signingCertSha1() {
+        if (!certLoaded) {
+            certSha1 = readSigningCertSha1();
+            certLoaded = true;
+        }
+        return certSha1;
+    }
+
+    @SuppressWarnings("deprecation")
+    @Nullable
+    private String readSigningCertSha1() {
+        try {
+            PackageManager pm = appContext.getPackageManager();
+            Signature signature = null;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                PackageInfo info = pm.getPackageInfo(appContext.getPackageName(), PackageManager.GET_SIGNING_CERTIFICATES);
+                Signature[] signers = info.signingInfo == null ? null : info.signingInfo.getApkContentsSigners();
+                if (signers != null && signers.length > 0) signature = signers[0];
+            } else {
+                PackageInfo info = pm.getPackageInfo(appContext.getPackageName(), PackageManager.GET_SIGNATURES);
+                if (info.signatures != null && info.signatures.length > 0) signature = info.signatures[0];
+            }
+            if (signature == null) return null;
+            return toHex(MessageDigest.getInstance("SHA-1").digest(signature.toByteArray()));
+        } catch (Exception e) {
+            Log.w(TAG, "Could not read the signing certificate", e);
+            return null;
+        }
+    }
+
+    /** Uppercase hex with no separators, the format of the X-Android-Cert header. */
+    static String toHex(@NonNull byte[] bytes) {
+        char[] digits = "0123456789ABCDEF".toCharArray();
+        StringBuilder hex = new StringBuilder(bytes.length * 2);
+        for (byte b : bytes) {
+            hex.append(digits[(b >> 4) & 0xF]).append(digits[b & 0xF]);
+        }
+        return hex.toString();
     }
 
     private void postError(@NonNull Callback callback, @NonNull String message) {

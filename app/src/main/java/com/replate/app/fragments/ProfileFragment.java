@@ -225,7 +225,8 @@ public class ProfileFragment extends Fragment {
 
                         for (DataSnapshot orderSnapshot : snapshot.getChildren()) {
                             // A cancelled order was never bought, so it counts for neither stat
-                            if ("cancelled".equals(orderSnapshot.child("orderStatus").getValue(String.class))) {
+                            if ("cancelled".equals(com.replate.app.utils.OrderStatusAliases.canonical(
+                                    orderSnapshot.child("orderStatus").getValue(String.class)))) {
                                 continue;
                             }
                             orderCount++;
