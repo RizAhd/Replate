@@ -113,7 +113,8 @@ Open the **Cart** tab. Your cart is saved on your phone, so it is still there if
 1. **Fulfilment**: choose **Pickup** or **Delivery**. Delivery adds a delivery fee of LKR 250 and asks for
    an address; type it or tap **Pick from Map**.
 2. **Pickup time**: tap the field and choose when you expect to arrive. You cannot choose a time that has
-   already passed. Your pickup slot lasts one hour from that time, and the QR code only works inside it.
+   already passed, or a time outside the pickup window the hotel set for the dish (the app tells you the
+   window). Dishes with different windows cannot be collected together. Your pickup slot lasts one hour from that time, and the QR code only works inside it.
 3. **Payment method**: **Cash on Pickup** or **Card Payment (PayHere)**.
 4. **Your details**: your name and phone number.
 5. Tap **Place Order** and confirm.

@@ -190,6 +190,8 @@ See `firebase-rules/README.md` for the full table and the known limitations.
 | `onOrderStatusChangedNotify` | DB update `/orders/{id}` | One push per status change (confirmed, preparing, ready, out for delivery, delivered, completed, cancelled; says who cancelled) |
 | `onHotelStatusChangedNotify` | DB update `/hotels/{id}` | Approved or rejected notice (not for suspension changes) |
 | `onUserProfileCreatedNotify` | DB create `/users/{uid}` | Welcome notification |
+| `onChatMessageNotify` | DB create `/chats/{conv}/messages/{id}` | Pushes a new chat message to the other side (hotel owner or customer) |
+| `payhereNotify` | HTTPS (PayHere calls it) | Checks PayHere's signature and the amount, then marks the order `paymentVerified`; needs `PAYHERE_MERCHANT_SECRET` in the function environment |
 | `sendPickupReminders` | schedule, every 15 minutes | One reminder per pickup order, 30 minutes before its one-hour slot starts (or when the slot is already open); `pickupReminderSent` prevents repeats; the app's "Pickup reminders" switch decides whether it pops up |
 | `sendScheduledEngagementNotifications` | schedule, every 2 hours | "Trending deals" nudge to the deals topic |
 
@@ -199,8 +201,8 @@ All HTTPS functions require a Firebase ID token in `Authorization: Bearer ...` a
 
 | Command | What it checks |
 |---|---|
-| `./gradlew testDebugUnitTest` | Android unit tests (validators, `Savings`, `PickupWindow`, `HotelNavigation`, `CategoryIcons`, map rules, banners...) |
-| `npm run rules:test` | 127 security-rule checks in the Firebase emulator (needs **JDK 21+** on the PATH) |
+| `./gradlew testDebugUnitTest` | 126 Android unit tests (validators, `Savings`, `PickupWindow`, `PickupSlot`, payment safety, `HotelNavigation`, map rules, banners...) |
+| `npm run rules:test` | 158 security-rule checks in the Firebase emulator (needs **JDK 21+** on the PATH) |
 | `npm run web:check` | Every script and link in `web-panels/` parses and resolves |
 | `npm run web:test` | The shared order rules (revenue, pending, expiry, hotel status, daily earnings, popular items) |
 | `npm run functions:test` | The pickup-reminder decisions and the safe helpers (escaping, rate limit, quantity cap, error mapping) |
@@ -261,9 +263,10 @@ node scripts/migrate-hotel-licenses.js --apply    # moves the links
 
 ## 7. Known limitations
 
-- **Payment is reported by the app.** The rules only accept `paymentStatus: "paid"` together with a PayHere
-  payment number, but a determined customer could still invent one. Real proof is a PayHere `notify_url`
-  handled by a Cloud Function that checks PayHere's signature; do this before taking real payments.
+- **Payment proof.** The rules only accept `paymentStatus: "paid"` together with a PayHere payment number. The
+  real proof is the `payhereNotify` function (set `PAYHERE_MERCHANT_SECRET` in its environment, deploy it, and
+  put its address in `local.properties` as `PAYHERE_NOTIFY_URL`); it sets `paymentVerified` on the order. Until
+  then `paid` is still reported by the app.
 - The PayHere merchant secret is no longer compiled into the app (the SDK never used it). Keep it for the
   server-side verification only (Functions config).
 - Customers can read each hotel's phone, email and push token from `hotels` (the map needs the rest).

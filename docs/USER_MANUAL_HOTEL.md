@@ -59,7 +59,9 @@ Open **Add Food**.
 3. **Original price** and **Discounted price** in LKR. The discounted price must be lower. The discount
    percentage is worked out for you.
 4. **Quantity available**.
-5. **Pickup start** and **Pickup end**: the time window when customers can collect it.
+5. **Pickup start** and **Pickup end**: the time window when customers can collect it. Customers can only
+   choose a pickup time inside this window, and their QR code stops working shortly after it closes. After the
+   end time the dish is hidden for the rest of the day.
 6. Click **Publish Listing**.
 
 The dish appears in the app straight away and customers who follow deals get a notification. Only an

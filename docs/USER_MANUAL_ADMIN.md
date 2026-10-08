@@ -88,6 +88,23 @@ Live numbers for the whole platform:
 The revenue and orders tiles show the change against last week. If the data cannot be loaded a message appears instead of a
 blank chart.
 
+Use the **date range** box (Today, Last 7 days, Last 30 days, All time) to change every number and chart at once.
+There are also tiles for **cancelled orders**, **expired pickups** and the **average rating**, and a **Top hotels**
+table (orders, revenue, cancel rate, rating).
+
+## 7a. Reports
+
+The **Reports** page has three tabs, each with an **Export CSV** button (it opens in Excel):
+- **Hotel performance**: orders, completed, cancelled, cancel rate, revenue and rating for each hotel.
+- **Cancelled and expired**: every cancelled order (by the customer or by the hotel) and every pickup that ran out of time.
+- **Reviews**: what customers wrote about each hotel and dish. **Delete** removes an abusive review everywhere.
+
+## 7b. Listings
+
+The **Listings** page shows every dish with its hotel, price, quantity, pickup window and status.
+**Hide** takes a dish off the app (the hotel can see it was hidden), **Show** puts it back, **Delete** removes it.
+Transactions and Users also have an **Export CSV** button for the rows on screen.
+
 ## 8. Notifications
 
 The page has three tabs: **Live Activity**, **Send Notifications** and **Send History**.
