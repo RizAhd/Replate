@@ -201,6 +201,30 @@
         }
     });
 
+    // Explains why a Google or Facebook sign-in failed.
+    function socialErrorMessage(error, providerName) {
+        switch (error && error.code) {
+            case 'auth/unauthorized-domain':
+                return providerName + ' sign-in is not allowed on this address (' + window.location.hostname + '). Open the site as localhost, or add this domain in Firebase > Authentication > Settings > Authorized domains.';
+            case 'auth/operation-not-allowed':
+                return providerName + ' sign-in is not turned on. In Firebase > Authentication > Sign-in method, enable ' + providerName + '.';
+            case 'auth/popup-blocked':
+                return 'The browser blocked the ' + providerName + ' window. Allow pop-ups for this site and try again.';
+            case 'auth/account-exists-with-different-credential':
+                return 'An account with this email already exists. Sign in with your email and password instead.';
+            case 'auth/network-request-failed':
+                return 'No connection. Check your internet and try again.';
+            case 'auth/internal-error':
+            case 'auth/invalid-api-key':
+                return providerName + ' sign-in is not set up correctly in Firebase (' + error.code + ').';
+            default:
+                if (error && /permission/i.test(String(error.code || error.message))) {
+                    return 'This ' + providerName + ' account is not linked to a hotel. Register first or use your email and password.';
+                }
+                return providerName + ' sign-in failed (' + ((error && error.code) || 'unknown error') + '). Please try again.';
+        }
+    }
+
     // Signs in with a Google or Facebook popup.
     async function socialLogin(provider, btnId, providerName) {
         clearNotice();
@@ -210,8 +234,11 @@
             const result = await auth.signInWithPopup(provider);
             await enterIfApproved(result.user.uid, providerName);
         } catch (error) {
+            console.error(providerName + ' sign-in failed', error);
+            // Do not leave a half signed-in account behind
+            try { await auth.signOut(); } catch (e) { /* ignore */ }
             if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
-                ReplateUI.toast(providerName + ' sign-in failed. Please try again.', 'danger');
+                ReplateUI.toast(socialErrorMessage(error, providerName), 'danger', 9000);
             }
         } finally {
             btn.disabled = false;
