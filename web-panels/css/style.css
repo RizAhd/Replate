@@ -1825,9 +1825,9 @@ main.auth-card {
     background: var(--primary-50);
 }
 
-.listing-thumb { width: 50px; height: 50px; object-fit: cover; }
+.listing-thumb { width: 50px; height: 50px; object-fit: contain; background: var(--bg-subtle, #f3f4f6); }
 
-.preview-fill { height: 100%; width: 100%; object-fit: cover; }
+.preview-fill { height: 100%; width: 100%; object-fit: contain; }
 .tips-list { color: var(--text-secondary); font-size: 0.9rem; }
 #imagePreviewContainer { cursor: pointer; }
 
