@@ -40,7 +40,7 @@
                 <div class="row g-2 mb-2">
                     <div class="col-6 col-md-3">
                         <label for="statusFilter" class="form-label small mb-1">Status</label>
-                        <select id="statusFilter" class="form-select form-select-sm">
+                        <select id="statusFilter" name="statusFilter" class="form-select form-select-sm" autocomplete="off">
                             <option value="">All statuses</option>
                             <option value="open">Pending (not finished)</option>
                             <option value="completed">Completed / delivered</option>
@@ -49,17 +49,17 @@
                     </div>
                     <div class="col-6 col-md-3">
                         <label for="hotelFilter" class="form-label small mb-1">Hotel</label>
-                        <select id="hotelFilter" class="form-select form-select-sm">
+                        <select id="hotelFilter" name="hotelFilter" class="form-select form-select-sm" autocomplete="off">
                             <option value="">All hotels</option>
                         </select>
                     </div>
                     <div class="col-6 col-md-3">
                         <label for="fromDate" class="form-label small mb-1">From</label>
-                        <input type="date" id="fromDate" class="form-control form-control-sm">
+                        <input type="date" id="fromDate" name="fromDate" class="form-control form-control-sm" autocomplete="off">
                     </div>
                     <div class="col-6 col-md-3">
                         <label for="toDate" class="form-label small mb-1">To</label>
-                        <input type="date" id="toDate" class="form-control form-control-sm">
+                        <input type="date" id="toDate" name="toDate" class="form-control form-control-sm" autocomplete="off">
                     </div>
                 </div>
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
@@ -69,17 +69,18 @@
 
                 <div class="table-responsive">
                     <table id="transactionsTable" class="table table-striped align-middle table-stack" style="width:100%">
+                                <caption class="visually-hidden">Orders and payments</caption>
                         <thead>
                             <tr>
-                                <th>Order ID</th>
-                                <th>Date</th>
-                                <th>Customer</th>
-                                <th>Hotel</th>
-                                <th>Items</th>
-                                <th>Amount</th>
-                                <th>Payment</th>
-                                <th>Review</th>
-                                <th>Status</th>
+                                <th scope="col">Order ID</th>
+                                <th scope="col">Date</th>
+                                <th scope="col">Customer</th>
+                                <th scope="col">Hotel</th>
+                                <th scope="col">Items</th>
+                                <th scope="col">Amount</th>
+                                <th scope="col">Payment</th>
+                                <th scope="col">Review</th>
+                                <th scope="col">Status</th>
                             </tr>
                         </thead>
                         <tbody id="tableBody">

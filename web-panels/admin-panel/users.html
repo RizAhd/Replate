@@ -62,7 +62,7 @@
                 <div class="row g-2 mb-3">
                     <div class="col-sm-6 col-md-3">
                         <label for="roleFilter" class="form-label small mb-1">Role</label>
-                        <select id="roleFilter" class="form-select form-select-sm">
+                        <select id="roleFilter" name="roleFilter" class="form-select form-select-sm" autocomplete="off">
                             <option value="">All roles</option>
                             <option value="customer">Customers</option>
                             <option value="hotel">Hotels</option>
@@ -71,7 +71,7 @@
                     </div>
                     <div class="col-sm-6 col-md-3">
                         <label for="statusFilter" class="form-label small mb-1">Status</label>
-                        <select id="statusFilter" class="form-select form-select-sm">
+                        <select id="statusFilter" name="statusFilter" class="form-select form-select-sm" autocomplete="off">
                             <option value="">All statuses</option>
                             <option value="active">Active</option>
                             <option value="suspended">Suspended</option>
@@ -81,15 +81,16 @@
 
                 <div class="table-responsive">
                     <table id="usersTable" class="table table-striped align-middle table-stack" style="width:100%">
+                                <caption class="visually-hidden">Every user account</caption>
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Phone</th>
-                                <th>Role</th>
-                                <th>Joined</th>
-                                <th>Status</th>
-                                <th>Action</th>
+                                <th scope="col">Name</th>
+                                <th scope="col">Email</th>
+                                <th scope="col">Phone</th>
+                                <th scope="col">Role</th>
+                                <th scope="col">Joined</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Action</th>
                             </tr>
                         </thead>
                         <tbody id="tableBody">
@@ -268,7 +269,7 @@
         if (suspended) {
             const answer = await ReplateUI.askText(
                 `${name} will be signed out and cannot sign in again until you enable the account. A hotel's dishes are hidden from the app while it is suspended.`,
-                { title: 'Suspend this account?', placeholder: 'Reason (optional, only admins see it)', confirmText: 'Suspend', danger: true, multiline: true });
+                { title: 'Suspend this account?', label: 'Reason (optional, only admins see it)', placeholder: 'e.g. Spam reviews…', confirmText: 'Suspend', danger: true, multiline: true });
             if (answer === null) return;
             reason = answer;
         } else {

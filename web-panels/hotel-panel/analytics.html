@@ -63,13 +63,13 @@
                 <div class="col-lg-8">
                     <div class="card card-body chart-card">
                         <h2 class="section-title"><i class="fas fa-chart-area" aria-hidden="true"></i>Revenue (Last 7 Days)</h2>
-                        <div class="chart-wrap"><canvas id="revenueChart" role="img" aria-label="revenueChart chart"></canvas></div>
+                        <div class="chart-wrap"><canvas id="revenueChart" role="img" aria-label="Bar chart: revenue"></canvas></div>
                     </div>
                 </div>
                 <div class="col-lg-4">
                     <div class="card card-body chart-card">
                         <h2 class="section-title"><i class="fas fa-chart-pie" aria-hidden="true"></i>Order Status</h2>
-                        <div class="chart-wrap"><canvas id="statusChart" role="img" aria-label="statusChart chart"></canvas></div>
+                        <div class="chart-wrap"><canvas id="statusChart" role="img" aria-label="Doughnut chart: orders by status"></canvas></div>
                     </div>
                 </div>
             </div>
@@ -79,13 +79,13 @@
                 <div class="col-lg-6">
                     <div class="card card-body chart-card">
                         <h2 class="section-title"><i class="fas fa-chart-line" aria-hidden="true"></i>Orders per Day (Last 14 Days)</h2>
-                        <div class="chart-wrap"><canvas id="ordersLineChart" role="img" aria-label="ordersLineChart chart"></canvas></div>
+                        <div class="chart-wrap"><canvas id="ordersLineChart" role="img" aria-label="Line chart: orders per day for the last 14 days"></canvas></div>
                     </div>
                 </div>
                 <div class="col-lg-6">
                     <div class="card card-body chart-card">
                         <h2 class="section-title"><i class="fas fa-tags" aria-hidden="true"></i>Top Selling Items</h2>
-                        <div class="chart-wrap"><canvas id="topItemsChart" role="img" aria-label="topItemsChart chart"></canvas></div>
+                        <div class="chart-wrap"><canvas id="topItemsChart" role="img" aria-label="Bar chart: best-selling dishes"></canvas></div>
                     </div>
                 </div>
             </div>
@@ -93,19 +93,20 @@
             <!-- Recent Orders Table -->
             <div class="card">
                 <div class="card-header">
-                    <span><i class="fas fa-history me-2"></i>Recent Orders</span>
+                    <span><i class="fas fa-history me-2" aria-hidden="true"></i>Recent Orders</span>
                     <a href="orders.html" class="btn btn-sm btn-outline-primary">View All</a>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle recent-orders-table table-stack mb-0">
+                                <caption class="visually-hidden">Recent orders</caption>
                             <thead>
                                 <tr>
-                                    <th>Order ID</th>
-                                    <th>Customer</th>
-                                    <th>Amount</th>
-                                    <th>Status</th>
-                                    <th>Time</th>
+                                    <th scope="col">Order ID</th>
+                                    <th scope="col">Customer</th>
+                                    <th scope="col">Amount</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col">Time</th>
                                 </tr>
                             </thead>
                             <tbody id="recentOrdersBody">
@@ -189,10 +190,10 @@
         const el = document.getElementById(elId);
         if (!el) return;
         if (previous === 0 && current === 0) { el.textContent = ''; el.className = 'delta flat'; return; }
-        if (previous === 0) { el.innerHTML = '<i class="fas fa-arrow-up"></i> New'; el.className = 'delta up'; return; }
+        if (previous === 0) { el.innerHTML = '<i class="fas fa-arrow-up" aria-hidden="true"></i> New'; el.className = 'delta up'; return; }
         const pct = Math.round(((current - previous) / previous) * 100);
-        if (pct > 0) { el.innerHTML = `<i class="fas fa-arrow-up"></i> ${pct}%`; el.className = 'delta up'; }
-        else if (pct < 0) { el.innerHTML = `<i class="fas fa-arrow-down"></i> ${Math.abs(pct)}%`; el.className = 'delta down'; }
+        if (pct > 0) { el.innerHTML = `<i class="fas fa-arrow-up" aria-hidden="true"></i> ${pct}%`; el.className = 'delta up'; }
+        else if (pct < 0) { el.innerHTML = `<i class="fas fa-arrow-down" aria-hidden="true"></i> ${Math.abs(pct)}%`; el.className = 'delta down'; }
         else { el.innerHTML = '— flat'; el.className = 'delta flat'; }
     }
 

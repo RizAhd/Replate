@@ -197,7 +197,8 @@
     async function revokeHotel(key) {
         const reason = await ReplateUI.askText('The hotel is hidden from the app and cannot add listings or manage orders until you approve it again.', {
             title: 'Revoke this approval?',
-            placeholder: 'Reason (shown to the hotel)',
+            label: 'Reason (shown to the hotel)',
+            placeholder: 'e.g. Hygiene complaint under review…',
             confirmText: 'Revoke',
             danger: true,
             multiline: true
@@ -219,7 +220,8 @@
     async function rejectHotel(key) {
         const reason = await ReplateUI.askText('Tell the hotel why the registration was declined.', {
             title: 'Reject this hotel?',
-            placeholder: 'Reason (shown to the hotel)',
+            label: 'Reason (shown to the hotel)',
+            placeholder: 'e.g. The licence photo is unreadable…',
             confirmText: 'Reject',
             danger: true,
             multiline: true

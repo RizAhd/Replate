@@ -55,7 +55,7 @@
                 <div class="page-actions">
                     <div>
                         <label for="rangeFilter" class="form-label small mb-1">Date range</label>
-                        <select id="rangeFilter" class="form-select form-select-sm">
+                        <select id="rangeFilter" name="rangeFilter" class="form-select form-select-sm" autocomplete="off">
                             <option value="today">Today</option>
                             <option value="7d">Last 7 days</option>
                             <option value="30d">Last 30 days</option>
@@ -123,13 +123,13 @@
                 <div class="col-lg-8">
                     <div class="card card-body chart-card">
                         <h2 class="section-title"><i class="fas fa-chart-area" aria-hidden="true"></i>Platform Growth (Orders per Week)</h2>
-                        <div class="chart-wrap"><canvas id="growthChart" role="img" aria-label="growthChart chart"></canvas></div>
+                        <div class="chart-wrap"><canvas id="growthChart" role="img" aria-label="Line chart: orders per week"></canvas></div>
                     </div>
                 </div>
                 <div class="col-lg-4">
                     <div class="card card-body chart-card">
                         <h2 class="section-title"><i class="fas fa-chart-pie" aria-hidden="true"></i>Order Status</h2>
-                        <div class="chart-wrap"><canvas id="statusChart" role="img" aria-label="statusChart chart"></canvas></div>
+                        <div class="chart-wrap"><canvas id="statusChart" role="img" aria-label="Doughnut chart: orders by status"></canvas></div>
                     </div>
                 </div>
             </div>
@@ -139,13 +139,13 @@
                 <div class="col-lg-6">
                     <div class="card card-body chart-card">
                         <h2 class="section-title"><i class="fas fa-chart-bar" aria-hidden="true"></i>Revenue Trend (Weekly)</h2>
-                        <div class="chart-wrap"><canvas id="revenueChart" role="img" aria-label="revenueChart chart"></canvas></div>
+                        <div class="chart-wrap"><canvas id="revenueChart" role="img" aria-label="Bar chart: revenue"></canvas></div>
                     </div>
                 </div>
                 <div class="col-lg-6">
                     <div class="card card-body chart-card">
                         <h2 class="section-title"><i class="fas fa-tags" aria-hidden="true"></i>Revenue by Category</h2>
-                        <div class="chart-wrap"><canvas id="categoryChart" role="img" aria-label="categoryChart chart"></canvas></div>
+                        <div class="chart-wrap"><canvas id="categoryChart" role="img" aria-label="Doughnut chart: revenue by food category"></canvas></div>
                     </div>
                 </div>
             </div>
@@ -163,7 +163,7 @@
                 <div class="col-lg-5">
                     <div class="card card-body chart-card">
                         <h2 class="section-title"><i class="fas fa-credit-card" aria-hidden="true"></i>Payment Methods</h2>
-                        <div class="chart-wrap"><canvas id="paymentChart" role="img" aria-label="paymentChart chart"></canvas></div>
+                        <div class="chart-wrap"><canvas id="paymentChart" role="img" aria-label="Doughnut chart: cash and online payments"></canvas></div>
                     </div>
                 </div>
             </div>
@@ -173,8 +173,9 @@
                 <h2 class="section-title"><i class="fas fa-ranking-star" aria-hidden="true"></i>Top hotels</h2>
                 <div class="table-responsive">
                     <table class="table align-middle table-stack mb-0">
+                                <caption class="visually-hidden">Top hotels by revenue</caption>
                         <thead>
-                            <tr><th>Hotel</th><th>Orders</th><th>Revenue</th><th>Cancel rate</th><th>Rating</th></tr>
+                            <tr><th scope="col">Hotel</th><th scope="col">Orders</th><th scope="col">Revenue</th><th scope="col">Cancel rate</th><th scope="col">Rating</th></tr>
                         </thead>
                         <tbody id="topHotelsTable"></tbody>
                     </table>
@@ -242,10 +243,10 @@
         const el = document.getElementById(elId);
         if (!el) return;
         if (previous === 0 && current === 0) { el.textContent = ''; el.className = 'delta flat'; return; }
-        if (previous === 0) { el.innerHTML = '<i class="fas fa-arrow-up"></i> New'; el.className = 'delta up'; return; }
+        if (previous === 0) { el.innerHTML = '<i class="fas fa-arrow-up" aria-hidden="true"></i> New'; el.className = 'delta up'; return; }
         const pct = Math.round(((current - previous) / previous) * 100);
-        if (pct > 0) { el.innerHTML = `<i class="fas fa-arrow-up"></i> ${pct}%`; el.className = 'delta up'; }
-        else if (pct < 0) { el.innerHTML = `<i class="fas fa-arrow-down"></i> ${Math.abs(pct)}%`; el.className = 'delta down'; }
+        if (pct > 0) { el.innerHTML = `<i class="fas fa-arrow-up" aria-hidden="true"></i> ${pct}%`; el.className = 'delta up'; }
+        else if (pct < 0) { el.innerHTML = `<i class="fas fa-arrow-down" aria-hidden="true"></i> ${Math.abs(pct)}%`; el.className = 'delta down'; }
         else { el.innerHTML = '— flat'; el.className = 'delta flat'; }
     }
 

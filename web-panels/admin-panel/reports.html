@@ -39,7 +39,7 @@
                 </div>
                 <div>
                     <label for="rangeFilter" class="form-label small mb-1">Date range</label>
-                    <select id="rangeFilter" class="form-select form-select-sm">
+                    <select id="rangeFilter" name="rangeFilter" class="form-select form-select-sm" autocomplete="off">
                         <option value="today">Today</option>
                         <option value="7d">Last 7 days</option>
                         <option value="30d">Last 30 days</option>
@@ -71,7 +71,7 @@
                         <div class="table-responsive">
                             <table class="table table-striped align-middle table-stack">
                                 <thead>
-                                    <tr><th>Hotel</th><th>Orders</th><th>Completed</th><th>Cancelled</th><th>Cancel rate</th><th>Revenue</th><th>Rating</th></tr>
+                                    <tr><th scope="col">Hotel</th><th scope="col">Orders</th><th scope="col">Completed</th><th scope="col">Cancelled</th><th scope="col">Cancel rate</th><th scope="col">Revenue</th><th scope="col">Rating</th></tr>
                                 </thead>
                                 <tbody id="hotelsBody"></tbody>
                             </table>
@@ -89,7 +89,7 @@
                         <div class="table-responsive">
                             <table class="table table-striped align-middle table-stack">
                                 <thead>
-                                    <tr><th>Order ID</th><th>Placed</th><th>Customer</th><th>Hotel</th><th>Items</th><th>Amount</th><th>Payment</th><th>What happened</th></tr>
+                                    <tr><th scope="col">Order ID</th><th scope="col">Placed</th><th scope="col">Customer</th><th scope="col">Hotel</th><th scope="col">Items</th><th scope="col">Amount</th><th scope="col">Payment</th><th scope="col">What happened</th></tr>
                                 </thead>
                                 <tbody id="cancelledBody"></tbody>
                             </table>
@@ -107,7 +107,7 @@
                         <div class="table-responsive">
                             <table class="table table-striped align-middle table-stack">
                                 <thead>
-                                    <tr><th>Hotel</th><th>Dish</th><th>Rating</th><th>Comment</th><th>Customer</th><th>Date</th><th>Action</th></tr>
+                                    <tr><th scope="col">Hotel</th><th scope="col">Dish</th><th scope="col">Rating</th><th scope="col">Comment</th><th scope="col">Customer</th><th scope="col">Date</th><th scope="col">Action</th></tr>
                                 </thead>
                                 <tbody id="reviewsBody"></tbody>
                             </table>

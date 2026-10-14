@@ -119,18 +119,18 @@
             <ul class="nav nav-pills mb-4" id="notifTabs" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="tab-activity" data-bs-toggle="pill" data-bs-target="#pane-activity" type="button" role="tab">
-                        <i class="fas fa-stream me-1"></i> Live Activity
+                        <i class="fas fa-stream me-1" aria-hidden="true"></i> Live Activity
                         <span class="badge bg-danger ms-1" id="activityBadge" style="display:none;">0</span>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="tab-send" data-bs-toggle="pill" data-bs-target="#pane-send" type="button" role="tab">
-                        <i class="fas fa-paper-plane me-1"></i> Send Notifications
+                        <i class="fas fa-paper-plane me-1" aria-hidden="true"></i> Send Notifications
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="tab-history" data-bs-toggle="pill" data-bs-target="#pane-history" type="button" role="tab">
-                        <i class="fas fa-history me-1"></i> Send History
+                        <i class="fas fa-history me-1" aria-hidden="true"></i> Send History
                     </button>
                 </li>
             </ul>
@@ -141,13 +141,13 @@
                 <div class="tab-pane fade show active" id="pane-activity" role="tabpanel">
                     <div class="card">
                         <div class="card-header">
-                            <span><i class="fas fa-stream me-2"></i>Real-Time Platform Events</span>
+                            <span><i class="fas fa-stream me-2" aria-hidden="true"></i>Real-Time Platform Events</span>
                             <button class="btn btn-sm btn-outline-primary" onclick="clearActivityFeed()">Clear</button>
                         </div>
                         <div class="card-body p-0">
                             <div id="activityFeed" style="max-height:520px;overflow-y:auto;">
                                 <div class="text-center py-5" style="color:var(--text-tertiary);">
-                                    <i class="fas fa-satellite-dish fa-2x mb-2 d-block" style="opacity:0.3;"></i>
+                                    <i class="fas fa-satellite-dish fa-2x mb-2 d-block" aria-hidden="true" style="opacity:0.3;"></i>
                                     Listening for events...
                                 </div>
                             </div>
@@ -161,10 +161,10 @@
                         <div class="col-lg-6">
                             <div class="card card-body h-100">
                                 <h2 class="section-title"><i class="fas fa-bullhorn" aria-hidden="true"></i>Broadcast Notification</h2>
-                                <form id="broadcastForm">
+                                <form id="broadcastForm" novalidate>
                                     <div class="mb-3">
                                         <label class="form-label" for="broadcastTarget">Audience</label>
-                                        <select id="broadcastTarget" class="form-select">
+                                        <select id="broadcastTarget" name="broadcastTarget" class="form-select" autocomplete="off">
                                             <option value="all_users">All Users</option>
                                             <option value="customers">Customers</option>
                                             <option value="hotels">Hotels</option>
@@ -174,24 +174,24 @@
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label" for="broadcastTitle">Title</label>
-                                        <input id="broadcastTitle" type="text" class="form-control" required>
+                                        <input id="broadcastTitle" name="broadcastTitle" type="text" class="form-control" required autocomplete="off">
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label" for="broadcastBody">Message</label>
-                                        <textarea id="broadcastBody" rows="3" class="form-control" required></textarea>
+                                        <textarea id="broadcastBody" name="broadcastBody" rows="3" class="form-control" required autocomplete="off"></textarea>
                                     </div>
                                     <div class="row g-2">
                                         <div class="col-md-6">
                                             <label class="form-label" for="broadcastType">Type</label>
-                                            <input id="broadcastType" type="text" class="form-control" value="announcement">
+                                            <input id="broadcastType" name="broadcastType" type="text" class="form-control" value="announcement" autocomplete="off">
                                         </div>
                                         <div class="col-md-6">
                                             <label class="form-label" for="broadcastRoute">Route</label>
-                                            <input id="broadcastRoute" type="text" class="form-control" value="notifications">
+                                            <input id="broadcastRoute" name="broadcastRoute" type="text" class="form-control" value="notifications" autocomplete="off">
                                         </div>
                                     </div>
                                     <button id="btnBroadcastSend" class="btn btn-primary mt-3 w-100" type="submit">
-                                        <i class="fas fa-bullhorn me-2"></i>Send Broadcast
+                                        <i class="fas fa-bullhorn me-2" aria-hidden="true"></i>Send Broadcast
                                     </button>
                                 </form>
                             </div>
@@ -200,25 +200,25 @@
                         <div class="col-lg-6">
                             <div class="card card-body h-100">
                                 <h2 class="section-title"><i class="fas fa-paper-plane" aria-hidden="true"></i>Targeted Notification</h2>
-                                <form id="targetedForm">
+                                <form id="targetedForm" novalidate>
                                     <div class="mb-3">
                                         <label class="form-label" for="targetUserIds">User IDs (comma separated)</label>
-                                        <textarea id="targetUserIds" rows="2" class="form-control" placeholder="uid1, uid2" required></textarea>
+                                        <textarea id="targetUserIds" spellcheck="false" name="targetUserIds" rows="2" class="form-control" placeholder="uid1, uid2" required autocomplete="off"></textarea>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label" for="targetOrderId">Order ID (optional)</label>
-                                        <input id="targetOrderId" type="text" class="form-control" placeholder="-Nx123abc">
+                                        <input id="targetOrderId" spellcheck="false" name="targetOrderId" type="text" class="form-control" placeholder="-Nx123abc" autocomplete="off">
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label" for="targetTitle">Title</label>
-                                        <input id="targetTitle" type="text" class="form-control" required>
+                                        <input id="targetTitle" name="targetTitle" type="text" class="form-control" required autocomplete="off">
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label" for="targetBody">Message</label>
-                                        <textarea id="targetBody" rows="3" class="form-control" required></textarea>
+                                        <textarea id="targetBody" name="targetBody" rows="3" class="form-control" required autocomplete="off"></textarea>
                                     </div>
                                     <button id="btnTargetSend" class="btn btn-success w-100" type="submit">
-                                        <i class="fas fa-paper-plane me-2"></i>Send Targeted
+                                        <i class="fas fa-paper-plane me-2" aria-hidden="true"></i>Send Targeted
                                     </button>
                                 </form>
                             </div>
@@ -227,22 +227,22 @@
 
                     <div class="card card-body">
                         <h2 class="section-title"><i class="fas fa-fire" aria-hidden="true"></i>Deal Campaign</h2>
-                        <form id="dealForm" class="row g-3">
+                        <form id="dealForm" novalidate class="row g-3">
                             <div class="col-md-4">
                                 <label class="form-label" for="dealHotelName">Hotel Name</label>
-                                <input id="dealHotelName" type="text" class="form-control" placeholder="Grand Hotel">
+                                <input id="dealHotelName" name="dealHotelName" type="text" class="form-control" placeholder="Grand Hotel" autocomplete="off">
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label" for="dealFoodName">Food Name</label>
-                                <input id="dealFoodName" type="text" class="form-control" placeholder="Chicken Fried Rice">
+                                <input id="dealFoodName" name="dealFoodName" type="text" class="form-control" placeholder="Chicken Fried Rice" autocomplete="off">
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label" for="dealDiscount">Discount %</label>
-                                <input id="dealDiscount" type="number" min="1" max="95" class="form-control" placeholder="50">
+                                <input id="dealDiscount" name="dealDiscount" type="number" min="1" max="95" class="form-control" placeholder="50" autocomplete="off">
                             </div>
                             <div class="col-12">
                                 <button id="btnDealSend" class="btn btn-warning" type="submit">
-                                    <i class="fas fa-fire me-2"></i>Send Deal Notification
+                                    <i class="fas fa-fire me-2" aria-hidden="true"></i>Send Deal Notification
                                 </button>
                             </div>
                         </form>
@@ -253,19 +253,20 @@
                 <div class="tab-pane fade" id="pane-history" role="tabpanel">
                     <div class="card">
                         <div class="card-header">
-                            <span><i class="fas fa-history me-2"></i>Notification Delivery Log</span>
+                            <span><i class="fas fa-history me-2" aria-hidden="true"></i>Notification Delivery Log</span>
                             <span id="historyCount" style="font-weight:500;font-size:0.85rem;color:var(--text-secondary);">Loading...</span>
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
                                 <table class="table table-hover align-middle table-stack">
+                                <caption class="visually-hidden">Notifications sent, newest first</caption>
                                     <thead>
                                         <tr>
-                                            <th>Time</th>
-                                            <th>Type</th>
-                                            <th>Title</th>
-                                            <th>Target</th>
-                                            <th>Result</th>
+                                            <th scope="col">Time</th>
+                                            <th scope="col">Type</th>
+                                            <th scope="col">Title</th>
+                                            <th scope="col">Target</th>
+                                            <th scope="col">Result</th>
                                         </tr>
                                     </thead>
                                     <tbody id="historyTable">
@@ -349,7 +350,7 @@
         const div = document.createElement('div');
         div.className = 'activity-item';
         div.innerHTML = `
-            <div class="activity-icon ${iconClass}"><i class="fas ${getIconForClass(iconClass)}"></i></div>
+            <div class="activity-icon ${iconClass}"><i class="fas ${getIconForClass(iconClass)}" aria-hidden="true"></i></div>
             <div class="activity-body">
                 <strong>${escapeHtml(title)}</strong>
                 <p>${escapeHtml(description)}</p>
@@ -394,7 +395,7 @@
     // Empties the live feed.
     window.clearActivityFeed = function() {
         const feed = document.getElementById('activityFeed');
-        if (feed) feed.innerHTML = '<div class="text-center py-5" style="color:var(--text-tertiary);"><i class="fas fa-satellite-dish fa-2x mb-2 d-block" style="opacity:0.3;"></i>Listening for events...</div>';
+        if (feed) feed.innerHTML = '<div class="text-center py-5" style="color:var(--text-tertiary);"><i class="fas fa-satellite-dish fa-2x mb-2 d-block" aria-hidden="true" style="opacity:0.3;"></i>Listening for events...</div>';
         activityCount = 0;
         const badge = document.getElementById('activityBadge');
         if (badge) badge.style.display = 'none';
@@ -752,6 +753,9 @@
     // ── Send Form Handlers ─────────────────────────────────
     document.getElementById('broadcastForm').addEventListener('submit', async (e) => {
         e.preventDefault();
+        ReplateUI.clearFieldErrors('broadcastForm');
+        if (!document.getElementById('broadcastTitle').value.trim()) { ReplateUI.fieldProblem('broadcastTitle', 'Enter a title.'); return; }
+        if (!document.getElementById('broadcastBody').value.trim()) { ReplateUI.fieldProblem('broadcastBody', 'Enter the message.'); return; }
         const targetLabel = document.getElementById('broadcastTarget').selectedOptions[0].textContent.trim();
         const confirmed = await ReplateUI.confirmAction(
             'This notification goes to: ' + targetLabel + '. It cannot be recalled once sent.',
@@ -799,6 +803,10 @@
     // Sends a notification to chosen users.
     document.getElementById('targetedForm').addEventListener('submit', async (e) => {
         e.preventDefault();
+        ReplateUI.clearFieldErrors('targetedForm');
+        if (!document.getElementById('targetUserIds').value.split(',').some((v) => v.trim())) { ReplateUI.fieldProblem('targetUserIds', 'Enter at least one user ID.'); return; }
+        if (!document.getElementById('targetTitle').value.trim()) { ReplateUI.fieldProblem('targetTitle', 'Enter a title.'); return; }
+        if (!document.getElementById('targetBody').value.trim()) { ReplateUI.fieldProblem('targetBody', 'Enter the message.'); return; }
         ReplateUI.setButtonLoading('btnTargetSend', true, 'Sending...');
         try {
             const userIds = document.getElementById('targetUserIds').value
@@ -862,6 +870,9 @@
     // Sends a deal notification to customers.
     document.getElementById('dealForm').addEventListener('submit', async (e) => {
         e.preventDefault();
+        ReplateUI.clearFieldErrors('dealForm');
+        const discountValue = document.getElementById('dealDiscount').value.trim();
+        if (discountValue && !(Number(discountValue) >= 1 && Number(discountValue) <= 95)) { ReplateUI.fieldProblem('dealDiscount', 'The discount must be between 1 and 95.'); return; }
         ReplateUI.setButtonLoading('btnDealSend', true, 'Sending deal...');
         try {
             const hotelName = document.getElementById('dealHotelName').value.trim() || 'Nearby Hotel';

@@ -60,7 +60,7 @@ const ReplateUI = (() => {
         close.type = 'button';
         close.className = 'toast-close';
         close.setAttribute('aria-label', 'Dismiss');
-        close.textContent = '×';
+        close.innerHTML = '<span aria-hidden="true">×</span>';
         el.append(icon, text, close);
         toastRegion().appendChild(el);
 
@@ -118,13 +118,20 @@ const ReplateUI = (() => {
             body.textContent = message || '';
 
             let field = null;
+            let fieldLabel = null;
             if (input) {
                 field = document.createElement(input.multiline ? 'textarea' : 'input');
                 field.className = 'form-control rp-dialog-input';
+                field.id = 'rpDialogInput';
+                field.name = 'rpDialogInput';
+                field.autocomplete = 'off';
                 if (!input.multiline) field.type = 'text';
                 field.placeholder = input.placeholder || '';
-                field.setAttribute('aria-label', input.label || title || 'Value');
                 if (input.multiline) field.rows = 3;
+                fieldLabel = document.createElement('label');
+                fieldLabel.className = 'form-label';
+                fieldLabel.htmlFor = field.id;
+                fieldLabel.textContent = input.label || title || 'Value';
             }
 
             const actions = document.createElement('div');
@@ -140,7 +147,7 @@ const ReplateUI = (() => {
             actions.append(cancel, ok);
 
             box.append(heading, body);
-            if (field) box.append(field);
+            if (field) box.append(fieldLabel, field);
             box.append(actions);
             overlay.appendChild(box);
             document.body.appendChild(overlay);
@@ -182,7 +189,8 @@ const ReplateUI = (() => {
 
     /** askText('Reason for rejection', {placeholder}) -> Promise<string|null> (null = cancelled) */
     function askText(message, opts = {}) {
-        return openDialog({ message, input: { placeholder: opts.placeholder, label: opts.label, multiline: !!opts.multiline }, ...opts });
+        const { label, placeholder, multiline, ...rest } = opts;
+        return openDialog({ message, input: { placeholder, label, multiline: !!multiline }, ...rest });
     }
 
     // ── Role guard ──────────────────────────────────────────────────────────
@@ -309,17 +317,29 @@ const ReplateUI = (() => {
         overlay.className = 'sidebar-overlay';
         document.body.appendChild(overlay);
 
+        // On narrow screens the sidebar is a drawer: while it is closed it must not take keyboard focus
+        const drawerQuery = window.matchMedia('(max-width: 991.98px)');
+        const syncDrawer = () => {
+            const hidden = drawerQuery.matches && !container.classList.contains('show');
+            container.inert = hidden;
+            if (hidden) container.setAttribute('aria-hidden', 'true');
+            else container.removeAttribute('aria-hidden');
+        };
+
         const setOpen = (open) => {
             container.classList.toggle('show', open);
             overlay.classList.toggle('show', open);
             toggle.setAttribute('aria-expanded', String(open));
             toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
             document.body.style.overflow = open ? 'hidden' : '';
+            syncDrawer();
             if (open) {
                 const first = container.querySelector('.nav-link');
                 if (first) first.focus();
             }
         };
+        syncDrawer();
+        if (drawerQuery.addEventListener) drawerQuery.addEventListener('change', syncDrawer);
 
         toggle.addEventListener('click', () => setOpen(!container.classList.contains('show')));
         overlay.addEventListener('click', () => { setOpen(false); toggle.focus(); });
@@ -426,6 +446,77 @@ const ReplateUI = (() => {
         }
     }
 
+    // ── Inline field errors ─────────────────────────────────────────────────
+    const byId = (target) => (typeof target === 'string' ? document.getElementById(target) : target);
+
+    // Where the message goes: under the input group, inside a checkbox row, or right after the field
+    function feedbackAnchor(el) {
+        if (el.type === 'checkbox' && el.closest('.form-check')) return el.closest('.form-check').lastElementChild;
+        return el.closest('.input-with-icon') || el;
+    }
+
+    /** Mark one field invalid and show the message under it. Returns the field. */
+    function setFieldError(target, message) {
+        const el = byId(target);
+        if (!el) return null;
+        el.classList.add('is-invalid');
+        el.setAttribute('aria-invalid', 'true');
+        const id = (el.id || 'field') + 'Error';
+        let note = document.getElementById(id);
+        if (!note) {
+            note = document.createElement('div');
+            note.id = id;
+            note.className = 'invalid-feedback d-block';
+            feedbackAnchor(el).insertAdjacentElement('afterend', note);
+        }
+        note.textContent = message;
+        const described = (el.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean);
+        if (!described.includes(id)) described.push(id);
+        el.setAttribute('aria-describedby', described.join(' '));
+        return el;
+    }
+
+    /** Remove the error from one field. */
+    function clearFieldError(target) {
+        const el = byId(target);
+        if (!el || !el.classList.contains('is-invalid')) return;
+        el.classList.remove('is-invalid');
+        el.removeAttribute('aria-invalid');
+        const id = (el.id || 'field') + 'Error';
+        const note = document.getElementById(id);
+        if (note) note.remove();
+        const described = (el.getAttribute('aria-describedby') || '').split(/\s+/).filter((x) => x && x !== id);
+        if (described.length) el.setAttribute('aria-describedby', described.join(' '));
+        else el.removeAttribute('aria-describedby');
+    }
+
+    /** Remove every field error inside a form (or the whole page). */
+    function clearFieldErrors(scope) {
+        (byId(scope) || document).querySelectorAll('.is-invalid').forEach(clearFieldError);
+    }
+
+    /**
+     * A form problem: the message goes under the field, the field scrolls into view and takes focus,
+     * and a toast repeats it as a short summary.
+     * opts.focus: a different element to focus and scroll to; opts.toast: false to skip the toast.
+     */
+    function fieldProblem(target, message, opts = {}) {
+        const el = setFieldError(target, message);
+        if (opts.toast !== false) toast(message, 'warning');
+        const focusEl = byId(opts.focus) || el;
+        if (focusEl) {
+            const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            focusEl.scrollIntoView({ block: 'center', behavior: smooth ? 'smooth' : 'auto' });
+            if (focusEl.focus) focusEl.focus({ preventScroll: true });
+        }
+        return el;
+    }
+
+    // Typing in a field (or picking a value) clears its error
+    ['input', 'change'].forEach((type) => document.addEventListener(type, (e) => {
+        if (e.target && e.target.classList && e.target.classList.contains('is-invalid')) clearFieldError(e.target);
+    }, true));
+
     // ── File download ───────────────────────────────────────────────────────
     /** Save CSV text as a file (UTF-8 with a BOM so Excel shows accents and currency correctly). */
     function downloadCsv(filename, csvText) {
@@ -479,6 +570,10 @@ const ReplateUI = (() => {
         renderSidebar,
         attachPasswordToggle,
         setButtonLoading,
+        setFieldError,
+        clearFieldError,
+        clearFieldErrors,
+        fieldProblem,
         downloadCsv,
         skeleton,
         emptyState,

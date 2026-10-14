@@ -37,18 +37,18 @@
                 <div class="col-lg-4">
                     <div class="card card-body">
                         <h2 class="section-title"><i class="fas fa-plus-circle" aria-hidden="true"></i>Add New Category</h2>
-                        <form id="addCategoryForm">
+                        <form id="addCategoryForm" novalidate>
                             <div class="mb-3">
                                 <label class="form-label" for="catName">Category Name</label>
-                                <input type="text" class="form-control" id="catName" placeholder="e.g. Rice &amp; Curry" maxlength="40" required>
+                                <input type="text" class="form-control" id="catName" name="catName" placeholder="e.g. Rice &amp; Curry" maxlength="40" required autocomplete="off">
                             </div>
                             <div class="mb-4">
                                 <label class="form-label" for="catOrder">Display Order</label>
-                                <input type="number" class="form-control" id="catOrder" value="1" min="0" required>
+                                <input type="number" class="form-control" id="catOrder" name="catOrder" value="1" min="0" required autocomplete="off">
                                 <div class="form-text">Use the arrows in the list to move a category later.</div>
                             </div>
                             <button type="submit" class="btn btn-primary w-100">
-                                <i class="fas fa-plus me-2"></i>Add Category
+                                <i class="fas fa-plus me-2" aria-hidden="true"></i>Add Category
                             </button>
                         </form>
                     </div>
@@ -58,12 +58,13 @@
                     <div class="card card-body">
                         <div class="table-responsive">
                             <table class="table table-hover align-middle table-stack">
+                                <caption class="visually-hidden">Food categories in display order</caption>
                                 <thead>
                                     <tr>
-                                        <th>Order</th>
-                                        <th>Name</th>
-                                        <th>Dishes</th>
-                                        <th>Actions</th>
+                                        <th scope="col">Order</th>
+                                        <th scope="col">Name</th>
+                                        <th scope="col">Dishes</th>
+                                        <th scope="col">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="categoryTable">
@@ -160,13 +161,13 @@
                     <td data-label="Name">${name}</td>
                     <td data-label="Dishes">${used}</td>
                     <td data-label="Actions" class="actions-cell">
-                        <button class="btn btn-sm btn-outline-secondary" data-action="up" data-key="${esc(cat.key)}" aria-label="Move ${name} up" ${i === 0 ? 'disabled' : ''}>
+                        <button type="button" class="btn btn-sm btn-icon btn-outline-secondary" data-action="up" data-key="${esc(cat.key)}" aria-label="Move ${name} up" ${i === 0 ? 'disabled' : ''}>
                             <i class="fas fa-arrow-up" aria-hidden="true"></i></button>
-                        <button class="btn btn-sm btn-outline-secondary" data-action="down" data-key="${esc(cat.key)}" aria-label="Move ${name} down" ${i === categories.length - 1 ? 'disabled' : ''}>
+                        <button type="button" class="btn btn-sm btn-icon btn-outline-secondary" data-action="down" data-key="${esc(cat.key)}" aria-label="Move ${name} down" ${i === categories.length - 1 ? 'disabled' : ''}>
                             <i class="fas fa-arrow-down" aria-hidden="true"></i></button>
-                        <button class="btn btn-sm btn-outline-primary" data-action="rename" data-key="${esc(cat.key)}" aria-label="Rename ${name}">
+                        <button type="button" class="btn btn-sm btn-icon btn-outline-secondary" data-action="rename" data-key="${esc(cat.key)}" aria-label="Rename ${name}">
                             <i class="fas fa-pen" aria-hidden="true"></i></button>
-                        <button class="btn btn-sm btn-danger" data-action="delete" data-key="${esc(cat.key)}" aria-label="Delete category ${name}">
+                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger" data-action="delete" data-key="${esc(cat.key)}" aria-label="Delete category ${name}">
                             <i class="fas fa-trash" aria-hidden="true"></i></button>
                     </td>
                 </tr>`;
@@ -188,13 +189,14 @@
         const name = document.getElementById('catName').value.trim();
         const order = parseInt(document.getElementById('catOrder').value, 10);
 
+        ReplateUI.clearFieldErrors('addCategoryForm');
         const problem = validateName(name, null);
         if (problem) {
-            ReplateUI.toast(problem, 'warning');
+            ReplateUI.fieldProblem('catName', problem);
             return;
         }
         if (!Number.isFinite(order) || order < 0) {
-            ReplateUI.toast('Display order must be a number, 0 or higher.', 'warning');
+            ReplateUI.fieldProblem('catOrder', 'Display order must be a number, 0 or higher.');
             return;
         }
 
@@ -231,7 +233,7 @@
         if (!cat) return;
         const answer = await ReplateUI.askText(
             `Dishes listed under "${cat.name}" move to the new name, so customers keep finding them.`,
-            { title: 'Rename category', placeholder: cat.name, confirmText: 'Rename' });
+            { title: 'Rename category', label: 'New name', placeholder: cat.name, confirmText: 'Rename' });
         if (answer === null) return;
         const name = answer.trim();
         if (sameName(name, cat.name) && name === cat.name) return;

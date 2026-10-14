@@ -134,12 +134,16 @@
     --bs-link-hover-color: #14522e;
     --bs-link-hover-color-rgb: 20, 82, 46;
     --bs-focus-ring-color: rgba(26, 107, 60, 0.35);
+    --bs-form-invalid-color: #b91c1c;
+    --bs-form-invalid-border-color: #b91c1c;
 }
 
 @media (max-width: 767.98px) {
     :root {
         --gutter: var(--space-4);
         --card-pad: var(--space-4);
+        --control-h: var(--touch);
+        --control-h-sm: var(--touch);
     }
 }
 
@@ -657,6 +661,17 @@ form,
     border-radius: var(--radius-sm);
 }
 
+/* Icon-only buttons are square (44 x 44 on phones) */
+.btn-icon {
+    width: var(--control-h);
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.btn-icon.btn-sm {
+    width: var(--control-h-sm);
+}
+
 .btn-primary,
 .btn-success {
     background: var(--primary);
@@ -816,6 +831,57 @@ form,
     border-radius: var(--radius-sm);
 }
 
+.form-control.is-invalid,
+.form-select.is-invalid,
+#imagePreviewContainer.is-invalid {
+    border-color: var(--danger);
+}
+
+.form-control.is-invalid {
+    background-image: none;
+    padding-right: var(--space-3);
+}
+
+.invalid-feedback {
+    font-size: var(--fs-12);
+    font-weight: var(--fw-medium);
+    color: var(--danger);
+    margin-top: var(--space-1);
+}
+
+.form-check-input:checked {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.form-check-input:focus {
+    border-color: var(--primary);
+    box-shadow: none;
+}
+
+/* Switches: bigger thumb target, label beside it */
+.form-switch {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--control-h);
+    padding-left: 0;
+    margin: 0;
+}
+
+.form-switch .form-check-input {
+    float: none;
+    margin: 0;
+    width: 44px;
+    height: 24px;
+    cursor: pointer;
+    border-color: var(--border-strong);
+}
+
+.form-switch .form-check-input:focus:not(:checked) {
+    --bs-form-switch-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23868e99'/%3e%3c/svg%3e");
+}
+
 .input-with-icon {
     position: relative;
 }
@@ -826,14 +892,13 @@ form,
 
 .password-toggle {
     position: absolute;
-    right: 2px;
-    top: 50%;
-    transform: translateY(-50%);
+    right: 1px;
+    top: 1px;
+    bottom: 1px;
     border: 0;
     background: transparent;
     color: var(--text-secondary);
-    width: 40px;
-    height: 36px;
+    width: var(--touch);
     border-radius: var(--radius-sm);
     cursor: pointer;
     display: flex;
@@ -1143,6 +1208,10 @@ form,
 }
 
 .auth-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch);
+    padding: 0 var(--space-1);
     color: var(--primary);
     font-weight: var(--fw-semibold);
     font-size: var(--fs-14);
@@ -1334,11 +1403,15 @@ main.auth-card > * {
         max-width: min(86vw, 320px) !important;
         flex: 0 0 min(86vw, 320px) !important;
         transform: translateX(-100%);
+        visibility: hidden;
+        transition: transform 0.25s var(--ease), visibility 0s linear 0.25s;
     }
 
     .sidebar.show {
         transform: translateX(0);
+        visibility: visible;
         box-shadow: var(--shadow-float);
+        transition: transform 0.25s var(--ease), visibility 0s;
     }
 
     .sidebar-toggle {
@@ -1554,6 +1627,19 @@ main.auth-card > * {
         text-align: left;
     }
 
+    .nav-tabs .nav-link,
+    .nav-pills .nav-link {
+        min-height: var(--touch);
+    }
+
+    .page-link {
+        min-width: var(--touch);
+        min-height: var(--touch);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
     .otp-digits {
         letter-spacing: 8px;
         font-size: var(--fs-24);
@@ -1680,10 +1766,24 @@ main.auth-card > * {
    ============================================================ */
 
 /* ── Keyboard focus ──────────────────────────────────────── */
-:focus-visible {
-    outline: 3px solid rgba(26, 107, 60, 0.45);
+/* One strong focus ring in the brand colour (6.5:1 on white), outside the element */
+:focus-visible,
+.btn:focus-visible,
+.nav-link:focus-visible,
+.form-control:focus-visible,
+.form-select:focus-visible,
+.form-check-input:focus-visible,
+.page-link:focus-visible,
+.btn-close:focus-visible {
+    outline: 2px solid var(--primary);
     outline-offset: 2px;
-    border-radius: var(--radius-xs);
+    box-shadow: none;
+}
+
+.btn:focus,
+.page-link:focus,
+.btn-close:focus {
+    box-shadow: none;
 }
 
 .skip-link {
@@ -1744,13 +1844,25 @@ main.auth-card > * {
 .toast-item.leaving { opacity: 0; transform: translateX(12px); transition: opacity 0.2s ease, transform 0.2s ease; }
 
 .toast-close {
+    flex-shrink: 0;
+    width: var(--touch);
+    height: var(--touch);
+    margin: -12px -10px -12px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background: none;
     border: 0;
+    border-radius: var(--radius-sm);
     font-size: var(--fs-20);
     line-height: 1;
     color: var(--text-secondary);
-    padding: 0 4px;
     cursor: pointer;
+    transition: background-color var(--transition-fast);
+}
+
+.toast-close:hover {
+    background: var(--gray-100);
 }
 
 @keyframes toast-in {

@@ -31,20 +31,21 @@
                     <h1 class="panel-title">My Food Listings</h1>
                     <p class="panel-subtitle">Manage active and sold out food items.</p>
                 </div>
-                <a href="add-food.html" class="btn btn-primary btn-sm"><i class="fas fa-plus me-2"></i>Add Food</a>
+                <a href="add-food.html" class="btn btn-primary btn-sm"><i class="fas fa-plus me-2" aria-hidden="true"></i>Add Food</a>
             </div>
 
             <div class="card card-body">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle table-stack">
+                                <caption class="visually-hidden">Your food listings</caption>
                         <thead>
                             <tr>
-                                <th>Image</th>
-                                <th>Food Name</th>
-                                <th>Price</th>
-                                <th>Qty</th>
-                                <th>Status</th>
-                                <th>Actions</th>
+                                <th scope="col">Image</th>
+                                <th scope="col">Food Name</th>
+                                <th scope="col">Price</th>
+                                <th scope="col">Qty</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="listingsTable">
@@ -69,46 +70,46 @@
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label" for="editName">Food name</label>
-                        <input type="text" class="form-control" id="editName" maxlength="60" required>
+                        <input type="text" class="form-control" id="editName" name="editName" maxlength="60" required autocomplete="off">
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label" for="editCategory">Category</label>
-                        <select class="form-select" id="editCategory" required></select>
+                        <select class="form-select" id="editCategory" name="editCategory" required autocomplete="off"></select>
                     </div>
                 </div>
                 <div class="mb-3">
                     <label class="form-label" for="editDescription">Description</label>
-                    <textarea class="form-control" id="editDescription" rows="2" maxlength="400"></textarea>
+                    <textarea class="form-control" id="editDescription" name="editDescription" rows="2" maxlength="400" autocomplete="off"></textarea>
                 </div>
                 <div class="row">
                     <div class="col-md-4 mb-3">
                         <label class="form-label" for="editOriginal">Original price (LKR)</label>
-                        <input type="number" class="form-control" id="editOriginal" min="1" step="1" inputmode="numeric" required>
+                        <input type="number" class="form-control" id="editOriginal" name="editOriginal" min="1" step="1" inputmode="numeric" required autocomplete="off">
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label" for="editDiscounted">Discounted price (LKR)</label>
-                        <input type="number" class="form-control" id="editDiscounted" min="1" step="1" inputmode="numeric" required>
+                        <input type="number" class="form-control" id="editDiscounted" name="editDiscounted" min="1" step="1" inputmode="numeric" required autocomplete="off">
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label" for="editQuantity">Quantity available</label>
-                        <input type="number" class="form-control" id="editQuantity" min="0" max="500" step="1" inputmode="numeric" required>
+                        <input type="number" class="form-control" id="editQuantity" name="editQuantity" min="0" max="500" step="1" inputmode="numeric" required autocomplete="off">
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label" for="editStart">Pickup start</label>
-                        <input type="time" class="form-control" id="editStart" required>
+                        <input type="time" class="form-control" id="editStart" name="editStart" required autocomplete="off">
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label" for="editEnd">Pickup end</label>
-                        <input type="time" class="form-control" id="editEnd" required>
+                        <input type="time" class="form-control" id="editEnd" name="editEnd" required autocomplete="off">
                     </div>
                 </div>
                 <div class="mb-2">
                     <label class="form-label" for="editPhoto">Replace photo (optional)</label>
                     <div class="d-flex align-items-center gap-3">
                         <img id="editPhotoPreview" src="" alt="Current photo" width="72" height="72" class="rounded listing-thumb d-none">
-                        <input type="file" class="form-control" id="editPhoto" accept="image/jpeg,image/png,image/webp">
+                        <input type="file" class="form-control" id="editPhoto" name="editPhoto" accept="image/jpeg,image/png,image/webp">
                     </div>
                     <div class="form-text">JPG, PNG or WebP. Large photos are shrunk automatically before upload.</div>
                 </div>
@@ -199,7 +200,7 @@
                         <td data-label="Actions" class="actions-cell">
                             <button class="btn btn-sm btn-outline-secondary" data-action="edit" data-key="${esc(key)}"
                                     aria-label="Edit ${esc(name)}"><i class="fas fa-pen" aria-hidden="true"></i> Edit</button>
-                            <button class="btn btn-sm btn-outline-danger" data-action="delete" data-key="${esc(key)}" data-name="${esc(name)}"
+                            <button type="button" class="btn btn-sm btn-icon btn-outline-danger" data-action="delete" data-key="${esc(key)}" data-name="${esc(name)}"
                                     aria-label="Delete ${esc(name)}"><i class="fas fa-trash" aria-hidden="true"></i></button>
                             <button class="btn btn-sm btn-outline-primary" data-action="toggle" data-key="${esc(key)}" data-active="${isAvailable}">
                                 ${isAvailable ? 'Mark sold' : 'Activate'}
@@ -276,6 +277,7 @@
         const item = itemsByKey[key];
         if (!item) return;
         editingKey = key;
+        ReplateUI.clearFieldErrors('editForm');
         field('editName').value = item.foodName || '';
         field('editDescription').value = item.description || '';
         field('editOriginal').value = item.originalPrice || '';
@@ -300,16 +302,19 @@
         const quantity = parseInt(field('editQuantity').value, 10);
         const start = field('editStart').value;
         const end = field('editEnd').value;
-        if (!field('editName').value.trim()) return 'Enter the food name.';
-        if (!(original > 0) || !(discounted > 0)) return 'Enter both prices (more than 0).';
-        if (discounted >= original) return 'The discounted price must be lower than the original price.';
-        if (original > 1000000) return 'The price is too high (maximum 1,000,000).';
-        if (!Number.isFinite(quantity) || quantity < 0) return 'Quantity must be 0 or more.';
-        if (quantity > 1000) return 'Quantity can be at most 1000.';
-        if (!start || !end) return 'Set the pickup start and end times.';
-        if (end <= start) return 'Pickup must end after it starts.';
+        const bad = (id, message) => ({ id, message });
+        if (!field('editName').value.trim()) return bad('editName', 'Enter the food name.');
+        if (!(original > 0)) return bad('editOriginal', 'Enter both prices (more than 0).');
+        if (!(discounted > 0)) return bad('editDiscounted', 'Enter both prices (more than 0).');
+        if (discounted >= original) return bad('editDiscounted', 'The discounted price must be lower than the original price.');
+        if (original > 1000000) return bad('editOriginal', 'The price is too high (maximum 1,000,000).');
+        if (!Number.isFinite(quantity) || quantity < 0) return bad('editQuantity', 'Quantity must be 0 or more.');
+        if (quantity > 1000) return bad('editQuantity', 'Quantity can be at most 1000.');
+        if (!start) return bad('editStart', 'Set the pickup start and end times.');
+        if (!end) return bad('editEnd', 'Set the pickup start and end times.');
+        if (end <= start) return bad('editEnd', 'Pickup must end after it starts.');
         const file = field('editPhoto').files[0];
-        if (file && !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) return 'Choose a JPG, PNG or WebP photo.';
+        if (file && !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) return bad('editPhoto', 'Choose a JPG, PNG or WebP photo.');
         return null;
     }
 
@@ -317,9 +322,10 @@
     field('editForm').addEventListener('submit', async (event) => {
         event.preventDefault();
         if (!editingKey) return;
+        ReplateUI.clearFieldErrors('editForm');
         const problem = editProblem();
         if (problem) {
-            ReplateUI.toast(problem, 'warning');
+            ReplateUI.fieldProblem(problem.id, problem.message);
             return;
         }
 

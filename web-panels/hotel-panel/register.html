@@ -32,22 +32,22 @@
         <div class="row">
             <div class="col-md-6 mb-3">
                 <label class="form-label" for="hotelName">Hotel or restaurant name</label>
-                <input type="text" class="form-control" id="hotelName" maxlength="80" autocomplete="organization" required>
+                <input type="text" class="form-control" id="hotelName" name="hotelName" maxlength="80" autocomplete="organization" required>
             </div>
             <div class="col-md-6 mb-3">
                 <label class="form-label" for="ownerName">Owner name</label>
-                <input type="text" class="form-control" id="ownerName" maxlength="80" autocomplete="name" required>
+                <input type="text" class="form-control" id="ownerName" name="ownerName" maxlength="80" autocomplete="name" required>
             </div>
         </div>
 
         <div class="row">
             <div class="col-md-6 mb-3">
                 <label class="form-label" for="email">Email</label>
-                <input type="email" class="form-control" id="email" autocomplete="email" inputmode="email" required>
+                <input type="email" class="form-control" id="email" spellcheck="false" name="email" autocomplete="email" inputmode="email" required>
             </div>
             <div class="col-md-6 mb-3">
                 <label class="form-label" for="phone">Phone</label>
-                <input type="tel" class="form-control" id="phone" autocomplete="tel" inputmode="tel" placeholder="e.g. 0771234567" required>
+                <input type="tel" class="form-control" id="phone" name="phone" autocomplete="tel" inputmode="tel" placeholder="e.g. 0771234567" required>
             </div>
         </div>
 
@@ -55,7 +55,7 @@
             <div class="col-md-6 mb-3">
                 <label class="form-label" for="password">Password</label>
                 <div class="input-with-icon">
-                    <input type="password" class="form-control" id="password" autocomplete="new-password" minlength="8" aria-describedby="passwordHelp" required>
+                    <input type="password" class="form-control" id="password" name="password" autocomplete="new-password" minlength="8" aria-describedby="passwordHelp" required>
                     <button type="button" class="password-toggle" id="toggleRegPassword" aria-label="Show password">
                         <i class="fas fa-eye" id="toggleRegPasswordIcon" aria-hidden="true"></i>
                     </button>
@@ -65,7 +65,7 @@
             <div class="col-md-6 mb-3">
                 <label class="form-label" for="confirmPassword">Confirm password</label>
                 <div class="input-with-icon">
-                    <input type="password" class="form-control" id="confirmPassword" autocomplete="new-password" required>
+                    <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" autocomplete="new-password" required>
                     <button type="button" class="password-toggle" id="toggleRegConfirmPassword" aria-label="Show password">
                         <i class="fas fa-eye" id="toggleRegConfirmPasswordIcon" aria-hidden="true"></i>
                     </button>
@@ -75,17 +75,17 @@
 
         <div class="mb-3">
             <label class="form-label" for="address">Address</label>
-            <input type="text" class="form-control" id="address" autocomplete="street-address" required>
+            <input type="text" class="form-control" id="address" name="address" autocomplete="street-address" required>
         </div>
 
         <div class="row align-items-end">
             <div class="col-md-4 mb-3">
                 <label class="form-label" for="latitude">Latitude</label>
-                <input type="number" step="any" class="form-control" id="latitude" inputmode="decimal" required placeholder="e.g. 6.9271">
+                <input type="number" step="any" class="form-control" id="latitude" name="latitude" inputmode="decimal" required placeholder="e.g. 6.9271">
             </div>
             <div class="col-md-4 mb-3">
                 <label class="form-label" for="longitude">Longitude</label>
-                <input type="number" step="any" class="form-control" id="longitude" inputmode="decimal" required placeholder="e.g. 79.8612">
+                <input type="number" step="any" class="form-control" id="longitude" name="longitude" inputmode="decimal" required placeholder="e.g. 79.8612">
             </div>
             <div class="col-md-4 mb-3">
                 <button type="button" class="btn btn-outline-primary w-100" id="btnUseLocation">
@@ -97,11 +97,11 @@
 
         <div class="mb-3">
             <label class="form-label" for="license">Business licence (PDF or image, up to 10 MB)</label>
-            <input type="file" class="form-control" id="license" accept="application/pdf,image/jpeg,image/png,image/webp" required>
+            <input type="file" class="form-control" id="license" name="license" accept="application/pdf,image/jpeg,image/png,image/webp" required>
         </div>
 
         <div class="form-check mb-4">
-            <input class="form-check-input" type="checkbox" id="agree" required>
+            <input class="form-check-input" type="checkbox" id="agree" name="agree" required>
             <label class="form-check-label" for="agree">
                 I agree to the <a href="../terms.html" target="_blank" rel="noopener">Terms of Use</a> and
                 <a href="../privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.
@@ -162,6 +162,8 @@
         navigator.geolocation.getCurrentPosition((pos) => {
             field('latitude').value = pos.coords.latitude.toFixed(6);
             field('longitude').value = pos.coords.longitude.toFixed(6);
+            ReplateUI.clearFieldError('latitude');
+            ReplateUI.clearFieldError('longitude');
             button.disabled = false;
             ReplateUI.toast('Location filled in.', 'success');
         }, () => {
@@ -176,19 +178,20 @@
         const lng = parseFloat(field('longitude').value);
         const file = field('license').files[0];
 
-        if (!field('hotelName').value.trim() || !field('ownerName').value.trim()) return 'Enter the hotel name and the owner name.';
-        if (!/^\S+@\S+\.\S+$/.test(field('email').value.trim())) return 'Enter a valid email address.';
-        if (!/^[+0-9()\s-]{7,20}$/.test(field('phone').value.trim())) return 'Enter a valid phone number, for example 0771234567.';
-        if (field('password').value.length < 8) return 'The password must be at least 8 characters.';
-        if (field('password').value !== field('confirmPassword').value) return 'The two passwords do not match.';
-        if (!field('address').value.trim()) return 'Enter the hotel address.';
-        if (!Number.isFinite(lat) || lat < -90 || lat > 90 || !Number.isFinite(lng) || lng < -180 || lng > 180) {
-            return 'Enter valid map coordinates, or tap "Use my location".';
-        }
-        if (!file) return 'Attach your business licence.';
-        if (!LICENSE_TYPES.includes(file.type)) return 'The licence must be a PDF, JPG, PNG or WebP file.';
-        if (file.size > MAX_LICENSE_BYTES) return 'The licence file is larger than 10 MB.';
-        if (!field('agree').checked) return 'Please accept the Terms of Use and Privacy Policy.';
+        const bad = (id, message) => ({ id, message });
+        if (!field('hotelName').value.trim()) return bad('hotelName', 'Enter the hotel name and the owner name.');
+        if (!field('ownerName').value.trim()) return bad('ownerName', 'Enter the hotel name and the owner name.');
+        if (!/^\S+@\S+\.\S+$/.test(field('email').value.trim())) return bad('email', 'Enter a valid email address.');
+        if (!/^[+0-9()\s-]{7,20}$/.test(field('phone').value.trim())) return bad('phone', 'Enter a valid phone number, for example 0771234567.');
+        if (field('password').value.length < 8) return bad('password', 'The password must be at least 8 characters.');
+        if (field('password').value !== field('confirmPassword').value) return bad('confirmPassword', 'The two passwords do not match.');
+        if (!field('address').value.trim()) return bad('address', 'Enter the hotel address.');
+        if (!Number.isFinite(lat) || lat < -90 || lat > 90) return bad('latitude', 'Enter valid map coordinates, or tap "Use my location".');
+        if (!Number.isFinite(lng) || lng < -180 || lng > 180) return bad('longitude', 'Enter valid map coordinates, or tap "Use my location".');
+        if (!file) return bad('license', 'Attach your business licence.');
+        if (!LICENSE_TYPES.includes(file.type)) return bad('license', 'The licence must be a PDF, JPG, PNG or WebP file.');
+        if (file.size > MAX_LICENSE_BYTES) return bad('license', 'The licence file is larger than 10 MB.');
+        if (!field('agree').checked) return bad('agree', 'Please accept the Terms of Use and Privacy Policy.');
         return null;
     }
 
@@ -196,9 +199,10 @@
     field('registerForm').addEventListener('submit', async (e) => {
         e.preventDefault();
 
+        ReplateUI.clearFieldErrors('registerForm');
         const problem = validate();
         if (problem) {
-            ReplateUI.toast(problem, 'warning');
+            ReplateUI.fieldProblem(problem.id, problem.message);
             return;
         }
 

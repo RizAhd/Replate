@@ -40,27 +40,27 @@
                 <div class="col-lg-4">
                     <div class="card card-body">
                         <h2 class="section-title"><i class="fas fa-plus-circle" aria-hidden="true"></i>Add New Banner</h2>
-                        <form id="addBannerForm">
+                        <form id="addBannerForm" novalidate>
                             <div class="mb-3">
                                 <label class="form-label" for="bnTitle">Title</label>
-                                <input type="text" class="form-control" id="bnTitle" maxlength="60" placeholder="e.g. Fresh Bakes, Fair Prices" required>
+                                <input type="text" class="form-control" id="bnTitle" name="bnTitle" maxlength="60" placeholder="e.g. Fresh Bakes, Fair Prices" required autocomplete="off">
                             </div>
                             <div class="mb-3">
                                 <label class="form-label" for="bnSubtitle">Subtitle</label>
-                                <input type="text" class="form-control" id="bnSubtitle" maxlength="120" placeholder="Short supporting line">
+                                <input type="text" class="form-control" id="bnSubtitle" name="bnSubtitle" maxlength="120" placeholder="Short supporting line" autocomplete="off">
                             </div>
                             <div class="mb-3">
                                 <label class="form-label" for="bnBadge">Badge</label>
-                                <input type="text" class="form-control" id="bnBadge" maxlength="20" placeholder="e.g. HOT DEAL">
+                                <input type="text" class="form-control" id="bnBadge" name="bnBadge" maxlength="20" placeholder="e.g. HOT DEAL" autocomplete="off">
                             </div>
                             <div class="mb-3">
                                 <label class="form-label" for="bnImage">Image</label>
-                                <input type="file" class="form-control" id="bnImage" accept="image/jpeg,image/png,image/webp" required>
+                                <input type="file" class="form-control" id="bnImage" name="bnImage" accept="image/jpeg,image/png,image/webp" required>
                                 <div class="form-text">JPG, PNG or WebP, up to 2 MB.</div>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label" for="bnLink">Tap action (optional)</label>
-                                <input type="text" class="form-control" id="bnLink" placeholder="category:Bakery &nbsp;|&nbsp; tab:map &nbsp;|&nbsp; https://...">
+                                <input type="text" class="form-control" id="bnLink" spellcheck="false" name="bnLink" placeholder="category:Bakery &nbsp;|&nbsp; tab:map &nbsp;|&nbsp; https://..." autocomplete="off">
                                 <div class="form-text">
                                     <code>category:Bakery</code> opens that category, <code>tab:map</code> opens a tab
                                     (home, map, orders, cart, profile), or paste an <code>https://</code> link.
@@ -69,25 +69,25 @@
                             <div class="row">
                                 <div class="col-6 mb-3">
                                     <label class="form-label" for="bnOrder">Order</label>
-                                    <input type="number" class="form-control" id="bnOrder" value="1" min="0" required>
+                                    <input type="number" class="form-control" id="bnOrder" name="bnOrder" value="1" min="0" required autocomplete="off">
                                 </div>
                                 <div class="col-6 mb-3 d-flex align-items-end">
                                     <div class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox" id="bnActive" checked>
+                                        <input class="form-check-input" type="checkbox" id="bnActive" name="bnActive" checked>
                                         <label class="form-check-label" for="bnActive">Active</label>
                                     </div>
                                 </div>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label" for="bnStart">Show from (optional)</label>
-                                <input type="datetime-local" class="form-control" id="bnStart">
+                                <input type="datetime-local" class="form-control" id="bnStart" name="bnStart" autocomplete="off">
                             </div>
                             <div class="mb-4">
                                 <label class="form-label" for="bnEnd">Show until (optional)</label>
-                                <input type="datetime-local" class="form-control" id="bnEnd">
+                                <input type="datetime-local" class="form-control" id="bnEnd" name="bnEnd" autocomplete="off">
                             </div>
                             <button type="submit" class="btn btn-primary w-100" id="bnSubmit">
-                                <i class="fas fa-plus me-2"></i>Add Banner
+                                <i class="fas fa-plus me-2" aria-hidden="true"></i>Add Banner
                             </button>
                             <div id="bnMessage" class="small mt-3" role="status"></div>
                         </form>
@@ -98,13 +98,14 @@
                     <div class="card card-body">
                         <div class="table-responsive">
                             <table class="table table-hover table-stack align-middle">
+                                <caption class="visually-hidden">Home screen banners in display order</caption>
                                 <thead>
                                     <tr>
-                                        <th>Preview</th>
-                                        <th>Banner</th>
-                                        <th>Order</th>
-                                        <th>Active</th>
-                                        <th>Actions</th>
+                                        <th scope="col">Preview</th>
+                                        <th scope="col">Banner</th>
+                                        <th scope="col">Order</th>
+                                        <th scope="col">Active</th>
+                                        <th scope="col">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="bannerTable">
@@ -146,6 +147,12 @@
         const el = document.getElementById('bnMessage');
         el.textContent = text;
         el.className = 'small mt-3 ' + (isError ? 'text-danger' : 'text-success');
+    }
+
+    // Marks the field, explains under the form and moves focus to the field.
+    function fieldProblem(id, text) {
+        showMessage(text, true);
+        ReplateUI.fieldProblem(id, text, { toast: false });
     }
 
     // Gives the "show from / until" dates as text.
@@ -209,19 +216,21 @@
         const submit = document.getElementById('bnSubmit');
         const file = document.getElementById('bnImage').files[0];
 
-        if (!file) { showMessage('Please choose an image.', true); return; }
-        if (!ALLOWED_TYPES.includes(file.type)) { showMessage('Image must be a JPG, PNG or WebP file.', true); return; }
-        if (file.size > MAX_IMAGE_BYTES) { showMessage('Image is larger than 2 MB. Please compress it first.', true); return; }
+        ReplateUI.clearFieldErrors('addBannerForm');
+        if (!document.getElementById('bnTitle').value.trim()) { fieldProblem('bnTitle', 'Enter a title for the banner.'); return; }
+        if (!file) { fieldProblem('bnImage', 'Please choose an image.'); return; }
+        if (!ALLOWED_TYPES.includes(file.type)) { fieldProblem('bnImage', 'Image must be a JPG, PNG or WebP file.'); return; }
+        if (file.size > MAX_IMAGE_BYTES) { fieldProblem('bnImage', 'Image is larger than 2 MB. Please compress it first.'); return; }
 
         const link = document.getElementById('bnLink').value.trim();
         const linkOk = link === '' || /^category:\S.*/i.test(link) || /^tab:(home|map|orders|cart|profile)$/i.test(link) || /^https:\/\//i.test(link);
-        if (!linkOk) { showMessage('Tap action must be category:Name, tab:map (home/map/orders/cart/profile) or an https:// link.', true); return; }
+        if (!linkOk) { fieldProblem('bnLink', 'Tap action must be category:Name, tab:map (home/map/orders/cart/profile) or an https:// link.'); return; }
 
         const startVal = document.getElementById('bnStart').value;
         const endVal = document.getElementById('bnEnd').value;
         const startAt = startVal ? new Date(startVal).getTime() : 0;
         const endAt = endVal ? new Date(endVal).getTime() : 0;
-        if (startAt && endAt && endAt <= startAt) { showMessage('"Show until" must be after "Show from".', true); return; }
+        if (startAt && endAt && endAt <= startAt) { fieldProblem('bnEnd', '"Show until" must be after "Show from".'); return; }
 
         submit.disabled = true;
         showMessage('Uploading image…', false);

@@ -446,7 +446,7 @@
                     <p class="panel-subtitle">Real-time messaging with your customers</p>
                 </div>
                 <span class="badge bg-success-subtle text-success px-3 py-2" id="chatStatus" style="display:none;">
-                    <i class="fas fa-circle" style="font-size:7px;vertical-align:middle;margin-right:4px;"></i> Connected
+                    <i class="fas fa-circle" aria-hidden="true" style="font-size:7px;vertical-align:middle;margin-right:4px;"></i> Connected
                 </span>
             </div>
 
@@ -456,15 +456,15 @@
                 <!-- LEFT: Conversation List -->
                 <div class="panel-conversations">
                     <div class="panel-head">
-                        <h6><i class="fas fa-inbox" style="margin-right:6px;"></i>Conversations</h6>
+                        <h6><i class="fas fa-inbox" aria-hidden="true" style="margin-right:6px;"></i>Conversations</h6>
                         <div class="conv-search-wrap">
-                            <i class="fas fa-search"></i>
-                            <input type="text" id="convSearch" placeholder="Search..." oninput="filterConversations()" aria-label="Search conversations">
+                            <i class="fas fa-search" aria-hidden="true"></i>
+                            <input type="text" id="convSearch" name="convSearch" placeholder="Search..." oninput="filterConversations()" aria-label="Search conversations" autocomplete="off">
                         </div>
                     </div>
                     <div class="conv-items" id="conversationList">
                         <div class="no-conversations">
-                            <i class="fas fa-comments"></i>
+                            <i class="fas fa-comments" aria-hidden="true"></i>
                             <p class="mb-1 fw-semibold" style="color:var(--text-secondary);font-size:13px;">No conversations yet</p>
                             <small style="font-size:12px;">Customer messages will appear here</small>
                         </div>
@@ -474,7 +474,7 @@
                 <!-- CENTER: Live Chat -->
                 <div class="panel-chat" id="panelChat">
                     <div class="empty-panel">
-                        <i class="fas fa-comments"></i>
+                        <i class="fas fa-comments" aria-hidden="true"></i>
                         <h5>Select a conversation</h5>
                         <p>Choose a customer from the left to start chatting</p>
                     </div>
@@ -483,7 +483,7 @@
                 <!-- RIGHT: Customer Details -->
                 <div class="panel-details" id="panelDetails">
                     <div class="empty-panel">
-                        <i class="fas fa-user-circle"></i>
+                        <i class="fas fa-user-circle" aria-hidden="true"></i>
                         <h5>Customer Details</h5>
                         <p>Select a conversation to see customer information</p>
                     </div>
@@ -557,8 +557,8 @@
             ? 'badge bg-success-subtle text-success px-3 py-2'
             : 'badge bg-warning-subtle text-warning px-3 py-2';
         badge.innerHTML = online
-            ? '<i class="fas fa-circle" style="font-size:7px;vertical-align:middle;margin-right:4px;"></i> Connected'
-            : '<i class="fas fa-circle" style="font-size:7px;vertical-align:middle;margin-right:4px;"></i> Offline';
+            ? '<i class="fas fa-circle" aria-hidden="true" style="font-size:7px;vertical-align:middle;margin-right:4px;"></i> Connected'
+            : '<i class="fas fa-circle" aria-hidden="true" style="font-size:7px;vertical-align:middle;margin-right:4px;"></i> Offline';
     }
 
     /* ────────────────────────────────────────────────────────
@@ -590,7 +590,7 @@
             allConversations.sort((a, b) => (b.lastTimestamp || 0) - (a.lastTimestamp || 0));
 
             if (!allConversations.length) {
-                listEl.innerHTML = `<div class="no-conversations"><i class="fas fa-comments"></i>
+                listEl.innerHTML = `<div class="no-conversations"><i class="fas fa-comments" aria-hidden="true"></i>
                     <p class="mb-1 fw-semibold" style="color:var(--text-secondary);font-size:13px;">No conversations yet</p>
                     <small style="font-size:12px;">Customer messages will appear here</small></div>`;
                 return;
@@ -623,7 +623,7 @@
     function renderConversations(list) {
         const el = document.getElementById('conversationList');
         if (!list.length) {
-            el.innerHTML = `<div class="no-conversations"><i class="fas fa-search"></i>
+            el.innerHTML = `<div class="no-conversations"><i class="fas fa-search" aria-hidden="true"></i>
                 <p class="mb-0" style="color:var(--text-secondary);font-size:13px;">No results</p></div>`;
             return;
         }
@@ -632,7 +632,7 @@
             const time = conv.lastTimestamp ? formatTime(conv.lastTimestamp) : '';
             const active = conv.id === currentConversationId ? ' active' : '';
             const init = (conv.customerName || 'C')[0].toUpperCase();
-            const food = conv.foodName ? `<div class="c-food"><i class="fas fa-utensils"></i>${esc(conv.foodName)}</div>` : '';
+            const food = conv.foodName ? `<div class="c-food"><i class="fas fa-utensils" aria-hidden="true"></i>${esc(conv.foodName)}</div>` : '';
             return `<div class="conversation-item${active}"
                         data-conv-id="${esc(conv.id)}"
                         data-customer-name="${esc(conv.customerName || 'Customer')}"
@@ -706,26 +706,27 @@
             </div>
             <div class="messages-area" id="messagesContainer">
                 <div style="text-align:center;padding:40px;color:var(--text-tertiary);font-size:13px;">
-                    <i class="fas fa-spinner fa-spin" style="margin-right:6px;"></i>Loading messages...
+                    <i class="fas fa-spinner fa-spin" aria-hidden="true" style="margin-right:6px;"></i>Loading messages...
                 </div>
             </div>
             <div class="chat-compose">
-                <input type="text" id="messageInput" placeholder="Type a message..."
+                <label for="messageInput" class="visually-hidden">Message to ${esc(customerName)}</label>
+                <input type="text" id="messageInput" name="messageInput" autocomplete="off" placeholder="Type a message…"
                        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}">
-                <button class="btn-send" onclick="sendMessage()" title="Send"><i class="fas fa-paper-plane"></i></button>
+                <button type="button" class="btn-send" onclick="sendMessage()" aria-label="Send message"><i class="fas fa-paper-plane" aria-hidden="true"></i></button>
             </div>`;
 
         // ── RIGHT: Customer Details Panel ──
         const emailRow = customerEmail
-            ? `<div class="detail-row"><i class="fas fa-envelope"></i><div class="dr-text">${esc(customerEmail)}<small>Email address</small></div></div>`
+            ? `<div class="detail-row"><i class="fas fa-envelope" aria-hidden="true"></i><div class="dr-text">${esc(customerEmail)}<small>Email address</small></div></div>`
             : '';
         const foodRow = foodName
-            ? `<div class="detail-row"><i class="fas fa-utensils"></i><div class="dr-text">${esc(foodName)}<small>Related product</small></div></div>`
+            ? `<div class="detail-row"><i class="fas fa-utensils" aria-hidden="true"></i><div class="dr-text">${esc(foodName)}<small>Related product</small></div></div>`
             : '';
         const idRow = customerId
-            ? `<div class="detail-row"><i class="fas fa-fingerprint"></i><div class="dr-text" style="font-size:11px;font-family:monospace;opacity:0.7;">${esc(customerId.substring(0,20))}…<small>Customer ID</small></div></div>`
+            ? `<div class="detail-row"><i class="fas fa-fingerprint" aria-hidden="true"></i><div class="dr-text" style="font-size:11px;font-family:monospace;opacity:0.7;">${esc(customerId.substring(0,20))}…<small>Customer ID</small></div></div>`
             : '';
-        const convRow = `<div class="detail-row"><i class="fas fa-link"></i><div class="dr-text" style="font-size:11px;font-family:monospace;opacity:0.7;">${esc(conversationId.substring(0,24))}…<small>Conversation ID</small></div></div>`;
+        const convRow = `<div class="detail-row"><i class="fas fa-link" aria-hidden="true"></i><div class="dr-text" style="font-size:11px;font-family:monospace;opacity:0.7;">${esc(conversationId.substring(0,24))}…<small>Conversation ID</small></div></div>`;
 
         document.getElementById('panelDetails').innerHTML = `
             <div class="detail-profile">
@@ -735,11 +736,11 @@
             </div>
             <div class="detail-section">
                 <p class="ds-label">Contact Info</p>
-                ${emailRow || '<div class="detail-row"><i class="fas fa-envelope"></i><div class="dr-text" style="color:var(--text-tertiary);">No email provided</div></div>'}
+                ${emailRow || '<div class="detail-row"><i class="fas fa-envelope" aria-hidden="true"></i><div class="dr-text" style="color:var(--text-tertiary);">No email provided</div></div>'}
             </div>
             ${foodName ? `<div class="detail-section">
                 <p class="ds-label">Product Context</p>
-                <div class="detail-tag"><i class="fas fa-utensils"></i>${esc(foodName)}</div>
+                <div class="detail-tag"><i class="fas fa-utensils" aria-hidden="true"></i>${esc(foodName)}</div>
             </div>` : ''}
             <div class="detail-section">
                 <p class="ds-label">Conversation</p>

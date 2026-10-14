@@ -48,17 +48,17 @@
                                         <small>JPG, PNG or WebP, up to 5 MB</small>
                                     </div>
                                 </div>
-                                <input type="file" id="foodImage" class="d-none" accept="image/jpeg,image/png,image/webp" required>
+                                <input type="file" id="foodImage" name="foodImage" class="d-none" accept="image/jpeg,image/png,image/webp" required>
                             </div>
 
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label" for="foodName">Food Name</label>
-                                    <input type="text" class="form-control" id="foodName" required maxlength="60" autocomplete="off" placeholder="e.g. Chicken Rice">
+                                    <input type="text" class="form-control" id="foodName" name="foodName" required maxlength="60" autocomplete="off" placeholder="e.g. Chicken Rice">
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label" for="category">Category</label>
-                                    <select class="form-select" id="category" required>
+                                    <select class="form-select" id="category" name="category" required autocomplete="off">
                                         <option value="" selected disabled>Select Category</option>
                                     </select>
                                 </div>
@@ -66,38 +66,38 @@
 
                             <div class="mb-3">
                                 <label class="form-label" for="description">Description</label>
-                                <textarea class="form-control" id="description" rows="3" required maxlength="400" placeholder="Describe ingredients, portion size, allergens..."></textarea>
+                                <textarea class="form-control" id="description" name="description" rows="3" required maxlength="400" placeholder="Describe ingredients, portion size, allergens..." autocomplete="off"></textarea>
                             </div>
 
                             <div class="row">
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label" for="originalPrice">Original Price (LKR)</label>
-                                    <input type="number" class="form-control" id="originalPrice" required min="1" step="1" inputmode="numeric">
+                                    <input type="number" class="form-control" id="originalPrice" name="originalPrice" required min="1" step="1" inputmode="numeric" autocomplete="off">
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label" for="discountedPrice">Discounted Price (LKR)</label>
-                                    <input type="number" class="form-control" id="discountedPrice" required min="1" step="1" inputmode="numeric">
+                                    <input type="number" class="form-control" id="discountedPrice" name="discountedPrice" required min="1" step="1" inputmode="numeric" autocomplete="off">
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label" for="quantity">Quantity Available</label>
-                                    <input type="number" class="form-control" id="quantity" required min="1" max="500" step="1" value="1" inputmode="numeric">
+                                    <input type="number" class="form-control" id="quantity" name="quantity" required min="1" max="500" step="1" value="1" inputmode="numeric" autocomplete="off">
                                 </div>
                             </div>
 
                             <div class="row mb-4">
                                 <div class="col-md-6">
                                     <label class="form-label" for="pickupStart">Pickup Start Time</label>
-                                    <input type="time" class="form-control" id="pickupStart" required>
+                                    <input type="time" class="form-control" id="pickupStart" name="pickupStart" required autocomplete="off">
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label" for="pickupEnd">Pickup End Time</label>
-                                    <input type="time" class="form-control" id="pickupEnd" required>
+                                    <input type="time" class="form-control" id="pickupEnd" name="pickupEnd" required autocomplete="off">
                                 </div>
                             </div>
 
                             <div class="d-grid gap-2">
                                 <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
-                                    <i class="fas fa-check-circle me-2"></i> Publish Listing
+                                    <i class="fas fa-check-circle me-2" aria-hidden="true"></i> Publish Listing
                                 </button>
                             </div>
                         </form>
@@ -210,15 +210,16 @@
         const file = this.files && this.files[0];
         if (!file) return;
         if (!ALLOWED_TYPES.includes(file.type)) {
-            ReplateUI.toast('Choose a JPG, PNG or WebP photo.', 'warning');
+            ReplateUI.fieldProblem('imagePreviewContainer', 'Choose a JPG, PNG or WebP photo.');
             this.value = '';
             return;
         }
         if (file.size > MAX_IMAGE_BYTES) {
-            ReplateUI.toast('That photo is larger than 5 MB. Choose a smaller one.', 'warning');
+            ReplateUI.fieldProblem('imagePreviewContainer', 'That photo is larger than 5 MB. Choose a smaller one.');
             this.value = '';
             return;
         }
+        ReplateUI.clearFieldError('imagePreviewContainer');
         const reader = new FileReader();
         reader.onload = (e) => {
             previewImage.src = e.target.result;
@@ -236,16 +237,19 @@
         const start = document.getElementById('pickupStart').value;
         const end = document.getElementById('pickupEnd').value;
 
-        if (!imageInput.files[0]) return 'Please choose a photo of the food.';
-        if (!document.getElementById('foodName').value.trim()) return 'Enter the food name.';
-        if (!document.getElementById('category').value) return 'Choose a category.';
-        if (!(original > 0) || !(discounted > 0)) return 'Enter both prices (more than 0).';
-        if (discounted >= original) return 'The discounted price must be lower than the original price.';
-        if (original > 1000000) return 'The price is too high (maximum 1,000,000).';
-        if (!(quantity >= 1)) return 'Quantity must be at least 1.';
-        if (quantity > 1000) return 'Quantity can be at most 1000.';
-        if (!start || !end) return 'Set the pickup start and end times.';
-        if (end <= start) return 'Pickup must end after it starts.';
+        const bad = (id, message) => ({ id, message });
+        if (!imageInput.files[0]) return bad('imagePreviewContainer', 'Please choose a photo of the food.');
+        if (!document.getElementById('foodName').value.trim()) return bad('foodName', 'Enter the food name.');
+        if (!document.getElementById('category').value) return bad('category', 'Choose a category.');
+        if (!(original > 0)) return bad('originalPrice', 'Enter both prices (more than 0).');
+        if (!(discounted > 0)) return bad('discountedPrice', 'Enter both prices (more than 0).');
+        if (discounted >= original) return bad('discountedPrice', 'The discounted price must be lower than the original price.');
+        if (original > 1000000) return bad('originalPrice', 'The price is too high (maximum 1,000,000).');
+        if (!(quantity >= 1)) return bad('quantity', 'Quantity must be at least 1.');
+        if (quantity > 1000) return bad('quantity', 'Quantity can be at most 1000.');
+        if (!start) return bad('pickupStart', 'Set the pickup start and end times.');
+        if (!end) return bad('pickupEnd', 'Set the pickup start and end times.');
+        if (end <= start) return bad('pickupEnd', 'Pickup must end after it starts.');
         return null;
     }
 
@@ -257,9 +261,11 @@
             ReplateUI.toast('Your hotel session is still loading. Try again in a moment.', 'warning');
             return;
         }
+        ReplateUI.clearFieldErrors('addFoodForm');
+        ReplateUI.clearFieldError('imagePreviewContainer');
         const problem = validateForm();
         if (problem) {
-            ReplateUI.toast(problem, 'warning');
+            ReplateUI.fieldProblem(problem.id, problem.message);
             return;
         }
 
