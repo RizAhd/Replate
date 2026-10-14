@@ -229,7 +229,7 @@
         tbody.innerHTML = people.map((p) => {
             const hotelName = p.role === 'hotel' ? hotelNameByUserId[p.uid] : '';
             const displayName = p.name || hotelName || '—';
-            const joined = p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '—';
+            const joined = ReplateSchema.formatDate(p.createdAt);
             const status = p.suspended
                 ? `<span class="badge badge-danger" title="${esc(p.reason)}">Suspended</span>`
                 : '<span class="badge badge-success">Active</span>';
@@ -237,17 +237,17 @@
             let action = '<span class="text-muted">—</span>';
             if (p.role !== 'admin' && p.uid !== currentAdminUid) {
                 action = p.suspended
-                    ? `<button class="btn btn-sm btn-success" data-action="enable" data-uid="${esc(p.uid)}" data-name="${esc(displayName)}"><i class="fas fa-user-check" aria-hidden="true"></i> Enable</button>`
-                    : `<button class="btn btn-sm btn-outline-danger" data-action="suspend" data-uid="${esc(p.uid)}" data-name="${esc(displayName)}"><i class="fas fa-user-slash" aria-hidden="true"></i> Suspend</button>`;
+                    ? `<button type="button" class="btn btn-sm btn-outline-primary" data-action="enable" data-uid="${esc(p.uid)}" data-name="${esc(displayName)}"><i class="fas fa-user-check" aria-hidden="true"></i>Enable</button>`
+                    : `<button type="button" class="btn btn-sm btn-outline-secondary" data-action="suspend" data-uid="${esc(p.uid)}" data-name="${esc(displayName)}"><i class="fas fa-user-slash" aria-hidden="true"></i>Suspend</button>`;
             }
 
             return `
                 <tr data-uid="${esc(p.uid)}">
                     <td data-label="Name">${esc(displayName)}${hotelName && p.name && hotelName !== p.name ? `<br><small class="text-muted">${esc(hotelName)}</small>` : ''}</td>
                     <td data-label="Email">${esc(p.email || '—')}</td>
-                    <td data-label="Phone">${esc(p.phone || '—')}</td>
+                    <td data-label="Phone" class="num">${esc(p.phone || '—')}</td>
                     <td data-label="Role" class="text-capitalize">${esc(p.role)}</td>
-                    <td data-label="Joined" data-order="${esc(p.createdAt)}">${esc(joined)}</td>
+                    <td data-label="Joined" data-order="${esc(p.createdAt)}" class="num">${esc(joined)}</td>
                     <td data-label="Status">${status}</td>
                     <td data-label="Action" class="actions-cell">${action}</td>
                 </tr>`;

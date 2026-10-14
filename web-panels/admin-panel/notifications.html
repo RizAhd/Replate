@@ -116,21 +116,20 @@
             </div>
 
             <!-- Tabs: Activity / Send / History -->
-            <ul class="nav nav-pills mb-4" id="notifTabs" role="tablist">
+            <ul class="nav nav-tabs" id="notifTabs" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="tab-activity" data-bs-toggle="pill" data-bs-target="#pane-activity" type="button" role="tab">
-                        <i class="fas fa-stream me-1" aria-hidden="true"></i> Live Activity
-                        <span class="badge bg-danger ms-1" id="activityBadge" style="display:none;">0</span>
+                    <button class="nav-link active" id="tab-activity" data-bs-toggle="tab" data-bs-target="#pane-activity" type="button" role="tab" aria-controls="pane-activity" aria-selected="true">
+                        Activity <span class="tab-count tab-count-new" id="activityBadge" style="display:none;">0</span>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="tab-send" data-bs-toggle="pill" data-bs-target="#pane-send" type="button" role="tab">
-                        <i class="fas fa-paper-plane me-1" aria-hidden="true"></i> Send Notifications
+                    <button class="nav-link" id="tab-send" data-bs-toggle="tab" data-bs-target="#pane-send" type="button" role="tab" aria-controls="pane-send" aria-selected="false">
+                        Send
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="tab-history" data-bs-toggle="pill" data-bs-target="#pane-history" type="button" role="tab">
-                        <i class="fas fa-history me-1" aria-hidden="true"></i> Send History
+                    <button class="nav-link" id="tab-history" data-bs-toggle="tab" data-bs-target="#pane-history" type="button" role="tab" aria-controls="pane-history" aria-selected="false">
+                        History <span class="tab-count" id="historyTabCount" hidden></span>
                     </button>
                 </li>
             </ul>
@@ -138,7 +137,7 @@
             <div class="tab-content">
 
                 <!-- ═══ LIVE ACTIVITY PANE ═══ -->
-                <div class="tab-pane fade show active" id="pane-activity" role="tabpanel">
+                <div class="tab-pane fade show active" id="pane-activity" role="tabpanel" aria-labelledby="tab-activity">
                     <div class="card">
                         <div class="card-header">
                             <span><i class="fas fa-stream me-2" aria-hidden="true"></i>Real-Time Platform Events</span>
@@ -156,7 +155,7 @@
                 </div>
 
                 <!-- ═══ SEND NOTIFICATIONS PANE ═══ -->
-                <div class="tab-pane fade" id="pane-send" role="tabpanel">
+                <div class="tab-pane fade" id="pane-send" role="tabpanel" aria-labelledby="tab-send">
                     <div class="row g-4">
                         <div class="col-lg-6">
                             <div class="card card-body h-100">
@@ -217,7 +216,7 @@
                                         <label class="form-label" for="targetBody">Message</label>
                                         <textarea id="targetBody" name="targetBody" rows="3" class="form-control" required autocomplete="off"></textarea>
                                     </div>
-                                    <button id="btnTargetSend" class="btn btn-success w-100" type="submit">
+                                    <button id="btnTargetSend" class="btn btn-primary w-100" type="submit">
                                         <i class="fas fa-paper-plane me-2" aria-hidden="true"></i>Send Targeted
                                     </button>
                                 </form>
@@ -241,7 +240,7 @@
                                 <input id="dealDiscount" name="dealDiscount" type="number" min="1" max="95" class="form-control" placeholder="50" autocomplete="off">
                             </div>
                             <div class="col-12">
-                                <button id="btnDealSend" class="btn btn-warning" type="submit">
+                                <button id="btnDealSend" class="btn btn-primary" type="submit">
                                     <i class="fas fa-fire me-2" aria-hidden="true"></i>Send Deal Notification
                                 </button>
                             </div>
@@ -250,7 +249,7 @@
                 </div>
 
                 <!-- ═══ SEND HISTORY PANE ═══ -->
-                <div class="tab-pane fade" id="pane-history" role="tabpanel">
+                <div class="tab-pane fade" id="pane-history" role="tabpanel" aria-labelledby="tab-history">
                     <div class="card">
                         <div class="card-header">
                             <span><i class="fas fa-history me-2" aria-hidden="true"></i>Notification Delivery Log</span>
@@ -314,15 +313,12 @@
         if (diff < 60) return diff + 's ago';
         if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
         if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
-        return new Date(ts).toLocaleDateString();
+        return ReplateSchema.formatDate(ts);
     }
 
     // Shows a time as a readable date and time.
     function formatDateTime(ts) {
-        if (!ts) return 'N/A';
-        const d = new Date(ts);
-        return d.toLocaleDateString('en-LK', { day: '2-digit', month: 'short' }) + ' ' +
-               d.toLocaleTimeString('en-LK', { hour: '2-digit', minute: '2-digit' });
+        return ReplateSchema.formatDateTime(ts);
     }
 
     // True when the time is today.
@@ -435,7 +431,7 @@
                         ts: o.createdAt || now,
                         icon: 'icon-order',
                         title: `Order from ${o.customerName || o.userName || 'Customer'}`,
-                        desc: `${o.hotelName || 'Hotel'} — LKR ${ReplateSchema.formatAmount(o.totalAmount || o.totalPrice)}`
+                        desc: `${o.hotelName || 'Hotel'} — ${ReplateSchema.formatMoney(ReplateSchema.orderAmount(o))}`
                     });
                 });
                 // Show most recent 10
@@ -471,7 +467,7 @@
                 const order = snap.val() || {};
                 addActivityItem('icon-order',
                     `New order from ${order.customerName || order.userName || 'Customer'}`,
-                    `${order.hotelName || 'Hotel'} — LKR ${ReplateSchema.formatAmount(order.totalAmount || order.totalPrice)}`,
+                    `${order.hotelName || 'Hotel'} — ${ReplateSchema.formatMoney(ReplateSchema.orderAmount(order))}`,
                     order.createdAt || Date.now());
             });
 
@@ -620,7 +616,10 @@
 
             rows.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 
-            document.getElementById('historyCount').textContent = rows.length + ' records';
+            document.getElementById('historyCount').textContent = ReplateSchema.plural(rows.length, 'record');
+            const tabCount = document.getElementById('historyTabCount');
+            tabCount.textContent = rows.length;
+            tabCount.hidden = rows.length === 0;
 
             if (rows.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4" style="color:var(--text-tertiary);">No notification logs yet. Send a notification from the Send tab to see logs here.</td></tr>';
@@ -761,7 +760,7 @@
             'This notification goes to: ' + targetLabel + '. It cannot be recalled once sent.',
             { title: 'Send this broadcast?', confirmText: 'Send now' });
         if (!confirmed) return;
-        ReplateUI.setButtonLoading('btnBroadcastSend', true, 'Sending...');
+        ReplateUI.setButtonLoading('btnBroadcastSend', true, 'Sending…');
         try {
             const target = document.getElementById('broadcastTarget').value;
             const title = document.getElementById('broadcastTitle').value.trim();
@@ -807,7 +806,7 @@
         if (!document.getElementById('targetUserIds').value.split(',').some((v) => v.trim())) { ReplateUI.fieldProblem('targetUserIds', 'Enter at least one user ID.'); return; }
         if (!document.getElementById('targetTitle').value.trim()) { ReplateUI.fieldProblem('targetTitle', 'Enter a title.'); return; }
         if (!document.getElementById('targetBody').value.trim()) { ReplateUI.fieldProblem('targetBody', 'Enter the message.'); return; }
-        ReplateUI.setButtonLoading('btnTargetSend', true, 'Sending...');
+        ReplateUI.setButtonLoading('btnTargetSend', true, 'Sending…');
         try {
             const userIds = document.getElementById('targetUserIds').value
                 .split(',')
@@ -873,7 +872,7 @@
         ReplateUI.clearFieldErrors('dealForm');
         const discountValue = document.getElementById('dealDiscount').value.trim();
         if (discountValue && !(Number(discountValue) >= 1 && Number(discountValue) <= 95)) { ReplateUI.fieldProblem('dealDiscount', 'The discount must be between 1 and 95.'); return; }
-        ReplateUI.setButtonLoading('btnDealSend', true, 'Sending deal...');
+        ReplateUI.setButtonLoading('btnDealSend', true, 'Sending…');
         try {
             const hotelName = document.getElementById('dealHotelName').value.trim() || 'Nearby Hotel';
             const foodName = document.getElementById('dealFoodName').value.trim() || 'Fresh meal';

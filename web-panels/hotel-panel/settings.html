@@ -57,7 +57,7 @@
                             </div>
                             <div class="mb-4">
                                 <span class="form-label d-block">Approval status</span>
-                                <span id="approvalBadge" class="badge bg-secondary">Loading...</span>
+                                <span id="approvalBadge" class="badge badge-neutral">Loading…</span>
                                 <div class="form-text" id="approvalNote"></div>
                             </div>
                             <button type="submit" class="btn btn-primary" id="btnSaveProfile">
@@ -102,16 +102,17 @@
     // Shows the approval status box with its reason.
     function showApproval(data) {
         const status = ReplateSchema.normalizeHotelStatus(data.status);
-        const view = {
-            approved: ['Approved', 'badge-success', 'Your hotel is live: customers can see your listings.'],
-            pending: ['Pending approval', 'badge-warning', 'An admin is reviewing your registration. You can add listings once it is approved.'],
-            rejected: ['Not approved', 'badge-danger', data.rejectionReason ? 'Reason: ' + data.rejectionReason : 'Contact REPLATE support for details.'],
-            suspended: ['Suspended', 'badge-danger', 'Your hotel is hidden from the app. Contact REPLATE support.']
+        const note = {
+            approved: 'Your hotel is live: customers can see your listings.',
+            pending: 'An admin is reviewing your registration. You can add listings once it is approved.',
+            rejected: data.rejectionReason ? 'Reason: ' + data.rejectionReason : 'Contact REPLATE support for details.',
+            suspended: 'Your hotel is hidden from the app. Contact REPLATE support.'
         }[status];
+        const view = ReplateSchema.hotelStatusView(status);
         const badge = document.getElementById('approvalBadge');
-        badge.className = 'badge ' + view[1];
-        badge.textContent = view[0];
-        document.getElementById('approvalNote').textContent = view[2];
+        badge.className = 'badge ' + view.cls;
+        badge.textContent = view.label;
+        document.getElementById('approvalNote').textContent = note;
     }
 
     // Waits for a hotel sign-in, then fills in the profile.
@@ -158,7 +159,7 @@
             return;
         }
 
-        ReplateUI.setButtonLoading('btnSaveProfile', true, 'Saving...');
+        ReplateUI.setButtonLoading('btnSaveProfile', true, 'Saving…');
         try {
             await database.ref('hotels/' + currentHotelId).update({ hotelName, ownerName, phone });
             ReplateUI.toast('Profile updated.', 'success');

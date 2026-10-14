@@ -33,25 +33,25 @@
                 </div>
             </div>
 
-            <ul class="nav nav-tabs mb-4">
-                <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#pending">Pending</a></li>
-                <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#approved">Approved</a></li>
-                <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#rejected">Rejected</a></li>
-                <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#suspended">Suspended</a></li>
+            <ul class="nav nav-tabs" role="tablist">
+                <li class="nav-item" role="presentation"><a class="nav-link active" data-bs-toggle="tab" href="#pending" id="tabPending" role="tab" aria-controls="pending" aria-selected="true">Pending <span class="tab-count" data-count="pending" hidden></span></a></li>
+                <li class="nav-item" role="presentation"><a class="nav-link" data-bs-toggle="tab" href="#approved" id="tabApproved" role="tab" aria-controls="approved" aria-selected="false">Approved <span class="tab-count" data-count="approved" hidden></span></a></li>
+                <li class="nav-item" role="presentation"><a class="nav-link" data-bs-toggle="tab" href="#rejected" id="tabRejected" role="tab" aria-controls="rejected" aria-selected="false">Rejected <span class="tab-count" data-count="rejected" hidden></span></a></li>
+                <li class="nav-item" role="presentation"><a class="nav-link" data-bs-toggle="tab" href="#suspended" id="tabSuspended" role="tab" aria-controls="suspended" aria-selected="false">Suspended <span class="tab-count" data-count="suspended" hidden></span></a></li>
             </ul>
 
             <div class="tab-content">
-                <div class="tab-pane fade show active" id="pending">
-                    <div id="pendingList" class="row"></div>
+                <div class="tab-pane fade show active" id="pending" role="tabpanel" aria-labelledby="tabPending">
+                    <div id="pendingList" class="hotel-list"></div>
                 </div>
-                <div class="tab-pane fade" id="approved">
-                    <div id="approvedList" class="row"></div>
+                <div class="tab-pane fade" id="approved" role="tabpanel" aria-labelledby="tabApproved">
+                    <div id="approvedList" class="hotel-list"></div>
                 </div>
-                <div class="tab-pane fade" id="rejected">
-                    <div id="rejectedList" class="row"></div>
+                <div class="tab-pane fade" id="rejected" role="tabpanel" aria-labelledby="tabRejected">
+                    <div id="rejectedList" class="hotel-list"></div>
                 </div>
-                <div class="tab-pane fade" id="suspended">
-                    <div id="suspendedList" class="row"></div>
+                <div class="tab-pane fade" id="suspended" role="tabpanel" aria-labelledby="tabSuspended">
+                    <div id="suspendedList" class="hotel-list"></div>
                 </div>
             </div>
         </main>
@@ -82,7 +82,7 @@
 
     // Shows placeholder cards while hotels load.
     function showLoading() {
-        Object.values(lists).forEach((el) => { el.innerHTML = ReplateUI.skeleton('cards', 3); });
+        Object.values(lists).forEach((el) => { el.innerHTML = ReplateUI.skeleton('list', 2); });
     }
 
     // Waits for an admin sign-in, then loads the hotels.
@@ -126,6 +126,11 @@
                 cards[status].push(createHotelCard(hotel, child.key, status));
             });
 
+            document.querySelectorAll('.tab-count[data-count]').forEach((badge) => {
+                const n = cards[badge.dataset.count].length;
+                badge.textContent = n;
+                badge.hidden = n === 0;
+            });
             lists.pending.innerHTML = cards.pending.join('') || ReplateUI.emptyState('No pending hotels', 'New registrations will appear here for review.', 'fa-hourglass-half');
             lists.approved.innerHTML = cards.approved.join('') || ReplateUI.emptyState('No approved hotels yet', 'Approved partners are listed here.', 'fa-hotel');
             lists.rejected.innerHTML = cards.rejected.join('') || ReplateUI.emptyState('No rejected hotels', 'Declined registrations are listed here.', 'fa-circle-check');
@@ -133,16 +138,16 @@
         }
     }
 
-    // Builds the card for one hotel.
+    // Builds the card for one hotel: details on the left, actions pinned to the right (below on phones).
     function createHotelCard(hotel, key, status) {
         let buttons = '';
         if (status === 'pending') {
-            buttons = `<button class="btn btn-success btn-sm w-100 mb-2" data-action="approve" data-key="${esc(key)}"><i class="fas fa-check" aria-hidden="true"></i> Approve</button>
-               <button class="btn btn-danger btn-sm w-100" data-action="reject" data-key="${esc(key)}"><i class="fas fa-xmark" aria-hidden="true"></i> Reject</button>`;
+            buttons = `<button type="button" class="btn btn-primary" data-action="approve" data-key="${esc(key)}"><i class="fas fa-check" aria-hidden="true"></i>Approve hotel</button>
+               <button type="button" class="btn btn-outline-danger" data-action="reject" data-key="${esc(key)}"><i class="fas fa-xmark" aria-hidden="true"></i>Reject</button>`;
         } else if (status === 'approved') {
-            buttons = `<button class="btn btn-outline-danger btn-sm w-100" data-action="revoke" data-key="${esc(key)}"><i class="fas fa-ban" aria-hidden="true"></i> Revoke approval</button>`;
+            buttons = `<button type="button" class="btn btn-outline-danger" data-action="revoke" data-key="${esc(key)}"><i class="fas fa-ban" aria-hidden="true"></i>Revoke approval</button>`;
         } else if (status === 'rejected') {
-            buttons = `<button class="btn btn-outline-success btn-sm w-100" data-action="approve" data-key="${esc(key)}"><i class="fas fa-check" aria-hidden="true"></i> Approve after all</button>`;
+            buttons = `<button type="button" class="btn btn-outline-primary" data-action="approve" data-key="${esc(key)}"><i class="fas fa-check" aria-hidden="true"></i>Approve after all</button>`;
         } else if (status === 'suspended') {
             buttons = '<p class="small text-muted mb-0">Enable the owner\'s account on the Users page to bring this hotel back.</p>';
         }
@@ -150,31 +155,36 @@
         // New registrations keep the licence in hotelLicenses; older ones still carry it on the hotel
         const licenseUrl = ReplateUI.safeUrl(licenseUrls[key] || hotel.licenseUrl || hotel.license);
         const license = licenseUrl
-            ? `<a href="${esc(licenseUrl)}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-dark btn-sm w-100 mb-3"><i class="fas fa-file-lines" aria-hidden="true"></i> View license</a>`
-            : '<p class="small text-muted mb-3">No license uploaded.</p>';
+            ? `<a href="${esc(licenseUrl)}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-secondary"><i class="fas fa-file-lines" aria-hidden="true"></i>View licence</a>`
+            : '<p class="small text-muted mb-0">No licence uploaded.</p>';
+        const fact = (label, value, cls = '') => `<div><dt>${label}</dt><dd class="${cls}">${value}</dd></div>`;
         const gps = (hotel.latitude && hotel.longitude)
-            ? `<p class="small mb-2"><i class="fas fa-location-arrow" aria-hidden="true"></i> ${esc(hotel.latitude)}, ${esc(hotel.longitude)}</p>`
+            ? fact('Map location', `${esc(hotel.latitude)}, ${esc(hotel.longitude)}`, 'num')
             : '';
         const reason = status === 'rejected' && hotel.rejectionReason
-            ? `<p class="small text-danger mb-2">Reason: ${esc(hotel.rejectionReason)}</p>`
+            ? `<p class="hotel-reason">Reason: ${esc(hotel.rejectionReason)}</p>`
             : '';
+        const registered = Number(hotel.createdAt) ? fact('Registered', esc(ReplateSchema.formatDate(hotel.createdAt)), 'num') : '';
 
         return `
-            <div class="col-md-6 col-xl-4 mb-4">
-                <div class="card h-100 data-panel">
-                    <div class="card-body">
-                        <h2 class="section-title mb-1">${esc(hotel.hotelName || 'Hotel')}</h2>
-                        <p class="small text-muted mb-2">Owner: ${esc(hotel.ownerName || '-')}</p>
-                        <p class="small mb-1"><i class="fas fa-envelope" aria-hidden="true"></i> ${esc(hotel.email || '-')}</p>
-                        <p class="small mb-1"><i class="fas fa-phone" aria-hidden="true"></i> ${esc(hotel.phone || '-')}</p>
-                        <p class="small mb-2"><i class="fas fa-map-marker-alt" aria-hidden="true"></i> ${esc(hotel.address || '-')}</p>
+            <article class="card hotel-card">
+                <div class="hotel-card-main">
+                    <h2 class="section-title mb-1">${esc(hotel.hotelName || 'Hotel')}</h2>
+                    <p class="hotel-owner">Owner: ${esc(hotel.ownerName || '-')}</p>
+                    ${reason}
+                    <dl class="hotel-facts">
+                        ${fact('Email', esc(hotel.email || '-'))}
+                        ${fact('Phone', esc(hotel.phone || '-'), 'num')}
+                        ${fact('Address', esc(hotel.address || '-'))}
                         ${gps}
-                        ${reason}
-                        ${license}
-                        ${buttons}
-                    </div>
+                        ${registered}
+                    </dl>
                 </div>
-            </div>`;
+                <div class="hotel-card-actions">
+                    ${license}
+                    ${buttons}
+                </div>
+            </article>`;
     }
 
     // Asks to confirm, then sets the hotel status.

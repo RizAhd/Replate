@@ -420,7 +420,7 @@
         document.getElementById('averageRating').textContent = rating.count ? rating.average.toFixed(1) + ' / 5' : '—';
         document.getElementById('ratingCount').textContent = rating.count ? rating.count + (rating.count === 1 ? ' rating' : ' ratings') : 'No ratings yet';
 
-        document.getElementById('totalRevenue').textContent = 'LKR ' + revenue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        document.getElementById('totalRevenue').innerHTML = ReplateUI.moneyHtml(revenue);
         document.getElementById('totalOrders').textContent = total;
         document.getElementById('foodSaved').textContent = totalItemsRescued + ' items';
         setDelta('deltaRevenue', thisWeekRevenue, lastWeekRevenue);
@@ -587,10 +587,10 @@
             : performance.map((h) => `
                 <tr>
                     <td data-label="Hotel">${escapeHtml(h.hotelName)}</td>
-                    <td data-label="Orders">${h.orders}</td>
-                    <td data-label="Revenue">LKR ${h.revenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
-                    <td data-label="Cancel rate">${h.cancelRatePct}%</td>
-                    <td data-label="Rating">${h.ratingCount ? '<i class="fas fa-star text-warning" aria-hidden="true"></i> ' + h.avgRating.toFixed(1) + ' (' + h.ratingCount + ')' : '<span class="text-muted">—</span>'}</td>
+                    <td data-label="Orders" class="num">${h.orders}</td>
+                    <td data-label="Revenue" class="num">${ReplateSchema.formatMoney(h.revenue)}</td>
+                    <td data-label="Cancel rate" class="num">${h.cancelRatePct}%</td>
+                    <td data-label="Rating">${h.ratingCount ? '<span class="rating"><i class="fas fa-star" aria-hidden="true"></i>' + h.avgRating.toFixed(1) + ' (' + h.ratingCount + ')</span>' : '<span class="text-muted">—</span>'}</td>
                 </tr>`).join('');
     }
 </script>

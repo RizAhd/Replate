@@ -48,15 +48,15 @@
                 </div>
             </div>
 
-            <ul class="nav nav-tabs mb-3" id="reportTabs" role="tablist">
+            <ul class="nav nav-tabs" id="reportTabs" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="tabPerformance" data-bs-toggle="tab" data-bs-target="#paneHotels" type="button" role="tab" aria-controls="paneHotels" aria-selected="true">Hotel performance</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="tabCancelled" data-bs-toggle="tab" data-bs-target="#paneCancelled" type="button" role="tab" aria-controls="paneCancelled" aria-selected="false">Cancelled &amp; expired</button>
+                    <button class="nav-link" id="tabCancelled" data-bs-toggle="tab" data-bs-target="#paneCancelled" type="button" role="tab" aria-controls="paneCancelled" aria-selected="false">Cancelled and expired <span class="tab-count" id="cancelledCount" hidden></span></button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="tabReviews" data-bs-toggle="tab" data-bs-target="#paneReviews" type="button" role="tab" aria-controls="paneReviews" aria-selected="false">Reviews</button>
+                    <button class="nav-link" id="tabReviews" data-bs-toggle="tab" data-bs-target="#paneReviews" type="button" role="tab" aria-controls="paneReviews" aria-selected="false">Reviews <span class="tab-count" id="reviewsCount" hidden></span></button>
                 </li>
             </ul>
 
@@ -161,11 +161,18 @@
     // The date range chosen in the drop-down.
     function currentRange() { return document.getElementById('rangeFilter').value; }
     // Shows a time as readable text.
-    function stamp(ts) { return ts ? new Date(Number(ts)).toLocaleString() : '—'; }
+    function stamp(ts) { return ReplateSchema.formatDateTime(ts); }
     // Writes a time in a standard format for the CSV.
     function csvDate(ts) { return ts ? new Date(Number(ts)).toISOString() : ''; }
     // A table row that shows an error message.
     function errorRow(cols, message) { return '<tr><td colspan="' + cols + '">' + ReplateUI.errorState(message) + '</td></tr>'; }
+
+    // Shows a number on a tab (hidden when there is nothing).
+    function setTabCount(id, n) {
+        const el = document.getElementById(id);
+        el.textContent = n;
+        el.hidden = !n;
+    }
 
     // ── Live data ───────────────────────────────────────────
     function loadData() {
@@ -231,8 +238,8 @@
                     <td data-label="Completed">${esc(h.completed)}</td>
                     <td data-label="Cancelled">${esc(h.cancelled)}</td>
                     <td data-label="Cancel rate">${esc(h.cancelRatePct)}%</td>
-                    <td data-label="Revenue" class="num">LKR ${esc(h.revenue.toLocaleString(undefined, { maximumFractionDigits: 0 }))}</td>
-                    <td data-label="Rating">${h.ratingCount ? `<i class="fas fa-star text-warning" aria-hidden="true"></i> ${esc(h.avgRating.toFixed(1))} (${esc(h.ratingCount)})` : '<span class="text-muted">—</span>'}</td>
+                    <td data-label="Revenue" class="num">${esc(ReplateSchema.formatMoney(h.revenue))}</td>
+                    <td data-label="Rating">${h.ratingCount ? `<span class="rating"><i class="fas fa-star" aria-hidden="true"></i>${esc(h.avgRating.toFixed(1))} (${esc(h.ratingCount)})</span>` : '<span class="text-muted">—</span>'}</td>
                 </tr>`).join('');
     }
 
@@ -276,17 +283,18 @@
         const expired = cancelledRows.length - byHotel - byCustomer;
         document.getElementById('cancelledSummary').textContent =
             byCustomer + ' cancelled by customers, ' + byHotel + ' cancelled by hotels, ' + expired + ' expired pickups.';
+        setTabCount('cancelledCount', cancelledRows.length);
         body.innerHTML = cancelledRows.length === 0
             ? '<tr><td colspan="8">' + ReplateUI.emptyState('No cancelled or expired orders', 'Nothing to report for this range.', 'fa-circle-check') + '</td></tr>'
             : cancelledRows.map(({ kind, order }) => `
                 <tr>
                     <td data-label="Order ID"><code>#${esc(ReplateSchema.shortOrderId(order, order.orderId))}</code></td>
-                    <td data-label="Placed">${esc(stamp(ReplateSchema.placedAt(order)))}</td>
+                    <td data-label="Placed" class="num">${esc(stamp(ReplateSchema.placedAt(order)))}</td>
                     <td data-label="Customer">${esc(order.customerName || '—')}</td>
                     <td data-label="Hotel">${esc(order.hotelName || '—')}</td>
                     <td data-label="Items">${esc(ReplateSchema.extractItemNames(order))}</td>
-                    <td data-label="Amount" class="num">LKR ${esc(ReplateSchema.formatAmount(order.totalAmount || order.totalPrice))}</td>
-                    <td data-label="Payment">${esc(order.paymentMethod || '—')}<br><small class="text-muted">${esc(order.paymentStatus || 'pending')}</small></td>
+                    <td data-label="Amount" class="num">${esc(ReplateSchema.formatMoney(ReplateSchema.orderAmount(order)))}</td>
+                    <td data-label="Payment"><span class="nowrap">${esc(order.paymentMethod || '—')}</span><br><span class="badge ${ReplateSchema.paymentView(order).cls}">${esc(ReplateSchema.paymentView(order).label)}</span></td>
                     <td data-label="What happened">${kindBadge(kind)}</td>
                 </tr>`).join('');
     }
@@ -343,18 +351,19 @@
         const shown = reviewRows.slice(0, MAX_REVIEW_ROWS);
         document.getElementById('reviewsSummary').textContent = reviewRows.length + (reviewRows.length === 1 ? ' review' : ' reviews') +
             (reviewRows.length > shown.length ? ' (newest ' + shown.length + ' shown, the CSV has all of them)' : '') + '.';
+        setTabCount('reviewsCount', reviewRows.length);
         body.innerHTML = shown.length === 0
             ? '<tr><td colspan="7">' + ReplateUI.emptyState('No reviews in this range', 'Customer reviews appear here after they rate an order.', 'fa-star') + '</td></tr>'
             : shown.map((r) => `
                 <tr>
                     <td data-label="Hotel">${esc(r.hotel)}</td>
                     <td data-label="Dish">${esc(r.dish)}</td>
-                    <td data-label="Rating"><i class="fas fa-star text-warning" aria-hidden="true"></i> ${esc(r.rating.toFixed(1))}</td>
+                    <td data-label="Rating"><span class="rating"><i class="fas fa-star" aria-hidden="true"></i>${esc(r.rating.toFixed(1))}</span></td>
                     <td data-label="Comment" class="review-comment">${r.comment ? esc(r.comment) : '<span class="text-muted">No comment</span>'}</td>
                     <td data-label="Customer">${esc(r.customer)}</td>
-                    <td data-label="Date">${esc(stamp(r.createdAt))}</td>
+                    <td data-label="Date" class="num">${esc(stamp(r.createdAt))}</td>
                     <td data-label="Action" class="actions-cell">
-                        <button type="button" id="delReview_${esc(r.id)}" class="btn btn-sm btn-outline-danger" data-action="delete" data-id="${esc(r.id)}"><i class="fas fa-trash" aria-hidden="true"></i> Delete</button>
+                        <button type="button" id="delReview_${esc(r.id)}" class="btn btn-sm btn-outline-danger" data-action="delete" data-id="${esc(r.id)}"><i class="fas fa-trash" aria-hidden="true"></i>Delete</button>
                     </td>
                 </tr>`).join('');
     }
@@ -401,7 +410,7 @@
         if (!ok) return;
 
         const buttonId = 'delReview_' + id;
-        ReplateUI.setButtonLoading(buttonId, true, 'Deleting...');
+        ReplateUI.setButtonLoading(buttonId, true, 'Deleting…');
         try {
             const updates = {};
             copies.forEach((r) => { updates['reviews/' + r.id] = null; });

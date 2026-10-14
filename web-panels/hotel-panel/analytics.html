@@ -202,8 +202,7 @@
         ReplateSchema.hotelFoodItems(database, resolvedHotelIds).on((snap) => {
             let count = 0;
             snap.forEach(child => {
-                const item = child.val() || {};
-                if (item.isAvailable !== false && item.status !== 'sold_out') count++;
+                if (ReplateSchema.listingState(child.val()).key === 'active') count++;
             });
             document.getElementById('statListings').textContent = count;
         }, (error) => console.error('Could not load listings', error));
@@ -280,7 +279,7 @@
             });
 
             // ── Update stat cards ──
-            document.getElementById('statRevenue').textContent = 'LKR ' + totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+            document.getElementById('statRevenue').innerHTML = ReplateUI.moneyHtml(totalRevenue);
             document.getElementById('statOrders').textContent = totalOrders;
             const completionRate = totalOrders > 0 ? Math.round((completed / totalOrders) * 100) : 0;
             document.getElementById('statCompletionRate').textContent = completionRate + '%';
@@ -411,14 +410,13 @@
             } else {
                 tbody.innerHTML = top10.map(({ key, order, ts }) => {
                     const status = ReplateSchema.normalizeOrderStatus(order.orderStatus);
-                    const bgClass = ReplateSchema.statusBgClass(status);
                     const label = ReplateSchema.statusLabel(status);
-                    const amount = ReplateSchema.formatAmount(order.totalAmount || order.totalPrice);
+                    const amount = ReplateSchema.formatMoney(ReplateSchema.orderAmount(order));
                     const displayId = ReplateSchema.shortOrderId(order, key);
                     return `<tr>
                         <td data-label="Order ID"><code>#${ReplateUI.esc(displayId)}</code></td>
                         <td data-label="Customer">${ReplateUI.esc(order.customerName || order.userName || '—')}</td>
-                        <td data-label="Amount" class="num">LKR ${ReplateUI.esc(amount)}</td>
+                        <td data-label="Amount" class="num">${ReplateUI.esc(amount)}</td>
                         <td data-label="Status"><span class="badge ${ReplateUI.esc(ReplateSchema.statusBadgeClass(status))}">${ReplateUI.esc(label)}</span></td>
                         <td data-label="Time">${ReplateUI.esc(timeAgo(ts))}</td>
                     </tr>`;

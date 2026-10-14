@@ -142,18 +142,6 @@
             font-size: 9px;
             margin-right: 3px;
         }
-        .no-conversations {
-            padding: 50px 20px;
-            text-align: center;
-            color: var(--text-tertiary);
-        }
-        .no-conversations i {
-            font-size: 36px;
-            opacity: 0.3;
-            display: block;
-            margin-bottom: 12px;
-        }
-
         /* ── CENTER: Live Chat ───────────────────────────── */
         .panel-chat {
             flex: 1;
@@ -392,21 +380,6 @@
             text-align: center;
             padding: 40px 24px;
         }
-        .empty-panel i {
-            font-size: 48px;
-            margin-bottom: 14px;
-            opacity: 0.25;
-        }
-        .empty-panel h5 {
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin-bottom: 4px;
-            font-size: 15px;
-        }
-        .empty-panel p {
-            font-size: 12.5px;
-            max-width: 200px;
-        }
 
         /* ── Responsive ───────────────────────────────────── */
         @media (max-width: 1100px) {
@@ -463,29 +436,29 @@
                         </div>
                     </div>
                     <div class="conv-items" id="conversationList">
-                        <div class="no-conversations">
-                            <i class="fas fa-comments" aria-hidden="true"></i>
-                            <p class="mb-1 fw-semibold" style="color:var(--text-secondary);font-size:13px;">No conversations yet</p>
-                            <small style="font-size:12px;">Customer messages will appear here</small>
-                        </div>
+                        <div class="skeleton-group sk-list p-3" aria-hidden="true"><div class="skeleton sk-row"></div><div class="skeleton sk-row"></div></div>
                     </div>
                 </div>
 
                 <!-- CENTER: Live Chat -->
                 <div class="panel-chat" id="panelChat">
                     <div class="empty-panel">
-                        <i class="fas fa-comments" aria-hidden="true"></i>
-                        <h5>Select a conversation</h5>
-                        <p>Choose a customer from the left to start chatting</p>
+                        <div class="empty-state">
+                            <div class="empty-icon"><i class="fas fa-comments" aria-hidden="true"></i></div>
+                            <h3>Pick a conversation</h3>
+                            <p>Choose a customer from the list to read and reply.</p>
+                        </div>
                     </div>
                 </div>
 
                 <!-- RIGHT: Customer Details -->
                 <div class="panel-details" id="panelDetails">
                     <div class="empty-panel">
-                        <i class="fas fa-user-circle" aria-hidden="true"></i>
-                        <h5>Customer Details</h5>
-                        <p>Select a conversation to see customer information</p>
+                        <div class="empty-state">
+                            <div class="empty-icon"><i class="fas fa-user" aria-hidden="true"></i></div>
+                            <h3>Customer details</h3>
+                            <p>Open a conversation to see who you are talking to.</p>
+                        </div>
                     </div>
                 </div>
 
@@ -590,9 +563,7 @@
             allConversations.sort((a, b) => (b.lastTimestamp || 0) - (a.lastTimestamp || 0));
 
             if (!allConversations.length) {
-                listEl.innerHTML = `<div class="no-conversations"><i class="fas fa-comments" aria-hidden="true"></i>
-                    <p class="mb-1 fw-semibold" style="color:var(--text-secondary);font-size:13px;">No conversations yet</p>
-                    <small style="font-size:12px;">Customer messages will appear here</small></div>`;
+                listEl.innerHTML = ReplateUI.emptyState('No conversations yet', 'When a customer messages your hotel from the app, the chat appears here.', 'fa-comments');
                 return;
             }
             renderConversations(allConversations);
@@ -623,8 +594,7 @@
     function renderConversations(list) {
         const el = document.getElementById('conversationList');
         if (!list.length) {
-            el.innerHTML = `<div class="no-conversations"><i class="fas fa-search" aria-hidden="true"></i>
-                <p class="mb-0" style="color:var(--text-secondary);font-size:13px;">No results</p></div>`;
+            el.innerHTML = ReplateUI.emptyState('No matching conversations', 'Try a customer name, email or dish.', 'fa-magnifying-glass');
             return;
         }
 

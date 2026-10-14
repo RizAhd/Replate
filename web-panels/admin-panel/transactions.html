@@ -177,8 +177,8 @@
         const nodes = table.rows({ search: 'applied' }).nodes().toArray();
         let earned = 0;
         nodes.forEach((tr) => { earned += Number(tr.dataset.earned) || 0; });
-        document.getElementById('summary').textContent = nodes.length + (nodes.length === 1 ? ' order' : ' orders') +
-            ' shown. Completed revenue in this view: LKR ' + earned.toLocaleString(undefined, { maximumFractionDigits: 0 }) + '.';
+        document.getElementById('summary').textContent = ReplateSchema.plural(nodes.length, 'order') +
+            ' shown. Completed revenue in this view: ' + ReplateSchema.formatMoney(earned);
     }
 
     // Refills the hotel drop-down with the hotel names.
@@ -190,13 +190,11 @@
         if (names.includes(current)) select.value = current;
     }
 
-    // Builds the payment column text for an order.
+    // Builds the payment column text for an order (a completed cash order counts as paid).
     function paymentCell(order) {
         const method = String(order.paymentMethod || '—');
-        const paid = String(order.paymentStatus || '').toLowerCase();
-        const cls = paid === 'paid' ? 'badge-success' : paid === 'failed' ? 'badge-danger' : 'badge-warning';
-        const label = paid ? paid.charAt(0).toUpperCase() + paid.slice(1) : 'Pending';
-        return `${esc(method)}<br><span class="badge ${cls}">${esc(label)}</span>`;
+        const view = ReplateSchema.paymentView(order);
+        return `<span class="nowrap">${esc(method)}</span><br><span class="badge ${view.cls}">${esc(view.label)}</span>`;
     }
 
     // Listens for the latest orders and redraws the table.
@@ -210,10 +208,10 @@
             snapshot.forEach((child) => {
                 const order = child.val() || {};
                 ordersByKey[child.key] = order;
-                const date = order.createdAt ? new Date(order.createdAt).toLocaleString() : 'N/A';
+                const date = ReplateSchema.formatDateTime(order.createdAt);
                 const status = ReplateSchema.normalizeOrderStatus(order.orderStatus);
                 const label = ReplateSchema.statusLabel(status);
-                const amount = ReplateSchema.formatAmount(order.totalAmount || order.totalPrice);
+                const amount = ReplateSchema.formatMoney(ReplateSchema.orderAmount(order));
                 const displayId = ReplateSchema.shortOrderId(order, child.key);
                 const rating = Number(order.reviewRating);
                 const hotelName = order.hotelName || '—';
@@ -226,13 +224,13 @@
                 rows.push(`
                     <tr data-key="${esc(child.key)}" data-ts="${esc(order.createdAt || 0)}" data-state="${state}" data-hotel="${esc(hotelName)}" data-earned="${earned}">
                         <td data-label="Order ID"><code>#${esc(displayId)}</code></td>
-                        <td data-label="Date" data-order="${esc(order.createdAt || 0)}">${esc(date)}</td>
+                        <td data-label="Date" class="num" data-order="${esc(order.createdAt || 0)}">${esc(date)}</td>
                         <td data-label="Customer">${esc(order.customerName || '—')}</td>
                         <td data-label="Hotel">${esc(hotelName)}</td>
                         <td data-label="Items">${esc(ReplateSchema.extractItemNames(order))}</td>
-                        <td data-label="Amount" class="num" data-order="${esc(ReplateSchema.orderAmount(order))}">LKR ${esc(amount)}</td>
+                        <td data-label="Amount" class="num" data-order="${esc(ReplateSchema.orderAmount(order))}">${esc(amount)}</td>
                         <td data-label="Payment">${paymentCell(order)}</td>
-                        <td data-label="Review">${rating > 0 ? `<i class="fas fa-star text-warning" aria-hidden="true"></i> ${rating.toFixed(1)}` : '<span class="text-muted">—</span>'}</td>
+                        <td data-label="Review">${rating > 0 ? `<span class="rating"><i class="fas fa-star" aria-hidden="true"></i>${rating.toFixed(1)}</span>` : '<span class="text-muted" aria-label="No review">—</span>'}</td>
                         <td data-label="Status"><span class="badge ${esc(ReplateSchema.statusBadgeClass(status))}">${esc(label)}</span></td>
                     </tr>`);
             });

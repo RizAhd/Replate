@@ -31,7 +31,7 @@
                     <h1 class="panel-title">Dashboard</h1>
                     <p class="panel-subtitle">Track orders, active listings, and revenue in real time.</p>
                 </div>
-                <div class="status-badge bg-secondary" id="approvalStatus" role="status">Checking status&hellip;</div>
+                <div class="status-badge badge-neutral" id="approvalStatus" role="status">Checking status&hellip;</div>
             </div>
 
             <!-- Stats -->
@@ -78,7 +78,7 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span>Recent Orders</span>
-                    <a href="orders.html" class="btn btn-sm btn-outline-primary">View All</a>
+                    <a href="orders.html" class="btn btn-sm btn-outline-secondary">View all orders</a>
                 </div>
                 <div class="table-responsive">
                         <table class="table table-hover align-middle table-stack">
@@ -119,10 +119,9 @@
     // Shows the hotel's approval status as a badge.
     function setApprovalBadge(status) {
         const badge = document.getElementById('approvalStatus');
-        const s = ReplateSchema.normalizeHotelStatus(status);
-        const label = { approved: 'Approved', pending: 'Pending approval', rejected: 'Not approved' }[s] || 'Status unknown';
-        badge.className = 'status-badge ' + ({ approved: 'badge-approved', pending: 'badge-pending', rejected: 'badge-rejected' }[s] || 'bg-secondary');
-        badge.textContent = label;
+        const view = ReplateSchema.hotelStatusView(status);
+        badge.className = 'status-badge ' + view.cls;
+        badge.textContent = view.label;
     }
 
     // Waits for a hotel sign-in, then loads the dashboard.
@@ -138,7 +137,7 @@
         } catch (e) {
             console.error('Failed to resolve hotel identity:', e);
             const badge = document.getElementById('approvalStatus');
-            badge.className = 'status-badge bg-secondary';
+            badge.className = 'status-badge badge-neutral';
             badge.textContent = 'Status unavailable';
         }
         document.getElementById('recentOrdersTable').innerHTML =
@@ -146,21 +145,31 @@
         loadDashboard();
     })();
 
+    let activeListings = null; // null until the listings have loaded
+
     /** Daily earnings (today first) and the best-selling dishes, from the same live orders. */
     function renderEarningsAndPopular(orders) {
         const earnings = ReplateSchema.dailyEarnings(orders, 7).reverse();
-        document.getElementById('dailyEarnings').innerHTML = earnings.map((day, i) => {
-            const label = i === 0 ? 'Today' : new Date(day.key + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
-            return `<li class="list-group-item d-flex justify-content-between align-items-center${i === 0 ? ' fw-bold' : ''}">
-                <span>${esc(label)}</span><span class="num">LKR ${esc(ReplateSchema.formatAmount(day.amount))}</span></li>`;
-        }).join('');
+        const earningsList = document.getElementById('dailyEarnings');
+        earningsList.innerHTML = earnings.some((day) => day.amount > 0)
+            ? earnings.map((day, i) => {
+                const label = i === 0 ? 'Today' : new Date(day.key + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+                return `<li class="list-group-item d-flex justify-content-between align-items-center${i === 0 ? ' fw-semibold' : ''}">
+                <span>${esc(label)}</span><span class="num">${esc(ReplateSchema.formatMoney(day.amount))}</span></li>`;
+            }).join('')
+            : '<li class="list-group-item list-empty">' + ReplateUI.emptyState('No earnings in the last 7 days',
+                'Money from completed and delivered orders shows here, day by day.', 'fa-coins') + '</li>';
 
         const popular = ReplateSchema.popularItems(orders, 5);
-        document.getElementById('popularItems').innerHTML = popular.length
+        const popularList = document.getElementById('popularItems');
+        popularList.classList.toggle('list-group-numbered', popular.length > 0);
+        popularList.innerHTML = popular.length
             ? popular.map((item) => `<li class="list-group-item d-flex justify-content-between align-items-center">
                 <span class="ms-2 me-auto">${esc(item.name)}</span>
-                <span class="badge badge-success">${esc(item.quantity)} sold</span></li>`).join('')
-            : '<li class="list-group-item text-muted">Your best sellers appear here once customers order.</li>';
+                <span class="badge badge-success num">${esc(item.quantity)} sold</span></li>`).join('')
+            : '<li class="list-group-item list-empty">' + ReplateUI.emptyState('Your best sellers appear here',
+                'Once customers order, your most popular dishes are ranked here.', 'fa-ranking-star',
+                activeListings ? null : { href: 'add-food.html', label: 'Add your first listing', icon: 'fa-plus' }) + '</li>';
     }
 
     // Listens for this hotel's orders and listings and redraws the numbers.
@@ -185,7 +194,7 @@
                 recentOrders.push({ key: child.key, ...order });
             });
 
-            document.getElementById('statRevenue').textContent = 'LKR ' + revenue.toLocaleString('en-LK', { minimumFractionDigits: 2 });
+            document.getElementById('statRevenue').innerHTML = ReplateUI.moneyHtml(revenue);
             document.getElementById('statPending').textContent = pending;
             document.getElementById('statTotal').textContent = total;
 
@@ -196,7 +205,7 @@
 
             if (recentOrders.length === 0) {
                 tableBody.innerHTML = '<tr><td colspan="5">' +
-                    ReplateUI.emptyState('No orders yet', 'New reservations will show up here the moment customers place them.', 'fa-receipt') + '</td></tr>';
+                    ReplateUI.emptyState('No orders yet', 'New orders show up here the moment customers place them.', 'fa-receipt') + '</td></tr>';
                 return;
             }
 
@@ -207,7 +216,7 @@
                         <td data-label="Order ID"><code>#${esc(ReplateSchema.shortOrderId(order, order.key))}</code></td>
                         <td data-label="Customer">${esc(order.customerName || '—')}</td>
                         <td data-label="Items">${esc(ReplateSchema.extractItemNames(order))}</td>
-                        <td data-label="Total" class="num">LKR ${esc(ReplateSchema.formatAmount(order.totalAmount || order.totalPrice))}</td>
+                        <td data-label="Total" class="num">${esc(ReplateSchema.formatMoney(ReplateSchema.orderAmount(order)))}</td>
                         <td data-label="Status"><span class="badge ${esc(ReplateSchema.statusBadgeClass(status))}">${esc(ReplateSchema.statusLabel(status))}</span></td>
                     </tr>`;
             }).join('');
@@ -222,10 +231,9 @@
         ReplateSchema.hotelFoodItems(database, hotelIds).on((snapshot) => {
             let active = 0;
             snapshot.forEach((child) => {
-                const item = child.val() || {};
-                const available = item.isAvailable === true || String(item.status || '').toLowerCase() === 'available';
-                if (available && item.suspendedByAdmin !== true) active++;
+                if (ReplateSchema.listingState(child.val()).key === 'active') active++;
             });
+            activeListings = active;
             document.getElementById('statActive').textContent = active;
         }, (error) => console.error('Could not load listings', error));
     }

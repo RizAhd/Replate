@@ -126,6 +126,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 <script src="../js/env-config.js"></script>
 <script src="../js/firebase-config.js"></script>
+<script src="../js/data-schema.js"></script>
 <script src="../js/admin-shell-config.js"></script>
 <script src="../js/ui-shell.js"></script>
 
@@ -157,7 +158,7 @@
 
     // Gives the "show from / until" dates as text.
     function formatWindow(b) {
-        const fmt = (ms) => new Date(ms).toLocaleString();
+        const fmt = (ms) => ReplateSchema.formatDateTime(ms);
         if (!b.startAt && !b.endAt) return 'Always';
         return (b.startAt ? 'From ' + fmt(b.startAt) : '') + (b.startAt && b.endAt ? '<br>' : '') +
                (b.endAt ? 'Until ' + fmt(b.endAt) : '');
@@ -178,14 +179,14 @@
                 const b = child.val() || {};
                 const key = child.key;
                 const thumb = b.imageUrl && /^https:\/\//i.test(b.imageUrl)
-                    ? `<img class="banner-thumb" src="${esc(b.imageUrl)}" alt="">`
+                    ? `<img class="banner-thumb" src="${esc(b.imageUrl)}" alt="" width="96" height="48" loading="lazy">`
                     : '<div class="banner-thumb"></div>';
                 rows.push(`
                     <tr>
                         <td data-label="Preview">${thumb}</td>
                         <td data-label="Banner">
                             <strong>${esc(b.title)}</strong>
-                            ${b.badge ? `<span class="badge bg-warning text-dark ms-1">${esc(b.badge)}</span>` : ''}
+                            ${b.badge ? `<span class="badge badge-primary ms-1">${esc(b.badge)}</span>` : ''}
                             <div class="small text-muted">${esc(b.subtitle)}</div>
                             <div class="small text-muted">${b.deepLink ? 'Action: ' + esc(b.deepLink) : 'No action'}</div>
                             <div class="small text-muted">${formatWindow(b)}</div>
@@ -193,18 +194,18 @@
                         <td data-label="Order">${esc(b.order)}</td>
                         <td data-label="Active">
                             <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" ${b.active !== false ? 'checked' : ''}
-                                       onchange="toggleBanner('${esc(key)}', this.checked)" aria-label="Active">
+                                <input class="form-check-input" type="checkbox" role="switch" ${b.active !== false ? 'checked' : ''}
+                                       data-key="${esc(key)}" aria-label="Show ${esc(b.title || 'banner')} in the app">
                             </div>
                         </td>
                         <td data-label="Actions" class="actions-cell">
-                            <button class="btn btn-sm btn-danger" onclick="deleteBanner('${esc(key)}')" aria-label="Delete banner">🗑️</button>
+                            <button type="button" class="btn btn-sm btn-icon btn-outline-danger" data-action="delete" data-key="${esc(key)}" aria-label="Delete ${esc(b.title || 'banner')}" title="Delete"><i class="fas fa-trash" aria-hidden="true"></i></button>
                         </td>
                     </tr>
                 `);
             });
             tbody.innerHTML = rows.length ? rows.join('')
-                : '<tr><td colspan="5" class="text-center text-muted py-4">No banners yet. The app shows its built-in banners until you add one.</td></tr>';
+                : '<tr><td colspan="5">' + ReplateUI.emptyState('No banners yet', 'The app shows its built-in banners until you add one.', 'fa-images') + '</td></tr>';
         }, (error) => {
             showMessage('Could not load banners: ' + error.message, true);
         });
@@ -265,15 +266,25 @@
         }
     });
 
+    // Row controls: the switch turns a banner on or off, the bin deletes it
+    document.getElementById('bannerTable').addEventListener('change', (event) => {
+        const box = event.target.closest('input.form-check-input[data-key]');
+        if (box) toggleBanner(box.dataset.key, box.checked);
+    });
+    document.getElementById('bannerTable').addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-action="delete"]');
+        if (button) deleteBanner(button.dataset.key);
+    });
+
     // Turns a banner on or off.
-    window.toggleBanner = function (key, active) {
+    function toggleBanner(key, active) {
         database.ref('banners/' + key + '/active').set(!!active).catch((err) => {
             showMessage('Could not update the banner: ' + err.message, true);
         });
-    };
+    }
 
     // Asks to confirm, then deletes the banner and its image.
-    window.deleteBanner = async function (key) {
+    async function deleteBanner(key) {
         const ok = await ReplateUI.confirmAction('The banner will stop showing in the app.', {
             title: 'Delete this banner?', confirmText: 'Delete', danger: true });
         if (!ok) return;
@@ -288,7 +299,7 @@
         } catch (err) {
             showMessage('Could not delete the banner: ' + err.message, true);
         }
-    };
+    }
 </script>
 </body>
 </html>

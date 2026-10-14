@@ -18,59 +18,75 @@ const ReplateSchema = (() => {
         return 'pending_pickup';
     }
 
+    // ── One vocabulary for every status: the words shown and the badge colour ──────────
+    const ORDER_STATUS_VIEW = {
+        pending_pickup:   { label: 'Pending pickup',   cls: 'badge-warning' },
+        pending_delivery: { label: 'Pending delivery', cls: 'badge-warning' },
+        confirmed:        { label: 'Confirmed',        cls: 'badge-primary' },
+        preparing:        { label: 'Preparing',        cls: 'badge-primary' },
+        ready:            { label: 'Ready for pickup', cls: 'badge-primary' },
+        out_for_delivery: { label: 'Out for delivery', cls: 'badge-primary' },
+        delivered:        { label: 'Delivered',        cls: 'badge-success' },
+        completed:        { label: 'Completed',        cls: 'badge-success' },
+        cancelled:        { label: 'Cancelled',        cls: 'badge-danger' }
+    };
+
+    /** { label, cls } for an order status. */
+    function orderStatusView(status) {
+        return ORDER_STATUS_VIEW[normalizeOrderStatus(status)];
+    }
+
     // Picks the badge colour class for a status.
     function statusBadgeClass(status) {
-        const s = normalizeOrderStatus(status);
-        switch (s) {
-            case 'completed':
-            case 'delivered':
-                return 'badge-success';
-            case 'cancelled':
-                return 'badge-danger';
-            case 'confirmed':
-            case 'preparing':
-            case 'ready':
-            case 'out_for_delivery':
-                return 'badge-primary';
-            default:
-                return 'badge-warning';
-        }
+        return orderStatusView(status).cls;
     }
 
     // Gives the words shown for a status.
     function statusLabel(status) {
-        const s = normalizeOrderStatus(status);
-        switch (s) {
-            case 'pending_pickup':     return 'Pending Pickup';
-            case 'pending_delivery':   return 'Pending Delivery';
-            case 'confirmed':          return 'Confirmed';
-            case 'preparing':          return 'Preparing';
-            case 'ready':              return 'Ready for Pickup';
-            case 'out_for_delivery':   return 'Out for Delivery';
-            case 'delivered':          return 'Delivered';
-            case 'completed':          return 'Completed';
-            case 'cancelled':          return 'Cancelled';
-            default:                   return 'Pending';
-        }
+        return orderStatusView(status).label;
     }
 
-    // Picks the background colour class for a status.
-    function statusBgClass(status) {
-        const s = normalizeOrderStatus(status);
-        switch (s) {
-            case 'completed':
-            case 'delivered':
-                return 'bg-success';
-            case 'cancelled':
-                return 'bg-danger';
-            case 'confirmed':
-            case 'preparing':
-            case 'ready':
-            case 'out_for_delivery':
-                return 'bg-primary';
-            default:
-                return 'bg-warning text-dark';
+    const HOTEL_STATUS_VIEW = {
+        approved:  { label: 'Approved',         cls: 'badge-success' },
+        pending:   { label: 'Pending approval', cls: 'badge-warning' },
+        rejected:  { label: 'Not approved',     cls: 'badge-danger' },
+        suspended: { label: 'Suspended',        cls: 'badge-danger' }
+    };
+
+    /** { label, cls } for a hotel's approval status. */
+    function hotelStatusView(raw) {
+        return HOTEL_STATUS_VIEW[normalizeHotelStatus(raw)];
+    }
+
+    /**
+     * What a listing looks like to customers, as { key, label, cls }:
+     * active, soldout, hidden (by an admin) or inactive (hidden).
+     */
+    function listingState(item) {
+        const it = item || {};
+        const status = String(it.status || '').toLowerCase();
+        if (it.suspendedByAdmin === true) return { key: 'hidden', label: 'Hidden by admin', cls: 'badge-neutral' };
+        if (status === 'inactive') return { key: 'inactive', label: 'Hidden', cls: 'badge-neutral' };
+        if (status === 'sold_out' || it.isAvailable === false || toNumber(it.quantity, 1) <= 0) {
+            return { key: 'soldout', label: 'Sold out', cls: 'badge-warning' };
         }
+        return { key: 'active', label: 'Active', cls: 'badge-success' };
+    }
+
+    /**
+     * Payment as { label, cls }. Cash is paid at the counter, so a completed or delivered cash
+     * order counts as paid even though the app leaves paymentStatus at "pending".
+     */
+    function paymentView(order) {
+        const o = order || {};
+        const raw = String(o.paymentStatus || '').toLowerCase().trim();
+        const cash = String(o.paymentMethod || 'Cash').toLowerCase().includes('cash');
+        if (raw === 'paid') return { label: 'Paid', cls: 'badge-success' };
+        if (raw === 'failed') return { label: 'Failed', cls: 'badge-danger' };
+        if (cash && isSuccessfulOrder(o)) return { label: 'Paid (cash)', cls: 'badge-success' };
+        if (isCancelledOrder(o)) return { label: 'Not paid', cls: 'badge-neutral' };
+        if (raw && raw !== 'pending') return { label: raw.charAt(0).toUpperCase() + raw.slice(1), cls: 'badge-neutral' };
+        return { label: 'Pending', cls: 'badge-warning' };
     }
 
     // Makes text like "Rice x2, Soup x1" from the order items.
@@ -182,10 +198,43 @@ const ReplateSchema = (() => {
             .slice(0, limit);
     }
 
-    // Shows an amount with two decimals.
+    // Shows an amount with two decimals (plain digits, for CSV files).
     function formatAmount(val) {
         const n = parseFloat(val);
         return isNaN(n) ? '0.00' : n.toFixed(2);
+    }
+
+    // ── One money format and one date format for every page ───────────────────────────
+    const MONEY = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const DATE_TIME = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
+    const DATE_ONLY = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+    /** "6,340.00" (no currency). */
+    function formatNumber2(val) {
+        const n = parseFloat(val);
+        return MONEY.format(Number.isFinite(n) ? n : 0);
+    }
+
+    /** "LKR 6,340.00" */
+    function formatMoney(val) {
+        return 'LKR ' + formatNumber2(val);
+    }
+
+    /** "14 Oct 2026, 12:27" ("—" when unknown). */
+    function formatDateTime(ts) {
+        const n = Number(ts);
+        return n > 0 ? DATE_TIME.format(new Date(n)) : '—';
+    }
+
+    /** "14 Oct 2026" ("—" when unknown). */
+    function formatDate(ts) {
+        const n = Number(ts);
+        return n > 0 ? DATE_ONLY.format(new Date(n)) : '—';
+    }
+
+    /** "1 order", "3 orders" */
+    function plural(count, one, many) {
+        return count + ' ' + (count === 1 ? one : (many || one + 's'));
     }
 
     // Shortens the order id to its last 8 characters.
@@ -461,12 +510,20 @@ const ReplateSchema = (() => {
         hotelOrders,
         hotelFoodItems,
         normalizeOrderStatus,
+        orderStatusView,
         statusBadgeClass,
         statusLabel,
-        statusBgClass,
+        hotelStatusView,
+        listingState,
+        paymentView,
         extractItemNames,
         extractItemsArray,
         formatAmount,
+        formatNumber2,
+        formatMoney,
+        formatDateTime,
+        formatDate,
+        plural,
         shortOrderId,
         normalizeUserRole,
         normalizeHotelStatus,

@@ -19,8 +19,6 @@
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
     <link rel="manifest" href="../manifest.webmanifest">
     <style>
-        .listing-thumb-empty { width: 48px; height: 48px; border-radius: 8px; background: var(--bg); color: var(--text-tertiary); display: flex; align-items: center; justify-content: center; }
-        .old-price { text-decoration: line-through; color: var(--text-tertiary); font-size: 0.78rem; }
     </style>
 </head>
 <body>
@@ -103,15 +101,8 @@
         loadListings();
     })();
 
-    // The status the app shows for a listing
-    function listingState(item) {
-        const status = String(item.status || '').toLowerCase();
-        if (item.suspendedByAdmin) return { key: 'hidden', label: 'Hidden by admin', cls: 'badge-danger' };
-        if (status === 'inactive') return { key: 'inactive', label: 'Inactive', cls: 'badge-warning' };
-        if (status === 'sold_out' || Number(item.quantity) <= 0) return { key: 'soldout', label: 'Sold out', cls: 'badge-warning' };
-        if (item.isAvailable === false) return { key: 'inactive', label: 'Unavailable', cls: 'badge-warning' };
-        return { key: 'available', label: 'Available', cls: 'badge-success' };
-    }
+    // The status the app shows for a listing (one vocabulary for both panels)
+    const listingState = (item) => ReplateSchema.listingState(item);
 
     // Gives the pickup time range as text.
     function pickupWindow(item) {
@@ -174,22 +165,23 @@
             return `
                 <tr data-id="${esc(id)}">
                     <td data-label="Photo">${image
-                        ? `<img class="listing-thumb" src="${esc(image)}" alt="" loading="lazy">`
-                        : '<div class="listing-thumb-empty"><i class="fas fa-image" aria-hidden="true"></i></div>'}</td>
+                        ? `<img class="listing-thumb" src="${esc(image)}" alt="" width="56" height="56" loading="lazy">`
+                        : '<div class="listing-thumb listing-thumb-empty"><i class="fas fa-image" aria-hidden="true"></i></div>'}</td>
                     <td data-label="Dish">${esc(item.foodName || 'Untitled')}</td>
                     <td data-label="Hotel">${esc(item.hotelName || '—')}</td>
                     <td data-label="Category">${esc(item.category || '—')}</td>
-                    <td data-label="Price" data-order="${esc(priceOf(item))}">LKR ${esc(ReplateSchema.formatAmount(item.discountedPrice))}${Number.isFinite(original) && original > priceOf(item) ? `<br><span class="old-price">LKR ${esc(ReplateSchema.formatAmount(original))}</span>` : ''}</td>
-                    <td data-label="Qty" data-order="${esc(Number(item.quantity) || 0)}">${esc(Number(item.quantity) || 0)}</td>
-                    <td data-label="Pickup window">${esc(pickupWindow(item))}</td>
+                    <td data-label="Price" class="num" data-order="${esc(priceOf(item))}">${esc(ReplateSchema.formatMoney(item.discountedPrice))}${Number.isFinite(original) && original > priceOf(item) ? `<br><span class="old-price">${esc(ReplateSchema.formatMoney(original))}</span>` : ''}</td>
+                    <td data-label="Qty" class="num" data-order="${esc(Number(item.quantity) || 0)}">${esc(Number(item.quantity) || 0)}</td>
+                    <td data-label="Pickup window" class="num">${esc(pickupWindow(item))}</td>
                     <td data-label="Status"><span class="badge ${state.cls}">${esc(state.label)}</span></td>
                     <td data-label="Action" class="actions-cell">
-                        <button type="button" id="toggle_${esc(id)}" class="btn btn-sm ${hidden ? 'btn-success' : 'btn-outline-secondary'}" data-action="${hidden ? 'show' : 'hide'}" data-id="${esc(id)}">
-                            <i class="fas ${hidden ? 'fa-eye' : 'fa-eye-slash'}" aria-hidden="true"></i> ${hidden ? 'Show' : 'Hide'}
-                        </button>
-                        <button type="button" id="delete_${esc(id)}" class="btn btn-sm btn-outline-danger" data-action="delete" data-id="${esc(id)}">
-                            <i class="fas fa-trash" aria-hidden="true"></i> Delete
-                        </button>
+                        <div class="row-actions">
+                            <button type="button" id="toggle_${esc(id)}" class="btn btn-sm ${hidden ? 'btn-outline-primary' : 'btn-outline-secondary'}" data-action="${hidden ? 'show' : 'hide'}" data-id="${esc(id)}">
+                                <i class="fas ${hidden ? 'fa-eye' : 'fa-eye-slash'}" aria-hidden="true"></i>${hidden ? 'Show' : 'Hide'}
+                            </button>
+                            <button type="button" id="delete_${esc(id)}" class="btn btn-sm btn-icon btn-outline-danger" data-action="delete" data-id="${esc(id)}"
+                                    aria-label="Delete ${esc(item.foodName || 'listing')}" title="Delete"><i class="fas fa-trash" aria-hidden="true"></i></button>
+                        </div>
                     </td>
                 </tr>`;
         }).join('');
@@ -209,12 +201,12 @@
         if (!item) return;
         const name = item.foodName || 'This dish';
         const ok = await ReplateUI.confirmAction(
-            hide ? `${name} will disappear from the app until you show it again.` : `${name} will be visible in the app again.`,
-            { title: hide ? 'Hide this listing?' : 'Show this listing?', confirmText: hide ? 'Hide' : 'Show', danger: hide });
+            hide ? `${name} disappears from the app until you show it again. Nothing is deleted.` : `${name} will be visible in the app again.`,
+            { title: hide ? 'Hide this listing?' : 'Show this listing?', confirmText: hide ? 'Hide listing' : 'Show listing' });
         if (!ok) return;
 
         const buttonId = 'toggle_' + id;
-        ReplateUI.setButtonLoading(buttonId, true, hide ? 'Hiding...' : 'Showing...');
+        ReplateUI.setButtonLoading(buttonId, true, hide ? 'Hiding…' : 'Showing…');
         try {
             if (hide) {
                 await database.ref('foodItems/' + id).update({
@@ -249,7 +241,7 @@
         if (!ok) return;
 
         const buttonId = 'delete_' + id;
-        ReplateUI.setButtonLoading(buttonId, true, 'Deleting...');
+        ReplateUI.setButtonLoading(buttonId, true, 'Deleting…');
         try {
             await database.ref('foodItems/' + id).remove();
             // Also clear the dish from the hotel's food index

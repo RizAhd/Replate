@@ -433,13 +433,16 @@ const ReplateUI = (() => {
     }
 
     // Disables a button and shows a waiting label while it works.
-    function setButtonLoading(buttonId, isLoading, loadingText = 'Please wait...') {
+    function setButtonLoading(buttonId, isLoading, loadingText = 'Please wait…') {
         const btn = document.getElementById(buttonId);
         if (!btn) return;
         if (isLoading) {
             if (!btn.dataset.originalText) btn.dataset.originalText = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>${esc(loadingText)}`;
+            // an icon-only button keeps its size: spinner only, the words go to screen readers
+            btn.innerHTML = btn.classList.contains('btn-icon')
+                ? `<span class="spinner-border spinner-border-sm" aria-hidden="true"></span><span class="visually-hidden">${esc(loadingText)}</span>`
+                : `<span class="spinner-border spinner-border-sm" aria-hidden="true"></span>${esc(loadingText)}`;
         } else {
             btn.disabled = false;
             if (btn.dataset.originalText) btn.innerHTML = btn.dataset.originalText;
@@ -532,19 +535,29 @@ const ReplateUI = (() => {
     }
 
     // ── Loading / empty / error states for lists and tables ────────────────
-    /** Placeholder rows while data loads. kind: 'cards' | 'rows' */
+    /** Placeholder shaped like what is loading. kind: 'list' (cards in a column) | 'rows' (table rows) */
     function skeleton(kind = 'rows', count = 4) {
-        const one = kind === 'cards'
-            ? '<div class="col-md-6 col-xl-4 mb-4"><div class="card"><div class="card-body"><div class="skeleton sk-line w-75"></div><div class="skeleton sk-line w-50 mt-2"></div><div class="skeleton sk-line w-100 mt-3"></div></div></div></div>'
+        const one = kind === 'list' || kind === 'cards'
+            ? '<div class="card sk-card"><div class="skeleton sk-line w-50"></div><div class="skeleton sk-line w-75 mt-3"></div><div class="skeleton sk-line w-25 mt-2"></div></div>'
             : '<div class="skeleton sk-row"></div>';
-        return `<div class="skeleton-group" aria-hidden="true">${one.repeat(count)}</div>`;
+        return `<div class="skeleton-group${kind === 'rows' ? '' : ' sk-list'}" aria-hidden="true">${one.repeat(count)}</div>`;
     }
 
-    // Returns the "nothing here yet" message box.
-    function emptyState(title, text = '', icon = 'fa-inbox') {
+    /**
+     * The "nothing here yet" box. action (optional): { href, label } for one clear next step.
+     */
+    function emptyState(title, text = '', icon = 'fa-inbox', action = null) {
+        const cta = action && action.href
+            ? `<a class="btn btn-primary btn-sm" href="${esc(action.href)}">${action.icon ? `<i class="fas ${esc(action.icon)}" aria-hidden="true"></i>` : ''}${esc(action.label)}</a>`
+            : '';
         return `<div class="empty-state" role="status">
             <div class="empty-icon"><i class="fas ${esc(icon)}" aria-hidden="true"></i></div>
-            <h3>${esc(title)}</h3>${text ? `<p>${esc(text)}</p>` : ''}</div>`;
+            <h3>${esc(title)}</h3>${text ? `<p>${esc(text)}</p>` : ''}${cta}</div>`;
+    }
+
+    /** Money for a big stat number: a small "LKR" unit and the amount ("LKR 6,340.00" when read). */
+    function moneyHtml(amount) {
+        return '<span class="stat-unit">LKR</span> ' + esc(ReplateSchema.formatNumber2(amount));
     }
 
     // Returns an error box with a Try again button.
@@ -577,6 +590,7 @@ const ReplateUI = (() => {
         downloadCsv,
         skeleton,
         emptyState,
+        moneyHtml,
         errorState
     };
 })();
