@@ -170,7 +170,7 @@
                             android:background="?attr/selectableItemBackgroundBorderless"
                             android:contentDescription="@string/favorite_hotel_add_cd"
                             android:padding="@dimen/space_1_5"
-                            android:src="@drawable/ic_favorite" />
+                            android:src="@drawable/ic_favorite_border" />
                     </LinearLayout>
 
                     <TextView

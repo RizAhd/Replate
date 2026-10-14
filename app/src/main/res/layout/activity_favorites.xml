@@ -138,7 +138,7 @@
             <ImageView
                 style="@style/Widget.REPLATE.EmptyState.Icon"
                 android:importantForAccessibility="no"
-                android:src="@drawable/ic_favorite"
+                android:src="@drawable/ic_favorite_border"
                 app:tint="@color/green_primary" />
         </com.google.android.material.card.MaterialCardView>
 

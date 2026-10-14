@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Material Symbols Outlined "takeout_dining" (Apache-2.0) -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="20dp"
     android:height="20dp"
-    android:viewportWidth="24"
-    android:viewportHeight="24">
-    <path
-        android:fillColor="#1A6B3C"
-        android:pathData="M18,8C18,4.69 15.31,2 12,2S6,4.69 6,8c0,2.79 3.81,7.53 5.42,9.39c0.32,0.37 0.89,0.37 1.21,0C14.23,15.53 18,10.79 18,8zM12,10c-1.1,0 -2,-0.9 -2,-2s0.9,-2 2,-2 2,0.9 2,2 -0.9,2 -2,2zM5,20h14v2H5v-2z" />
+    android:tint="@color/leaf"
+    android:viewportWidth="960"
+    android:viewportHeight="960">
+    <group android:translateY="960">
+        <path
+            android:fillColor="@android:color/white"
+            android:pathData="M312-240h338l19-280H292l20 280Zm-26-360h389l3-50-112-110H394L282-650l4 50Zm-76 68L80-662l56-56 64 64-2-24 162-162h240l162 162-2 24 64-64 56 56-130 130H210Zm28 372-28-372h540l-28 372H238Zm242-440Zm1 80Z" />
+    </group>
 </vector>
-

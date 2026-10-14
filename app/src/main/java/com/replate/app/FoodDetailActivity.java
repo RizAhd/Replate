@@ -282,7 +282,7 @@ public class FoodDetailActivity extends AppCompatActivity {
     // Shows the heart as filled or empty.
     private void updateFavoriteIcon(boolean isFavorite) {
         if (ivFavorite == null) return;
-        ivFavorite.setImageResource(R.drawable.ic_favorite);
+        ivFavorite.setImageResource(isFavorite ? R.drawable.ic_favorite : R.drawable.ic_favorite_border);
         ivFavorite.setColorFilter(isFavorite
                 ? getColor(R.color.md_theme_error)
                 : getColor(R.color.text_secondary));

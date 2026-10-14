@@ -46,7 +46,7 @@ public final class FavoriteHotelToggle {
     }
 
     private static void render(Context context, ImageView heart, boolean saved) {
-        heart.setImageResource(R.drawable.ic_favorite);
+        heart.setImageResource(saved ? R.drawable.ic_favorite : R.drawable.ic_favorite_border);
         heart.setColorFilter(ContextCompat.getColor(context,
                 saved ? R.color.md_theme_error : R.color.text_secondary));
         heart.setContentDescription(context.getString(saved

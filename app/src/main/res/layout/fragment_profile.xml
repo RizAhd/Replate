@@ -265,7 +265,7 @@
                     <ImageView
                         style="@style/Widget.REPLATE.MenuRow.Icon"
                         android:importantForAccessibility="no"
-                        android:src="@drawable/ic_favorite" />
+                        android:src="@drawable/ic_favorite_border" />
 
                     <TextView
                         style="@style/Widget.REPLATE.MenuRow.Label"
