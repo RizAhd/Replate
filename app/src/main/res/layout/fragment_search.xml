@@ -54,7 +54,7 @@
                         android:layout_width="@dimen/touch_target_min"
                         android:layout_height="@dimen/touch_target_min"
                         app:cardBackgroundColor="@color/overlay_white_15"
-                        app:cardCornerRadius="16dp"
+                        app:cardCornerRadius="@dimen/radius_md"
                         app:cardElevation="0dp">
 
                         <ImageView
@@ -72,7 +72,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/space_1_5"
-                    app:cardCornerRadius="16dp"
+                    app:cardCornerRadius="@dimen/radius_md"
                     app:cardElevation="0dp"
                     app:cardBackgroundColor="@color/white">
 
@@ -133,7 +133,7 @@
                         android:paddingVertical="@dimen/space_0_5"
                         tools:text="@string/search_active_filter_default"
                         android:textColor="@color/white"
-                        android:textSize="@dimen/text_caption" />
+                        android:textSize="@dimen/text_xs" />
 
                     <TextView
                         android:id="@+id/tvFilterHint"
@@ -142,7 +142,7 @@
                         android:layout_marginStart="@dimen/space_1_5"
                         android:text="@string/search_filter_hint"
                         android:textColor="@color/white_85"
-                        android:textSize="@dimen/text_caption" />
+                        android:textSize="@dimen/text_xs" />
                 </LinearLayout>
 
         
@@ -191,7 +191,7 @@
                     android:text="@string/search_recent_clear"
                     android:fontFamily="@font/poppins_medium"
                     android:textColor="@color/green_primary"
-                    android:textSize="@dimen/text_caption"
+                    android:textSize="@dimen/text_xs"
                     android:background="?attr/selectableItemBackground"
                     android:gravity="center"
                     android:minHeight="@dimen/touch_target_min"
@@ -300,7 +300,7 @@
             android:background="@color/white"
             android:paddingHorizontal="@dimen/space_2_5"
             android:paddingVertical="@dimen/space_2"
-            android:elevation="6dp">
+            android:elevation="@dimen/elevation_sheet">
 
             <ProgressBar
                 android:id="@+id/progressBar"
@@ -313,10 +313,10 @@
                 android:id="@+id/tvLoadingSearch"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="@dimen/space_1"
                 android:text="@string/search_loading_fresh"
                 android:textColor="@color/text_primary"
-                android:textSize="@dimen/text_sm_compact"
+                android:textSize="@dimen/text_sm"
                 android:textStyle="bold" />
         </LinearLayout>
     </FrameLayout>

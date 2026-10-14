@@ -455,7 +455,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
             text.setText(label);
             text.setGravity(android.view.Gravity.CENTER);
             text.setMaxLines(2);
-            text.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.text_caption));
+            text.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.text_xs));
             text.setTextColor(getColor(step == current ? R.color.primary : R.color.text_secondary));
             if (step == current) {
                 text.setTypeface(text.getTypeface(), android.graphics.Typeface.BOLD);

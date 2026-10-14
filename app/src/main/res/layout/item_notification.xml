@@ -29,9 +29,9 @@
             android:layout_weight="1"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingVertical="14dp"
-            android:paddingStart="14dp"
-            android:paddingEnd="10dp">
+            android:paddingVertical="@dimen/space_2"
+            android:paddingStart="@dimen/space_2"
+            android:paddingEnd="@dimen/space_1_5">
 
             <!-- Icon with unread badge overlay -->
             <FrameLayout
@@ -72,26 +72,24 @@
                     android:ellipsize="end"
                     android:maxLines="1"
                     tools:text="Notification Title"
-                    android:textAppearance="@style/TextAppearance.REPLATE.Label"
-                    android:textSize="@dimen/text_sm" />
+                    android:textAppearance="@style/TextAppearance.REPLATE.Label" />
 
                 <TextView
                     android:id="@+id/tvBody"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
+                    android:layout_marginTop="@dimen/space_0_5"
                     android:ellipsize="end"
                     android:maxLines="2"
                     tools:text="Notification body text"
                     android:textAppearance="@style/TextAppearance.REPLATE.Body"
-                    android:textSize="@dimen/text_sm_compact"
                     android:lineSpacingMultiplier="1.2" />
 
                 <!-- Category chip + Time row -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
+                    android:layout_marginTop="@dimen/space_0_5"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
@@ -103,18 +101,18 @@
                         android:fontFamily="@font/poppins_medium"
                         android:text="@string/notification_order"
                         android:textColor="@color/green_primary"
-                        android:textSize="10sp"
+                        android:textSize="@dimen/text_xs"
                         android:visibility="gone" />
 
                     <TextView
                         android:id="@+id/tvTime"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
+                        android:layout_marginStart="@dimen/space_0_5"
                         android:fontFamily="@font/poppins_regular"
                         tools:text="2 hours ago"
                         android:textColor="@color/text_hint"
-                        android:textSize="@dimen/text_caption" />
+                        android:textSize="@dimen/text_xs" />
                 </LinearLayout>
             </LinearLayout>
 

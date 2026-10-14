@@ -25,8 +25,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingHorizontal="@dimen/space_2"
-                android:paddingTop="14dp"
-                android:paddingBottom="6dp">
+                android:paddingTop="@dimen/space_2"
+                android:paddingBottom="@dimen/space_1">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -88,11 +88,11 @@
                     android:id="@+id/tvTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
+                    android:layout_marginTop="@dimen/space_1_5"
                     android:fontFamily="@font/poppins_bold"
                     android:text="@string/order_success_order_placed"
                     android:textColor="@color/text_primary"
-                    android:textSize="@dimen/text_xxl" />
+                    android:textSize="@dimen/text_display" />
 
                 <TextView
                     android:id="@+id/tvSubtitle"
@@ -110,7 +110,7 @@
                     android:id="@+id/tvImpact"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="@dimen/space_2_5"
+                    android:layout_marginHorizontal="@dimen/space_2"
                     android:layout_marginTop="@dimen/space_1_5"
                     android:background="@drawable/badge_pale"
                     android:fontFamily="@font/poppins_medium"
@@ -127,10 +127,10 @@
                 android:id="@+id/cardQR"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/space_2_5"
+                android:layout_marginHorizontal="@dimen/space_2"
                 android:layout_marginTop="@dimen/space_2"
                 app:cardBackgroundColor="@color/white"
-                app:cardCornerRadius="@dimen/radius_xl"
+                app:cardCornerRadius="@dimen/radius_lg"
                 app:cardElevation="@dimen/elevation_card">
 
                 <LinearLayout
@@ -140,7 +140,7 @@
                     android:orientation="vertical"
                     android:paddingHorizontal="@dimen/space_2_5"
                     android:paddingTop="@dimen/space_2_5"
-                    android:paddingBottom="18dp">
+                    android:paddingBottom="@dimen/space_2">
 
                     <ImageView
                         android:id="@+id/ivQRCode"
@@ -168,15 +168,15 @@
                         android:id="@+id/tvOTP"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
+                        android:layout_marginTop="@dimen/space_0_5"
                         android:background="@drawable/bg_otp_badge"
                         android:fontFamily="@font/poppins_bold"
                         android:letterSpacing="0.30"
-                        android:paddingHorizontal="28dp"
+                        android:paddingHorizontal="@dimen/space_3"
                         android:paddingVertical="@dimen/space_1"
                         tools:text="------"
                         android:textColor="@color/primary"
-                        android:textSize="@dimen/text_xxl" />
+                        android:textSize="@dimen/text_display" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -184,7 +184,7 @@
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/space_2_5"
+                android:layout_marginHorizontal="@dimen/space_2"
                 android:layout_marginTop="@dimen/space_1_5"
                 app:cardBackgroundColor="@color/md_theme_surfaceContainerLow"
                 app:cardCornerRadius="@dimen/radius_md"
@@ -196,7 +196,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="14dp">
+                    android:padding="@dimen/space_2_5">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -209,7 +209,7 @@
                             android:fontFamily="@font/poppins_regular"
                             android:text="@string/order_success_order"
                             android:textColor="@color/text_secondary"
-                            android:textSize="@dimen/text_sm_compact" />
+                            android:textSize="@dimen/text_sm" />
 
                         <TextView
                             android:id="@+id/tvOrderId"
@@ -217,13 +217,13 @@
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/poppins_semibold"
                             android:textColor="@color/text_primary"
-                            android:textSize="@dimen/text_sm_compact" />
+                            android:textSize="@dimen/text_sm" />
                     </LinearLayout>
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp">
+                        android:layout_marginTop="@dimen/space_0_5">
 
                         <TextView
                             android:layout_width="0dp"
@@ -232,7 +232,7 @@
                             android:fontFamily="@font/poppins_regular"
                             android:text="@string/order_success_hotel"
                             android:textColor="@color/text_secondary"
-                            android:textSize="@dimen/text_sm_compact" />
+                            android:textSize="@dimen/text_sm" />
 
                         <TextView
                             android:id="@+id/tvHotelName"
@@ -240,13 +240,13 @@
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/poppins_semibold"
                             android:textColor="@color/text_primary"
-                            android:textSize="@dimen/text_sm_compact" />
+                            android:textSize="@dimen/text_sm" />
                     </LinearLayout>
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp">
+                        android:layout_marginTop="@dimen/space_0_5">
 
                         <TextView
                             android:layout_width="0dp"
@@ -255,7 +255,7 @@
                             android:fontFamily="@font/poppins_regular"
                             android:text="@string/order_success_total"
                             android:textColor="@color/text_secondary"
-                            android:textSize="@dimen/text_sm_compact" />
+                            android:textSize="@dimen/text_sm" />
 
                         <TextView
                             android:id="@+id/tvTotal"
@@ -270,14 +270,14 @@
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:layout_marginTop="10dp"
+                        android:layout_marginTop="@dimen/space_1"
                         android:background="@color/divider_softer" />
 
                     <LinearLayout
                         android:id="@+id/statusRow"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
+                        android:layout_marginTop="@dimen/space_1"
                         android:gravity="center_vertical">
 
                         <com.google.android.material.progressindicator.CircularProgressIndicator
@@ -307,18 +307,18 @@
                 android:id="@+id/reviewSection"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/space_2_5"
-                android:layout_marginTop="14dp"
+                android:layout_marginHorizontal="@dimen/space_2"
+                android:layout_marginTop="@dimen/space_1_5"
                 android:visibility="gone"
                 app:cardBackgroundColor="@color/white"
-                app:cardCornerRadius="@dimen/radius_xl"
+                app:cardCornerRadius="@dimen/radius_lg"
                 app:cardElevation="@dimen/elevation_card">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="@dimen/space_2">
+                    android:padding="@dimen/space_2_5">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -353,12 +353,12 @@
                     <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
+                        android:layout_marginTop="@dimen/space_1"
                         android:hint="@string/order_success_add_a_comment_optional_hint"
-                        app:boxCornerRadiusBottomEnd="12dp"
-                        app:boxCornerRadiusBottomStart="12dp"
-                        app:boxCornerRadiusTopEnd="12dp"
-                        app:boxCornerRadiusTopStart="12dp">
+                        app:boxCornerRadiusBottomEnd="@dimen/radius_md"
+                        app:boxCornerRadiusBottomStart="@dimen/radius_md"
+                        app:boxCornerRadiusTopEnd="@dimen/radius_md"
+                        app:boxCornerRadiusTopStart="@dimen/radius_md">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etReviewComment"
@@ -373,7 +373,7 @@
                         android:id="@+id/btnSubmitReview"
                         style="@style/Widget.REPLATE.Button.Primary"
                         android:layout_width="match_parent"
-                        android:layout_height="48dp"
+                        android:layout_height="@dimen/button_height"
                         android:layout_marginTop="@dimen/space_1_5"
                         android:text="@string/order_success_submit_review" />
                 </LinearLayout>
@@ -384,9 +384,9 @@
                 android:id="@+id/btnViewDetails"
                 style="@style/Widget.REPLATE.Button.Secondary"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginHorizontal="@dimen/space_2_5"
-                android:layout_marginTop="18dp"
+                android:layout_height="@dimen/button_height"
+                android:layout_marginHorizontal="@dimen/space_2"
+                android:layout_marginTop="@dimen/space_2"
                 android:text="@string/order_success_view_order_details" />
 
         </LinearLayout>
@@ -422,7 +422,7 @@
 
                 <ImageView
                     android:layout_width="48dp"
-                    android:layout_height="48dp"
+                    android:layout_height="@dimen/button_height"
                     android:layout_gravity="center"
                     android:contentDescription="@string/order_success_complete_cd"
                     android:src="@drawable/ic_checkmark_white" />
@@ -435,7 +435,7 @@
                 android:fontFamily="@font/poppins_bold"
                 android:text="@string/order_success_pickup_confirmed"
                 android:textColor="@color/green_primary"
-                android:textSize="@dimen/text_xxl" />
+                android:textSize="@dimen/text_display" />
 
             <TextView
                 android:layout_width="wrap_content"

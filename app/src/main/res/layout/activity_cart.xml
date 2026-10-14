@@ -38,6 +38,7 @@
                     <ImageView
                         android:id="@+id/ivBack"
                         style="@style/Widget.REPLATE.Header.Back"
+                        android:contentDescription="@string/cd_back"
                         android:layout_centerVertical="true" />
 
                     <TextView
@@ -95,7 +96,7 @@
             android:layout_weight="1"
             android:gravity="center"
             android:orientation="vertical"
-            android:paddingHorizontal="28dp"
+            android:paddingHorizontal="@dimen/space_3"
             android:visibility="gone">
 
             <com.google.android.material.card.MaterialCardView
@@ -146,14 +147,14 @@
             android:layout_marginHorizontal="@dimen/space_2"
             android:layout_marginBottom="@dimen/space_2"
             app:cardBackgroundColor="@color/surface_white"
-            app:cardCornerRadius="24dp"
-            app:cardElevation="8dp">
+            app:cardCornerRadius="@dimen/radius_lg"
+            app:cardElevation="@dimen/elevation_sheet">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="18dp">
+                android:padding="@dimen/space_2_5">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -173,8 +174,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:background="@drawable/badge_pale"
-                        android:paddingHorizontal="10dp"
-                        android:paddingVertical="6dp"
+                        android:paddingHorizontal="@dimen/space_1_5"
+                        android:paddingVertical="@dimen/space_1"
                         tools:text="@string/cart_items_count_placeholder"
                         android:textColor="@color/green_primary"
                         android:textSize="@dimen/text_xs"
@@ -184,7 +185,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
+                    android:layout_marginTop="@dimen/space_1_5"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 

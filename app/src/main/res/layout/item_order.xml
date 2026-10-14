@@ -45,7 +45,7 @@
                     android:background="@drawable/badge_status_active"
                     android:fontFamily="@font/poppins_semibold"
                     android:paddingHorizontal="@dimen/space_1_5"
-                    android:paddingVertical="6dp"
+                    android:paddingVertical="@dimen/space_1"
                     tools:text="Confirmed"
                     android:textColor="@color/primary"
                     android:textSize="@dimen/text_xs" />
@@ -112,7 +112,7 @@
                 android:background="@drawable/badge_status_pending"
                 android:fontFamily="@font/poppins_medium"
                 android:paddingHorizontal="@dimen/space_1_5"
-                android:paddingVertical="6dp"
+                android:paddingVertical="@dimen/space_1"
                 tools:text="Pickup 6PM"
                 android:textColor="@color/ember_deep"
                 android:textSize="@dimen/text_xs"

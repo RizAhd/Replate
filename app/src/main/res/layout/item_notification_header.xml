@@ -7,9 +7,9 @@
     android:fontFamily="@font/poppins_semibold"
     android:paddingHorizontal="@dimen/space_2_5"
     android:paddingTop="@dimen/space_2"
-    android:paddingBottom="6dp"
+    android:paddingBottom="@dimen/space_1"
     tools:text="Today"
     android:textColor="@color/text_secondary"
-    android:textSize="@dimen/text_sm_compact"
+    android:textSize="@dimen/text_sm"
     android:letterSpacing="0.04" />
 

@@ -16,11 +16,6 @@
     <string name="cd_add_to_cart">Add to cart</string>
     <string name="cd_remove_item">Remove item</string>
     <string name="cd_cart">Cart icon</string>
-    <string name="cd_orders">Orders icon</string>
-    <string name="cd_favorites">Favorites icon</string>
-    <string name="cd_settings">Settings icon</string>
-    <string name="cd_help">Help icon</string>
-    <string name="cd_arrow_right">Open</string>
     <string name="cd_search">Search illustration</string>
     <string name="cd_category">Category icon</string>
     <string name="cd_profile_photo">Your profile photo</string>
@@ -110,8 +105,6 @@
     <string name="cart_pickup_friendly_desc">Your saved meals stay in the local cart, even if your internet is unstable.</string>
     <string name="cart_pickup_friendly_hint">Open your detailed cart to review quantities, remove items, and continue to checkout.</string>
     <string name="cart_open_detailed">Open detailed cart</string>
-    <string name="cart_minus">−</string>
-    <string name="cart_plus">+</string>
     <string name="cart_qty_default">1</string>
     <string name="cart_subtotal_label">Subtotal</string>
 

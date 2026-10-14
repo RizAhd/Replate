@@ -4,14 +4,14 @@
     android:id="@+id/cardCategory"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="6dp"
+    android:layout_marginHorizontal="@dimen/space_0_5"
     android:layout_marginVertical="@dimen/space_0_5"
     android:clickable="true"
     android:focusable="true"
     android:foreground="?attr/selectableItemBackgroundBorderless"
     app:cardBackgroundColor="@color/surface_white"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="2dp"
+    app:cardCornerRadius="@dimen/radius_lg"
+    app:cardElevation="@dimen/elevation_card"
     app:rippleColor="@color/green_pale"
     app:strokeColor="@color/md_theme_outlineVariant"
     app:strokeWidth="1dp">
@@ -22,7 +22,7 @@
         android:gravity="center"
         android:minHeight="108dp"
         android:orientation="vertical"
-        android:paddingHorizontal="10dp"
+        android:paddingHorizontal="@dimen/space_1_5"
         android:paddingVertical="@dimen/space_1_5">
 
         <com.google.android.material.card.MaterialCardView
@@ -30,7 +30,7 @@
             android:layout_width="52dp"
             android:layout_height="52dp"
             app:cardBackgroundColor="@color/green_pale"
-            app:cardCornerRadius="16dp"
+            app:cardCornerRadius="@dimen/radius_lg"
             app:cardElevation="0dp"
             app:strokeColor="@color/green_light"
             app:strokeWidth="0dp">

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- ==========================================
          Typography System
@@ -53,7 +53,7 @@
     <style name="TextAppearance.REPLATE.Overline" parent="TextAppearance.Material3.LabelSmall">
         <item name="android:fontFamily">@font/poppins_medium</item>
         <item name="fontFamily">@font/poppins_medium</item>
-        <item name="android:textSize">@dimen/text_caption</item>
+        <item name="android:textSize">@dimen/text_xs</item>
         <item name="android:letterSpacing">0.06</item>
         <item name="android:textColor">@color/text_secondary</item>
     </style>
@@ -152,7 +152,7 @@
     </style>
 
     <style name="Widget.REPLATE.Card.Surface" parent="Widget.REPLATE.Card">
-        <item name="cardCornerRadius">@dimen/radius_xl</item>
+        <item name="cardCornerRadius">@dimen/radius_lg</item>
         <item name="cardElevation">@dimen/elevation_card</item>
     </style>
 
@@ -245,10 +245,10 @@
          ========================================== -->
 
     <style name="Widget.REPLATE.TextInputLayout" parent="Widget.Material3.TextInputLayout.OutlinedBox">
-        <item name="boxCornerRadiusTopStart">@dimen/radius_sm</item>
-        <item name="boxCornerRadiusTopEnd">@dimen/radius_sm</item>
-        <item name="boxCornerRadiusBottomStart">@dimen/radius_sm</item>
-        <item name="boxCornerRadiusBottomEnd">@dimen/radius_sm</item>
+        <item name="boxCornerRadiusTopStart">@dimen/radius_md</item>
+        <item name="boxCornerRadiusTopEnd">@dimen/radius_md</item>
+        <item name="boxCornerRadiusBottomStart">@dimen/radius_md</item>
+        <item name="boxCornerRadiusBottomEnd">@dimen/radius_md</item>
         <item name="boxStrokeColor">@color/green_primary</item>
         <item name="boxStrokeWidth">1dp</item>
         <item name="boxStrokeWidthFocused">2dp</item>
@@ -268,13 +268,13 @@
 
     <style name="Widget.REPLATE.SectionTitle" parent="">
         <item name="android:textAppearance">@style/TextAppearance.REPLATE.Subheading</item>
-        <item name="android:accessibilityHeading">true</item>
+        <item name="android:accessibilityHeading" tools:targetApi="p">true</item>
     </style>
 
     <!-- Big page title on screens without a green header (login, dialogs, bottom sheets) -->
     <style name="Widget.REPLATE.PageTitle" parent="">
         <item name="android:textAppearance">@style/TextAppearance.REPLATE.Headline</item>
-        <item name="android:accessibilityHeading">true</item>
+        <item name="android:accessibilityHeading" tools:targetApi="p">true</item>
     </style>
 
     <!-- ==========================================
@@ -287,7 +287,7 @@
         <item name="android:textColor">@color/white</item>
         <item name="android:maxLines">1</item>
         <item name="android:ellipsize">end</item>
-        <item name="android:accessibilityHeading">true</item>
+        <item name="android:accessibilityHeading" tools:targetApi="p">true</item>
     </style>
 
     <style name="Widget.REPLATE.Header.Subtitle" parent="">
@@ -300,7 +300,6 @@
         <item name="android:layout_height">@dimen/touch_target_min</item>
         <item name="android:layout_marginStart">-12dp</item>
         <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
-        <item name="android:contentDescription">@string/cd_back</item>
         <item name="android:padding">@dimen/space_1_5</item>
         <item name="android:src">@drawable/ic_back</item>
         <item name="tint">@color/white</item>
@@ -333,14 +332,15 @@
         <item name="android:background">?attr/selectableItemBackground</item>
         <item name="android:gravity">center_vertical</item>
         <item name="android:minHeight">56dp</item>
-        <item name="android:paddingHorizontal">@dimen/space_2</item>
-        <item name="android:paddingVertical">@dimen/space_1</item>
+        <item name="android:paddingStart">@dimen/space_2</item>
+        <item name="android:paddingEnd">@dimen/space_2</item>
+        <item name="android:paddingTop">@dimen/space_1</item>
+        <item name="android:paddingBottom">@dimen/space_1</item>
     </style>
 
     <style name="Widget.REPLATE.MenuRow.Icon" parent="">
         <item name="android:layout_width">24dp</item>
         <item name="android:layout_height">24dp</item>
-        <item name="android:importantForAccessibility">no</item>
         <item name="tint">@color/primary</item>
     </style>
 
@@ -355,7 +355,6 @@
     <style name="Widget.REPLATE.MenuRow.Chevron" parent="">
         <item name="android:layout_width">24dp</item>
         <item name="android:layout_height">24dp</item>
-        <item name="android:importantForAccessibility">no</item>
         <item name="android:src">@drawable/ic_arrow_right</item>
     </style>
 
@@ -380,8 +379,8 @@
     <!-- White sheet with rounded top corners only (login, bottom panels) -->
     <style name="ShapeAppearance.REPLATE.TopSheet" parent="">
         <item name="cornerFamily">rounded</item>
-        <item name="cornerSizeTopLeft">@dimen/space_4</item>
-        <item name="cornerSizeTopRight">@dimen/space_4</item>
+        <item name="cornerSizeTopLeft">@dimen/radius_hero</item>
+        <item name="cornerSizeTopRight">@dimen/radius_hero</item>
         <item name="cornerSizeBottomLeft">0dp</item>
         <item name="cornerSizeBottomRight">0dp</item>
     </style>

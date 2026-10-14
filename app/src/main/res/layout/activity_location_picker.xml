@@ -30,7 +30,7 @@
             android:focusable="true"
             app:cardBackgroundColor="@color/surface_white"
             app:cardCornerRadius="@dimen/radius_lg"
-            app:cardElevation="@dimen/elevation_card_raised">
+            app:cardElevation="@dimen/elevation_card">
 
             <ImageView
                 android:layout_width="24dp"
@@ -47,7 +47,7 @@
             android:layout_marginStart="@dimen/space_1"
             android:layout_weight="1"
             app:cardCornerRadius="@dimen/radius_lg"
-            app:cardElevation="@dimen/elevation_card_raised"
+            app:cardElevation="@dimen/elevation_card"
             app:cardBackgroundColor="@color/surface_white">
 
             <androidx.appcompat.widget.SearchView
@@ -89,7 +89,7 @@
         android:layout_alignParentBottom="true"
         android:layout_margin="@dimen/space_2"
         app:cardBackgroundColor="@color/surface_white"
-        app:cardCornerRadius="@dimen/radius_xl"
+        app:cardCornerRadius="@dimen/radius_lg"
         app:cardElevation="@dimen/elevation_sheet">
 
         <LinearLayout

@@ -26,6 +26,7 @@
                 <ImageView
                     android:id="@+id/ivBack"
                     style="@style/Widget.REPLATE.Header.Back"
+                    android:contentDescription="@string/cd_back"
                     android:layout_centerVertical="true" />
 
                 <TextView
@@ -86,7 +87,7 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:clipToPadding="false"
-        android:paddingTop="6dp"
+        android:paddingTop="@dimen/space_1"
         android:paddingBottom="@dimen/space_1" />
 
     <androidx.recyclerview.widget.RecyclerView
@@ -95,7 +96,7 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:clipToPadding="false"
-        android:paddingTop="6dp"
+        android:paddingTop="@dimen/space_1"
         android:paddingBottom="@dimen/space_1"
         android:visibility="gone" />
 

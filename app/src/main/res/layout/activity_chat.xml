@@ -13,7 +13,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/green_primary"
-        app:elevation="4dp">
+        app:elevation="@dimen/elevation_card">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
@@ -100,8 +100,8 @@
             android:clipToPadding="false"
             android:paddingStart="@dimen/space_0_5"
             android:paddingEnd="@dimen/space_0_5"
-            android:paddingTop="10dp"
-            android:paddingBottom="6dp"
+            android:paddingTop="@dimen/space_1_5"
+            android:paddingBottom="@dimen/space_1"
             android:scrollbars="none"
             android:overScrollMode="never" />
 
@@ -165,7 +165,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/surface_white"
-        android:elevation="8dp"
+        android:elevation="@dimen/elevation_sheet"
         android:gravity="center_vertical"
         android:minHeight="56dp"
         android:orientation="horizontal"
@@ -185,7 +185,7 @@
             android:hint="@string/chat_type_a_message_hint"
             android:inputType="textMultiLine|textCapSentences"
             android:maxLines="4"
-            android:paddingHorizontal="18dp"
+            android:paddingHorizontal="@dimen/space_2"
             android:paddingVertical="@dimen/space_1_5"
             android:textSize="@dimen/text_sm"
             android:textColorHint="@color/text_hint"
@@ -203,7 +203,7 @@
             app:fabCustomSize="48dp"
             app:maxImageSize="20dp"
             app:tint="@color/white"
-            app:elevation="2dp" />
+            app:elevation="@dimen/elevation_card" />
     </LinearLayout>
 
 </LinearLayout>

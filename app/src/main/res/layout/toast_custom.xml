@@ -9,7 +9,7 @@
     android:paddingTop="@dimen/space_1_5"
     android:paddingBottom="@dimen/space_1_5"
     android:background="@drawable/bg_toast_custom"
-    android:elevation="@dimen/elevation_card_raised">
+    android:elevation="@dimen/elevation_card">
 
     <ImageView
         android:id="@+id/ivToastIcon"

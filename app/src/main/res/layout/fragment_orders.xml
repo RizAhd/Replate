@@ -39,8 +39,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/space_2"
-        app:cardCornerRadius="22dp"
-        app:cardElevation="3dp">
+        app:cardCornerRadius="@dimen/radius_lg"
+        app:cardElevation="@dimen/elevation_card">
 
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tabLayoutOrders"

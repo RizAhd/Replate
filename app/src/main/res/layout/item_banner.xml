@@ -49,7 +49,7 @@
                 android:paddingVertical="@dimen/space_0_5"
                 android:textAllCaps="true"
                 android:textColor="@color/white"
-                android:textSize="@dimen/text_caption"
+                android:textSize="@dimen/text_xs"
                 tools:text="HOT DEAL" />
 
             <TextView

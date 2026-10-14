@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="14dp">
+        android:padding="@dimen/space_2">
 
         <!-- Avatar -->
         <de.hdodenhof.circleimageview.CircleImageView
@@ -29,7 +29,7 @@
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="14dp"
+            android:layout_marginStart="@dimen/space_1_5"
             android:layout_weight="1"
             android:orientation="vertical">
 
@@ -58,7 +58,7 @@
                     android:layout_marginStart="@dimen/space_1"
                     tools:text="10:30 AM"
                     android:textColor="@color/text_hint"
-                    android:textSize="@dimen/text_caption"
+                    android:textSize="@dimen/text_xs"
                     android:fontFamily="@font/poppins_regular" />
             </LinearLayout>
 
@@ -66,12 +66,12 @@
                 android:id="@+id/tvLastMessage"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
+                android:layout_marginTop="@dimen/space_0_5"
                 android:ellipsize="end"
                 android:maxLines="1"
                 tools:text="Last message preview..."
                 android:textColor="@color/text_secondary"
-                android:textSize="@dimen/text_sm_compact"
+                android:textSize="@dimen/text_sm"
                 android:fontFamily="@font/poppins_regular" />
 
         </LinearLayout>

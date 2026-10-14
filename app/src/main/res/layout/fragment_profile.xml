@@ -46,11 +46,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
-                    android:layout_marginTop="14dp"
+                    android:layout_marginTop="@dimen/space_1_5"
                     tools:text="@string/profile_user_name_placeholder"
                     android:textAppearance="@style/TextAppearance.REPLATE.Headline"
-                    android:textColor="@color/white"
-                    android:textSize="@dimen/text_xl" />
+                    android:textColor="@color/white" />
 
                 <!-- User Email -->
                 <TextView
@@ -95,7 +94,7 @@
                 android:layout_weight="1"
                 android:layout_marginEnd="@dimen/space_1"
                 app:cardBackgroundColor="@color/surface_white"
-                app:cardCornerRadius="@dimen/radius_xl"
+                app:cardCornerRadius="@dimen/radius_lg"
                 app:cardElevation="@dimen/elevation_card">
 
                 <LinearLayout
@@ -103,7 +102,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:orientation="vertical"
-                    android:padding="18dp">
+                    android:padding="@dimen/space_2_5">
 
                     <TextView
                         android:id="@+id/tvOrdersCount"
@@ -129,7 +128,7 @@
                 android:layout_weight="1"
                 android:layout_marginStart="@dimen/space_1"
                 app:cardBackgroundColor="@color/surface_white"
-                app:cardCornerRadius="@dimen/radius_xl"
+                app:cardCornerRadius="@dimen/radius_lg"
                 app:cardElevation="@dimen/elevation_card">
 
                 <LinearLayout
@@ -137,7 +136,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:orientation="vertical"
-                    android:padding="18dp">
+                    android:padding="@dimen/space_2_5">
 
                     <TextView
                         android:id="@+id/tvSavings"
@@ -163,14 +162,14 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_2"
             app:cardBackgroundColor="@color/surface_white"
-            app:cardCornerRadius="@dimen/radius_xl"
+            app:cardCornerRadius="@dimen/radius_lg"
             app:cardElevation="@dimen/elevation_card">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="18dp">
+                android:padding="@dimen/space_2_5">
 
                 <TextView
                     style="@style/Widget.REPLATE.SectionTitle"
@@ -211,7 +210,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_2"
             app:cardBackgroundColor="@color/surface_white"
-            app:cardCornerRadius="@dimen/radius_xl"
+            app:cardCornerRadius="@dimen/radius_lg"
             app:cardElevation="@dimen/elevation_card">
 
             <LinearLayout
@@ -224,14 +223,14 @@
                     style="@style/Widget.REPLATE.SectionTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="18dp"
-                    android:layout_marginTop="18dp"
+                    android:layout_marginStart="@dimen/space_2"
+                    android:layout_marginTop="@dimen/space_2"
                     android:text="@string/profile_account" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="18dp"
+                    android:layout_marginStart="@dimen/space_2"
                     android:layout_marginTop="@dimen/space_0_5"
                     android:text="@string/profile_account_subtitle"
                     android:textAppearance="@style/TextAppearance.REPLATE.Body" />
@@ -244,13 +243,16 @@
 
                     <ImageView
                         style="@style/Widget.REPLATE.MenuRow.Icon"
+                        android:importantForAccessibility="no"
                         android:src="@drawable/ic_orders" />
 
                     <TextView
                         style="@style/Widget.REPLATE.MenuRow.Label"
                         android:text="@string/profile_my_orders" />
 
-                    <ImageView style="@style/Widget.REPLATE.MenuRow.Chevron" />
+                    <ImageView
+                        style="@style/Widget.REPLATE.MenuRow.Chevron"
+                        android:importantForAccessibility="no" />
                 </LinearLayout>
 
                 <View style="@style/Widget.REPLATE.MenuRow.Divider" />
@@ -262,13 +264,16 @@
 
                     <ImageView
                         style="@style/Widget.REPLATE.MenuRow.Icon"
+                        android:importantForAccessibility="no"
                         android:src="@drawable/ic_favorite" />
 
                     <TextView
                         style="@style/Widget.REPLATE.MenuRow.Label"
                         android:text="@string/profile_favorites" />
 
-                    <ImageView style="@style/Widget.REPLATE.MenuRow.Chevron" />
+                    <ImageView
+                        style="@style/Widget.REPLATE.MenuRow.Chevron"
+                        android:importantForAccessibility="no" />
                 </LinearLayout>
 
                 <View style="@style/Widget.REPLATE.MenuRow.Divider" />
@@ -280,13 +285,16 @@
 
                     <ImageView
                         style="@style/Widget.REPLATE.MenuRow.Icon"
+                        android:importantForAccessibility="no"
                         android:src="@drawable/ic_notification" />
 
                     <TextView
                         style="@style/Widget.REPLATE.MenuRow.Label"
                         android:text="@string/profile_notifications" />
 
-                    <ImageView style="@style/Widget.REPLATE.MenuRow.Chevron" />
+                    <ImageView
+                        style="@style/Widget.REPLATE.MenuRow.Chevron"
+                        android:importantForAccessibility="no" />
                 </LinearLayout>
 
                 <View style="@style/Widget.REPLATE.MenuRow.Divider" />
@@ -298,13 +306,16 @@
 
                     <ImageView
                         style="@style/Widget.REPLATE.MenuRow.Icon"
+                        android:importantForAccessibility="no"
                         android:src="@drawable/ic_chat_empty" />
 
                     <TextView
                         style="@style/Widget.REPLATE.MenuRow.Label"
                         android:text="@string/profile_messages" />
 
-                    <ImageView style="@style/Widget.REPLATE.MenuRow.Chevron" />
+                    <ImageView
+                        style="@style/Widget.REPLATE.MenuRow.Chevron"
+                        android:importantForAccessibility="no" />
                 </LinearLayout>
 
                 <View style="@style/Widget.REPLATE.MenuRow.Divider" />
@@ -316,13 +327,16 @@
 
                     <ImageView
                         style="@style/Widget.REPLATE.MenuRow.Icon"
+                        android:importantForAccessibility="no"
                         android:src="@drawable/ic_settings" />
 
                     <TextView
                         style="@style/Widget.REPLATE.MenuRow.Label"
                         android:text="@string/profile_settings" />
 
-                    <ImageView style="@style/Widget.REPLATE.MenuRow.Chevron" />
+                    <ImageView
+                        style="@style/Widget.REPLATE.MenuRow.Chevron"
+                        android:importantForAccessibility="no" />
                 </LinearLayout>
 
                 <View style="@style/Widget.REPLATE.MenuRow.Divider" />
@@ -334,13 +348,16 @@
 
                     <ImageView
                         style="@style/Widget.REPLATE.MenuRow.Icon"
+                        android:importantForAccessibility="no"
                         android:src="@drawable/ic_help" />
 
                     <TextView
                         style="@style/Widget.REPLATE.MenuRow.Label"
                         android:text="@string/profile_help_support" />
 
-                    <ImageView style="@style/Widget.REPLATE.MenuRow.Chevron" />
+                    <ImageView
+                        style="@style/Widget.REPLATE.MenuRow.Chevron"
+                        android:importantForAccessibility="no" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -365,7 +382,7 @@
             android:text="@string/profile_delete_account"
             android:textAllCaps="false"
             android:textColor="@color/md_theme_error"
-            android:textSize="@dimen/text_sm_compact"
+            android:textSize="@dimen/text_sm"
             android:fontFamily="@font/poppins_medium" />
 
         <!-- App Version -->

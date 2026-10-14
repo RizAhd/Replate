@@ -59,7 +59,7 @@
                         android:layout_height="@dimen/touch_target_min"
                         android:layout_margin="@dimen/space_2"
                         android:background="@drawable/circle_white"
-                        android:elevation="@dimen/elevation_card_raised"
+                        android:elevation="@dimen/elevation_card"
                         android:padding="@dimen/space_1_5"
                         android:src="@drawable/ic_back" />
 
@@ -72,7 +72,7 @@
                         android:layout_marginBottom="@dimen/space_2"
                         android:layout_marginEnd="@dimen/space_2"
                         android:background="@drawable/circle_white"
-                        android:elevation="@dimen/elevation_card_raised"
+                        android:elevation="@dimen/elevation_card"
                         android:padding="@dimen/space_1_5"
                         android:src="@drawable/ic_favorite"
                         android:contentDescription="@string/food_detail_add_to_favorites_cd" />
@@ -99,8 +99,8 @@
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="@dimen/space_2"
                     android:layout_marginTop="-24dp"
-                    app:cardCornerRadius="@dimen/radius_xl"
-                    app:cardElevation="@dimen/elevation_card_raised"
+                    app:cardCornerRadius="@dimen/radius_lg"
+                    app:cardElevation="@dimen/elevation_card"
                     app:cardBackgroundColor="@color/surface_white">
 
                     <LinearLayout
@@ -118,14 +118,13 @@
                             android:maxLines="2"
                             android:text="@string/food_detail_default_name"
                             android:textAppearance="@style/TextAppearance.REPLATE.Headline"
-                            android:textColor="@color/text_primary"
-                            android:textSize="@dimen/text_xl" />
+                            android:textColor="@color/text_primary" />
 
                         <!-- Hotel Name and the heart that saves the hotel -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="6dp"
+                            android:layout_marginTop="@dimen/space_0_5"
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
 
@@ -172,7 +171,7 @@
                                 android:textStyle="bold" />
 
                             <Space
-                                android:layout_width="10dp"
+                                android:layout_width="@dimen/space_1"
                                 android:layout_height="1dp" />
 
                             <!-- Pickup Time Badge -->
@@ -273,7 +272,7 @@
                             android:id="@+id/tvDescription"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="18dp"
+                            android:layout_marginTop="@dimen/space_2"
                             android:lineSpacingExtra="4dp"
                             tools:text="@string/food_detail_description_placeholder"
                             android:textAppearance="@style/TextAppearance.REPLATE.Body"
@@ -283,7 +282,7 @@
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="18dp"
+                            android:layout_marginTop="@dimen/space_2"
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
 
@@ -292,7 +291,7 @@
                                 android:layout_width="52dp"
                                 android:layout_height="52dp"
                                 app:cardBackgroundColor="@color/green_primary"
-                                app:cardCornerRadius="14dp"
+                                app:cardCornerRadius="@dimen/radius_md"
                                 app:cardElevation="0dp">
 
                                 <ImageView
@@ -308,9 +307,9 @@
                                 android:id="@+id/btnSmsHotel"
                                 android:layout_width="52dp"
                                 android:layout_height="52dp"
-                                android:layout_marginStart="10dp"
+                                android:layout_marginStart="@dimen/space_1"
                                 app:cardBackgroundColor="@color/ember2"
-                                app:cardCornerRadius="14dp"
+                                app:cardCornerRadius="@dimen/radius_md"
                                 app:cardElevation="0dp">
 
                                 <ImageView
@@ -326,9 +325,9 @@
                                 android:id="@+id/btnChatHotel"
                                 android:layout_width="52dp"
                                 android:layout_height="52dp"
-                                android:layout_marginStart="10dp"
+                                android:layout_marginStart="@dimen/space_1"
                                 app:cardBackgroundColor="@color/primary_dark"
-                                app:cardCornerRadius="14dp"
+                                app:cardCornerRadius="@dimen/radius_md"
                                 app:cardElevation="0dp">
 
                                 <ImageView
@@ -364,7 +363,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="@dimen/space_2">
+                        android:padding="@dimen/space_2_5">
 
                         <TextView
                             style="@style/Widget.REPLATE.SectionTitle"
@@ -379,16 +378,15 @@
                             android:layout_marginTop="@dimen/space_0_5"
                             tools:text="0.0 (0 reviews)"
                             android:textColor="@color/text_secondary"
-                            android:textSize="@dimen/text_sm_compact" />
+                            android:textSize="@dimen/text_sm" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnToggleReviewComposer"
                             style="@style/Widget.REPLATE.Button.Secondary"
                             android:layout_width="wrap_content"
                             android:layout_height="@dimen/touch_target_min"
-                            android:layout_marginTop="10dp"
-                            android:text="@string/food_detail_write_a_review"
-                            android:textSize="@dimen/text_xs" />
+                            android:layout_marginTop="@dimen/space_1"
+                            android:text="@string/food_detail_write_a_review" />
 
                         <LinearLayout
                             android:id="@+id/layoutReviewComposer"
@@ -440,7 +438,6 @@
                                 android:layout_height="@dimen/button_height"
                                 android:layout_marginTop="@dimen/space_1"
                                 android:text="@string/food_detail_submit_review"
-                                android:textSize="@dimen/text_sm"
                                 app:icon="@drawable/ic_add_white"
                                 app:iconGravity="textStart"
                                 app:iconPadding="8dp"
@@ -479,7 +476,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="@dimen/space_2">
+                        android:padding="@dimen/space_2_5">
 
                         <TextView
                             style="@style/Widget.REPLATE.SectionTitle"
@@ -491,7 +488,7 @@
                             android:id="@+id/tvNoRecommendations"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="6dp"
+                            android:layout_marginTop="@dimen/space_0_5"
                             android:text="@string/food_detail_no_related_products_right_now"
                             android:textColor="@color/text_secondary"
                             android:visibility="gone" />
@@ -500,7 +497,7 @@
                             android:id="@+id/rvRecommended"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
+                            android:layout_marginTop="@dimen/space_1"
                             android:nestedScrollingEnabled="false" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>

@@ -34,13 +34,13 @@
             <View
                 android:layout_width="140dp"
                 android:layout_height="12dp"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="@dimen/space_1"
                 android:background="@drawable/skeleton_block" />
 
             <View
                 android:layout_width="80dp"
                 android:layout_height="14dp"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="@dimen/space_1"
                 android:background="@drawable/skeleton_block" />
         </LinearLayout>
     </LinearLayout>
@@ -72,13 +72,13 @@
             <View
                 android:layout_width="120dp"
                 android:layout_height="12dp"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="@dimen/space_1"
                 android:background="@drawable/skeleton_block" />
 
             <View
                 android:layout_width="96dp"
                 android:layout_height="14dp"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="@dimen/space_1"
                 android:background="@drawable/skeleton_block" />
         </LinearLayout>
     </LinearLayout>
@@ -109,13 +109,13 @@
             <View
                 android:layout_width="150dp"
                 android:layout_height="12dp"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="@dimen/space_1"
                 android:background="@drawable/skeleton_block" />
 
             <View
                 android:layout_width="72dp"
                 android:layout_height="14dp"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="@dimen/space_1"
                 android:background="@drawable/skeleton_block" />
         </LinearLayout>
     </LinearLayout>

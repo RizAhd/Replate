@@ -126,9 +126,7 @@
                     style="@style/Widget.REPLATE.PageTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/auth_welcome_back"
-                    android:textColor="@color/text_primary"
-                    android:textSize="@dimen/text_xl" />
+                    android:text="@string/auth_welcome_back" />
 
                 <TextView
                     android:layout_width="match_parent"
@@ -213,7 +211,7 @@
                         android:layout_marginHorizontal="@dimen/space_1_5"
                         android:text="@string/auth_or"
                         android:textColor="@color/text_secondary"
-                        android:textSize="@dimen/text_sm_compact" />
+                        android:textSize="@dimen/text_xs" />
                     <View
                         android:layout_width="0dp"
                         android:layout_height="1dp"
@@ -299,9 +297,7 @@
                     style="@style/Widget.REPLATE.PageTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/auth_create_account"
-                    android:textColor="@color/text_primary"
-                    android:textSize="@dimen/text_xl" />
+                    android:text="@string/auth_create_account" />
 
                 <TextView
                     android:layout_width="match_parent"
@@ -423,7 +419,7 @@
                         android:layout_marginHorizontal="@dimen/space_1_5"
                         android:text="@string/auth_or"
                         android:textColor="@color/text_secondary"
-                        android:textSize="@dimen/text_sm_compact" />
+                        android:textSize="@dimen/text_xs" />
                     <View
                         android:layout_width="0dp"
                         android:layout_height="1dp"

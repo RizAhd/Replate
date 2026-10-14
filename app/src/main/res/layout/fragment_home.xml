@@ -51,7 +51,7 @@
                             android:layout_height="48dp"
                             android:layout_centerVertical="true"
                             app:cardBackgroundColor="@color/overlay_white_12"
-                            app:cardCornerRadius="16dp"
+                            app:cardCornerRadius="@dimen/radius_md"
                             app:cardElevation="0dp">
 
                             <ImageView
@@ -96,7 +96,7 @@
                                     android:id="@+id/tvCurrentLocation"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginStart="6dp"
+                                    android:layout_marginStart="@dimen/space_0_5"
                                     android:text="@string/default_location"
                                     android:textAppearance="@style/TextAppearance.REPLATE.Label"
                                     android:textColor="@color/white"/>
@@ -115,7 +115,7 @@
                                 android:layout_width="48dp"
                                 android:layout_height="48dp"
                                 app:cardBackgroundColor="@color/overlay_white_12"
-                                app:cardCornerRadius="16dp"
+                                app:cardCornerRadius="@dimen/radius_md"
                                 app:cardElevation="0dp">
 
                                 <ImageView
@@ -155,8 +155,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/space_1_5"
                         android:text="@string/home_hero_title"
-                        android:textColor="@color/white"
-                        android:textSize="@dimen/text_lg" />
+                        android:textColor="@color/white" />
 
                     <TextView
                         android:id="@+id/tvHeroSubtitle"
