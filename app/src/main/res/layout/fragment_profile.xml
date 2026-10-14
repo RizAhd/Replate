@@ -204,6 +204,115 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Impact: meals rescued, and the food and CO2e that saved (estimates, same rule as the web panels) -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_2"
+            app:cardBackgroundColor="@color/surface_white"
+            app:cardCornerRadius="@dimen/radius_lg"
+            app:cardElevation="@dimen/elevation_card">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/space_2_5">
+
+                <TextView
+                    style="@style/Widget.REPLATE.SectionTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/profile_impact_title" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/space_0_5"
+                    android:text="@string/profile_impact_subtitle"
+                    android:textAppearance="@style/TextAppearance.REPLATE.Caption" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/space_2"
+                    android:baselineAligned="false"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvImpactMeals"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="@style/TextAppearance.REPLATE.Headline"
+                            android:textColor="@color/green_primary"
+                            tools:text="12" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/profile_impact_meals"
+                            android:textAppearance="@style/TextAppearance.REPLATE.Caption" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvImpactFood"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="@style/TextAppearance.REPLATE.Headline"
+                            android:textColor="@color/green_primary"
+                            tools:text="4.8 kg" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/profile_impact_food"
+                            android:textAppearance="@style/TextAppearance.REPLATE.Caption" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvImpactCo2"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="@style/TextAppearance.REPLATE.Headline"
+                            android:textColor="@color/green_primary"
+                            tools:text="12 kg" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/profile_impact_co2"
+                            android:textAppearance="@style/TextAppearance.REPLATE.Caption" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvImpactNote"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/space_1_5"
+                    android:textAppearance="@style/TextAppearance.REPLATE.Caption"
+                    tools:text="@string/profile_impact_note" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- Menu Section -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"

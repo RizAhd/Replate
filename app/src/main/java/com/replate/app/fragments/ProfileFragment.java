@@ -55,6 +55,7 @@ public class ProfileFragment extends Fragment {
 
     private CircleImageView ivProfileImage;
     private TextView tvUserName, tvUserEmail, tvOrdersCount, tvSavings, tvSavingsChartEmpty;
+    private TextView tvImpactMeals, tvImpactFood, tvImpactCo2, tvImpactNote;
     private BarChart chartSavings;
     private Button btnEditProfile, btnLogout;
     private LinearLayout menuOrders, menuFavorites, menuNotifications, menuMessages, menuSettings;
@@ -103,6 +104,11 @@ public class ProfileFragment extends Fragment {
         menuFavorites = view.findViewById(R.id.menuFavorites);
         chartSavings = view.findViewById(R.id.chartSavings);
         tvSavingsChartEmpty = view.findViewById(R.id.tvSavingsChartEmpty);
+        tvImpactMeals = view.findViewById(R.id.tvImpactMeals);
+        tvImpactFood = view.findViewById(R.id.tvImpactFood);
+        tvImpactCo2 = view.findViewById(R.id.tvImpactCo2);
+        tvImpactNote = view.findViewById(R.id.tvImpactNote);
+        showImpact(0);
         menuNotifications = view.findViewById(R.id.menuNotifications);
         menuMessages = view.findViewById(R.id.menuMessages);
         menuSettings = view.findViewById(R.id.menuSettings);
@@ -227,6 +233,7 @@ public class ProfileFragment extends Fragment {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         int orderCount = 0;
+                        int mealsRescued = 0;
                         double totalSavings = 0;
                         List<double[]> savedPerOrder = new ArrayList<>(); // {createdAt, saved}
 
@@ -237,6 +244,12 @@ public class ProfileFragment extends Fragment {
                                 continue;
                             }
                             orderCount++;
+                            // Only collected or delivered meals were really rescued
+                            String finished = com.replate.app.utils.OrderStatusAliases.canonical(
+                                    orderSnapshot.child("orderStatus").getValue(String.class));
+                            if ("completed".equals(finished) || "delivered".equals(finished)) {
+                                mealsRescued += com.replate.app.utils.OrderImpact.mealCount(orderSnapshot.child("items").getValue());
+                            }
                             double saved = Savings.forOrder(
                                     toDouble(orderSnapshot.child("savingsAmount").getValue()),
                                     toDouble(orderSnapshot.child("originalTotal").getValue()),
@@ -248,6 +261,7 @@ public class ProfileFragment extends Fragment {
                         tvOrdersCount.setText(String.valueOf(orderCount));
                         tvSavings.setText(Money.formatWhole(totalSavings));
                         renderSavingsChart(savedPerOrder);
+                        showImpact(mealsRescued);
                     }
 
                     // Logs the read error.
@@ -256,6 +270,18 @@ public class ProfileFragment extends Fragment {
                         com.replate.app.utils.DatabaseErrorLogger.log("ProfileFragment", "order stats", error);
                     }
                 });
+    }
+
+    // Fills the impact card: meals rescued, and the food and CO2e that saved (estimates, see ImpactEstimate).
+    private void showImpact(int meals) {
+        if (!isAdded() || tvImpactMeals == null) return;
+        com.replate.app.utils.ImpactEstimate impact = com.replate.app.utils.ImpactEstimate.forMeals(meals);
+        tvImpactMeals.setText(String.valueOf(impact.meals));
+        tvImpactFood.setText(getString(R.string.profile_impact_kg, com.replate.app.utils.ImpactEstimate.formatKg(impact.foodKg)));
+        tvImpactCo2.setText(getString(R.string.profile_impact_kg, com.replate.app.utils.ImpactEstimate.formatKg(impact.co2eKg)));
+        tvImpactNote.setText(getString(R.string.profile_impact_note,
+                com.replate.app.utils.ImpactEstimate.formatKg(com.replate.app.utils.ImpactEstimate.MEAL_KG),
+                com.replate.app.utils.ImpactEstimate.formatKg(com.replate.app.utils.ImpactEstimate.CO2E_PER_KG)));
     }
 
     /** Bar chart (MPAndroidChart) of the saving on the customer's last six orders, oldest on the left. */
