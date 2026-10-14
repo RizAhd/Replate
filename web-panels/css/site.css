@@ -238,7 +238,7 @@ button,
 /* ── For hotels: a full-width band of meal boxes, then the offer on a light green field ── */
 .hotels { background: var(--field); padding-bottom: var(--section); }
 .band { overflow: hidden; height: clamp(240px, 34vw, 480px); }
-.band img { width: 100%; height: 112%; object-fit: cover; object-position: 50% 45%; }
+.band img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 45%; }
 .hotels-grid {
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -352,40 +352,25 @@ button,
     .cta-row .btn { width: 100%; }
 }
 
-/* ── Motion: the headline rises from behind its lines, pictures open, sections arrive once ── */
+/* ── Motion: the headline rises from behind its lines, the hero picture settles, sections arrive once.
+   Below the first screen nothing is hidden: parts only move into place, so a page captured mid-way still shows everything. ── */
 @media (prefers-reduced-motion: no-preference) {
     /* the first screen settles within a second: the headline first, then its sentence and buttons */
     .lines .line-in { animation: line-up 650ms var(--ease-out) both; }
     .lines .line:nth-child(2) .line-in { animation-delay: 90ms; }
     .hero .rise { animation: rise 600ms var(--ease-out) both; animation-delay: 180ms; }
     .hero .cta-row.rise { animation-delay: 250ms; }
-    .shutter-load { animation: shutter 850ms var(--ease-in-out) both; animation-delay: 60ms; }
-    .shutter-load img { animation: settle 1300ms var(--ease-soft) both; animation-delay: 60ms; }
+    .hero-photo img { animation: settle 1400ms var(--ease-soft) both; }
 
     .js [data-reveal] {
-        opacity: 0;
-        transform: translateY(24px);
-        transition: opacity 700ms var(--ease-out), transform 900ms var(--ease-out);
+        transform: translateY(28px);
+        transition: transform 900ms var(--ease-out);
         transition-delay: calc(var(--i, 0) * 80ms);
     }
-    .js [data-reveal].is-in { opacity: 1; transform: none; }
-    /* the picture opens from the top inside its frame (the frame itself stays unclipped so it can be observed) */
-    .js .shutter[data-reveal] { opacity: 1; transform: none; transition: none; }
-    .js .shutter[data-reveal] img {
-        clip-path: inset(0 0 100% 0);
-        transform: scale(1.12);
-        transition: clip-path 1100ms var(--ease-in-out), transform 1500ms var(--ease-soft);
-    }
-    .js .shutter[data-reveal].is-in img { clip-path: inset(0); transform: none; }
+    .js [data-reveal].is-in { transform: none; }
 
-    @supports (animation-timeline: view()) {
-        .drift { animation: drift linear both; animation-timeline: view(); animation-range: entry 0% exit 100%; }
-        .footer-mark { animation: rise linear both; animation-timeline: view(); animation-range: entry 0% entry 60%; }
-    }
 }
 
 @keyframes line-up { from { transform: translateY(105%); } to { transform: none; } }
 @keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
-@keyframes shutter { from { clip-path: inset(0 0 0 100%); } to { clip-path: inset(0); } }
-@keyframes settle { from { transform: scale(1.1); } to { transform: none; } }
-@keyframes drift { from { transform: translateY(-6%); } to { transform: translateY(0); } }
+@keyframes settle { from { transform: scale(1.06); } to { transform: none; } }
