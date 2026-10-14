@@ -160,9 +160,9 @@
             const name = esc(cat.name);
             return `
                 <tr>
-                    <td data-label="Order">${i + 1}</td>
+                    <td data-label="Order" class="num">${i + 1}</td>
                     <td data-label="Name">${name}</td>
-                    <td data-label="Dishes">${used}</td>
+                    <td data-label="Dishes" class="num">${used}</td>
                     <td data-label="Actions" class="actions-cell">
                         <button type="button" class="btn btn-sm btn-icon btn-outline-secondary" data-action="up" data-key="${esc(cat.key)}" aria-label="Move ${name} up" ${i === 0 ? 'disabled' : ''}>
                             <i class="fas fa-arrow-up" aria-hidden="true"></i></button>
@@ -181,8 +181,8 @@
     function validateName(name, ignoreKey) {
         if (!name) return 'Enter a category name.';
         if (name.length > 40) return 'Keep the category name under 40 characters.';
-        if (sameName(name, 'all')) return '"All" is added by the app automatically.';
-        if (categories.some((c) => c.key !== ignoreKey && sameName(c.name, name))) return 'A category called "' + name + '" already exists.';
+        if (sameName(name, 'all')) return '“All” is added by the app automatically.';
+        if (categories.some((c) => c.key !== ignoreKey && sameName(c.name, name))) return 'A category called “' + name + '” already exists.';
         return null;
     }
 
@@ -203,13 +203,17 @@
             return;
         }
 
+        const submit = document.querySelector('#addCategoryForm button[type=submit]');
+        submit.disabled = true;
         try {
             await database.ref('categories').push({ name, order });
             document.getElementById('addCategoryForm').reset();
             ReplateUI.toast('Category added.', 'success');
         } catch (error) {
             console.error(error);
-            ReplateUI.toast('Could not add the category. Please try again.', 'danger');
+            ReplateUI.toast('Could not add the category. Check your connection and try again.', 'danger');
+        } finally {
+            submit.disabled = false;
         }
     });
 
@@ -235,8 +239,8 @@
         const cat = categories.find((c) => c.key === key);
         if (!cat) return;
         const answer = await ReplateUI.askText(
-            `Dishes listed under "${cat.name}" move to the new name, so customers keep finding them.`,
-            { title: 'Rename category', label: 'New name', placeholder: cat.name, confirmText: 'Rename' });
+            `Dishes listed under “${cat.name}” move to the new name, so customers keep finding them.`,
+            { title: 'Rename category', label: 'New name', value: cat.name, placeholder: 'e.g. Desserts…', confirmText: 'Rename' });
         if (answer === null) return;
         const name = answer.trim();
         if (sameName(name, cat.name) && name === cat.name) return;
@@ -264,8 +268,8 @@
         if (!cat) return;
         const used = dishesByCategory[cat.name.trim().toLowerCase()] || 0;
         const message = used > 0
-            ? `${used} ${used === 1 ? 'dish uses' : 'dishes use'} "${cat.name}". They stay listed, but will no longer appear under this category chip in the app.`
-            : `"${cat.name}" will be removed from the app's category list.`;
+            ? `${used} ${used === 1 ? 'dish uses' : 'dishes use'} “${cat.name}”. They stay listed, but will no longer appear under this category chip in the app.`
+            : `“${cat.name}” will be removed from the app’s category list.`;
         const ok = await ReplateUI.confirmAction(message, { title: 'Delete this category?', confirmText: 'Delete', danger: true });
         if (!ok) return;
         try {

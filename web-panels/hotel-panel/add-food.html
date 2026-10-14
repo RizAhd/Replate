@@ -43,12 +43,12 @@
                             <!-- Image Upload -->
                             <div class="mb-4 text-center">
                                 <div id="imagePreviewContainer" class="mb-3" role="button" tabindex="0"
-                                     aria-label="Choose a photo of the food (JPG, PNG or WebP, up to 5 MB)">
-                                    <img id="preview" src="#" alt="Preview of the chosen food photo" class="d-none preview-fill">
+                                     aria-label="Choose a photo of the food (JPG, PNG or WebP, up to 5&nbsp;MB)">
+                                    <img id="preview" alt="Preview of the chosen food photo" class="d-none preview-fill">
                                     <div id="uploadPlaceholder" class="text-secondary">
                                         <i class="fas fa-cloud-upload-alt fa-3x mb-2" aria-hidden="true"></i>
                                         <p class="mb-0">Click or press Enter to choose a photo</p>
-                                        <small>JPG, PNG or WebP, up to 5 MB</small>
+                                        <small>JPG, PNG or WebP, up to 5&nbsp;MB</small>
                                     </div>
                                 </div>
                                 <input type="file" id="foodImage" name="foodImage" class="d-none" aria-label="Food photo" accept="image/jpeg,image/png,image/webp" required>
@@ -194,7 +194,10 @@
                 option.textContent = name;
                 categorySelect.appendChild(option);
             });
-        }, (error) => console.error('Could not load categories', error));
+        }, (error) => {
+            console.error('Could not load categories', error);
+            ReplateUI.fieldProblem('category', 'Categories could not be loaded. Check your connection and reload the page.', { toast: true });
+        });
     }
 
     const imageInput = document.getElementById('foodImage');

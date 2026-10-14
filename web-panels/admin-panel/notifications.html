@@ -38,11 +38,11 @@
             <!-- Notification numbers -->
             <div class="stat-grid">
                 <div class="card stat-card">
-                    <p class="stat-value num" id="statSentToday">0</p>
+                    <p class="stat-value num" id="statSentToday">—</p>
                     <p class="stat-label"><i class="fas fa-paper-plane" aria-hidden="true"></i>Sent today</p>
                 </div>
                 <div class="card stat-card">
-                    <p class="stat-value num" id="statTotalUsers">0</p>
+                    <p class="stat-value num" id="statTotalUsers">—</p>
                     <p class="stat-label"><i class="fas fa-users" aria-hidden="true"></i>Broadcast audience</p>
                 </div>
             </div>
@@ -72,7 +72,7 @@
                 <div class="tab-pane fade show active" id="pane-activity" role="tabpanel" aria-labelledby="tab-activity">
                     <div class="card">
                         <div class="card-header">
-                            <span>Platform activity</span>
+                            <h2 class="card-header-title">Platform activity</h2>
                             <button type="button" class="btn btn-sm btn-outline-secondary" id="btnClearFeed">Clear list</button>
                         </div>
                         <div id="activityFeed" class="activity-feed" aria-live="polite">
@@ -159,7 +159,7 @@
 
                     <div class="card card-body">
                         <h2 class="section-title"><i class="fas fa-tag" aria-hidden="true"></i>Deal alert</h2>
-                        <p class="text-muted mb-3">Tells every customer about one deal: "[hotel] offers [dish] at [discount]% OFF!"</p>
+                        <p class="text-muted mb-3">Tells every customer about one deal: &ldquo;[hotel] offers [dish] at [discount]% OFF!&rdquo;</p>
                         <form id="dealForm" novalidate class="row g-3">
                             <div class="col-md-4">
                                 <label class="form-label" for="dealHotelName">Hotel name</label>
@@ -186,7 +186,7 @@
                 <div class="tab-pane fade" id="pane-history" role="tabpanel" aria-labelledby="tab-history">
                     <div class="card">
                         <div class="card-header">
-                            <span>Sent notifications</span>
+                            <h2 class="card-header-title">Sent notifications</h2>
                             <span id="historyCount" class="card-header-meta">Loading…</span>
                         </div>
                         <div class="card-body p-0">
@@ -240,13 +240,15 @@
     const shownKeys = new Set();
 
     // ── Helpers ────────────────────────────────────────────
+    const RELATIVE = new Intl.RelativeTimeFormat('en', { numeric: 'auto', style: 'short' });
+
     function timeAgo(ts) {
         if (!ts) return '';
         const diff = Math.floor((Date.now() - ts) / 1000);
         if (diff < 5) return 'just now';
-        if (diff < 60) return diff + 's ago';
-        if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
-        if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+        if (diff < 60) return RELATIVE.format(-diff, 'second');
+        if (diff < 3600) return RELATIVE.format(-Math.floor(diff / 60), 'minute');
+        if (diff < 86400) return RELATIVE.format(-Math.floor(diff / 3600), 'hour');
         return ReplateSchema.formatDate(ts);
     }
 
@@ -730,6 +732,11 @@
         if (!document.getElementById('targetUserIds').value.split(',').some((v) => v.trim())) { ReplateUI.fieldProblem('targetUserIds', 'Enter at least one user ID.'); return; }
         if (!document.getElementById('targetTitle').value.trim()) { ReplateUI.fieldProblem('targetTitle', 'Enter a title.'); return; }
         if (!document.getElementById('targetBody').value.trim()) { ReplateUI.fieldProblem('targetBody', 'Enter the message.'); return; }
+        const recipients = document.getElementById('targetUserIds').value.split(',').filter((v) => v.trim()).length;
+        const sendIt = await ReplateUI.confirmAction(
+            'This notification goes to ' + ReplateSchema.plural(recipients, 'user') + '. It cannot be recalled once sent.',
+            { title: 'Send this notification?', confirmText: 'Send notification' });
+        if (!sendIt) return;
         ReplateUI.setButtonLoading('btnTargetSend', true, 'Sending…');
         try {
             const userIds = document.getElementById('targetUserIds').value
@@ -797,13 +804,16 @@
         ReplateUI.clearFieldErrors('dealForm');
         const discountValue = document.getElementById('dealDiscount').value.trim();
         if (discountValue && !(Number(discountValue) >= 1 && Number(discountValue) <= 95)) { ReplateUI.fieldProblem('dealDiscount', 'The discount must be between 1 and 95.'); return; }
+        const sendDeal = await ReplateUI.confirmAction('This deal alert goes to every customer. It cannot be recalled once sent.',
+            { title: 'Send this deal alert?', confirmText: 'Send deal alert' });
+        if (!sendDeal) return;
         ReplateUI.setButtonLoading('btnDealSend', true, 'Sending…');
         try {
             const hotelName = document.getElementById('dealHotelName').value.trim() || 'Nearby Hotel';
             const foodName = document.getElementById('dealFoodName').value.trim() || 'Fresh meal';
             const discount = document.getElementById('dealDiscount').value.trim();
 
-            const title = 'Hot Deal Nearby';
+            const title = 'Hot deal nearby';
             const body = `${hotelName} offers ${foodName}${discount ? ` at ${discount}% OFF` : ''}!`;
 
             let result;

@@ -27,7 +27,7 @@
 <main class="auth-card auth-card-wide" id="mainContent">
     <div class="auth-brand text-center mb-4">
         <img src="../assets/replate-icon.svg" alt="" width="64" height="64" class="brand-logo-auth">
-        <div class="auth-wordmark">REPLATE</div>
+        <div class="auth-wordmark" translate="no">REPLATE</div>
         <h1 class="auth-title mb-1">Register your hotel</h1>
         <p class="auth-subtext mb-0">Join REPLATE and start rescuing surplus food. An admin reviews every registration.</p>
     </div>
@@ -85,11 +85,11 @@
         <div class="row align-items-end">
             <div class="col-md-4 mb-3">
                 <label class="form-label" for="latitude">Latitude</label>
-                <input type="number" step="any" class="form-control" id="latitude" name="latitude" inputmode="decimal" required placeholder="e.g. 6.9271…">
+                <input type="number" step="any" class="form-control" id="latitude" name="latitude" inputmode="decimal" autocomplete="off" required placeholder="e.g. 6.9271…">
             </div>
             <div class="col-md-4 mb-3">
                 <label class="form-label" for="longitude">Longitude</label>
-                <input type="number" step="any" class="form-control" id="longitude" name="longitude" inputmode="decimal" required placeholder="e.g. 79.8612…">
+                <input type="number" step="any" class="form-control" id="longitude" name="longitude" inputmode="decimal" autocomplete="off" required placeholder="e.g. 79.8612…">
             </div>
             <div class="col-md-4 mb-3">
                 <button type="button" class="btn btn-outline-primary w-100" id="btnUseLocation">
@@ -100,7 +100,7 @@
         <p class="form-text mt-0 mb-3">Stand at your hotel and tap &ldquo;Use my location&rdquo; so customers can find you on the map.</p>
 
         <div class="mb-3">
-            <label class="form-label" for="license">Business licence (PDF or image, up to 10 MB)</label>
+            <label class="form-label" for="license">Business licence (PDF or image, up to 10&nbsp;MB)</label>
             <input type="file" class="form-control" id="license" name="license" accept="application/pdf,image/jpeg,image/png,image/webp" required>
         </div>
 
@@ -159,17 +159,16 @@
             ReplateUI.toast('Your browser cannot share its location. Type the coordinates instead.', 'warning');
             return;
         }
-        const button = field('btnUseLocation');
-        button.disabled = true;
+        ReplateUI.setButtonLoading('btnUseLocation', true, 'Locating…');
         navigator.geolocation.getCurrentPosition((pos) => {
             field('latitude').value = pos.coords.latitude.toFixed(6);
             field('longitude').value = pos.coords.longitude.toFixed(6);
             ReplateUI.clearFieldError('latitude');
             ReplateUI.clearFieldError('longitude');
-            button.disabled = false;
+            ReplateUI.setButtonLoading('btnUseLocation', false);
             ReplateUI.toast('Location filled in.', 'success');
         }, () => {
-            button.disabled = false;
+            ReplateUI.setButtonLoading('btnUseLocation', false);
             ReplateUI.toast('Could not get your location. Allow location access or type the coordinates.', 'warning');
         }, { enableHighAccuracy: true, timeout: 15000 });
     });
@@ -188,11 +187,11 @@
         if (field('password').value.length < 8) return bad('password', 'The password must be at least 8 characters.');
         if (field('password').value !== field('confirmPassword').value) return bad('confirmPassword', 'The two passwords do not match.');
         if (!field('address').value.trim()) return bad('address', 'Enter the hotel address.');
-        if (!Number.isFinite(lat) || lat < -90 || lat > 90) return bad('latitude', 'Enter valid map coordinates, or tap "Use my location".');
-        if (!Number.isFinite(lng) || lng < -180 || lng > 180) return bad('longitude', 'Enter valid map coordinates, or tap "Use my location".');
+        if (!Number.isFinite(lat) || lat < -90 || lat > 90) return bad('latitude', 'Enter valid map coordinates, or tap “Use my location”.');
+        if (!Number.isFinite(lng) || lng < -180 || lng > 180) return bad('longitude', 'Enter valid map coordinates, or tap “Use my location”.');
         if (!file) return bad('license', 'Attach your business licence.');
         if (!LICENSE_TYPES.includes(file.type)) return bad('license', 'The licence must be a PDF, JPG, PNG or WebP file.');
-        if (file.size > MAX_LICENSE_BYTES) return bad('license', 'The licence file is larger than 10 MB.');
+        if (file.size > MAX_LICENSE_BYTES) return bad('license', 'The licence file is larger than 10 MB. Choose a smaller file or a compressed PDF.');
         if (!field('agree').checked) return bad('agree', 'Please accept the Terms of Use and Privacy Policy.');
         return null;
     }

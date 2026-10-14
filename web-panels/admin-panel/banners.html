@@ -59,7 +59,7 @@
                             <div class="mb-3">
                                 <label class="form-label" for="bnImage">Image</label>
                                 <input type="file" class="form-control" id="bnImage" name="bnImage" accept="image/jpeg,image/png,image/webp" required>
-                                <div class="form-text">JPG, PNG or WebP, up to 2 MB. Use a wide image, about 2:1 (for example 1080 &times; 540).</div>
+                                <div class="form-text">JPG, PNG or WebP, up to 2&nbsp;MB. Use a wide image, about 2:1 (for example 1080&nbsp;&times;&nbsp;540).</div>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label" for="bnLink">Tap action (optional)</label>
@@ -170,7 +170,10 @@
     // Waits for an admin sign-in, then loads the banners.
     (async () => {
         const user = await ReplateUI.requireRole('admin');
-        if (user) loadBanners();
+        if (user) {
+            document.getElementById('bannerTable').innerHTML = '<tr><td colspan="5">' + ReplateUI.skeleton('rows', 3) + '</td></tr>';
+            loadBanners();
+        }
     })();
 
     // Listens for banners and redraws the table.
@@ -194,10 +197,11 @@
                             <div class="small text-muted">${b.deepLink ? 'Action: ' + esc(b.deepLink) : 'No action'}</div>
                             <div class="small text-muted">${formatWindow(b)}</div>
                         </td>
-                        <td data-label="Order">${esc(b.order)}</td>
+                        <td data-label="Order" class="num">${esc(b.order)}</td>
                         <td data-label="Active">
                             <label class="form-check form-switch switch-hit">
                                 <input class="form-check-input" type="checkbox" role="switch" ${b.active !== false ? 'checked' : ''}
+                                       id="bannerActive-${esc(key)}" name="bannerActive-${esc(key)}"
                                        data-key="${esc(key)}" aria-label="Show ${esc(b.title || 'banner')} in the app">
                             </label>
                         </td>
@@ -211,7 +215,8 @@
                 : '<tr><td colspan="5">' + ReplateUI.emptyState('No banners yet', 'The app shows its built-in banners until you add one.', 'fa-images') + '</td></tr>';
         }, (error) => {
             console.error('Could not load banners', error);
-            showMessage('Banners could not be loaded. Check your admin access and connection.', true);
+            document.getElementById('bannerTable').innerHTML = '<tr><td colspan="5">' +
+                ReplateUI.errorState('Banners could not be loaded. Check your admin access and connection, then try again.') + '</td></tr>';
         });
     }
 
@@ -235,9 +240,9 @@
         const endVal = document.getElementById('bnEnd').value;
         const startAt = startVal ? new Date(startVal).getTime() : 0;
         const endAt = endVal ? new Date(endVal).getTime() : 0;
-        if (startAt && endAt && endAt <= startAt) { fieldProblem('bnEnd', '"Show until" must be after "Show from".'); return; }
+        if (startAt && endAt && endAt <= startAt) { fieldProblem('bnEnd', '“Show until” must be after “Show from”.'); return; }
 
-        submit.disabled = true;
+        ReplateUI.setButtonLoading('bnSubmit', true, 'Adding banner…');
         showMessage('Uploading the image…', false);
 
         try {
@@ -267,7 +272,7 @@
             console.error('Could not add the banner', err);
             showMessage('Could not add the banner. Check your connection and try again.', true);
         } finally {
-            submit.disabled = false;
+            ReplateUI.setButtonLoading('bnSubmit', false);
         }
     });
 

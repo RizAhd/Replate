@@ -73,7 +73,7 @@
                     <div class="card card-body">
                         <h2 class="section-title"><i class="fas fa-shield-alt" aria-hidden="true"></i>Account</h2>
                         <p class="text-muted">
-                            To change your password, use "Forgot password?" on the sign-in page. To change the email address, contact REPLATE support.
+                            To change your password, use &ldquo;Forgot password?&rdquo; on the sign-in page. To change the email address, contact REPLATE support.
                         </p>
                         <button class="btn btn-outline-primary" type="button" id="btnSignOut">
                             <i class="fas fa-arrow-right-from-bracket" aria-hidden="true"></i>Log out
@@ -125,7 +125,7 @@
         try {
             const hotelRecord = await ReplateSchema.findHotelByUserId(database, user.uid);
             if (!hotelRecord) {
-                ReplateUI.toast('No hotel profile was found for this account.', 'warning');
+                ReplateUI.toast('No hotel profile was found for this account. Register your hotel first, or sign in with the account you registered with.', 'warning');
                 return;
             }
             currentHotelId = hotelRecord.key;

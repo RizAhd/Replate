@@ -27,7 +27,7 @@
 <main class="auth-card text-center" id="mainContent">
     <div class="auth-brand mb-4">
         <img src="../assets/replate-icon.svg" alt="" width="64" height="64" class="brand-logo-auth">
-        <div class="auth-wordmark">REPLATE</div>
+        <div class="auth-wordmark" translate="no">REPLATE</div>
         <h1 class="auth-title">Admin sign in</h1>
         <p class="auth-subtext mb-0">Super admin access only</p>
     </div>
@@ -51,7 +51,7 @@
         </div>
 
         <div class="auth-links-row mb-3">
-            <a href="#" class="auth-link" id="forgotPasswordLink">Forgot password?</a>
+            <button type="button" class="auth-link" id="forgotPasswordLink">Forgot password?</button>
             <a href="../index.html" class="auth-link">&larr; Back to home</a>
         </div>
 
@@ -96,12 +96,12 @@
         const email = document.getElementById('email').value.trim().toLowerCase();
         const password = document.getElementById('password').value;
 
-        if (!email || !password) {
-            ReplateUI.toast('Enter your admin email and password.', 'warning');
-            return;
-        }
+        ReplateUI.clearFieldErrors('loginForm');
+        if (!email) { ReplateUI.fieldProblem('email', 'Enter your admin email.'); return; }
+        if (!password) { ReplateUI.fieldProblem('password', 'Enter your password.'); return; }
         if (!ADMIN_EMAILS.includes(email)) {
-            ReplateUI.toast('This email is not an admin account.', 'danger');
+            ReplateUI.setFieldError('email', 'Use an admin email address.');
+            ReplateUI.toast('This email is not an admin account. Hotel owners sign in on the hotel sign-in page.', 'danger');
             return;
         }
 
@@ -121,7 +121,7 @@
         e.preventDefault();
         const email = document.getElementById('email').value.trim().toLowerCase();
         if (!ADMIN_EMAILS.includes(email)) {
-            ReplateUI.toast('Type your admin email above first, then choose "Forgot password".', 'info');
+            ReplateUI.toast('Type your admin email above first, then choose “Forgot password”.', 'info');
             return;
         }
         try {

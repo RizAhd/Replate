@@ -228,7 +228,7 @@
         if (button.dataset.action === 'edit') {
             openEdit(key);
         } else if (button.dataset.action === 'delete') {
-            const ok = await ReplateUI.confirmAction(`"${button.dataset.name}" will be removed from the app.`, {
+            const ok = await ReplateUI.confirmAction(`“${button.dataset.name}” will be removed from the app.`, {
                 title: 'Delete this listing?', confirmText: 'Delete', danger: true });
             if (!ok) return;
             try {

@@ -27,7 +27,7 @@
 <main class="auth-card text-center" id="mainContent">
     <div class="auth-brand mb-4">
         <img src="../assets/replate-icon.svg" alt="" width="64" height="64" class="brand-logo-auth">
-        <div class="auth-wordmark">REPLATE</div>
+        <div class="auth-wordmark" translate="no">REPLATE</div>
         <h1 class="auth-title">Hotel partner sign in</h1>
         <p class="auth-subtext mb-0">Manage your surplus food listings and orders</p>
     </div>
@@ -53,7 +53,7 @@
         </div>
 
         <div class="auth-links-row mb-3">
-            <a href="#" class="auth-link" id="forgotPasswordLink">Forgot password?</a>
+            <button type="button" class="auth-link" id="forgotPasswordLink">Forgot password?</button>
             <span class="text-secondary small">New hotels need admin approval</span>
         </div>
 
@@ -131,7 +131,7 @@
             showNotice('warning', 'No hotel account found',
                 providerName
                     ? 'No hotel is linked to this ' + providerName + ' account. Register first or use your email and password.'
-                    : 'No hotel is registered with this account. Use "Register your hotel" below.');
+                    : 'No hotel is registered with this account. Use “Register your hotel” below.');
             await auth.signOut();
             return;
         }
@@ -170,7 +170,7 @@
         e.preventDefault();
         const email = document.getElementById('email').value.trim();
         if (!email) {
-            ReplateUI.toast('Enter your hotel email first, then choose "Forgot password".', 'info');
+            ReplateUI.toast('Enter your hotel email first, then choose “Forgot password”.', 'info');
             return;
         }
         try {
@@ -187,10 +187,9 @@
         clearNotice();
         const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value;
-        if (!email || !password) {
-            ReplateUI.toast('Enter your email and password.', 'warning');
-            return;
-        }
+        ReplateUI.clearFieldErrors('loginForm');
+        if (!email) { ReplateUI.fieldProblem('email', 'Enter your email.'); return; }
+        if (!password) { ReplateUI.fieldProblem('password', 'Enter your password.'); return; }
         ReplateUI.setButtonLoading('btnLogin', true, 'Signing in…');
 
         try {
@@ -218,7 +217,7 @@
                 return 'No connection. Check your internet and try again.';
             case 'auth/internal-error':
             case 'auth/invalid-api-key':
-                return providerName + ' sign-in is not set up correctly in Firebase (' + error.code + ').';
+                return providerName + ' sign-in is not available right now (' + error.code + '). Sign in with your email and password instead.';
             default:
                 if (error && /permission/i.test(String(error.code || error.message))) {
                     return 'This ' + providerName + ' account is not linked to a hotel. Register first or use your email and password.';
