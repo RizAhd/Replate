@@ -17,27 +17,6 @@
     <link rel="icon" href="../assets/favicon.ico" sizes="any">
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
     <link rel="manifest" href="../manifest.webmanifest">
-    <style>
-        .leaderboard-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--border-light); }
-        .leaderboard-row:last-child { border-bottom:0; }
-        .leaderboard-rank { width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:var(--fs-12); font-weight:700; flex-shrink:0; }
-        .leaderboard-rank.r1 { background:#fef3c7; color:#d97706; }
-        .leaderboard-rank.r2 { background:#e5e7eb; color:#6b7280; }
-        .leaderboard-rank.r3 { background:#fce7d4; color:#e8521a; }
-        .leaderboard-rank.r4, .leaderboard-rank.r5 { background:var(--bg); color:var(--text-secondary); }
-        .leaderboard-name { flex:1; font-weight:600; font-size:var(--fs-14); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-        .leaderboard-value { font-weight:600; font-size:var(--fs-14); color:var(--primary); }
-        @media (max-width: 767.98px) {
-            .leaderboard-row {
-                align-items: flex-start;
-            }
-            .leaderboard-name {
-                white-space: normal;
-                overflow: visible;
-                text-overflow: initial;
-            }
-        }
-    </style>
 </head>
 <body>
 <a class="skip-link" href="#mainContent">Skip to content</a>
@@ -49,8 +28,8 @@
         <main id="mainContent">
             <div class="page-header">
                 <div>
-                    <h1 class="panel-title">Platform Analytics</h1>
-                    <p class="panel-subtitle">Real-time insights across all hotels, orders, and users.</p>
+                    <h1 class="panel-title">Analytics</h1>
+                    <p class="panel-subtitle">Orders, revenue and users across all hotels.</p>
                 </div>
                 <div class="page-actions">
                     <div>
@@ -122,13 +101,13 @@
             <div class="row">
                 <div class="col-lg-8">
                     <div class="card card-body chart-card">
-                        <h2 class="section-title"><i class="fas fa-chart-area" aria-hidden="true"></i>Platform Growth (Orders per Week)</h2>
+                        <h2 class="section-title"><i class="fas fa-chart-area" aria-hidden="true"></i>Orders per week</h2>
                         <div class="chart-wrap"><canvas id="growthChart" role="img" aria-label="Line chart: orders per week"></canvas></div>
                     </div>
                 </div>
                 <div class="col-lg-4">
                     <div class="card card-body chart-card">
-                        <h2 class="section-title"><i class="fas fa-chart-pie" aria-hidden="true"></i>Order Status</h2>
+                        <h2 class="section-title"><i class="fas fa-chart-pie" aria-hidden="true"></i>Order status</h2>
                         <div class="chart-wrap"><canvas id="statusChart" role="img" aria-label="Doughnut chart: orders by status"></canvas></div>
                     </div>
                 </div>
@@ -138,47 +117,39 @@
             <div class="row">
                 <div class="col-lg-6">
                     <div class="card card-body chart-card">
-                        <h2 class="section-title"><i class="fas fa-chart-bar" aria-hidden="true"></i>Revenue Trend (Weekly)</h2>
+                        <h2 class="section-title"><i class="fas fa-chart-bar" aria-hidden="true"></i>Revenue per week</h2>
                         <div class="chart-wrap"><canvas id="revenueChart" role="img" aria-label="Bar chart: revenue"></canvas></div>
                     </div>
                 </div>
                 <div class="col-lg-6">
                     <div class="card card-body chart-card">
-                        <h2 class="section-title"><i class="fas fa-tags" aria-hidden="true"></i>Revenue by Category</h2>
+                        <h2 class="section-title"><i class="fas fa-tags" aria-hidden="true"></i>Revenue by food category</h2>
                         <div class="chart-wrap"><canvas id="categoryChart" role="img" aria-label="Doughnut chart: revenue by food category"></canvas></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Row 3: top hotels and payment methods -->
+            <!-- Row 3: payment methods and the hotels with the most revenue -->
             <div class="row">
-                <div class="col-lg-7">
-                    <div class="card card-body chart-card">
-                        <h2 class="section-title"><i class="fas fa-trophy" aria-hidden="true"></i>Top Hotels by Orders</h2>
-                        <div id="topHotelsLeaderboard">
-                            <p class="text-center py-3" style="color:var(--text-tertiary);font-size:0.85rem;">Loading...</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-5">
-                    <div class="card card-body chart-card">
-                        <h2 class="section-title"><i class="fas fa-credit-card" aria-hidden="true"></i>Payment Methods</h2>
+                <div class="col-lg-4">
+                    <div class="card card-body chart-card h-100">
+                        <h2 class="section-title"><i class="fas fa-credit-card" aria-hidden="true"></i>Payment methods</h2>
                         <div class="chart-wrap"><canvas id="paymentChart" role="img" aria-label="Doughnut chart: cash and online payments"></canvas></div>
                     </div>
                 </div>
-            </div>
-
-            <!-- Top hotels table -->
-            <div class="card card-body chart-card">
-                <h2 class="section-title"><i class="fas fa-ranking-star" aria-hidden="true"></i>Top hotels</h2>
-                <div class="table-responsive">
-                    <table class="table align-middle table-stack mb-0">
+                <div class="col-lg-8">
+                    <div class="card card-body chart-card h-100">
+                        <h2 class="section-title"><i class="fas fa-ranking-star" aria-hidden="true"></i>Top hotels by revenue</h2>
+                        <div class="table-responsive">
+                            <table class="table align-middle table-stack mb-0">
                                 <caption class="visually-hidden">Top hotels by revenue</caption>
-                        <thead>
-                            <tr><th scope="col">Hotel</th><th scope="col">Orders</th><th scope="col">Revenue</th><th scope="col">Cancel rate</th><th scope="col">Rating</th></tr>
-                        </thead>
-                        <tbody id="topHotelsTable"></tbody>
-                    </table>
+                                <thead>
+                                    <tr><th scope="col">Hotel</th><th scope="col">Orders</th><th scope="col">Revenue</th><th scope="col">Cancel rate</th><th scope="col">Rating</th></tr>
+                                </thead>
+                                <tbody id="topHotelsTable"></tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
@@ -317,7 +288,6 @@
     function showAnalyticsError(message) {
         ReplateUI.toast(message, 'danger', 8000);
         ['totalRevenue', 'totalOrders', 'foodSaved', 'cancelledOrders', 'expiredPickups'].forEach((id) => { document.getElementById(id).textContent = '—'; });
-        document.getElementById('topHotelsLeaderboard').innerHTML = ReplateUI.errorState(message);
         document.getElementById('topHotelsTable').innerHTML = '<tr><td colspan="5">' + ReplateUI.errorState(message) + '</td></tr>';
     }
 
@@ -360,7 +330,6 @@
         let totalItemsRescued = 0;
         const weeklyOrders = {};
         const weeklyRevenue = {};
-        const hotelOrders = {};
         const categoryRevenue = {};
 
         orders.forEach((order) => {
@@ -390,11 +359,6 @@
                 if (ReplateSchema.isExpiredPickupOrder(order, now)) expiredCount++;
             }
 
-            if (!ReplateSchema.isCancelledOrder(order)) {
-                const hName = order.hotelName || 'Unknown';
-                hotelOrders[hName] = (hotelOrders[hName] || 0) + 1;
-            }
-
             const method = String(order.paymentMethod || 'Cash').toLowerCase();
             if (method.includes('cash')) cash++;
             else online++;
@@ -422,7 +386,7 @@
 
         document.getElementById('totalRevenue').innerHTML = ReplateUI.moneyHtml(revenue);
         document.getElementById('totalOrders').textContent = total;
-        document.getElementById('foodSaved').textContent = totalItemsRescued + ' items';
+        document.getElementById('foodSaved').textContent = ReplateSchema.plural(totalItemsRescued, 'item');
         setDelta('deltaRevenue', thisWeekRevenue, lastWeekRevenue);
         setDelta('deltaOrders', thisWeekOrders, lastWeekOrders);
 
@@ -570,22 +534,6 @@
         ReplateUI.describeChart('categoryChart', hasCatData
             ? 'Doughnut chart: revenue by food category. ' + sortedCats.map(([name, v]) => name + ' ' + ReplateSchema.formatMoney(v)).join(', ') + '.'
             : 'Doughnut chart: revenue by food category. No completed orders yet.');
-
-        // ── Top Hotels Leaderboard ──
-        const sortedHotels = Object.entries(hotelOrders).sort((a, b) => b[1] - a[1]).slice(0, 5);
-        const leaderboard = document.getElementById('topHotelsLeaderboard');
-        if (sortedHotels.length === 0) {
-            leaderboard.innerHTML = '<p class="text-center py-3" style="color:var(--text-tertiary);font-size:0.85rem;">No order data yet.</p>';
-        } else {
-            leaderboard.innerHTML = sortedHotels.map(([name, count], i) => {
-                const rankClass = i < 3 ? `r${i+1}` : `r${Math.min(i+1, 5)}`;
-                return `<div class="leaderboard-row">
-                    <div class="leaderboard-rank ${rankClass}">${i+1}</div>
-                    <div class="leaderboard-name" title="${escapeHtml(name)}">${escapeHtml(name)}</div>
-                    <div class="leaderboard-value">${count} orders</div>
-                </div>`;
-            }).join('');
-        }
 
         // ── Top hotels table ──
         const performance = ReplateSchema.hotelPerformance(orders, reviews).slice(0, 10);

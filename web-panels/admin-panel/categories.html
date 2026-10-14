@@ -28,27 +28,27 @@
         <main id="mainContent">
             <div class="page-header">
                 <div>
-                    <h1 class="panel-title">Manage Food Categories</h1>
-                    <p class="panel-subtitle">Add, rename, reorder and remove categories. The customer app's category chips and the hotel panel's category list follow this page.</p>
+                    <h1 class="panel-title">Categories</h1>
+                    <p class="panel-subtitle">The category chips customers see in the app, in this order.</p>
                 </div>
             </div>
 
             <div class="row">
                 <div class="col-lg-4">
                     <div class="card card-body">
-                        <h2 class="section-title"><i class="fas fa-plus-circle" aria-hidden="true"></i>Add New Category</h2>
+                        <h2 class="section-title"><i class="fas fa-plus-circle" aria-hidden="true"></i>Add a category</h2>
                         <form id="addCategoryForm" novalidate>
                             <div class="mb-3">
-                                <label class="form-label" for="catName">Category Name</label>
-                                <input type="text" class="form-control" id="catName" name="catName" placeholder="e.g. Rice &amp; Curry" maxlength="40" required autocomplete="off">
+                                <label class="form-label" for="catName">Category name</label>
+                                <input type="text" class="form-control" id="catName" name="catName" placeholder="e.g. Rice &amp; Curry…" maxlength="40" required autocomplete="off">
                             </div>
                             <div class="mb-4">
-                                <label class="form-label" for="catOrder">Display Order</label>
+                                <label class="form-label" for="catOrder">Display order</label>
                                 <input type="number" class="form-control" id="catOrder" name="catOrder" value="1" min="0" required autocomplete="off">
                                 <div class="form-text">Use the arrows in the list to move a category later.</div>
                             </div>
                             <button type="submit" class="btn btn-primary w-100">
-                                <i class="fas fa-plus me-2" aria-hidden="true"></i>Add Category
+                                <i class="fas fa-plus" aria-hidden="true"></i>Add category
                             </button>
                         </form>
                     </div>

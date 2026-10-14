@@ -6,11 +6,19 @@ const NotificationApi = (() => {
     // Sends a signed request to a cloud function and returns its reply.
     async function call(functionName, payload) {
         const user = auth.currentUser;
-        if (!user) throw new Error("Not authenticated");
+        if (!user) {
+            const err = new Error("Not authenticated");
+            err.userMessage = "Your session has ended. Sign in again.";
+            throw err;
+        }
 
         const idToken = await user.getIdToken();
         const base = (ENV.FUNCTIONS_BASE_URL || "").replace(/\/$/, "");
-        if (!base) throw new Error("FUNCTIONS_BASE_URL is not configured");
+        if (!base) {
+            const err = new Error("FUNCTIONS_BASE_URL is not configured");
+            err.userMessage = "The notification service is not set up yet.";
+            throw err;
+        }
 
         let res;
         try {
@@ -26,6 +34,7 @@ const NotificationApi = (() => {
             // The request never reached the server (offline, blocked, wrong URL)
             const err = new Error("Could not reach the notification service. Check your connection.");
             err.status = 0;
+            err.userMessage = err.message;
             throw err;
         }
 
@@ -39,6 +48,8 @@ const NotificationApi = (() => {
         if (!res.ok || body.success === false) {
             const err = new Error(body.message || `Request failed (${res.status})`);
             err.status = res.status;
+            if (res.status === 401 || res.status === 403) err.userMessage = "You are not allowed to do this. Sign in again and retry.";
+            else if (res.status === 404 || res.status >= 500) err.userMessage = "The notification service is not available right now. Try again later.";
             throw err;
         }
 

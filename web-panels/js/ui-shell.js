@@ -226,7 +226,7 @@ const ReplateUI = (() => {
                 toast('Could not check your account. Check your connection and reload the page.', 'danger', 0);
                 return null;
             }
-            reason = 'Could not read your profile (' + (e && (e.code || e.message) || 'unknown error') + '). Check your connection and the database rules.';
+            reason = 'Could not read your account profile. Check your connection and sign in again.';
         }
         flash(reason + ' You have been signed out.', 'danger');
         await auth.signOut();
@@ -462,6 +462,11 @@ const ReplateUI = (() => {
         }
     }
 
+    /** The words to show for an error: a message written for people, or the fallback. Never the raw error. */
+    function errorText(err, fallback) {
+        return (err && err.userMessage) || fallback;
+    }
+
     // ── Inline field errors ─────────────────────────────────────────────────
     const byId = (target) => (typeof target === 'string' ? document.getElementById(target) : target);
 
@@ -662,6 +667,7 @@ const ReplateUI = (() => {
         renderSidebar,
         attachPasswordToggle,
         setButtonLoading,
+        errorText,
         setFieldError,
         clearFieldError,
         clearFieldErrors,

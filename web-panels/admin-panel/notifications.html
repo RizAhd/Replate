@@ -16,67 +16,6 @@
     <link rel="icon" href="../assets/favicon.ico" sizes="any">
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
     <link rel="manifest" href="../manifest.webmanifest">
-    <style>
-        @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
-        @keyframes slideIn { from{opacity:0;transform:translateY(-8px);} to{opacity:1;transform:translateY(0);} }
-        .activity-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 14px;
-            padding: 14px 20px;
-            border-bottom: 1px solid var(--border-light);
-            animation: slideIn 0.25s ease;
-            transition: background 0.15s ease;
-        }
-        .activity-item:hover { background: var(--primary-50); }
-        .activity-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.85rem;
-            flex-shrink: 0;
-            margin-top: 2px;
-        }
-        .activity-icon.icon-order   { background: #eff6ff; color: #2563eb; }
-        .activity-icon.icon-hotel   { background: #ecfdf5; color: #059669; }
-        .activity-icon.icon-food    { background: #fff4ed; color: #e8521a; }
-        .activity-icon.icon-status  { background: #fffbeb; color: #d97706; }
-        .activity-icon.icon-user    { background: #f5f3ff; color: #7c3aed; }
-        .activity-icon.icon-notif   { background: #fef2f2; color: #dc2626; }
-        .activity-body { flex:1; min-width:0; }
-        .activity-body strong { font-weight: 700; font-size: 0.875rem; }
-        .activity-body p { margin:2px 0 0; font-size:0.82rem; color:var(--text-secondary); line-height:1.4; }
-        .activity-time { font-size:0.75rem; color:var(--text-tertiary); white-space:nowrap; flex-shrink:0; margin-top:2px; }
-        .history-action-badge {
-            display:inline-flex; align-items:center; padding:3px 10px;
-            border-radius:999px; font-size:0.72rem; font-weight:700; text-transform:uppercase;
-        }
-        .history-action-badge.broadcast { background:#eff6ff; color:#2563eb; }
-        .history-action-badge.targeted { background:#ecfdf5; color:#059669; }
-        .history-action-badge.self_test { background:#f5f3ff; color:#7c3aed; }
-        .history-action-badge.deal { background:#fff4ed; color:#e8521a; }
-        @media (max-width: 767.98px) {
-            .activity-item {
-                padding: 12px 14px;
-                gap: 10px;
-                flex-wrap: wrap;
-            }
-            .activity-time {
-                white-space: normal;
-                width: 100%;
-                margin-top: 0;
-                padding-left: 46px;
-            }
-            #liveIndicator {
-                width: 100%;
-                justify-content: flex-start;
-                margin-top: 8px;
-            }
-        }
-    </style>
 </head>
 <body>
 <a class="skip-link" href="#mainContent">Skip to content</a>
@@ -87,31 +26,21 @@
         <main id="mainContent">
             <div class="page-header">
                 <div>
-                    <h1 class="panel-title">Notification Center</h1>
-                    <p class="panel-subtitle">Monitor platform activity, send notifications, and review delivery history.</p>
+                    <h1 class="panel-title">Notifications</h1>
+                    <p class="panel-subtitle">Platform activity, sending notifications and what was sent.</p>
                 </div>
-                <span id="liveIndicator" style="display:inline-flex;align-items:center;gap:6px;font-size:0.8rem;font-weight:600;color:var(--success);">
-                    <span style="width:8px;height:8px;border-radius:50%;background:var(--success);display:inline-block;animation:pulse 2s infinite;"></span> Live
-                </span>
+                <span id="liveIndicator" class="live-indicator"><span class="live-dot" aria-hidden="true"></span>Live</span>
             </div>
 
-            <!-- Quick Stats -->
+            <!-- Notification numbers -->
             <div class="stat-grid">
                 <div class="card stat-card">
                     <p class="stat-value num" id="statSentToday">0</p>
-                    <p class="stat-label"><i class="fas fa-bell" aria-hidden="true"></i>Sent today</p>
-                </div>
-                <div class="card stat-card">
-                    <p class="stat-value num" id="statPendingHotels">0</p>
-                    <p class="stat-label"><i class="fas fa-hotel" aria-hidden="true"></i>Pending hotels</p>
-                </div>
-                <div class="card stat-card">
-                    <p class="stat-value num" id="statNewOrders">0</p>
-                    <p class="stat-label"><i class="fas fa-receipt" aria-hidden="true"></i>New orders</p>
+                    <p class="stat-label"><i class="fas fa-paper-plane" aria-hidden="true"></i>Sent today</p>
                 </div>
                 <div class="card stat-card">
                     <p class="stat-value num" id="statTotalUsers">0</p>
-                    <p class="stat-label"><i class="fas fa-users" aria-hidden="true"></i>Total users</p>
+                    <p class="stat-label"><i class="fas fa-users" aria-hidden="true"></i>Broadcast audience</p>
                 </div>
             </div>
 
@@ -119,7 +48,7 @@
             <ul class="nav nav-tabs" id="notifTabs" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="tab-activity" data-bs-toggle="tab" data-bs-target="#pane-activity" type="button" role="tab" aria-controls="pane-activity" aria-selected="true">
-                        Activity <span class="tab-count tab-count-new" id="activityBadge" style="display:none;">0</span>
+                        Activity <span class="tab-count" id="activityBadge" hidden>0</span>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
@@ -140,84 +69,85 @@
                 <div class="tab-pane fade show active" id="pane-activity" role="tabpanel" aria-labelledby="tab-activity">
                     <div class="card">
                         <div class="card-header">
-                            <span><i class="fas fa-stream me-2" aria-hidden="true"></i>Real-Time Platform Events</span>
-                            <button class="btn btn-sm btn-outline-primary" onclick="clearActivityFeed()">Clear</button>
+                            <span>Platform activity</span>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="btnClearFeed">Clear list</button>
                         </div>
-                        <div class="card-body p-0">
-                            <div id="activityFeed" style="max-height:520px;overflow-y:auto;">
-                                <div class="text-center py-5" style="color:var(--text-tertiary);">
-                                    <i class="fas fa-satellite-dish fa-2x mb-2 d-block" aria-hidden="true" style="opacity:0.3;"></i>
-                                    Listening for events...
-                                </div>
-                            </div>
+                        <div id="activityFeed" class="activity-feed" aria-live="polite">
+                            <div class="feed-placeholder"></div>
                         </div>
                     </div>
                 </div>
 
                 <!-- ═══ SEND NOTIFICATIONS PANE ═══ -->
                 <div class="tab-pane fade" id="pane-send" role="tabpanel" aria-labelledby="tab-send">
-                    <div class="row g-4">
+                    <div class="row">
                         <div class="col-lg-6">
-                            <div class="card card-body h-100">
-                                <h2 class="section-title"><i class="fas fa-bullhorn" aria-hidden="true"></i>Broadcast Notification</h2>
-                                <form id="broadcastForm" novalidate>
+                            <div class="card card-body h-100 d-flex flex-column">
+                                <h2 class="section-title"><i class="fas fa-bullhorn" aria-hidden="true"></i>Broadcast</h2>
+                                <form id="broadcastForm" novalidate class="send-form">
                                     <div class="mb-3">
                                         <label class="form-label" for="broadcastTarget">Audience</label>
                                         <select id="broadcastTarget" name="broadcastTarget" class="form-select" autocomplete="off">
-                                            <option value="all_users">All Users</option>
+                                            <option value="all_users">All users</option>
                                             <option value="customers">Customers</option>
                                             <option value="hotels">Hotels</option>
                                             <option value="admins">Admins</option>
-                                            <option value="topic:deals_customers">Deals Topic (Customers)</option>
+                                            <option value="topic:deals_customers">Customers who follow deals</option>
                                         </select>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label" for="broadcastTitle">Title</label>
-                                        <input id="broadcastTitle" name="broadcastTitle" type="text" class="form-control" required autocomplete="off">
+                                        <input id="broadcastTitle" name="broadcastTitle" type="text" class="form-control" maxlength="80" placeholder="e.g. Holiday opening hours…" autocomplete="off">
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label" for="broadcastBody">Message</label>
-                                        <textarea id="broadcastBody" name="broadcastBody" rows="3" class="form-control" required autocomplete="off"></textarea>
+                                        <textarea id="broadcastBody" name="broadcastBody" rows="3" class="form-control" maxlength="300" placeholder="e.g. Please update your pickup windows for the holiday…" autocomplete="off"></textarea>
                                     </div>
-                                    <div class="row g-2">
-                                        <div class="col-md-6">
-                                            <label class="form-label" for="broadcastType">Type</label>
-                                            <input id="broadcastType" name="broadcastType" type="text" class="form-control" value="announcement" autocomplete="off">
+                                    <details class="advanced-fields mb-3">
+                                        <summary>Advanced</summary>
+                                        <div class="row g-2 mt-1">
+                                            <div class="col-md-6">
+                                                <label class="form-label" for="broadcastType">Type</label>
+                                                <input id="broadcastType" name="broadcastType" type="text" class="form-control" value="announcement" spellcheck="false" autocomplete="off" aria-describedby="broadcastAdvancedHelp">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label" for="broadcastRoute">Screen to open</label>
+                                                <input id="broadcastRoute" name="broadcastRoute" type="text" class="form-control" value="notifications" spellcheck="false" autocomplete="off" aria-describedby="broadcastAdvancedHelp">
+                                            </div>
                                         </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label" for="broadcastRoute">Route</label>
-                                            <input id="broadcastRoute" name="broadcastRoute" type="text" class="form-control" value="notifications" autocomplete="off">
-                                        </div>
-                                    </div>
-                                    <button id="btnBroadcastSend" class="btn btn-primary mt-3 w-100" type="submit">
-                                        <i class="fas fa-bullhorn me-2" aria-hidden="true"></i>Send Broadcast
+                                        <div class="form-text" id="broadcastAdvancedHelp">The app uses these to pick the icon and the screen a tap opens. Leave them as they are unless the app team asks.</div>
+                                    </details>
+                                    <button id="btnBroadcastSend" class="btn btn-primary w-100" type="submit">
+                                        <i class="fas fa-bullhorn" aria-hidden="true"></i>Send broadcast
                                     </button>
                                 </form>
                             </div>
                         </div>
 
                         <div class="col-lg-6">
-                            <div class="card card-body h-100">
-                                <h2 class="section-title"><i class="fas fa-paper-plane" aria-hidden="true"></i>Targeted Notification</h2>
-                                <form id="targetedForm" novalidate>
+                            <div class="card card-body h-100 d-flex flex-column">
+                                <h2 class="section-title"><i class="fas fa-paper-plane" aria-hidden="true"></i>Send to specific users</h2>
+                                <form id="targetedForm" novalidate class="send-form">
                                     <div class="mb-3">
-                                        <label class="form-label" for="targetUserIds">User IDs (comma separated)</label>
-                                        <textarea id="targetUserIds" spellcheck="false" name="targetUserIds" rows="2" class="form-control" placeholder="uid1, uid2" required autocomplete="off"></textarea>
+                                        <label class="form-label" for="targetUserIds">User IDs</label>
+                                        <textarea id="targetUserIds" name="targetUserIds" rows="2" class="form-control" spellcheck="false" autocomplete="off" aria-describedby="targetUserIdsHelp"></textarea>
+                                        <div class="form-text" id="targetUserIdsHelp">One or more account IDs (the user ID in Firebase Authentication), separated by commas.</div>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label" for="targetOrderId">Order ID (optional)</label>
-                                        <input id="targetOrderId" spellcheck="false" name="targetOrderId" type="text" class="form-control" placeholder="-Nx123abc" autocomplete="off">
+                                        <input id="targetOrderId" name="targetOrderId" type="text" class="form-control" spellcheck="false" autocomplete="off" aria-describedby="targetOrderIdHelp">
+                                        <div class="form-text" id="targetOrderIdHelp">Links the notification to that order, so a tap opens it in the app.</div>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label" for="targetTitle">Title</label>
-                                        <input id="targetTitle" name="targetTitle" type="text" class="form-control" required autocomplete="off">
+                                        <input id="targetTitle" name="targetTitle" type="text" class="form-control" maxlength="80" placeholder="e.g. About your order…" autocomplete="off">
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label" for="targetBody">Message</label>
-                                        <textarea id="targetBody" name="targetBody" rows="3" class="form-control" required autocomplete="off"></textarea>
+                                        <textarea id="targetBody" name="targetBody" rows="3" class="form-control" maxlength="300" autocomplete="off"></textarea>
                                     </div>
                                     <button id="btnTargetSend" class="btn btn-primary w-100" type="submit">
-                                        <i class="fas fa-paper-plane me-2" aria-hidden="true"></i>Send Targeted
+                                        <i class="fas fa-paper-plane" aria-hidden="true"></i>Send to these users
                                     </button>
                                 </form>
                             </div>
@@ -225,23 +155,24 @@
                     </div>
 
                     <div class="card card-body">
-                        <h2 class="section-title"><i class="fas fa-fire" aria-hidden="true"></i>Deal Campaign</h2>
+                        <h2 class="section-title"><i class="fas fa-tag" aria-hidden="true"></i>Deal alert</h2>
+                        <p class="text-muted mb-3">Tells every customer about one deal: "[hotel] offers [dish] at [discount]% OFF!"</p>
                         <form id="dealForm" novalidate class="row g-3">
                             <div class="col-md-4">
-                                <label class="form-label" for="dealHotelName">Hotel Name</label>
-                                <input id="dealHotelName" name="dealHotelName" type="text" class="form-control" placeholder="Grand Hotel" autocomplete="off">
+                                <label class="form-label" for="dealHotelName">Hotel name</label>
+                                <input id="dealHotelName" name="dealHotelName" type="text" class="form-control" placeholder="e.g. Seaside Grand…" autocomplete="off">
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label" for="dealFoodName">Food Name</label>
-                                <input id="dealFoodName" name="dealFoodName" type="text" class="form-control" placeholder="Chicken Fried Rice" autocomplete="off">
+                                <label class="form-label" for="dealFoodName">Dish</label>
+                                <input id="dealFoodName" name="dealFoodName" type="text" class="form-control" placeholder="e.g. Chicken fried rice…" autocomplete="off">
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label" for="dealDiscount">Discount %</label>
-                                <input id="dealDiscount" name="dealDiscount" type="number" min="1" max="95" class="form-control" placeholder="50" autocomplete="off">
+                                <label class="form-label" for="dealDiscount">Discount (%)</label>
+                                <input id="dealDiscount" name="dealDiscount" type="number" min="1" max="95" inputmode="numeric" class="form-control" placeholder="e.g. 40…" autocomplete="off">
                             </div>
                             <div class="col-12">
                                 <button id="btnDealSend" class="btn btn-primary" type="submit">
-                                    <i class="fas fa-fire me-2" aria-hidden="true"></i>Send Deal Notification
+                                    <i class="fas fa-tag" aria-hidden="true"></i>Send to all customers
                                 </button>
                             </div>
                         </form>
@@ -252,8 +183,8 @@
                 <div class="tab-pane fade" id="pane-history" role="tabpanel" aria-labelledby="tab-history">
                     <div class="card">
                         <div class="card-header">
-                            <span><i class="fas fa-history me-2" aria-hidden="true"></i>Notification Delivery Log</span>
-                            <span id="historyCount" style="font-weight:500;font-size:0.85rem;color:var(--text-secondary);">Loading...</span>
+                            <span>Sent notifications</span>
+                            <span id="historyCount" class="card-header-meta">Loading…</span>
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
@@ -269,7 +200,7 @@
                                         </tr>
                                     </thead>
                                     <tbody id="historyTable">
-                                        <tr><td colspan="5" class="text-center py-4" style="color:var(--text-tertiary);">Loading notification history...</td></tr>
+                                        <tr><td colspan="5" class="text-center text-muted py-4">Loading…</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -331,11 +262,16 @@
 
     // ── Activity Feed ──────────────────────────────────────
     function clearActivityPlaceholder() {
-        const feed = document.getElementById('activityFeed');
-        if (feed && feed.children.length === 1 && feed.children[0].tagName === 'DIV' && feed.children[0].classList.contains('text-center')) {
-            feed.innerHTML = '';
-        }
+        const placeholder = document.querySelector('#activityFeed .feed-placeholder');
+        if (placeholder) placeholder.remove();
     }
+
+    // The "nothing yet" message for the feed.
+    function feedPlaceholder() {
+        return '<div class="feed-placeholder">' + ReplateUI.emptyState('Waiting for activity',
+            'New orders, hotels and listings appear here as they happen.', 'fa-satellite-dish') + '</div>';
+    }
+    document.getElementById('activityFeed').innerHTML = feedPlaceholder();
 
     // Adds one line to the top of the live feed.
     function addActivityItem(iconClass, title, description, timestamp) {
@@ -367,7 +303,7 @@
             const badge = document.getElementById('activityBadge');
             if (badge) {
                 badge.textContent = activityCount > 99 ? '99+' : activityCount;
-                badge.style.display = 'inline';
+                badge.hidden = false;
             }
         }
     }
@@ -389,19 +325,20 @@
     function escapeHtml(text) { return ReplateUI.esc(text); }
 
     // Empties the live feed.
-    window.clearActivityFeed = function() {
+    function clearActivityFeed() {
         const feed = document.getElementById('activityFeed');
-        if (feed) feed.innerHTML = '<div class="text-center py-5" style="color:var(--text-tertiary);"><i class="fas fa-satellite-dish fa-2x mb-2 d-block" aria-hidden="true" style="opacity:0.3;"></i>Listening for events...</div>';
+        if (feed) feed.innerHTML = feedPlaceholder();
         activityCount = 0;
         const badge = document.getElementById('activityBadge');
-        if (badge) badge.style.display = 'none';
-    };
+        if (badge) badge.hidden = true;
+    }
+    document.getElementById('btnClearFeed').addEventListener('click', clearActivityFeed);
 
     // Reset badge when activity tab is clicked
     document.getElementById('tab-activity').addEventListener('shown.bs.tab', () => {
         activityCount = 0;
         const badge = document.getElementById('activityBadge');
-        if (badge) badge.style.display = 'none';
+        if (badge) badge.hidden = true;
     });
 
     // Last known status of every hotel and order. Firebase's child_changed fires for ANY edit
@@ -538,7 +475,7 @@
                 const log = snap.val() || {};
                 addActivityItem('icon-notif',
                     `Notification sent: ${log.action || 'unknown'}`,
-                    `${log.payload?.title || '—'} → ${log.target || (log.userIds ? log.userIds.length + ' users' : '—')}`,
+                    `${log.payload?.title || '—'} → ${log.target || (log.userIds ? ReplateSchema.plural(log.userIds.length, 'user') : '—')}`,
                     log.createdAt || Date.now());
             });
 
@@ -546,38 +483,19 @@
 
     // ── Quick Stats (real-time) ────────────────────────────
     function loadQuickStats() {
-        // Pending hotels
+        // Remember every hotel's status so the live list only reports real status changes
         database.ref('hotels').on('value', (snap) => {
-            let pending = 0;
-            if (snap.exists()) {
-                snap.forEach(child => {
-                    const status = ReplateSchema.normalizeHotelStatus(child.val()?.status);
-                    hotelStatusSeen[child.key] = status;
-                    if (status === 'pending') pending++;
-                });
-            }
-            document.getElementById('statPendingHotels').textContent = pending;
-        }, (error) => {
-            console.error('Could not load hotels', error);
-            document.getElementById('statPendingHotels').textContent = '—';
-        });
+            snap.forEach(child => {
+                hotelStatusSeen[child.key] = ReplateSchema.normalizeHotelStatus(child.val()?.status);
+            });
+        }, (error) => console.error('Could not load hotels', error));
 
-        // New orders (pending status)
+        // Same for orders
         database.ref('orders').on('value', (snap) => {
-            let newOrders = 0;
-            if (snap.exists()) {
-                snap.forEach(child => {
-                    const o = child.val() || {};
-                    const status = ReplateSchema.normalizeOrderStatus(o.orderStatus);
-                    orderStatusSeen[child.key] = status;
-                    if (status === 'pending_pickup' || status === 'pending_delivery') newOrders++;
-                });
-            }
-            document.getElementById('statNewOrders').textContent = newOrders;
-        }, (error) => {
-            console.error('Could not load orders', error);
-            document.getElementById('statNewOrders').textContent = '—';
-        });
+            snap.forEach(child => {
+                orderStatusSeen[child.key] = ReplateSchema.normalizeOrderStatus((child.val() || {}).orderStatus);
+            });
+        }, (error) => console.error('Could not load orders', error));
 
         // Total users
         database.ref('users').on('value', (snap) => {
@@ -622,7 +540,7 @@
             tabCount.hidden = rows.length === 0;
 
             if (rows.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4" style="color:var(--text-tertiary);">No notification logs yet. Send a notification from the Send tab to see logs here.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5">' + ReplateUI.emptyState('Nothing sent yet', 'Notifications you send from the Send tab are listed here.', 'fa-paper-plane') + '</td></tr>';
                 return;
             }
 
@@ -635,31 +553,32 @@
                                     action.includes('self_test') ? 'self_test' : 'broadcast';
                 const title = log.payload?.title || '—';
                 const body = log.payload?.body || '';
-                const target = log.target || (log.userIds ? log.userIds.length + ' users' : '—');
+                const target = log.target || (log.userIds ? ReplateSchema.plural(log.userIds.length, 'user') : '—');
                 const result = log.result || {};
                 const written = result.written || 0;
                 const successCount = result.successCount ?? (result.directSuccess != null ? result.directSuccess : (result.messageId ? 1 : 0));
                 const failureCount = result.failureCount ?? (result.directFailure || 0);
                 let resultHtml;
                 if (written > 0) {
-                    resultHtml = `<span style="color:var(--success);font-weight:600;">✓ ${written} users</span>`;
+                    resultHtml = `<span class="result-ok">✓ ${ReplateSchema.plural(written, 'user')}</span>`;
                 } else if (successCount > 0) {
-                    resultHtml = `<span style="color:var(--success);font-weight:600;">✓ ${successCount}</span>${failureCount > 0 ? ` <span style="color:var(--danger);font-size:0.8rem;">/ ${failureCount} failed</span>` : ''}`;
+                    resultHtml = `<span class="result-ok">✓ ${successCount}</span>${failureCount > 0 ? ` <span class="result-fail">/ ${failureCount} failed</span>` : ''}`;
                 } else if (result.messageId || result.topicMessageId) {
-                    resultHtml = `<span style="color:var(--success);font-weight:600;">✓ Topic</span>`;
+                    resultHtml = '<span class="result-ok">✓ Topic</span>';
                 } else {
-                    resultHtml = `<span style="color:var(--text-tertiary);">—</span>`;
+                    resultHtml = '<span class="text-muted">—</span>';
                 }
+                const actionLabel = { broadcast: 'Broadcast', targeted: 'Targeted', deal: 'Deal', self_test: 'Test' }[actionClass];
 
                 return `
                     <tr>
-                        <td data-label="Time" style="white-space:nowrap;font-size:0.82rem;">${time}</td>
-                        <td data-label="Type"><span class="history-action-badge ${actionClass}">${action}</span></td>
+                        <td data-label="Time" class="num">${escapeHtml(time)}</td>
+                        <td data-label="Type"><span class="badge badge-neutral" title="${escapeHtml(action)}">${actionLabel}</span></td>
                         <td data-label="Title" class="title-cell">
-                            <div style="font-weight:600;font-size:0.85rem;">${escapeHtml(title)}</div>
-                            <div style="font-size:0.78rem;color:var(--text-secondary);max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(body)}</div>
+                            <div class="history-title">${escapeHtml(title)}</div>
+                            <div class="history-body">${escapeHtml(body)}</div>
                         </td>
-                        <td data-label="Target" style="font-size:0.82rem;">${escapeHtml(String(target))}</td>
+                        <td data-label="Target">${escapeHtml(String(target))}</td>
                         <td data-label="Result">${resultHtml}</td>
                     </tr>`;
             }).join('');
@@ -743,9 +662,10 @@
      * in-app notification lists. Say so plainly: it is NOT the same as a delivered push.
      */
     function reportFallback(reason, savedCount) {
+        console.warn('Push service unreachable:', reason);
         ReplateUI.toast(
-            'The push service could not be reached (' + reason + '). The message was saved in ' + savedCount +
-            ' in-app notification list(s) only, so phones were not sent a push. Check that the Cloud Functions are deployed.',
+            'The push service could not be reached. The message was saved in ' + ReplateSchema.plural(savedCount, 'in-app notification list') +
+            ' only, so phones were not sent a push. Check that the Cloud Functions are deployed.',
             'warning', 12000);
     }
 
@@ -758,7 +678,7 @@
         const targetLabel = document.getElementById('broadcastTarget').selectedOptions[0].textContent.trim();
         const confirmed = await ReplateUI.confirmAction(
             'This notification goes to: ' + targetLabel + '. It cannot be recalled once sent.',
-            { title: 'Send this broadcast?', confirmText: 'Send now' });
+            { title: 'Send this broadcast?', confirmText: 'Send broadcast' });
         if (!confirmed) return;
         ReplateUI.setButtonLoading('btnBroadcastSend', true, 'Sending…');
         try {
@@ -788,12 +708,13 @@
             }
 
             if (method === 'firebase_direct') reportFallback(cfMessage, result.written || 0);
-            else ReplateUI.showAlert('Broadcast sent to ' + target + '.', 'success');
+            else ReplateUI.toast('Broadcast sent to ' + targetLabel.toLowerCase() + '.', 'success');
             document.getElementById('broadcastForm').reset();
             document.getElementById('broadcastType').value = 'announcement';
             document.getElementById('broadcastRoute').value = 'notifications';
         } catch (err) {
-            ReplateUI.showAlert('Broadcast failed: ' + err.message, 'danger');
+            console.error('Broadcast failed', err);
+            ReplateUI.toast('The broadcast was not sent. ' + ReplateUI.errorText(err, 'Check your connection and try again.'), 'danger');
         } finally {
             ReplateUI.setButtonLoading('btnBroadcastSend', false);
         }
@@ -857,10 +778,11 @@
             }
 
             if (method === 'firebase_direct') reportFallback(cfMessage, userIds.length);
-            else ReplateUI.showAlert('Notification sent to ' + userIds.length + ' user(s).', 'success');
+            else ReplateUI.toast('Notification sent to ' + ReplateSchema.plural(userIds.length, 'user') + '.', 'success');
             document.getElementById('targetedForm').reset();
         } catch (err) {
-            ReplateUI.showAlert('Targeted send failed: ' + err.message, 'danger');
+            console.error('Targeted send failed', err);
+            ReplateUI.toast('The notification was not sent. ' + ReplateUI.errorText(err, 'Check your connection and try again.'), 'danger');
         } finally {
             ReplateUI.setButtonLoading('btnTargetSend', false);
         }
@@ -903,10 +825,11 @@
             }
 
             if (method === 'firebase_direct') reportFallback(cfMessage, result.written || 0);
-            else ReplateUI.showAlert('Deal notification sent.', 'success');
+            else ReplateUI.toast('Deal alert sent to all customers.', 'success');
             document.getElementById('dealForm').reset();
         } catch (err) {
-            ReplateUI.showAlert('Deal send failed: ' + err.message, 'danger');
+            console.error('Deal send failed', err);
+            ReplateUI.toast('The deal alert was not sent. ' + ReplateUI.errorText(err, 'Check your connection and try again.'), 'danger');
         } finally {
             ReplateUI.setButtonLoading('btnDealSend', false);
         }

@@ -30,8 +30,8 @@
         <main id="mainContent">
             <div class="page-header">
                 <div>
-                    <h1 class="panel-title">Manage Users</h1>
-                    <p class="panel-subtitle">See every customer and hotel account. Suspending an account signs the person out and blocks them from signing in until you enable it again.</p>
+                    <h1 class="panel-title">Users</h1>
+                    <p class="panel-subtitle">Every customer and hotel account. Suspending one signs the person out until you enable it again.</p>
                 </div>
             </div>
 
@@ -80,7 +80,7 @@
                 </div>
 
                 <div class="table-responsive">
-                    <table id="usersTable" class="table table-striped align-middle table-stack" style="width:100%">
+                    <table id="usersTable" class="table table-striped align-middle table-stack w-100">
                                 <caption class="visually-hidden">Every user account</caption>
                         <thead>
                             <tr>
@@ -283,7 +283,7 @@
             ReplateUI.toast(suspended ? 'Account suspended.' : 'Account enabled.', 'success');
         } catch (error) {
             console.error(error);
-            ReplateUI.toast(error.message || 'Could not update the account. Please try again.', 'danger');
+            ReplateUI.toast(ReplateUI.errorText(error, 'Could not update the account. Please try again.'), 'danger');
         }
     }
 

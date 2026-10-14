@@ -31,36 +31,36 @@
         <main id="mainContent">
             <div class="page-header">
                 <div>
-                    <h1 class="panel-title">Manage Home Banners</h1>
-                    <p class="panel-subtitle">Photo banners shown at the top of the app's Home screen. Use a wide image (about 2:1, e.g. 1080&times;540).</p>
+                    <h1 class="panel-title">Banners</h1>
+                    <p class="panel-subtitle">Photo banners at the top of the app's home screen.</p>
                 </div>
             </div>
 
             <div class="row">
                 <div class="col-lg-4">
                     <div class="card card-body">
-                        <h2 class="section-title"><i class="fas fa-plus-circle" aria-hidden="true"></i>Add New Banner</h2>
+                        <h2 class="section-title"><i class="fas fa-plus-circle" aria-hidden="true"></i>Add a banner</h2>
                         <form id="addBannerForm" novalidate>
                             <div class="mb-3">
                                 <label class="form-label" for="bnTitle">Title</label>
-                                <input type="text" class="form-control" id="bnTitle" name="bnTitle" maxlength="60" placeholder="e.g. Fresh Bakes, Fair Prices" required autocomplete="off">
+                                <input type="text" class="form-control" id="bnTitle" name="bnTitle" maxlength="60" placeholder="e.g. Fresh bakes, fair prices…" required autocomplete="off">
                             </div>
                             <div class="mb-3">
                                 <label class="form-label" for="bnSubtitle">Subtitle</label>
-                                <input type="text" class="form-control" id="bnSubtitle" name="bnSubtitle" maxlength="120" placeholder="Short supporting line" autocomplete="off">
+                                <input type="text" class="form-control" id="bnSubtitle" name="bnSubtitle" maxlength="120" placeholder="e.g. Baked this morning…" autocomplete="off">
                             </div>
                             <div class="mb-3">
                                 <label class="form-label" for="bnBadge">Badge</label>
-                                <input type="text" class="form-control" id="bnBadge" name="bnBadge" maxlength="20" placeholder="e.g. HOT DEAL" autocomplete="off">
+                                <input type="text" class="form-control" id="bnBadge" name="bnBadge" maxlength="20" placeholder="e.g. HOT DEAL…" autocomplete="off">
                             </div>
                             <div class="mb-3">
                                 <label class="form-label" for="bnImage">Image</label>
                                 <input type="file" class="form-control" id="bnImage" name="bnImage" accept="image/jpeg,image/png,image/webp" required>
-                                <div class="form-text">JPG, PNG or WebP, up to 2 MB.</div>
+                                <div class="form-text">JPG, PNG or WebP, up to 2 MB. Use a wide image, about 2:1 (for example 1080 &times; 540).</div>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label" for="bnLink">Tap action (optional)</label>
-                                <input type="text" class="form-control" id="bnLink" spellcheck="false" name="bnLink" placeholder="category:Bakery &nbsp;|&nbsp; tab:map &nbsp;|&nbsp; https://..." autocomplete="off">
+                                <input type="text" class="form-control" id="bnLink" spellcheck="false" name="bnLink" placeholder="e.g. category:Bakery…" autocomplete="off">
                                 <div class="form-text">
                                     <code>category:Bakery</code> opens that category, <code>tab:map</code> opens a tab
                                     (home, map, orders, cart, profile), or paste an <code>https://</code> link.
@@ -87,7 +87,7 @@
                                 <input type="datetime-local" class="form-control" id="bnEnd" name="bnEnd" autocomplete="off">
                             </div>
                             <button type="submit" class="btn btn-primary w-100" id="bnSubmit">
-                                <i class="fas fa-plus me-2" aria-hidden="true"></i>Add Banner
+                                <i class="fas fa-plus" aria-hidden="true"></i>Add banner
                             </button>
                             <div id="bnMessage" class="small mt-3" role="status"></div>
                         </form>
@@ -207,7 +207,8 @@
             tbody.innerHTML = rows.length ? rows.join('')
                 : '<tr><td colspan="5">' + ReplateUI.emptyState('No banners yet', 'The app shows its built-in banners until you add one.', 'fa-images') + '</td></tr>';
         }, (error) => {
-            showMessage('Could not load banners: ' + error.message, true);
+            console.error('Could not load banners', error);
+            showMessage('Banners could not be loaded. Check your admin access and connection.', true);
         });
     }
 
@@ -234,7 +235,7 @@
         if (startAt && endAt && endAt <= startAt) { fieldProblem('bnEnd', '"Show until" must be after "Show from".'); return; }
 
         submit.disabled = true;
-        showMessage('Uploading image…', false);
+        showMessage('Uploading the image…', false);
 
         try {
             const newRef = database.ref('banners').push();
@@ -260,7 +261,8 @@
             document.getElementById('bnActive').checked = true;
             showMessage('Banner added.', false);
         } catch (err) {
-            showMessage('Could not add the banner: ' + (err && err.message ? err.message : err), true);
+            console.error('Could not add the banner', err);
+            showMessage('Could not add the banner. Check your connection and try again.', true);
         } finally {
             submit.disabled = false;
         }
@@ -279,7 +281,8 @@
     // Turns a banner on or off.
     function toggleBanner(key, active) {
         database.ref('banners/' + key + '/active').set(!!active).catch((err) => {
-            showMessage('Could not update the banner: ' + err.message, true);
+            console.error('Could not update the banner', err);
+            showMessage('Could not switch the banner on or off. Please try again.', true);
         });
     }
 
@@ -297,7 +300,8 @@
                 try { await storage.refFromURL(imageUrl).delete(); } catch (ignored) { }
             }
         } catch (err) {
-            showMessage('Could not delete the banner: ' + err.message, true);
+            console.error('Could not delete the banner', err);
+            showMessage('Could not delete the banner. Please try again.', true);
         }
     }
 </script>

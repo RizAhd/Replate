@@ -32,8 +32,8 @@
         <main id="mainContent">
             <div class="page-header">
                 <div>
-                    <h1 class="panel-title">Food Listings</h1>
-                    <p class="panel-subtitle">Every dish hotels have published. Hide a listing to take it off the app without deleting it.</p>
+                    <h1 class="panel-title">Listings</h1>
+                    <p class="panel-subtitle">Every dish hotels have published. Hiding one takes it off the app without deleting it.</p>
                 </div>
                 <button type="button" class="btn btn-sm btn-outline-primary" id="exportListings"><i class="fas fa-download me-1" aria-hidden="true"></i>Export CSV</button>
             </div>
@@ -41,7 +41,7 @@
             <div class="card card-body">
                 <p id="summary" class="small text-muted mb-3" role="status"></p>
                 <div class="table-responsive">
-                    <table id="listingsTable" class="table table-striped align-middle table-stack" style="width:100%">
+                    <table id="listingsTable" class="table table-striped align-middle table-stack w-100">
                                 <caption class="visually-hidden">Every food listing</caption>
                         <thead>
                             <tr>
@@ -225,7 +225,7 @@
             ReplateUI.toast(hide ? 'Listing hidden.' : 'Listing is visible again.', 'success');
         } catch (error) {
             console.error(error);
-            ReplateUI.toast(error.message || 'Could not update the listing. Please try again.', 'danger');
+            ReplateUI.toast('Could not update the listing. Please try again.', 'danger');
         } finally {
             ReplateUI.setButtonLoading(buttonId, false);
         }
@@ -250,7 +250,7 @@
             ReplateUI.toast('Listing deleted.', 'success');
         } catch (error) {
             console.error(error);
-            ReplateUI.toast(error.message || 'Could not delete the listing. Please try again.', 'danger');
+            ReplateUI.toast('Could not delete the listing. Please try again.', 'danger');
         } finally {
             ReplateUI.setButtonLoading(buttonId, false);
         }

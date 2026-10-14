@@ -35,7 +35,7 @@
             <div class="page-header">
                 <div>
                     <h1 class="panel-title">Reports</h1>
-                    <p class="panel-subtitle">Hotel performance, cancelled and expired orders, and customer reviews. Export any table to CSV.</p>
+                    <p class="panel-subtitle">Hotel performance, cancellations and reviews. Every table exports to CSV.</p>
                 </div>
                 <div>
                     <label for="rangeFilter" class="form-label small mb-1">Date range</label>
@@ -282,7 +282,7 @@
         const byCustomer = cancelledRows.filter((r) => r.kind === 'Cancelled by customer').length;
         const expired = cancelledRows.length - byHotel - byCustomer;
         document.getElementById('cancelledSummary').textContent =
-            byCustomer + ' cancelled by customers, ' + byHotel + ' cancelled by hotels, ' + expired + ' expired pickups.';
+            byCustomer + ' cancelled by customers, ' + byHotel + ' cancelled by hotels, ' + ReplateSchema.plural(expired, 'expired pickup') + '.';
         setTabCount('cancelledCount', cancelledRows.length);
         body.innerHTML = cancelledRows.length === 0
             ? '<tr><td colspan="8">' + ReplateUI.emptyState('No cancelled or expired orders', 'Nothing to report for this range.', 'fa-circle-check') + '</td></tr>'
@@ -346,8 +346,16 @@
         const range = currentRange();
         const orderById = {};
         allOrders.forEach((o) => { orderById[o.orderId] = o; });
-        reviewRows = allReviews.filter((r) => ReplateSchema.withinRange(r, range))
-            .map((r) => describeReview(r, orderById)).sort((a, b) => b.createdAt - a.createdAt);
+        // The app saves an order review once for the hotel and once per dish: show it once
+        const groups = new Map();
+        allReviews.filter((r) => ReplateSchema.withinRange(r, range)).forEach((r) => {
+            const key = r.orderId ? 'o:' + r.orderId + ':' + (r.userId || '') : 'r:' + r.id;
+            if (!groups.has(key)) groups.set(key, []);
+            groups.get(key).push(r);
+        });
+        reviewRows = Array.from(groups.values())
+            .map((group) => describeReview(group.find((r) => !r.foodId) || group[0], orderById))
+            .sort((a, b) => b.createdAt - a.createdAt);
         const shown = reviewRows.slice(0, MAX_REVIEW_ROWS);
         document.getElementById('reviewsSummary').textContent = reviewRows.length + (reviewRows.length === 1 ? ' review' : ' reviews') +
             (reviewRows.length > shown.length ? ' (newest ' + shown.length + ' shown, the CSV has all of them)' : '') + '.';
@@ -359,7 +367,7 @@
                     <td data-label="Hotel">${esc(r.hotel)}</td>
                     <td data-label="Dish">${esc(r.dish)}</td>
                     <td data-label="Rating"><span class="rating"><i class="fas fa-star" aria-hidden="true"></i>${esc(r.rating.toFixed(1))}</span></td>
-                    <td data-label="Comment" class="cell-wide review-comment">${r.comment ? esc(r.comment) : '<span class="text-muted">No comment</span>'}</td>
+                    <td data-label="Comment" class="cell-wide review-comment">${r.comment ? esc(r.comment) : '<span class="text-muted" aria-label="No comment">—</span>'}</td>
                     <td data-label="Customer">${esc(r.customer)}</td>
                     <td data-label="Date" class="num">${esc(stamp(r.createdAt))}</td>
                     <td data-label="Action" class="actions-cell">
@@ -398,9 +406,9 @@
     async function deleteReview(id) {
         const review = allReviews.find((r) => r.id === id);
         if (!review) return;
-        // The same order review is saved once for the hotel and once per dish; remove them together
+        // The same order review is saved once for the hotel and once per dish; the row stands for all of them
         const copies = review.orderId
-            ? allReviews.filter((r) => r.orderId === review.orderId && r.userId === review.userId && r.comment === review.comment && r.rating === review.rating)
+            ? allReviews.filter((r) => r.orderId === review.orderId && (r.userId || '') === (review.userId || ''))
             : [review];
         const ok = await ReplateUI.confirmAction(
             copies.length > 1
@@ -428,7 +436,7 @@
             }
         } catch (error) {
             console.error(error);
-            ReplateUI.toast(error.message || 'Could not delete the review. Please try again.', 'danger');
+            ReplateUI.toast('Could not delete the review. Please try again.', 'danger');
         } finally {
             ReplateUI.setButtonLoading(buttonId, false);
         }

@@ -29,21 +29,21 @@
             <div class="page-header">
                 <div>
                     <h1 class="panel-title">Settings</h1>
-                    <p class="panel-subtitle">Manage your hotel profile and preferences.</p>
+                    <p class="panel-subtitle">Your hotel profile and account.</p>
                 </div>
             </div>
 
             <div class="row">
                 <div class="col-lg-6">
                     <div class="card card-body">
-                        <h2 class="section-title"><i class="fas fa-building" aria-hidden="true"></i>Profile Information</h2>
+                        <h2 class="section-title"><i class="fas fa-building" aria-hidden="true"></i>Hotel profile</h2>
                         <form id="profileForm" novalidate>
                             <div class="mb-3">
-                                <label class="form-label" for="hotelName">Hotel Name</label>
+                                <label class="form-label" for="hotelName">Hotel name</label>
                                 <input type="text" class="form-control" id="hotelName" name="hotelName" maxlength="80" autocomplete="organization" required>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label" for="ownerName">Owner Name</label>
+                                <label class="form-label" for="ownerName">Owner name</label>
                                 <input type="text" class="form-control" id="ownerName" name="ownerName" maxlength="80" autocomplete="name" required>
                             </div>
                             <div class="mb-3">
@@ -61,20 +61,19 @@
                                 <div class="form-text" id="approvalNote"></div>
                             </div>
                             <button type="submit" class="btn btn-primary" id="btnSaveProfile">
-                                <i class="fas fa-save me-2" aria-hidden="true"></i>Update Profile
+                                <i class="fas fa-save" aria-hidden="true"></i>Save changes
                             </button>
                         </form>
                     </div>
                 </div>
                 <div class="col-lg-6">
                     <div class="card card-body">
-                        <h2 class="section-title"><i class="fas fa-shield-alt" aria-hidden="true"></i>Account Security</h2>
-                        <p class="tips-list">
-                            To change your password or email, use the password reset option on the login page.
-                            Your account is secured with Firebase Authentication.
+                        <h2 class="section-title"><i class="fas fa-shield-alt" aria-hidden="true"></i>Account</h2>
+                        <p class="text-muted">
+                            To change your password, use "Forgot password?" on the sign-in page. To change the email address, contact REPLATE support.
                         </p>
                         <button class="btn btn-outline-primary" type="button" id="btnSignOut">
-                            <i class="fas fa-sign-out-alt me-2" aria-hidden="true"></i>Sign Out
+                            <i class="fas fa-arrow-right-from-bracket" aria-hidden="true"></i>Log out
                         </button>
                     </div>
                 </div>

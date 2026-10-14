@@ -6,6 +6,7 @@
     <meta name="description" content="Admin sign in - REPLATE food rescue.">
     <meta name="theme-color" content="#f3f4f6">
     <meta name="robots" content="noindex, nofollow">
+    <meta name="author" content="Riflan Mohamed">
     <title>Admin Sign In - REPLATE</title>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
@@ -31,14 +32,14 @@
     <form id="loginForm" novalidate>
         <div class="mb-3 text-start">
             <label class="form-label" for="email">Admin email</label>
-            <input type="email" class="form-control" id="email" spellcheck="false" name="email" placeholder="admin@replate.com"
+            <input type="email" class="form-control" id="email" spellcheck="false" name="email" placeholder="e.g. admin@replate.com…"
                    autocomplete="username" inputmode="email" required>
         </div>
 
         <div class="mb-3 text-start">
             <label class="form-label" for="password">Password</label>
             <div class="input-with-icon">
-                <input type="password" class="form-control" id="password" name="password" placeholder="Enter password"
+                <input type="password" class="form-control" id="password" name="password"
                        autocomplete="current-password" required>
                 <button type="button" class="password-toggle" id="toggleAdminPassword" aria-label="Show password">
                     <i class="fas fa-eye" id="toggleAdminPasswordIcon" aria-hidden="true"></i>
@@ -54,8 +55,6 @@
         <div class="d-grid">
             <button type="submit" class="btn btn-primary btn-lg" id="btnAdminLogin">Sign in</button>
         </div>
-
-        <p class="text-secondary small mt-3 mb-0">REPLATE V1.1.0 &bull; Built by Riflan Mohamed &bull; 2026</p>
     </form>
 </main>
 
@@ -103,7 +102,7 @@
             return;
         }
 
-        ReplateUI.setButtonLoading('btnAdminLogin', true, 'Signing in...');
+        ReplateUI.setButtonLoading('btnAdminLogin', true, 'Signing in…');
         try {
             await auth.signInWithEmailAndPassword(email, password);
             window.location.href = 'approve-hotels.html';

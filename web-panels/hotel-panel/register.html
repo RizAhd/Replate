@@ -6,6 +6,7 @@
     <meta name="description" content="Register your hotel or restaurant on REPLATE food rescue.">
     <meta name="theme-color" content="#f3f4f6">
     <meta name="robots" content="noindex, nofollow">
+    <meta name="author" content="Riflan Mohamed">
     <title>Register Your Hotel - REPLATE</title>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
@@ -47,7 +48,7 @@
             </div>
             <div class="col-md-6 mb-3">
                 <label class="form-label" for="phone">Phone</label>
-                <input type="tel" class="form-control" id="phone" name="phone" autocomplete="tel" inputmode="tel" placeholder="e.g. 0771234567" required>
+                <input type="tel" class="form-control" id="phone" name="phone" autocomplete="tel" inputmode="tel" placeholder="e.g. 0771234567…" required>
             </div>
         </div>
 
@@ -81,11 +82,11 @@
         <div class="row align-items-end">
             <div class="col-md-4 mb-3">
                 <label class="form-label" for="latitude">Latitude</label>
-                <input type="number" step="any" class="form-control" id="latitude" name="latitude" inputmode="decimal" required placeholder="e.g. 6.9271">
+                <input type="number" step="any" class="form-control" id="latitude" name="latitude" inputmode="decimal" required placeholder="e.g. 6.9271…">
             </div>
             <div class="col-md-4 mb-3">
                 <label class="form-label" for="longitude">Longitude</label>
-                <input type="number" step="any" class="form-control" id="longitude" name="longitude" inputmode="decimal" required placeholder="e.g. 79.8612">
+                <input type="number" step="any" class="form-control" id="longitude" name="longitude" inputmode="decimal" required placeholder="e.g. 79.8612…">
             </div>
             <div class="col-md-4 mb-3">
                 <button type="button" class="btn btn-outline-primary w-100" id="btnUseLocation">
@@ -114,8 +115,6 @@
 
         <p class="text-center mt-3 mb-0">Already registered? <a href="login.html" class="fw-semibold">Sign in</a></p>
         <p class="text-center mt-2 mb-0"><a href="../index.html" class="auth-link">&larr; Back to home</a></p>
-
-        <p class="text-secondary small text-center mt-3 mb-0">REPLATE V1.1.0 &bull; Built by Riflan Mohamed &bull; 2026</p>
     </form>
 </main>
 
@@ -209,7 +208,7 @@
         const email = field('email').value.trim();
         const password = field('password').value;
         const file = field('license').files[0];
-        ReplateUI.setButtonLoading('submitBtn', true, 'Creating account...');
+        ReplateUI.setButtonLoading('submitBtn', true, 'Creating your account…');
 
         let createdUser = null;
         try {
