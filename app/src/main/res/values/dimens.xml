@@ -51,6 +51,10 @@
     <dimen name="drawer_width">280dp</dimen>
     <dimen name="drawer_header_min_height">160dp</dimen>
 
+    <!-- Widest a single-column screen grows (cart, checkout, food detail, order detail).
+         Phones are narrower than this, so it only matters on tablets: the column is centred there. -->
+    <dimen name="content_max_width">600dp</dimen>
+
     <!-- Bottom nav divider -->
     <dimen name="nav_divider_height">1dp</dimen>
 </resources>

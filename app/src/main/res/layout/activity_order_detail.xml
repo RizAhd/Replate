@@ -1,463 +1,475 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/md_theme_background"
-    android:orientation="vertical">
+    android:background="@color/md_theme_background">
 
-    <com.google.android.material.card.MaterialCardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/space_2"
-        style="@style/Widget.REPLATE.Card.Header">
+    <!-- One centred column, at most content_max_width wide: phones are narrower, so they use the full width;
+         tablets get a readable column with the page background on both sides. -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintWidth_max="@dimen/content_max_width">
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/space_2"
+            style="@style/Widget.REPLATE.Card.Header">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/space_2_5">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                        <ImageView
+                            android:id="@+id/ivBack"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:layout_marginStart="-12dp"
+                            android:padding="@dimen/space_1_5"
+                            android:contentDescription="@string/cd_back"
+                            android:layout_width="@dimen/touch_target_min"
+                            android:layout_height="@dimen/touch_target_min"
+                            android:layout_centerVertical="true"
+                            android:src="@drawable/ic_back"
+                            app:tint="@color/white" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerInParent="true"
+                            android:text="@string/order_detail_order_details"
+                            android:textAppearance="@style/TextAppearance.REPLATE.Subheading"
+                            android:textColor="@color/white" />
+                    </RelativeLayout>
+
+                    <LinearLayout
+                        android:id="@+id/statusBanner"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="18dp"
+                        android:background="@color/overlay_white_10"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="18dp">
+
+                        <TextView
+                            android:id="@+id/tvOrderStatus"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/order_detail_order_confirmed"
+                            android:textAppearance="@style/TextAppearance.REPLATE.Headline"
+                            android:textColor="@color/white"
+                            android:textSize="@dimen/text_xl" />
+
+                        <TextView
+                            android:id="@+id/tvOrderId"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            tools:text="Order #ABC123"
+                            android:textAppearance="@style/TextAppearance.REPLATE.Body"
+                            android:textColor="@color/white_85" />
+                    </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="@dimen/space_2_5">
+            android:paddingBottom="@dimen/space_3">
 
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                    <ImageView
-                        android:id="@+id/ivBack"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:layout_marginStart="-12dp"
-                        android:padding="@dimen/space_1_5"
-                        android:contentDescription="@string/cd_back"
-                        android:layout_width="@dimen/touch_target_min"
-                        android:layout_height="@dimen/touch_target_min"
-                        android:layout_centerVertical="true"
-                        android:src="@drawable/ic_back"
-                        app:tint="@color/white" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerInParent="true"
-                        android:text="@string/order_detail_order_details"
-                        android:textAppearance="@style/TextAppearance.REPLATE.Subheading"
-                        android:textColor="@color/white" />
-                </RelativeLayout>
-
-                <LinearLayout
-                    android:id="@+id/statusBanner"
+                <!-- Where the order is now: one dot per step, filled up to the current one -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardTimeline"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="18dp"
-                    android:background="@color/overlay_white_10"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:padding="18dp">
-
-                    <TextView
-                        android:id="@+id/tvOrderStatus"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/order_detail_order_confirmed"
-                        android:textAppearance="@style/TextAppearance.REPLATE.Headline"
-                        android:textColor="@color/white"
-                        android:textSize="@dimen/text_xl" />
-
-                    <TextView
-                        android:id="@+id/tvOrderId"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        tools:text="Order #ABC123"
-                        android:textAppearance="@style/TextAppearance.REPLATE.Body"
-                        android:textColor="@color/white_85" />
-                </LinearLayout>
-        </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
-
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingBottom="@dimen/space_3">
-
-            <!-- Where the order is now: one dot per step, filled up to the current one -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardTimeline"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/space_2"
-                android:layout_marginBottom="@dimen/space_2"
-                app:cardCornerRadius="@dimen/radius_xl"
-                app:cardElevation="@dimen/elevation_card">
-
-                <LinearLayout
-                    android:id="@+id/layoutTimeline"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:paddingHorizontal="@dimen/space_1"
-                    android:paddingVertical="@dimen/space_2" />
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardQR"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/space_2"
-                android:layout_marginBottom="@dimen/space_2"
-                app:cardCornerRadius="@dimen/radius_xl"
-                app:cardElevation="@dimen/elevation_card">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:padding="@dimen/space_2_5">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/order_detail_show_this_qr_code_at"
-                        android:textAppearance="@style/TextAppearance.REPLATE.Label"
-                        android:textColor="@color/text_primary" />
-
-                    <ImageView
-                        android:id="@+id/ivQRCode"
-                        android:contentDescription="@string/cd_pickup_qr"
-                        android:layout_width="220dp"
-                        android:layout_height="220dp"
-                        android:layout_marginTop="14dp"
-                        android:scaleType="fitCenter" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/space_2"
-                        android:text="@string/order_detail_or_share_this_pickup_otp"
-                        android:textAppearance="@style/TextAppearance.REPLATE.Body" />
-
-                    <TextView
-                        android:id="@+id/tvOTP"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:background="@drawable/bg_otp_badge"
-                        android:letterSpacing="0.35"
-                        android:paddingHorizontal="@dimen/space_3"
-                        android:paddingVertical="@dimen/space_1_5"
-                        tools:text="123456"
-                        android:textColor="@color/primary"
-                        android:textSize="@dimen/text_display"
-                        android:textStyle="bold" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/space_2"
-                android:layout_marginBottom="@dimen/space_2"
-                app:cardCornerRadius="@dimen/radius_xl"
-                app:cardElevation="@dimen/elevation_card">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="18dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/order_detail_hotel_details"
-                        android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
-
-                    <TextView
-                        android:id="@+id/tvHotelName"
-                        android:ellipsize="end"
-                        android:maxLines="2"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/space_1_5"
-                        tools:text="Hotel Name"
-                        android:textAppearance="@style/TextAppearance.REPLATE.Subheading"
-                        android:textColor="@color/text_primary" />
-
-                    <TextView
-                        android:id="@+id/tvHotelAddress"
-                        android:ellipsize="end"
-                        android:maxLines="3"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/space_0_5"
-                        tools:text="Hotel Address"
-                        android:textAppearance="@style/TextAppearance.REPLATE.Body" />
-
-                    <TextView
-                        android:id="@+id/tvPickupTime"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/space_1_5"
-                        android:background="@drawable/badge_status_pending"
-                        android:fontFamily="@font/poppins_semibold"
-                        android:paddingHorizontal="@dimen/space_1_5"
-                        android:paddingVertical="@dimen/space_1"
-                        tools:text="Pickup: 6:00 PM - 8:00 PM"
-                        android:textColor="@color/ember2"
-                        android:textSize="@dimen/text_xs" />
+                    android:layout_marginHorizontal="@dimen/space_2"
+                    android:layout_marginBottom="@dimen/space_2"
+                    app:cardCornerRadius="@dimen/radius_xl"
+                    app:cardElevation="@dimen/elevation_card">
 
                     <LinearLayout
+                        android:id="@+id/layoutTimeline"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="14dp"
                         android:orientation="horizontal"
-                        android:weightSum="2">
+                        android:paddingHorizontal="@dimen/space_1"
+                        android:paddingVertical="@dimen/space_2" />
+                </com.google.android.material.card.MaterialCardView>
 
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnCallHotel"
-                            style="@style/Widget.REPLATE.Button.Secondary"
-                            android:layout_width="0dp"
-                            android:layout_height="@dimen/button_height"
-                            android:layout_weight="1"
-                            android:layout_marginEnd="6dp"
-                            android:text="@string/order_detail_call_hotel"
-                            android:textSize="@dimen/text_xs"
-                            app:icon="@drawable/ic_phone"
-                            app:iconGravity="textStart"
-                            app:iconPadding="6dp" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnSmsHotel"
-                            style="@style/Widget.REPLATE.Button.Secondary"
-                            android:layout_width="0dp"
-                            android:layout_height="@dimen/button_height"
-                            android:layout_weight="1"
-                            android:layout_marginStart="6dp"
-                            android:text="@string/order_detail_sms_hotel"
-                            android:textSize="@dimen/text_xs"
-                            app:icon="@drawable/ic_email"
-                            app:iconGravity="textStart"
-                            app:iconPadding="6dp" />
-                    </LinearLayout>
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnNavigateHotel"
-                        style="@style/Widget.REPLATE.Button.Primary"
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/button_height"
-                        android:layout_marginTop="@dimen/space_1_5"
-                        android:text="@string/order_detail_navigate_hotel" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnOpenPickupRoute"
-                        style="@style/Widget.REPLATE.Button.Secondary"
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/button_height"
-                        android:layout_marginTop="@dimen/space_1"
-                        android:text="@string/order_detail_open_pickup_route" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Items and price breakdown; rows are added from OrderDetailActivity -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardOrderItems"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/space_2"
-                android:layout_marginBottom="@dimen/space_2"
-                android:visibility="gone"
-                app:cardCornerRadius="@dimen/radius_xl"
-                app:cardElevation="@dimen/elevation_card">
-
-                <LinearLayout
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardQR"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="18dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="@dimen/space_1"
-                        android:text="@string/order_detail_items_title"
-                        android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
-
-                    <LinearLayout
-                        android:id="@+id/layoutOrderItems"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/space_2"
-                app:cardCornerRadius="@dimen/radius_xl"
-                app:cardElevation="@dimen/elevation_card">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="18dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/order_detail_payment"
-                        android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
+                    android:layout_marginHorizontal="@dimen/space_2"
+                    android:layout_marginBottom="@dimen/space_2"
+                    app:cardCornerRadius="@dimen/radius_xl"
+                    app:cardElevation="@dimen/elevation_card">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/space_1_5">
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="@dimen/space_2_5">
 
                         <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/order_detail_total_amount"
-                            android:textColor="@color/text_secondary" />
-
-                        <TextView
-                            android:id="@+id/tvTotalAmount"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            tools:text="LKR 0.00"
-                            android:textColor="@color/primary"
-                            android:textSize="@dimen/text_xl"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/space_1">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/order_detail_payment_method"
-                            android:textColor="@color/text_secondary" />
-
-                        <TextView
-                            android:id="@+id/tvPaymentMethod"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            tools:text="Cash on Pickup"
+                            android:text="@string/order_detail_show_this_qr_code_at"
+                            android:textAppearance="@style/TextAppearance.REPLATE.Label"
                             android:textColor="@color/text_primary" />
+
+                        <ImageView
+                            android:id="@+id/ivQRCode"
+                            android:contentDescription="@string/cd_pickup_qr"
+                            android:layout_width="220dp"
+                            android:layout_height="220dp"
+                            android:layout_marginTop="14dp"
+                            android:scaleType="fitCenter" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/space_2"
+                            android:text="@string/order_detail_or_share_this_pickup_otp"
+                            android:textAppearance="@style/TextAppearance.REPLATE.Body" />
+
+                        <TextView
+                            android:id="@+id/tvOTP"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:background="@drawable/bg_otp_badge"
+                            android:letterSpacing="0.35"
+                            android:paddingHorizontal="@dimen/space_3"
+                            android:paddingVertical="@dimen/space_1_5"
+                            tools:text="123456"
+                            android:textColor="@color/primary"
+                            android:textSize="@dimen/text_display"
+                            android:textStyle="bold" />
                     </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="@dimen/space_2"
+                    android:layout_marginBottom="@dimen/space_2"
+                    app:cardCornerRadius="@dimen/radius_xl"
+                    app:cardElevation="@dimen/elevation_card">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/space_1">
+                        android:orientation="vertical"
+                        android:padding="18dp">
 
                         <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/order_detail_payment_status"
-                            android:textColor="@color/text_secondary" />
-
-                        <TextView
-                            android:id="@+id/tvPaymentStatus"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            tools:text="Pending"
-                            android:textColor="@color/warning"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+                            android:text="@string/order_detail_hotel_details"
+                            android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/reviewSection"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/space_2"
-                android:layout_marginTop="@dimen/space_2"
-                app:cardCornerRadius="@dimen/radius_xl"
-                app:cardElevation="@dimen/elevation_card"
-                android:visibility="gone">
+                        <TextView
+                            android:id="@+id/tvHotelName"
+                            android:ellipsize="end"
+                            android:maxLines="2"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/space_1_5"
+                            tools:text="Hotel Name"
+                            android:textAppearance="@style/TextAppearance.REPLATE.Subheading"
+                            android:textColor="@color/text_primary" />
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="18dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/order_review_title"
-                        android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
-
-                    <TextView
-                        android:id="@+id/tvReviewHint"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/space_1"
-                        android:text="@string/order_review_hint"
-                        android:textAppearance="@style/TextAppearance.REPLATE.Body"
-                        android:textColor="@color/text_secondary" />
-
-                    <RatingBar
-                        android:id="@+id/ratingReview"
-                        style="?android:attr/ratingBarStyleIndicator"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/space_1_5"
-                        android:numStars="5"
-                        android:scaleX="0.8"
-                        android:scaleY="0.8"
-                        android:transformPivotX="0dp"
-                        android:rating="0"
-                        android:stepSize="1" />
-
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:hint="@string/order_review_comment_hint">
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/etReviewComment"
+                        <TextView
+                            android:id="@+id/tvHotelAddress"
+                            android:ellipsize="end"
+                            android:maxLines="3"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:inputType="textMultiLine"
-                            android:maxLines="3"
-                            android:minLines="2" />
-                    </com.google.android.material.textfield.TextInputLayout>
+                            android:layout_marginTop="@dimen/space_0_5"
+                            tools:text="Hotel Address"
+                            android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
-                    <TextView
-                        android:id="@+id/tvReviewSummary"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:textColor="@color/primary"
-                        android:textStyle="bold" />
+                        <TextView
+                            android:id="@+id/tvPickupTime"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/space_1_5"
+                            android:background="@drawable/badge_status_pending"
+                            android:fontFamily="@font/poppins_semibold"
+                            android:paddingHorizontal="@dimen/space_1_5"
+                            android:paddingVertical="@dimen/space_1"
+                            tools:text="Pickup: 6:00 PM - 8:00 PM"
+                            android:textColor="@color/ember2"
+                            android:textSize="@dimen/text_xs" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnSubmitReview"
-                        style="@style/Widget.REPLATE.Button.Primary"
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="14dp"
+                            android:orientation="horizontal"
+                            android:weightSum="2">
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnCallHotel"
+                                style="@style/Widget.REPLATE.Button.Secondary"
+                                android:layout_width="0dp"
+                                android:layout_height="@dimen/button_height"
+                                android:layout_weight="1"
+                                android:layout_marginEnd="6dp"
+                                android:text="@string/order_detail_call_hotel"
+                                android:textSize="@dimen/text_xs"
+                                app:icon="@drawable/ic_phone"
+                                app:iconGravity="textStart"
+                                app:iconPadding="6dp" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnSmsHotel"
+                                style="@style/Widget.REPLATE.Button.Secondary"
+                                android:layout_width="0dp"
+                                android:layout_height="@dimen/button_height"
+                                android:layout_weight="1"
+                                android:layout_marginStart="6dp"
+                                android:text="@string/order_detail_sms_hotel"
+                                android:textSize="@dimen/text_xs"
+                                app:icon="@drawable/ic_email"
+                                app:iconGravity="textStart"
+                                app:iconPadding="6dp" />
+                        </LinearLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnNavigateHotel"
+                            style="@style/Widget.REPLATE.Button.Primary"
+                            android:layout_width="match_parent"
+                            android:layout_height="@dimen/button_height"
+                            android:layout_marginTop="@dimen/space_1_5"
+                            android:text="@string/order_detail_navigate_hotel" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnOpenPickupRoute"
+                            style="@style/Widget.REPLATE.Button.Secondary"
+                            android:layout_width="match_parent"
+                            android:layout_height="@dimen/button_height"
+                            android:layout_marginTop="@dimen/space_1"
+                            android:text="@string/order_detail_open_pickup_route" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Items and price breakdown; rows are added from OrderDetailActivity -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardOrderItems"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="@dimen/space_2"
+                    android:layout_marginBottom="@dimen/space_2"
+                    android:visibility="gone"
+                    app:cardCornerRadius="@dimen/radius_xl"
+                    app:cardElevation="@dimen/elevation_card">
+
+                    <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="@dimen/button_height"
-                        android:layout_marginTop="@dimen/space_1_5"
-                        android:text="@string/order_review_submit" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="18dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="@dimen/space_1"
+                            android:text="@string/order_detail_items_title"
+                            android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
+
+                        <LinearLayout
+                            android:id="@+id/layoutOrderItems"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="@dimen/space_2"
+                    app:cardCornerRadius="@dimen/radius_xl"
+                    app:cardElevation="@dimen/elevation_card">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="18dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/order_detail_payment"
+                            android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/space_1_5">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/order_detail_total_amount"
+                                android:textColor="@color/text_secondary" />
+
+                            <TextView
+                                android:id="@+id/tvTotalAmount"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                tools:text="LKR 0.00"
+                                android:textColor="@color/primary"
+                                android:textSize="@dimen/text_xl"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/space_1">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/order_detail_payment_method"
+                                android:textColor="@color/text_secondary" />
+
+                            <TextView
+                                android:id="@+id/tvPaymentMethod"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                tools:text="Cash on Pickup"
+                                android:textColor="@color/text_primary" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/space_1">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/order_detail_payment_status"
+                                android:textColor="@color/text_secondary" />
+
+                            <TextView
+                                android:id="@+id/tvPaymentStatus"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                tools:text="Pending"
+                                android:textColor="@color/warning"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/reviewSection"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="@dimen/space_2"
+                    android:layout_marginTop="@dimen/space_2"
+                    app:cardCornerRadius="@dimen/radius_xl"
+                    app:cardElevation="@dimen/elevation_card"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="18dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/order_review_title"
+                            android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
+
+                        <TextView
+                            android:id="@+id/tvReviewHint"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/space_1"
+                            android:text="@string/order_review_hint"
+                            android:textAppearance="@style/TextAppearance.REPLATE.Body"
+                            android:textColor="@color/text_secondary" />
+
+                        <RatingBar
+                            android:id="@+id/ratingReview"
+                            style="?android:attr/ratingBarStyleIndicator"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/space_1_5"
+                            android:numStars="5"
+                            android:scaleX="0.8"
+                            android:scaleY="0.8"
+                            android:transformPivotX="0dp"
+                            android:rating="0"
+                            android:stepSize="1" />
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:hint="@string/order_review_comment_hint">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etReviewComment"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="textMultiLine"
+                                android:maxLines="3"
+                                android:minLines="2" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <TextView
+                            android:id="@+id/tvReviewSummary"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:textColor="@color/primary"
+                            android:textStyle="bold" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSubmitReview"
+                            style="@style/Widget.REPLATE.Button.Primary"
+                            android:layout_width="match_parent"
+                            android:layout_height="@dimen/button_height"
+                            android:layout_marginTop="@dimen/space_1_5"
+                            android:text="@string/order_review_submit" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
     
-        </LinearLayout>
-    </ScrollView>
-</LinearLayout>
+            </LinearLayout>
+        </ScrollView>
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

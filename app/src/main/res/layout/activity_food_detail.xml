@@ -1,532 +1,544 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- The photo and details scroll; the Add to cart button stays pinned at the bottom. -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/cream"
-    android:orientation="vertical">
+    android:background="@color/cream">
 
-    <ScrollView
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:clipToPadding="false"
-            android:fillViewport="true"
-            android:overScrollMode="never">
+    <!-- One centred column, at most content_max_width wide: phones are narrower, so they use the full width;
+         tablets get a readable column with the page background on both sides. -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintWidth_max="@dimen/content_max_width">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingBottom="@dimen/space_3">
-
-            <!-- Food Image with Back Button -->
-            <FrameLayout
+        <ScrollView
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/image_height_detail">
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:clipToPadding="false"
+                android:fillViewport="true"
+                android:overScrollMode="never">
 
-                <ImageView
-                    android:id="@+id/ivFoodImage"
-                    android:contentDescription="@string/cd_food_image"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/placeholder_food" />
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@drawable/gradient_scrim_bottom" />
-
-                <!-- Back Button -->
-                <ImageView
-                    android:id="@+id/ivBack"
-                    android:contentDescription="@string/cd_back"
-                    android:layout_width="@dimen/touch_target_min"
-                    android:layout_height="@dimen/touch_target_min"
-                    android:layout_margin="@dimen/space_2"
-                    android:background="@drawable/circle_white"
-                    android:elevation="@dimen/elevation_card_raised"
-                    android:padding="@dimen/space_1_5"
-                    android:src="@drawable/ic_back" />
-
-                <!-- Favorite Button -->
-                <ImageView
-                    android:id="@+id/ivFavorite"
-                    android:layout_width="@dimen/touch_target_min"
-                    android:layout_height="@dimen/touch_target_min"
-                    android:layout_gravity="bottom|end"
-                    android:layout_marginBottom="@dimen/space_2"
-                    android:layout_marginEnd="@dimen/space_2"
-                    android:background="@drawable/circle_white"
-                    android:elevation="@dimen/elevation_card_raised"
-                    android:padding="@dimen/space_1_5"
-                    android:src="@android:drawable/btn_star_big_off"
-                    android:contentDescription="@string/food_detail_add_to_favorites_cd" />
-
-                <!-- Discount Badge -->
-                <TextView
-                    android:id="@+id/tvDiscount"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="top|end"
-                    android:layout_margin="@dimen/space_2"
-                    android:background="@drawable/badge_discount"
-                    android:fontFamily="@font/poppins_bold"
-                    android:paddingHorizontal="@dimen/space_1_5"
-                    android:paddingVertical="@dimen/space_1"
-                    android:text="@string/food_detail_default_discount"
-                    android:textColor="@color/white"
-                    android:textSize="@dimen/text_md" />
-            </FrameLayout>
-
-            <!-- Food Details Card -->
-            <com.google.android.material.card.MaterialCardView
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/space_2"
-                android:layout_marginTop="-24dp"
-                app:cardCornerRadius="@dimen/radius_xl"
-                app:cardElevation="@dimen/elevation_card_raised"
-                app:cardBackgroundColor="@color/surface_white">
+                android:orientation="vertical"
+                android:paddingBottom="@dimen/space_3">
 
-                <LinearLayout
+                <!-- Food Image with Back Button -->
+                <FrameLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="@dimen/space_2_5">
+                    android:layout_height="@dimen/image_height_detail">
 
-                    <!-- Food Name -->
-                    <TextView
-                        android:id="@+id/tvFoodName"
+                    <ImageView
+                        android:id="@+id/ivFoodImage"
+                        android:contentDescription="@string/cd_food_image"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="2"
-                        android:text="@string/food_detail_default_name"
-                        android:textAppearance="@style/TextAppearance.REPLATE.Headline"
-                        android:textColor="@color/text_primary"
-                        android:textSize="@dimen/text_xl" />
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/placeholder_food" />
 
-                    <!-- Hotel Name and the heart that saves the hotel -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:id="@+id/tvHotelName"
-                            android:ellipsize="end"
-                            android:maxLines="1"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/food_detail_default_hotel"
-                            android:textAppearance="@style/TextAppearance.REPLATE.Body" />
-
-                        <ImageView
-                            android:id="@+id/ivFavoriteHotel"
-                            android:layout_width="@dimen/touch_target_min"
-                            android:layout_height="@dimen/touch_target_min"
-                            android:layout_marginVertical="-8dp"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:contentDescription="@string/favorite_hotel_add_cd"
-                            android:padding="@dimen/space_1_5"
-                            android:src="@drawable/ic_favorite" />
-                    </LinearLayout>
-
-                    <!-- Distance and Pickup Time -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/space_1_5"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <!-- Distance Badge -->
-                        <TextView
-                            android:id="@+id/tvDistance"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:background="@drawable/badge_pale"
-                            android:paddingHorizontal="@dimen/space_1_5"
-                            android:paddingVertical="@dimen/space_1"
-                            android:text="@string/food_detail_default_distance"
-                            android:textColor="@color/green_primary"
-                            android:textSize="@dimen/text_xs"
-                            android:textStyle="bold" />
-
-                        <Space
-                            android:layout_width="10dp"
-                            android:layout_height="1dp" />
-
-                        <!-- Pickup Time Badge -->
-                        <TextView
-                            android:id="@+id/tvPickupTime"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:background="@drawable/badge_pale"
-                            android:paddingHorizontal="@dimen/space_1_5"
-                            android:paddingVertical="@dimen/space_1"
-                            android:text="@string/food_detail_default_pickup_window"
-                            android:textColor="@color/ember2"
-                            android:textSize="@dimen/text_xs"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <!-- Divider -->
                     <View
                         android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:layout_marginVertical="@dimen/space_2"
-                        android:background="@color/divider" />
+                        android:layout_height="match_parent"
+                        android:background="@drawable/gradient_scrim_bottom" />
 
-                    <!-- Price and Quantity Section -->
+                    <!-- Back Button -->
+                    <ImageView
+                        android:id="@+id/ivBack"
+                        android:contentDescription="@string/cd_back"
+                        android:layout_width="@dimen/touch_target_min"
+                        android:layout_height="@dimen/touch_target_min"
+                        android:layout_margin="@dimen/space_2"
+                        android:background="@drawable/circle_white"
+                        android:elevation="@dimen/elevation_card_raised"
+                        android:padding="@dimen/space_1_5"
+                        android:src="@drawable/ic_back" />
+
+                    <!-- Favorite Button -->
+                    <ImageView
+                        android:id="@+id/ivFavorite"
+                        android:layout_width="@dimen/touch_target_min"
+                        android:layout_height="@dimen/touch_target_min"
+                        android:layout_gravity="bottom|end"
+                        android:layout_marginBottom="@dimen/space_2"
+                        android:layout_marginEnd="@dimen/space_2"
+                        android:background="@drawable/circle_white"
+                        android:elevation="@dimen/elevation_card_raised"
+                        android:padding="@dimen/space_1_5"
+                        android:src="@android:drawable/btn_star_big_off"
+                        android:contentDescription="@string/food_detail_add_to_favorites_cd" />
+
+                    <!-- Discount Badge -->
+                    <TextView
+                        android:id="@+id/tvDiscount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top|end"
+                        android:layout_margin="@dimen/space_2"
+                        android:background="@drawable/badge_discount"
+                        android:fontFamily="@font/poppins_bold"
+                        android:paddingHorizontal="@dimen/space_1_5"
+                        android:paddingVertical="@dimen/space_1"
+                        android:text="@string/food_detail_default_discount"
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/text_md" />
+                </FrameLayout>
+
+                <!-- Food Details Card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="@dimen/space_2"
+                    android:layout_marginTop="-24dp"
+                    app:cardCornerRadius="@dimen/radius_xl"
+                    app:cardElevation="@dimen/elevation_card_raised"
+                    app:cardBackgroundColor="@color/surface_white">
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
+                        android:orientation="vertical"
+                        android:padding="@dimen/space_2_5">
 
-                        <!-- Price Details -->
-                        <LinearLayout
-                            android:layout_width="0dp"
+                        <!-- Food Name -->
+                        <TextView
+                            android:id="@+id/tvFoodName"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
+                            android:ellipsize="end"
+                            android:maxLines="2"
+                            android:text="@string/food_detail_default_name"
+                            android:textAppearance="@style/TextAppearance.REPLATE.Headline"
+                            android:textColor="@color/text_primary"
+                            android:textSize="@dimen/text_xl" />
+
+                        <!-- Hotel Name and the heart that saves the hotel -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
 
                             <TextView
-                                android:id="@+id/tvOriginalLabel"
-                                android:layout_width="wrap_content"
+                                android:id="@+id/tvHotelName"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:text="@string/food_detail_original_label"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="@dimen/text_xs" />
+                                android:layout_weight="1"
+                                android:text="@string/food_detail_default_hotel"
+                                android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
-                            <TextView
-                                android:id="@+id/tvOriginalPrice"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="@dimen/space_0_5"
-                                tools:text="LKR 800.00"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="@dimen/text_sm" />
+                            <ImageView
+                                android:id="@+id/ivFavoriteHotel"
+                                android:layout_width="@dimen/touch_target_min"
+                                android:layout_height="@dimen/touch_target_min"
+                                android:layout_marginVertical="-8dp"
+                                android:background="?attr/selectableItemBackgroundBorderless"
+                                android:contentDescription="@string/favorite_hotel_add_cd"
+                                android:padding="@dimen/space_1_5"
+                                android:src="@drawable/ic_favorite" />
+                        </LinearLayout>
 
+                        <!-- Distance and Pickup Time -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/space_1_5"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <!-- Distance Badge -->
                             <TextView
-                                android:id="@+id/tvDiscountedPrice"
+                                android:id="@+id/tvDistance"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="@dimen/space_0_5"
-                                tools:text="LKR 500.00"
+                                android:background="@drawable/badge_pale"
+                                android:paddingHorizontal="@dimen/space_1_5"
+                                android:paddingVertical="@dimen/space_1"
+                                android:text="@string/food_detail_default_distance"
                                 android:textColor="@color/green_primary"
-                                android:textSize="@dimen/text_display"
+                                android:textSize="@dimen/text_xs"
+                                android:textStyle="bold" />
+
+                            <Space
+                                android:layout_width="10dp"
+                                android:layout_height="1dp" />
+
+                            <!-- Pickup Time Badge -->
+                            <TextView
+                                android:id="@+id/tvPickupTime"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/badge_pale"
+                                android:paddingHorizontal="@dimen/space_1_5"
+                                android:paddingVertical="@dimen/space_1"
+                                android:text="@string/food_detail_default_pickup_window"
+                                android:textColor="@color/ember2"
+                                android:textSize="@dimen/text_xs"
                                 android:textStyle="bold" />
                         </LinearLayout>
 
-                        <!-- Quantity Selector -->
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:background="@drawable/badge_pale"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal"
-                            android:paddingHorizontal="@dimen/space_1"
-                            android:paddingVertical="6dp">
+                        <!-- Divider -->
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginVertical="@dimen/space_2"
+                            android:background="@color/divider" />
 
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btnMinus"
-                                style="@style/Widget.Material3.Button.IconButton"
-                                android:layout_width="44dp"
-                                android:layout_height="44dp"
-                                android:backgroundTint="@color/green_primary"
-                                android:insetTop="0dp"
-                                android:insetBottom="0dp"
-                                android:minHeight="0dp"
-                                android:minWidth="0dp"
-                                android:padding="0dp"
-                                android:text="-"
-                                android:textAllCaps="false"
-                                android:textColor="@color/white"
-                                android:textSize="@dimen/text_title"
-                                android:textStyle="bold" />
+                        <!-- Price and Quantity Section -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <!-- Price Details -->
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:id="@+id/tvOriginalLabel"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/food_detail_original_label"
+                                    android:textColor="@color/text_secondary"
+                                    android:textSize="@dimen/text_xs" />
+
+                                <TextView
+                                    android:id="@+id/tvOriginalPrice"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="@dimen/space_0_5"
+                                    tools:text="LKR 800.00"
+                                    android:textColor="@color/text_secondary"
+                                    android:textSize="@dimen/text_sm" />
+
+                                <TextView
+                                    android:id="@+id/tvDiscountedPrice"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="@dimen/space_0_5"
+                                    tools:text="LKR 500.00"
+                                    android:textColor="@color/green_primary"
+                                    android:textSize="@dimen/text_display"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+
+                            <!-- Quantity Selector -->
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/badge_pale"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:paddingHorizontal="@dimen/space_1"
+                                android:paddingVertical="6dp">
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/btnMinus"
+                                    style="@style/Widget.Material3.Button.IconButton"
+                                    android:layout_width="44dp"
+                                    android:layout_height="44dp"
+                                    android:backgroundTint="@color/green_primary"
+                                    android:insetTop="0dp"
+                                    android:insetBottom="0dp"
+                                    android:minHeight="0dp"
+                                    android:minWidth="0dp"
+                                    android:padding="0dp"
+                                    android:text="-"
+                                    android:textAllCaps="false"
+                                    android:textColor="@color/white"
+                                    android:textSize="@dimen/text_title"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/tvQuantity"
+                                    android:layout_width="52dp"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="center"
+                                    android:text="1"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="@dimen/text_lg"
+                                    android:textStyle="bold" />
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/btnPlus"
+                                    style="@style/Widget.Material3.Button.IconButton"
+                                    android:layout_width="44dp"
+                                    android:layout_height="44dp"
+                                    android:backgroundTint="@color/green_primary"
+                                    android:insetTop="0dp"
+                                    android:insetBottom="0dp"
+                                    android:minHeight="0dp"
+                                    android:minWidth="0dp"
+                                    android:padding="0dp"
+                                    android:text="+"
+                                    android:textAllCaps="false"
+                                    android:textColor="@color/white"
+                                    android:textSize="@dimen/text_title"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <!-- Description -->
+                        <TextView
+                            android:id="@+id/tvDescription"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="18dp"
+                            android:lineSpacingExtra="4dp"
+                            tools:text="@string/food_detail_description_placeholder"
+                            android:textAppearance="@style/TextAppearance.REPLATE.Body"
+                            android:textColor="@color/text_primary" />
+
+                        <!-- Hotel Contact Actions -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="18dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.card.MaterialCardView
+                                android:id="@+id/btnCallHotel"
+                                android:layout_width="52dp"
+                                android:layout_height="52dp"
+                                app:cardBackgroundColor="@color/green_primary"
+                                app:cardCornerRadius="14dp"
+                                app:cardElevation="0dp">
+
+                                <ImageView
+                                    android:layout_width="24dp"
+                                    android:layout_height="24dp"
+                                    android:layout_gravity="center"
+                                    android:contentDescription="@string/food_detail_call_hotel_cd"
+                                    android:src="@drawable/ic_phone"
+                                    app:tint="@color/white" />
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <com.google.android.material.card.MaterialCardView
+                                android:id="@+id/btnSmsHotel"
+                                android:layout_width="52dp"
+                                android:layout_height="52dp"
+                                android:layout_marginStart="10dp"
+                                app:cardBackgroundColor="@color/ember2"
+                                app:cardCornerRadius="14dp"
+                                app:cardElevation="0dp">
+
+                                <ImageView
+                                    android:layout_width="24dp"
+                                    android:layout_height="24dp"
+                                    android:layout_gravity="center"
+                                    android:contentDescription="@string/food_detail_sms_hotel_cd"
+                                    android:src="@drawable/ic_email"
+                                    app:tint="@color/white" />
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <com.google.android.material.card.MaterialCardView
+                                android:id="@+id/btnChatHotel"
+                                android:layout_width="52dp"
+                                android:layout_height="52dp"
+                                android:layout_marginStart="10dp"
+                                app:cardBackgroundColor="@color/primary_dark"
+                                app:cardCornerRadius="14dp"
+                                app:cardElevation="0dp">
+
+                                <ImageView
+                                    android:layout_width="24dp"
+                                    android:layout_height="24dp"
+                                    android:layout_gravity="center"
+                                    android:contentDescription="@string/food_detail_chat_hotel_cd"
+                                    android:src="@drawable/ic_chat_empty"
+                                    app:tint="@color/white" />
+                            </com.google.android.material.card.MaterialCardView>
 
                             <TextView
-                                android:id="@+id/tvQuantity"
-                                android:layout_width="52dp"
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:gravity="center"
-                                android:text="1"
-                                android:textColor="@color/text_primary"
-                                android:textSize="@dimen/text_lg"
-                                android:textStyle="bold" />
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btnPlus"
-                                style="@style/Widget.Material3.Button.IconButton"
-                                android:layout_width="44dp"
-                                android:layout_height="44dp"
-                                android:backgroundTint="@color/green_primary"
-                                android:insetTop="0dp"
-                                android:insetBottom="0dp"
-                                android:minHeight="0dp"
-                                android:minWidth="0dp"
-                                android:padding="0dp"
-                                android:text="+"
-                                android:textAllCaps="false"
-                                android:textColor="@color/white"
-                                android:textSize="@dimen/text_title"
-                                android:textStyle="bold" />
+                                android:layout_marginStart="@dimen/space_1_5"
+                                android:layout_weight="1"
+                                android:text="@string/food_detail_contact_hotel_quickly_for_pickup"
+                                android:textAppearance="@style/TextAppearance.REPLATE.Body"
+                                android:textSize="@dimen/text_xs" />
                         </LinearLayout>
                     </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
 
-                    <!-- Description -->
-                    <TextView
-                        android:id="@+id/tvDescription"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="18dp"
-                        android:lineSpacingExtra="4dp"
-                        tools:text="@string/food_detail_description_placeholder"
-                        android:textAppearance="@style/TextAppearance.REPLATE.Body"
-                        android:textColor="@color/text_primary" />
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="@dimen/space_2"
+                    android:layout_marginTop="@dimen/space_1_5"
+                    app:cardCornerRadius="@dimen/radius_lg"
+                    app:cardElevation="@dimen/elevation_card">
 
-                    <!-- Hotel Contact Actions -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="18dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <com.google.android.material.card.MaterialCardView
-                            android:id="@+id/btnCallHotel"
-                            android:layout_width="52dp"
-                            android:layout_height="52dp"
-                            app:cardBackgroundColor="@color/green_primary"
-                            app:cardCornerRadius="14dp"
-                            app:cardElevation="0dp">
-
-                            <ImageView
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
-                                android:layout_gravity="center"
-                                android:contentDescription="@string/food_detail_call_hotel_cd"
-                                android:src="@drawable/ic_phone"
-                                app:tint="@color/white" />
-                        </com.google.android.material.card.MaterialCardView>
-
-                        <com.google.android.material.card.MaterialCardView
-                            android:id="@+id/btnSmsHotel"
-                            android:layout_width="52dp"
-                            android:layout_height="52dp"
-                            android:layout_marginStart="10dp"
-                            app:cardBackgroundColor="@color/ember2"
-                            app:cardCornerRadius="14dp"
-                            app:cardElevation="0dp">
-
-                            <ImageView
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
-                                android:layout_gravity="center"
-                                android:contentDescription="@string/food_detail_sms_hotel_cd"
-                                android:src="@drawable/ic_email"
-                                app:tint="@color/white" />
-                        </com.google.android.material.card.MaterialCardView>
-
-                        <com.google.android.material.card.MaterialCardView
-                            android:id="@+id/btnChatHotel"
-                            android:layout_width="52dp"
-                            android:layout_height="52dp"
-                            android:layout_marginStart="10dp"
-                            app:cardBackgroundColor="@color/primary_dark"
-                            app:cardCornerRadius="14dp"
-                            app:cardElevation="0dp">
-
-                            <ImageView
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
-                                android:layout_gravity="center"
-                                android:contentDescription="@string/food_detail_chat_hotel_cd"
-                                android:src="@drawable/ic_chat_empty"
-                                app:tint="@color/white" />
-                        </com.google.android.material.card.MaterialCardView>
+                        android:orientation="vertical"
+                        android:padding="@dimen/space_2">
 
                         <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="@dimen/space_1_5"
-                            android:layout_weight="1"
-                            android:text="@string/food_detail_contact_hotel_quickly_for_pickup"
-                            android:textAppearance="@style/TextAppearance.REPLATE.Body"
-                            android:textSize="@dimen/text_xs" />
-                    </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/space_2"
-                android:layout_marginTop="@dimen/space_1_5"
-                app:cardCornerRadius="@dimen/radius_lg"
-                app:cardElevation="@dimen/elevation_card">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="@dimen/space_2">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/food_detail_user_reviews"
-                        android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
-
-                    <TextView
-                        android:id="@+id/tvReviewSummary"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/space_0_5"
-                        tools:text="0.0 (0 reviews)"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="@dimen/text_sm_compact" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnToggleReviewComposer"
-                        style="@style/Widget.REPLATE.Button.Secondary"
-                        android:layout_width="wrap_content"
-                        android:layout_height="@dimen/touch_target_min"
-                        android:layout_marginTop="10dp"
-                        android:text="@string/food_detail_write_a_review"
-                        android:textSize="@dimen/text_xs" />
-
-                    <LinearLayout
-                        android:id="@+id/layoutReviewComposer"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/space_1"
-                        android:orientation="vertical"
-                        android:visibility="gone">
-
-                        <RatingBar
-                            android:id="@+id/ratingInput"
-                            style="?android:attr/ratingBarStyle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:isIndicator="false"
-                            android:numStars="5"
-                            android:scaleX="0.8"
-                            android:scaleY="0.8"
-                            android:transformPivotX="0dp"
-                            android:stepSize="0.5" />
+                            android:text="@string/food_detail_user_reviews"
+                            android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
-                        <com.google.android.material.textfield.TextInputLayout
+                        <TextView
+                            android:id="@+id/tvReviewSummary"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="@dimen/space_1">
-
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/etReviewComment"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:hint="@string/food_detail_share_your_experience_hint"
-                                android:inputType="textMultiLine"
-                                android:maxLines="3" />
-                        </com.google.android.material.textfield.TextInputLayout>
+                            android:layout_marginTop="@dimen/space_0_5"
+                            tools:text="0.0 (0 reviews)"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="@dimen/text_sm_compact" />
 
                         <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnSubmitReview"
-                            style="@style/Widget.REPLATE.Button.Primary"
+                            android:id="@+id/btnToggleReviewComposer"
+                            style="@style/Widget.REPLATE.Button.Secondary"
+                            android:layout_width="wrap_content"
+                            android:layout_height="@dimen/touch_target_min"
+                            android:layout_marginTop="10dp"
+                            android:text="@string/food_detail_write_a_review"
+                            android:textSize="@dimen/text_xs" />
+
+                        <LinearLayout
+                            android:id="@+id/layoutReviewComposer"
                             android:layout_width="match_parent"
-                            android:layout_height="46dp"
+                            android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/space_1"
-                            android:text="@string/food_detail_submit_review"
-                            android:textSize="@dimen/text_sm"
-                            app:icon="@drawable/ic_add_white"
-                            app:iconGravity="textStart"
-                            app:iconPadding="8dp"
-                            app:iconTint="@color/white" />
+                            android:orientation="vertical"
+                            android:visibility="gone">
+
+                            <RatingBar
+                                android:id="@+id/ratingInput"
+                                style="?android:attr/ratingBarStyle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:isIndicator="false"
+                                android:numStars="5"
+                                android:scaleX="0.8"
+                                android:scaleY="0.8"
+                                android:transformPivotX="0dp"
+                                android:stepSize="0.5" />
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="@dimen/space_1">
+
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/etReviewComment"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:hint="@string/food_detail_share_your_experience_hint"
+                                    android:inputType="textMultiLine"
+                                    android:maxLines="3" />
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnSubmitReview"
+                                style="@style/Widget.REPLATE.Button.Primary"
+                                android:layout_width="match_parent"
+                                android:layout_height="46dp"
+                                android:layout_marginTop="@dimen/space_1"
+                                android:text="@string/food_detail_submit_review"
+                                android:textSize="@dimen/text_sm"
+                                app:icon="@drawable/ic_add_white"
+                                app:iconGravity="textStart"
+                                app:iconPadding="8dp"
+                                app:iconTint="@color/white" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/tvNoReviews"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/space_1_5"
+                            android:gravity="center"
+                            android:text="@string/food_detail_no_reviews_yet"
+                            android:textColor="@color/text_secondary"
+                            android:visibility="gone" />
+
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/rvReviews"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/space_1"
+                            android:nestedScrollingEnabled="false" />
                     </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
 
-                    <TextView
-                        android:id="@+id/tvNoReviews"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/space_1_5"
-                        android:gravity="center"
-                        android:text="@string/food_detail_no_reviews_yet"
-                        android:textColor="@color/text_secondary"
-                        android:visibility="gone" />
-
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/rvReviews"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/space_1"
-                        android:nestedScrollingEnabled="false" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/space_2"
-                android:layout_marginTop="@dimen/space_1_5"
-                android:layout_marginBottom="@dimen/space_2"
-                app:cardCornerRadius="@dimen/radius_lg"
-                app:cardElevation="@dimen/elevation_card">
-
-                <LinearLayout
+                <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="@dimen/space_2">
+                    android:layout_marginHorizontal="@dimen/space_2"
+                    android:layout_marginTop="@dimen/space_1_5"
+                    android:layout_marginBottom="@dimen/space_2"
+                    app:cardCornerRadius="@dimen/radius_lg"
+                    app:cardElevation="@dimen/elevation_card">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/food_detail_recommended_for_you"
-                        android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
-
-                    <TextView
-                        android:id="@+id/tvNoRecommendations"
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="@string/food_detail_no_related_products_right_now"
-                        android:textColor="@color/text_secondary"
-                        android:visibility="gone" />
+                        android:orientation="vertical"
+                        android:padding="@dimen/space_2">
 
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/rvRecommended"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:nestedScrollingEnabled="false" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/food_detail_recommended_for_you"
+                            android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
-        </LinearLayout>
-    </ScrollView>
+                        <TextView
+                            android:id="@+id/tvNoRecommendations"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:text="@string/food_detail_no_related_products_right_now"
+                            android:textColor="@color/text_secondary"
+                            android:visibility="gone" />
 
-    <com.google.android.material.card.MaterialCardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:cardBackgroundColor="@color/surface_white"
-        app:cardCornerRadius="0dp"
-        app:cardElevation="@dimen/elevation_sheet">
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/rvRecommended"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:nestedScrollingEnabled="false" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnAddToCart"
-            style="@style/Widget.REPLATE.Button.Primary"
+            </LinearLayout>
+        </ScrollView>
+
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
-            android:layout_height="@dimen/button_height"
-            android:layout_margin="@dimen/space_2"
-            tools:text="Add to Cart - LKR 500.00" />
-    </com.google.android.material.card.MaterialCardView>
-</LinearLayout>
+            android:layout_height="wrap_content"
+            app:cardBackgroundColor="@color/surface_white"
+            app:cardCornerRadius="0dp"
+            app:cardElevation="@dimen/elevation_sheet">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAddToCart"
+                style="@style/Widget.REPLATE.Button.Primary"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/button_height"
+                android:layout_margin="@dimen/space_2"
+                tools:text="Add to Cart - LKR 500.00" />
+        </com.google.android.material.card.MaterialCardView>
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
