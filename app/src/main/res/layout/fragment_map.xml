@@ -25,85 +25,52 @@
         android:layout_margin="@dimen/space_2"
         android:orientation="vertical">
 
-        <com.google.android.material.card.MaterialCardView
+        <!-- Search field and my-location button float over the map -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardBackgroundColor="@color/surface_white"
-            app:cardCornerRadius="@dimen/radius_lg"
-            app:cardElevation="@dimen/elevation_sheet">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="@dimen/space_2">
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.REPLATE.Card.Search"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                app:cardElevation="@dimen/elevation_card">
 
-                <LinearLayout
+                <androidx.appcompat.widget.SearchView
+                    android:id="@+id/searchView"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:layout_height="match_parent"
+                    app:iconifiedByDefault="false"
+                    app:queryBackground="@android:color/transparent"
+                    app:queryHint="@string/map_search_hint"
+                    app:searchIcon="@drawable/ic_search" />
+            </com.google.android.material.card.MaterialCardView>
 
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/ivMyLocation"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_marginStart="@dimen/space_1"
+                android:clickable="true"
+                android:contentDescription="@string/cd_my_location"
+                android:focusable="true"
+                app:cardBackgroundColor="@color/surface_white"
+                app:cardCornerRadius="@dimen/radius_md"
+                app:cardElevation="@dimen/elevation_card"
+                app:strokeColor="@color/md_theme_outlineVariant"
+                app:strokeWidth="1dp">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/poppins_semibold"
-                            android:text="@string/map_map_explorer"
-                            android:textColor="@color/ember_dark"
-                            android:textSize="@dimen/text_xs" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="@dimen/space_0_5"
-                            android:text="@string/map_find_pickup_deals_around_you"
-                            android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
-                    </LinearLayout>
-
-                    <com.google.android.material.card.MaterialCardView
-                        android:id="@+id/ivMyLocation"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        app:cardBackgroundColor="@color/green_pale"
-                        app:cardCornerRadius="@dimen/radius_md"
-                        app:cardElevation="0dp">
-
-                        <ImageView
-                            android:layout_width="22dp"
-                            android:layout_height="22dp"
-                            android:layout_gravity="center"
-                            android:contentDescription="@string/cd_location_icon"
-                            android:src="@drawable/ic_my_location"
-                            app:tint="@color/green_primary" />
-                    </com.google.android.material.card.MaterialCardView>
-                </LinearLayout>
-
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="match_parent"
-                    android:layout_height="56dp"
-                    android:layout_marginTop="@dimen/space_1_5"
-                    app:cardBackgroundColor="@color/md_theme_surfaceContainerLow"
-                    app:cardCornerRadius="@dimen/radius_md"
-                    app:cardElevation="0dp">
-
-                    <androidx.appcompat.widget.SearchView
-                        android:id="@+id/searchView"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        app:iconifiedByDefault="false"
-                        app:queryHint="@string/map_search_hint"
-                        app:searchIcon="@drawable/ic_search" />
-                </com.google.android.material.card.MaterialCardView>
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_my_location"
+                    app:tint="@color/green_primary" />
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
 
         <!-- Persistent hint: location off or denied, hotels failed to load, or none listed yet -->
         <com.google.android.material.card.MaterialCardView
@@ -158,17 +125,9 @@
             android:orientation="vertical"
             android:padding="@dimen/space_2_5">
 
-            <View
-                android:layout_width="44dp"
-                android:layout_height="4dp"
-                android:layout_gravity="center_horizontal"
-                android:background="@drawable/bg_sheet_handle"
-                android:importantForAccessibility="no" />
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_2"
                 android:orientation="horizontal">
 
                 <ImageView

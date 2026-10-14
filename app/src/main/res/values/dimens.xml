@@ -51,6 +51,8 @@
     <!-- Widest a single-column screen grows (cart, checkout, food detail, order detail).
          Phones are narrower than this, so it only matters on tablets: the column is centred there. -->
     <dimen name="content_max_width">600dp</dimen>
+    <!-- Login and register form column on tablets -->
+    <dimen name="auth_form_max_width">480dp</dimen>
 
     <!-- Bottom nav divider -->
     <dimen name="nav_divider_height">1dp</dimen>

@@ -52,7 +52,6 @@ import com.replate.app.utils.FcmTokenManager;
 import com.replate.app.utils.LocalDataCleaner;
 import com.replate.app.receivers.NetworkChangeReceiver;
 import com.replate.app.utils.ScrollToTop;
-import com.replate.app.utils.NotificationPermissionHelper;
 import com.replate.app.utils.ToastUtils;
 import com.replate.app.utils.UserRoleHelper;
 
@@ -148,6 +147,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             if (itemId == R.id.nav_home) return switchFragment(getHomeFragment());
             if (itemId == R.id.nav_map) return switchFragment(getMapFragment());
             if (itemId == R.id.nav_cart) {
+                // The cart is its own screen: the tab you came from stays selected, and the
+                // badge on the cart icon shows how many items are in it
                 startActivity(new Intent(this, CartActivity.class));
                 return false;
             }
@@ -180,16 +181,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         navigationView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
-            if (id == R.id.drawer_home) {
-                bottomNavigation.setSelectedItemId(R.id.nav_home);
-            } else if (id == R.id.drawer_map) {
-                bottomNavigation.setSelectedItemId(R.id.nav_map);
-            } else if (id == R.id.drawer_cart) {
-                startActivity(new Intent(this, CartActivity.class));
-            } else if (id == R.id.drawer_orders) {
-                bottomNavigation.setSelectedItemId(R.id.nav_orders);
-            } else if (id == R.id.drawer_profile) {
-                bottomNavigation.setSelectedItemId(R.id.nav_profile);
+            // The five bottom-bar places are not repeated in the drawer
+            if (id == R.id.drawer_favorites) {
+                startActivity(new Intent(this, FavoritesActivity.class));
             } else if (id == R.id.drawer_search) {
                 startActivity(new Intent(this, SearchActivity.class));
             } else if (id == R.id.drawer_notifications) {
@@ -239,7 +233,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             startNetworkMonitor();
             FirebaseMessaging.getInstance().subscribeToTopic("all_users");
             scheduleBackgroundSync();
-            checkNotificationPermissions();
         });
 
         // Request location permission after auth with a small delay for better UX
@@ -390,6 +383,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         activeFragment = fragment;
     }
 
+    /** Shows the number of items in the cart on the Cart tab (hidden when the cart is empty). */
+    public void refreshCartBadge() {
+        if (bottomNavigation == null) return;
+        int count = com.replate.app.helpers.CartDatabaseHelper.getInstance(this).getCartCount();
+        if (count > 0) {
+            com.google.android.material.badge.BadgeDrawable badge = bottomNavigation.getOrCreateBadge(R.id.nav_cart);
+            badge.setNumber(count);
+            badge.setMaxCharacterCount(3);
+            badge.setContentDescriptionQuantityStringsResource(R.plurals.cd_cart_items);
+            badge.setVisible(true);
+        } else {
+            bottomNavigation.removeBadge(R.id.nav_cart);
+        }
+    }
+
     // Lets other screens change the selected tab.
     public void switchToTab(int tabId) {
         bottomNavigation.setSelectedItemId(tabId);
@@ -437,22 +445,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 ExistingPeriodicWorkPolicy.KEEP,
                 syncRequest
         );
-    }
-
-    // Asks for notification permission if the phone needs it.
-    private void checkNotificationPermissions() {
-        if (!NotificationPermissionHelper.isRuntimePermissionRequired()
-                || NotificationPermissionHelper.hasPermission(this)) {
-            return;
-        }
-
-        if (NotificationPermissionHelper.shouldShowRationale(this)) {
-            NotificationPermissionHelper.showRationaleDialog(this,
-                    () -> NotificationPermissionHelper.request(this, 101));
-            return;
-        }
-
-        NotificationPermissionHelper.request(this, 101);
     }
 
     // Keeps content clear of the status and navigation bars.
@@ -526,6 +518,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     protected void onResume() {
         super.onResume();
+        refreshCartBadge();
         if (sensorManager != null && accelerometer != null) {
             sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
         }

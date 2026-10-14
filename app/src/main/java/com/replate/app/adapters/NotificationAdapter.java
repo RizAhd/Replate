@@ -171,7 +171,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     }
 
     class NotifViewHolder extends RecyclerView.ViewHolder {
-        ImageView ivIcon, ivDelete;
+        ImageView ivIcon;
         TextView tvTitle, tvBody, tvTime, tvCategoryChip;
         View unreadDot;
         View viewAccentStrip;
@@ -179,7 +179,6 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         NotifViewHolder(@NonNull View itemView) {
             super(itemView);
             ivIcon = itemView.findViewById(R.id.ivIcon);
-            ivDelete = itemView.findViewById(R.id.ivDelete);
             tvTitle = itemView.findViewById(R.id.tvTitle);
             tvBody = itemView.findViewById(R.id.tvBody);
             tvTime = itemView.findViewById(R.id.tvTime);
@@ -247,13 +246,15 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 }
             });
 
-            if (ivDelete != null) {
-                ivDelete.setOnClickListener(v -> {
-                    if (listener != null) {
-                        listener.onNotificationDelete(notif);
-                    }
-                });
-            }
+            // Deleting is a swipe (with Undo); TalkBack users get the same thing as a "Delete" action
+            androidx.core.view.ViewCompat.addAccessibilityAction(itemView,
+                    itemView.getContext().getString(R.string.notification_delete_notification_cd),
+                    (view, arguments) -> {
+                        if (listener != null) {
+                            listener.onNotificationDelete(notif);
+                        }
+                        return true;
+                    });
         }
 
         // Turns a time into text like "5 mins ago".

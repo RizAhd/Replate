@@ -338,27 +338,6 @@
                         style="@style/Widget.REPLATE.MenuRow.Chevron"
                         android:importantForAccessibility="no" />
                 </LinearLayout>
-
-                <View style="@style/Widget.REPLATE.MenuRow.Divider" />
-
-                <!-- Help -->
-                <LinearLayout
-                    android:id="@+id/menuHelp"
-                    style="@style/Widget.REPLATE.MenuRow">
-
-                    <ImageView
-                        style="@style/Widget.REPLATE.MenuRow.Icon"
-                        android:importantForAccessibility="no"
-                        android:src="@drawable/ic_help" />
-
-                    <TextView
-                        style="@style/Widget.REPLATE.MenuRow.Label"
-                        android:text="@string/profile_help_support" />
-
-                    <ImageView
-                        style="@style/Widget.REPLATE.MenuRow.Chevron"
-                        android:importantForAccessibility="no" />
-                </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -369,31 +348,8 @@
             android:layout_width="match_parent"
             android:layout_height="@dimen/button_height"
             android:layout_marginTop="@dimen/space_2_5"
-            android:text="@string/profile_logout" />
-
-        <!-- Delete Account Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnDeleteAccount"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="@dimen/space_0_5"
-            android:text="@string/profile_delete_account"
-            android:textAllCaps="false"
-            android:textColor="@color/md_theme_error"
-            android:textSize="@dimen/text_sm"
-            android:fontFamily="@font/poppins_medium" />
-
-        <!-- App Version -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginTop="@dimen/space_1"
             android:layout_marginBottom="@dimen/space_4"
-            android:text="@string/profile_version"
-            android:textAppearance="@style/TextAppearance.REPLATE.Caption" />
+            android:text="@string/profile_logout" />
 
     </LinearLayout>
 

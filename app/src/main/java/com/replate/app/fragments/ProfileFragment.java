@@ -14,7 +14,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
@@ -57,8 +56,8 @@ public class ProfileFragment extends Fragment {
     private CircleImageView ivProfileImage;
     private TextView tvUserName, tvUserEmail, tvOrdersCount, tvSavings, tvSavingsChartEmpty;
     private BarChart chartSavings;
-    private Button btnEditProfile, btnLogout, btnDeleteAccount;
-    private LinearLayout menuOrders, menuFavorites, menuNotifications, menuMessages, menuSettings, menuHelp;
+    private Button btnEditProfile, btnLogout;
+    private LinearLayout menuOrders, menuFavorites, menuNotifications, menuMessages, menuSettings;
 
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
@@ -100,7 +99,6 @@ public class ProfileFragment extends Fragment {
         tvSavings = view.findViewById(R.id.tvSavings);
         btnEditProfile = view.findViewById(R.id.btnEditProfile);
         btnLogout = view.findViewById(R.id.btnLogout);
-        btnDeleteAccount = view.findViewById(R.id.btnDeleteAccount);
         menuOrders = view.findViewById(R.id.menuOrders);
         menuFavorites = view.findViewById(R.id.menuFavorites);
         chartSavings = view.findViewById(R.id.chartSavings);
@@ -108,7 +106,6 @@ public class ProfileFragment extends Fragment {
         menuNotifications = view.findViewById(R.id.menuNotifications);
         menuMessages = view.findViewById(R.id.menuMessages);
         menuSettings = view.findViewById(R.id.menuSettings);
-        menuHelp = view.findViewById(R.id.menuHelp);
     }
 
     /**
@@ -349,19 +346,7 @@ public class ProfileFragment extends Fragment {
             startActivity(new Intent(getContext(), SettingsActivity.class));
         });
 
-        menuHelp.setOnClickListener(v -> {
-            if (getContext() != null) {
-                new MaterialAlertDialogBuilder(getContext())
-                        .setTitle(R.string.help_title)
-                        .setMessage(R.string.help_body)
-                        .setPositiveButton(R.string.help_dismiss, null)
-                        .show();
-            }
-        });
-
         btnLogout.setOnClickListener(v -> showLogoutDialog());
-
-        btnDeleteAccount.setOnClickListener(v -> showDeleteAccountDialog());
     }
 
     // Reloads the profile when the screen returns.
@@ -375,10 +360,5 @@ public class ProfileFragment extends Fragment {
     // Asks to confirm sign out.
     private void showLogoutDialog() {
         AccountActions.confirmLogout(requireActivity());
-    }
-
-    // Asks to confirm account deletion.
-    private void showDeleteAccountDialog() {
-        AccountActions.confirmDelete(requireActivity());
     }
 }

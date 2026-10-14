@@ -368,14 +368,9 @@
                         android:text="@string/settings_account" />
 
                     <TextView
-                        android:id="@+id/rowLogout"
-                        style="@style/Widget.REPLATE.SettingsRow"
-                        android:layout_marginTop="@dimen/space_1"
-                        android:text="@string/settings_row_logout" />
-
-                    <TextView
                         android:id="@+id/rowDeleteAccount"
                         style="@style/Widget.REPLATE.SettingsRow"
+                        android:layout_marginTop="@dimen/space_1"
                         android:text="@string/settings_row_delete_account"
                         android:textColor="@color/error" />
                 </LinearLayout>

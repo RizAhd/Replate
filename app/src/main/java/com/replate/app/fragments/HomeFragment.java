@@ -73,12 +73,15 @@ public class HomeFragment extends Fragment implements
 
     // Long enough to read a banner; paused while the user touches it or it is off screen
     private static final long BANNER_AUTO_SCROLL_MS = 5000L;
+    /** How many nearby dishes the Home list shows before "See all". */
+    private static final int HOME_NEARBY_LIMIT = 10;
 
     // Views
     private View ivMenu;
     private TextView tvCurrentLocation;
     private View ivNotification;
     private TextView tvNotifBadge;
+    private View btnSeeAllDeals;
     private androidx.appcompat.widget.SearchView searchView;
     private ViewPager2 bannerViewPager;
     private RecyclerView rvCategories, rvHotDeals, rvFoodItems, rvFavorites;
@@ -195,6 +198,14 @@ public class HomeFragment extends Fragment implements
         tvCurrentLocation = view.findViewById(R.id.tvCurrentLocation);
         ivNotification = view.findViewById(R.id.ivNotification);
         tvNotifBadge = view.findViewById(R.id.tvNotifBadge);
+        btnSeeAllDeals = view.findViewById(R.id.btnSeeAllDeals);
+        if (btnSeeAllDeals != null) {
+            btnSeeAllDeals.setOnClickListener(v -> {
+                Intent all = new Intent(getContext(), SearchActivity.class);
+                all.putExtra("initial_filter", "nearby");
+                startActivity(all);
+            });
+        }
         searchView = view.findViewById(R.id.searchView);
         bannerViewPager = view.findViewById(R.id.bannerViewPager);
         bannerIndicator = view.findViewById(R.id.bannerIndicator);
@@ -292,10 +303,7 @@ public class HomeFragment extends Fragment implements
         shakeDetector = new ShakeDetector();
         shakeDetector.setOnShakeListener(count -> {
             if (getActivity() != null) {
-                getActivity().runOnUiThread(() -> {
-                    ToastUtils.showCustomToast(getContext(), R.string.home_refreshing_nearby_deals);
-                    getUserLocation();
-                });
+                getActivity().runOnUiThread(this::refreshFromGesture);
             }
         });
 
@@ -782,8 +790,15 @@ public class HomeFragment extends Fragment implements
         }
     }
 
+    /** Shake-to-refresh: shows the pull-to-refresh spinner and runs the very same refresh. */
+    private void refreshFromGesture() {
+        if (!isAdded() || (swipeRefresh != null && swipeRefresh.isRefreshing())) return;
+        if (swipeRefresh != null) swipeRefresh.setRefreshing(true);
+        refreshData();
+    }
+
     /**
-     * Public method for shake-to-refresh from MainActivity.
+     * Reloads the dishes. Used by pull-to-refresh and by shaking the phone (see refreshFromGesture).
      */
     public void refreshData() {
         if (!com.replate.app.utils.NetworkUtils.isOnline(getContext())) {
@@ -1105,7 +1120,13 @@ public class HomeFragment extends Fragment implements
             }
         }
 
-        foodItemAdapter.updateData(new ArrayList<>(foodItems));
+        // The nearby list sits inside the scrolling page, so every row is drawn: show the first
+        // HOME_NEARBY_LIMIT and let "See all" open Search for the rest
+        int shown = Math.min(foodItems.size(), HOME_NEARBY_LIMIT);
+        foodItemAdapter.updateData(new ArrayList<>(foodItems.subList(0, shown)));
+        if (btnSeeAllDeals != null) {
+            btnSeeAllDeals.setVisibility(foodItems.size() > HOME_NEARBY_LIMIT ? View.VISIBLE : View.GONE);
+        }
 
         if (foodItems.isEmpty()) {
             rvFoodItems.setVisibility(View.GONE);
@@ -1235,6 +1256,9 @@ public class HomeFragment extends Fragment implements
                 foodItem.getDiscountPercentValue()
         );
         cartDb.addItem(cartItem);
+        if (getActivity() instanceof com.replate.app.MainActivity) {
+            ((com.replate.app.MainActivity) getActivity()).refreshCartBadge();
+        }
         AppAnalytics.addToCart(getContext(), foodItem.getFoodId(), foodItem.getFoodName(), foodItem.getDiscountedPriceValue(), 1);
     }
 

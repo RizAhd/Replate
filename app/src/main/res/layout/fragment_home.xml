@@ -209,14 +209,6 @@
                     android:layout_marginHorizontal="@dimen/space_2"
                     android:text="@string/home_categories_title" />
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/space_2"
-                    android:layout_marginTop="@dimen/space_0_5"
-                    android:text="@string/home_categories_subtitle"
-                    android:textAppearance="@style/TextAppearance.REPLATE.Body" />
-
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rvCategories"
                     android:layout_width="match_parent"
@@ -247,26 +239,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/home_hot_deals_title" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/badge_discount"
-                        android:paddingHorizontal="@dimen/space_1_5"
-                        android:paddingVertical="@dimen/space_0_5"
-                        android:text="@string/home_lowest_prices"
-                        android:textColor="@color/white"
-                        android:textSize="@dimen/text_xs"
-                        android:fontFamily="@font/poppins_semibold" />
                 </LinearLayout>
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/space_2"
-                    android:layout_marginTop="@dimen/space_0_5"
-                    android:text="@string/home_hot_deals_subtitle"
-                    android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rvHotDeals"
@@ -292,14 +265,6 @@
                     android:layout_marginHorizontal="@dimen/space_2"
                     android:text="@string/home_nearby_title" />
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/space_2"
-                    android:layout_marginTop="@dimen/space_0_5"
-                    android:text="@string/home_nearby_subtitle"
-                    android:textAppearance="@style/TextAppearance.REPLATE.Body" />
-
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rvDeals"
                     android:layout_width="match_parent"
@@ -309,6 +274,17 @@
                     android:nestedScrollingEnabled="false"
                     android:overScrollMode="never"
                     android:paddingBottom="@dimen/space_0_5"/>
+
+                <!-- The list shows the first 10 nearby dishes; the rest are one tap away in Search -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSeeAllDeals"
+                    style="@style/Widget.REPLATE.Button.Secondary"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/touch_target_min"
+                    android:layout_marginHorizontal="@dimen/space_2"
+                    android:layout_marginTop="@dimen/space_1"
+                    android:text="@string/home_see_all_nearby"
+                    android:visibility="gone" />
 
                 <include
                     android:id="@+id/skeletonFeed"
@@ -347,14 +323,6 @@
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="@dimen/space_2"
                     android:text="@string/home_favorites_title" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/space_2"
-                    android:layout_marginTop="@dimen/space_0_5"
-                    android:text="@string/home_favorites_subtitle"
-                    android:textAppearance="@style/TextAppearance.REPLATE.Body" />
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rvFavorites"

@@ -278,75 +278,43 @@
                             android:textAppearance="@style/TextAppearance.REPLATE.Body"
                             android:textColor="@color/text_primary" />
 
-                        <!-- Hotel Contact Actions -->
+                        <!-- Contact the hotel: three equal outlined buttons. Call and SMS use the phone
+                             (telephony), Chat stays inside the app. -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/space_2"
+                            android:text="@string/food_detail_contact_hotel"
+                            android:textAppearance="@style/TextAppearance.REPLATE.Label" />
+
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="@dimen/space_2"
-                            android:gravity="center_vertical"
+                            android:layout_marginTop="@dimen/space_1"
                             android:orientation="horizontal">
 
-                            <com.google.android.material.card.MaterialCardView
+                            <com.google.android.material.button.MaterialButton
                                 android:id="@+id/btnCallHotel"
-                                android:layout_width="52dp"
-                                android:layout_height="52dp"
-                                app:cardBackgroundColor="@color/green_primary"
-                                app:cardCornerRadius="@dimen/radius_md"
-                                app:cardElevation="0dp">
+                                style="@style/Widget.REPLATE.Button.Contact"
+                                android:contentDescription="@string/food_detail_call_hotel_cd"
+                                android:text="@string/food_detail_call"
+                                app:icon="@drawable/ic_phone" />
 
-                                <ImageView
-                                    android:layout_width="24dp"
-                                    android:layout_height="24dp"
-                                    android:layout_gravity="center"
-                                    android:contentDescription="@string/food_detail_call_hotel_cd"
-                                    android:src="@drawable/ic_phone"
-                                    app:tint="@color/white" />
-                            </com.google.android.material.card.MaterialCardView>
-
-                            <com.google.android.material.card.MaterialCardView
+                            <com.google.android.material.button.MaterialButton
                                 android:id="@+id/btnSmsHotel"
-                                android:layout_width="52dp"
-                                android:layout_height="52dp"
+                                style="@style/Widget.REPLATE.Button.Contact"
                                 android:layout_marginStart="@dimen/space_1"
-                                app:cardBackgroundColor="@color/ember2"
-                                app:cardCornerRadius="@dimen/radius_md"
-                                app:cardElevation="0dp">
+                                android:contentDescription="@string/food_detail_sms_hotel_cd"
+                                android:text="@string/food_detail_sms"
+                                app:icon="@drawable/ic_sms" />
 
-                                <ImageView
-                                    android:layout_width="24dp"
-                                    android:layout_height="24dp"
-                                    android:layout_gravity="center"
-                                    android:contentDescription="@string/food_detail_sms_hotel_cd"
-                                    android:src="@drawable/ic_email"
-                                    app:tint="@color/white" />
-                            </com.google.android.material.card.MaterialCardView>
-
-                            <com.google.android.material.card.MaterialCardView
+                            <com.google.android.material.button.MaterialButton
                                 android:id="@+id/btnChatHotel"
-                                android:layout_width="52dp"
-                                android:layout_height="52dp"
+                                style="@style/Widget.REPLATE.Button.Contact"
                                 android:layout_marginStart="@dimen/space_1"
-                                app:cardBackgroundColor="@color/primary_dark"
-                                app:cardCornerRadius="@dimen/radius_md"
-                                app:cardElevation="0dp">
-
-                                <ImageView
-                                    android:layout_width="24dp"
-                                    android:layout_height="24dp"
-                                    android:layout_gravity="center"
-                                    android:contentDescription="@string/food_detail_chat_hotel_cd"
-                                    android:src="@drawable/ic_chat_empty"
-                                    app:tint="@color/white" />
-                            </com.google.android.material.card.MaterialCardView>
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="@dimen/space_1_5"
-                                android:layout_weight="1"
-                                android:text="@string/food_detail_contact_hotel_quickly_for_pickup"
-                                android:textAppearance="@style/TextAppearance.REPLATE.Body"
-                                android:textSize="@dimen/text_xs" />
+                                android:contentDescription="@string/food_detail_chat_hotel_cd"
+                                android:text="@string/food_detail_chat"
+                                app:icon="@drawable/ic_chat_empty" />
                         </LinearLayout>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>

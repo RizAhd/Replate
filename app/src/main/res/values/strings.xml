@@ -12,10 +12,10 @@
     <string name="cd_open_menu">Open menu</string>
     <string name="cd_open_notifications">Open notifications</string>
     <string name="cd_location_icon">Location icon</string>
+    <string name="cd_my_location">Show my location</string>
     <string name="cd_food_image">Food image</string>
     <string name="cd_add_to_cart">Add to cart</string>
     <string name="cd_remove_item">Remove item</string>
-    <string name="cd_cart">Cart icon</string>
     <string name="cd_search">Search illustration</string>
     <string name="cd_category">Category icon</string>
     <string name="cd_profile_photo">Your profile photo</string>
@@ -34,14 +34,10 @@
     <string name="home_hero_subtitle">Find nearby offers from trusted hotels and pick up in minutes.</string>
     <string name="home_search_hint">Search food, hotels, cuisines…</string>
     <string name="home_categories_title">Browse categories</string>
-    <string name="home_categories_subtitle">Pick what you’re craving right now</string>
     <string name="home_hot_deals_title">Hot deals</string>
-    <string name="home_lowest_prices">Top discounts</string>
-    <string name="home_hot_deals_subtitle">The biggest discounts available right now</string>
     <string name="home_nearby_title">Nearby hotels and food</string>
-    <string name="home_nearby_subtitle">Closest pickup options based on your live location</string>
+    <string name="home_see_all_nearby">See all nearby dishes</string>
     <string name="home_favorites_title">Recommended for you</string>
-    <string name="home_favorites_subtitle">Curated offers based on your saved and recent choices</string>
 
     <!-- Map -->
     <string name="map_search_hint">Search places, towns, landmarks…</string>
@@ -185,10 +181,7 @@
     <string name="notifications_empty_subtitle">We’ll notify you when a hotel posts new deals or your order status changes.</string>
     <string name="cd_notifications_empty">Notifications empty state</string>
     <string name="profile_settings">Settings</string>
-    <string name="profile_help_support">Help and support</string>
     <string name="profile_logout">Log out</string>
-    <string name="profile_delete_account">Delete account</string>
-    <string name="profile_version">REPLATE v1.1.0</string>
 
     <!-- Delete Account -->
     <string name="delete_account_title">Delete account</string>
@@ -238,7 +231,6 @@
     <string name="settings_row_share">Share REPLATE with friends</string>
     <string name="settings_row_licenses">Open-source libraries</string>
     <string name="settings_account">Account</string>
-    <string name="settings_row_logout">Log out</string>
     <string name="settings_row_delete_account">Delete my account</string>
     <string name="settings_support_email">support@replate.app</string>
     <string name="settings_contact_subject">REPLATE support (v%1$s)</string>
@@ -464,7 +456,10 @@ Total: LKR %1$.2f</string>
     <string name="food_detail_add_to_favorites_cd">Add to favorites</string>
     <string name="food_detail_call_hotel_cd">Call hotel</string>
     <string name="food_detail_sms_hotel_cd">SMS hotel</string>
-    <string name="food_detail_contact_hotel_quickly_for_pickup">Contact hotel quickly for pickup updates</string>
+    <string name="food_detail_contact_hotel">Contact the hotel</string>
+    <string name="food_detail_call">Call</string>
+    <string name="food_detail_sms">SMS</string>
+    <string name="food_detail_chat">Chat</string>
     <string name="food_detail_user_reviews">Reviews</string>
     <string name="food_detail_write_a_review">Write a review</string>
     <string name="food_detail_share_your_experience_hint">Share your experience</string>
@@ -560,8 +555,6 @@ Total: LKR %1$.2f</string>
     <string name="phone_auth_verification_code_hint">Verification code</string>
     <string name="phone_auth_verify_sign_in">Verify and sign in</string>
     <string name="phone_auth_resend_code">Resend code</string>
-    <string name="map_map_explorer">Map explorer</string>
-    <string name="map_find_pickup_deals_around_you">Find pickup deals around you</string>
     <string name="map_available_now">Available now</string>
     <string name="orders_my_orders">My orders</string>
     <string name="orders_track_active_pickups_completed_orders">Track active pickups, completed orders, and cancelled requests in one place.</string>
@@ -651,7 +644,6 @@ Total: LKR %1$.2f</string>
     <string name="login_could_not_connect_to_google">Could not connect to Google. Please check your internet connection and try again.</string>
     <string name="login_retry">Retry</string>
     <string name="login_cancel">Cancel</string>
-    <string name="login_enter_your_email">Enter your email</string>
     <string name="login_reset_password">Reset password</string>
     <string name="login_we_ll_send_you_an">We\'ll send you an email to reset your password.</string>
     <string name="login_send">Send</string>
@@ -734,12 +726,10 @@ Total: LKR %1$.2f</string>
     <string name="settings_failed_to_load_profile">Failed to load profile</string>
     <string name="settings_camera_permission_required">Camera permission required</string>
     <string name="settings_no_camera_app">No camera app found on this phone. Choose a photo from the gallery instead.</string>
-    <string name="settings_please_fill_all_fields">Please fill all fields</string>
     <string name="settings_profile_updated">Profile updated</string>
     <string name="settings_update_failed">Couldn\'t update your profile. Please try again.</string>
     <string name="notification_just_now">Just now</string>
     <string name="order_delivery_order">Delivery order</string>
-    <string name="home_refreshing_nearby_deals">Refreshing nearby deals…</string>
     <string name="home_no_app_available_to_open">No app available to open this link</string>
     <string name="home_you_re_offline_showing_saved">You\'re offline. Showing saved listings.</string>
     <string name="home_failed_to_load_food_items">Failed to load food items</string>
@@ -783,8 +773,12 @@ Total: LKR %1$.2f</string>
     <string name="menu_cart">Cart</string>
     <string name="menu_orders">Orders</string>
     <string name="menu_profile">Profile</string>
-    <string name="menu_more">More</string>
     <string name="menu_search">Search</string>
+    <string name="menu_favorites">Favourites</string>
+    <plurals name="cd_cart_items">
+        <item quantity="one">%d item in your cart</item>
+        <item quantity="other">%d items in your cart</item>
+    </plurals>
     <string name="menu_notifications">Notifications</string>
     <string name="menu_settings">Settings</string>
     <string name="menu_help">Help</string>

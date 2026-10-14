@@ -98,6 +98,12 @@ public class OrderSuccessActivity extends AppCompatActivity {
         attachStatusListener();
         playEntranceAnimation();
         playOrderPlacedFeedback();
+        // First order placed: now is when "your order is ready" alerts make sense, so ask (only once)
+        getWindow().getDecorView().postDelayed(() -> {
+            if (!isFinishing() && !isDestroyed()) {
+                com.replate.app.utils.NotificationPermissionHelper.maybeAskAfterFirstOrder(this);
+            }
+        }, 1200L);
 
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override

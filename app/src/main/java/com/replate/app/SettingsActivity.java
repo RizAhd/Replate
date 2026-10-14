@@ -303,7 +303,6 @@ public class SettingsActivity extends AppCompatActivity {
                 .setMessage(R.string.settings_licenses_body)
                 .setPositiveButton(android.R.string.ok, null)
                 .show());
-        findViewById(R.id.rowLogout).setOnClickListener(v -> AccountActions.confirmLogout(this));
         findViewById(R.id.rowDeleteAccount).setOnClickListener(v -> AccountActions.confirmDelete(this));
     }
 

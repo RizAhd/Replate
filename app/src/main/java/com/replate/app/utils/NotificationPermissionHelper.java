@@ -65,6 +65,30 @@ public final class NotificationPermissionHelper {
                 .show();
     }
 
+    /** Set once the in-app explanation has been offered after an order, so it is never repeated. */
+    private static final String KEY_PROMPTED_AFTER_ORDER = "notif_prompt_after_order_done";
+    /** Same key Settings uses to know the system dialog has been shown. */
+    private static final String KEY_PERMISSION_ASKED = "notif_permission_asked";
+
+    /**
+     * Offers notifications once, at the moment they are useful: right after the customer's first
+     * order (so they hear when it is confirmed and ready). Never shown again after that; the switch
+     * in Settings stays available.
+     */
+    public static void maybeAskAfterFirstOrder(@NonNull Activity activity) {
+        if (!isRuntimePermissionRequired() || hasPermission(activity)) return;
+        android.content.SharedPreferences prefs =
+                activity.getSharedPreferences("REPLATE_PREFS", Context.MODE_PRIVATE);
+        if (prefs.getBoolean(KEY_PROMPTED_AFTER_ORDER, false)) return;
+        prefs.edit().putBoolean(KEY_PROMPTED_AFTER_ORDER, true).apply();
+        showRationaleDialog(activity, () -> {
+            prefs.edit().putBoolean(KEY_PERMISSION_ASKED, true).apply();
+            request(activity, REQUEST_CODE_AFTER_ORDER);
+        });
+    }
+
+    private static final int REQUEST_CODE_AFTER_ORDER = 1301;
+
     // Opens this app's notification settings.
     public static void openAppNotificationSettings(@NonNull Activity activity) {
         Intent intent = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)

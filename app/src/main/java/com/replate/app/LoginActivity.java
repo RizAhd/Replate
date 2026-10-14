@@ -48,7 +48,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.replate.app.utils.FcmTokenManager;
-import com.replate.app.utils.NotificationPermissionHelper;
 import com.replate.app.utils.SignInConfig;
 import com.replate.app.utils.ToastUtils;
 import com.replate.app.utils.UserRoleHelper;
@@ -105,7 +104,6 @@ public class LoginActivity extends AppCompatActivity {
     private String phoneVerificationId;
     private PhoneAuthProvider.ForceResendingToken phoneResendToken;
 
-    private static final int REQ_POST_NOTIFICATIONS = 1201;
     private static final int RC_GOOGLE_SIGN_IN = 9001;
 
 
@@ -163,7 +161,6 @@ public class LoginActivity extends AppCompatActivity {
 
         // Setup click listeners
         setupClickListeners();
-        requestNotificationPermissionIfNeeded();
     }
 
     /** A sign-in button whose key is still the template placeholder could only fail, so it is hidden. */
@@ -178,22 +175,6 @@ public class LoginActivity extends AppCompatActivity {
             if (btnFacebookLogin != null) btnFacebookLogin.setVisibility(View.GONE);
             if (btnFacebookRegister != null) btnFacebookRegister.setVisibility(View.GONE);
         }
-    }
-
-    // Asks for notification permission when the phone requires it.
-    private void requestNotificationPermissionIfNeeded() {
-        if (!NotificationPermissionHelper.isRuntimePermissionRequired()
-                || NotificationPermissionHelper.hasPermission(this)) {
-            return;
-        }
-
-        if (NotificationPermissionHelper.shouldShowRationale(this)) {
-            NotificationPermissionHelper.showRationaleDialog(this,
-                    () -> NotificationPermissionHelper.request(this, REQ_POST_NOTIFICATIONS));
-            return;
-        }
-
-        NotificationPermissionHelper.request(this, REQ_POST_NOTIFICATIONS);
     }
 
     // Finds all the views on the screen.

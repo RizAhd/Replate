@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- The picture takes the space left above the text. The title always reserves two lines and the
+     description four, so the picture (and the title under it) do not jump between pages. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -35,6 +37,7 @@
         android:id="@+id/textTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:minLines="2"
         android:fontFamily="@font/poppins_bold"
         android:gravity="center"
         android:lineSpacingExtra="2dp"
@@ -45,9 +48,10 @@
         android:id="@+id/textDescription"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:minLines="4"
         android:layout_marginTop="@dimen/space_1_5"
         android:fontFamily="@font/poppins_regular"
-        android:gravity="center"
+        android:gravity="center_horizontal|top"
         android:lineSpacingExtra="4dp"
         android:paddingHorizontal="@dimen/space_2"
         android:textColor="@color/text_secondary"
