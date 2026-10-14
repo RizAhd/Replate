@@ -1,60 +1,101 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The picture takes the space left above the text. The title always reserves two lines and the
-     description four, so the picture (and the title under it) do not jump between pages. -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- One onboarding slide: a photo with an example of the app drawn over it, then a title and one
+     sentence, left-aligned. The photo size depends only on the page size, never on the text, so it
+     is the same on every slide and the title does not jump while swiping. -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
+    android:background="@color/cream"
     android:paddingHorizontal="@dimen/space_2"
-    android:paddingTop="@dimen/space_1"
-    android:paddingBottom="@dimen/space_1"
-    android:gravity="center_horizontal"
-    android:background="@color/cream">
+    android:paddingTop="@dimen/space_1">
 
-    <com.google.android.material.card.MaterialCardView
-        android:layout_width="match_parent"
+    <!-- The largest 4:5 box that still leaves room for the text. On tall phones it is the full
+         width; on short ones it is shorter, and the photo (full width, cropped) takes its height. -->
+    <Space
+        android:id="@+id/photoFrame"
+        android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginBottom="@dimen/space_2"
-        app:cardBackgroundColor="@color/green_pale"
-        app:cardCornerRadius="@dimen/radius_hero"
-        app:cardElevation="@dimen/elevation_card"
-        app:strokeWidth="0dp">
+        android:layout_marginBottom="@dimen/onboarding_text_reserve"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintDimensionRatio="4:5"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0" />
 
-        <ImageView
-            android:id="@+id/imageOnboarding"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="center"
-            android:adjustViewBounds="true"
-            android:contentDescription="@string/onboarding_onboarding_illustration_cd"
-            android:padding="@dimen/space_3"
-            android:scaleType="fitCenter" />
-    </com.google.android.material.card.MaterialCardView>
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/imageOnboarding"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:scaleType="centerCrop"
+        app:layout_constraintBottom_toBottomOf="@id/photoFrame"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/photoFrame"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.REPLATE.Hero"
+        tools:contentDescription="@string/onboarding_slide1_photo_cd"
+        tools:src="@drawable/onboarding_1" />
+
+    <!-- One of these three examples is shown per slide, resting on the bottom of the photo -->
+    <include
+        android:id="@+id/sampleMeal"
+        layout="@layout/view_onboarding_sample_meal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_2"
+        android:layout_marginBottom="@dimen/space_2"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/imageOnboarding"
+        app:layout_constraintStart_toStartOf="@id/imageOnboarding"
+        tools:visibility="visible" />
+
+    <include
+        android:id="@+id/samplePickup"
+        layout="@layout/view_onboarding_sample_pickup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_2"
+        android:layout_marginBottom="@dimen/space_2"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/imageOnboarding"
+        app:layout_constraintStart_toStartOf="@id/imageOnboarding" />
+
+    <include
+        android:id="@+id/sampleCode"
+        layout="@layout/view_onboarding_sample_code"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_2"
+        android:layout_marginBottom="@dimen/space_2"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/imageOnboarding"
+        app:layout_constraintStart_toStartOf="@id/imageOnboarding" />
 
     <TextView
         android:id="@+id/textTitle"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:minLines="2"
-        android:fontFamily="@font/poppins_bold"
-        android:gravity="center"
-        android:lineSpacingExtra="2dp"
-        android:textColor="@color/text_primary"
-        android:textSize="@dimen/text_display" />
+        android:layout_marginTop="@dimen/space_3"
+        android:breakStrategy="balanced"
+        android:hyphenationFrequency="none"
+        android:textAppearance="@style/TextAppearance.REPLATE.Display"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/imageOnboarding"
+        tools:text="@string/onboarding_slide1_title" />
 
     <TextView
         android:id="@+id/textDescription"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:minLines="4"
-        android:layout_marginTop="@dimen/space_1_5"
-        android:fontFamily="@font/poppins_regular"
-        android:gravity="center_horizontal|top"
-        android:lineSpacingExtra="4dp"
-        android:paddingHorizontal="@dimen/space_2"
-        android:textColor="@color/text_secondary"
-        android:textSize="@dimen/text_md" />
+        android:layout_marginTop="@dimen/space_1"
+        android:hyphenationFrequency="none"
+        android:textAppearance="@style/TextAppearance.REPLATE.BodyLarge"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/textTitle"
+        tools:text="@string/onboarding_slide1_body" />
 
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

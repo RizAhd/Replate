@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Onboarding slide 1: a small meal card in the same look as the food cards in the app
+     (an example, the prices are not a live offer) -->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:contentDescription="@string/onboarding_sample_meal_cd"
+    app:cardBackgroundColor="@color/surface_white"
+    app:cardCornerRadius="@dimen/radius_lg"
+    app:cardElevation="@dimen/elevation_sheet"
+    app:strokeWidth="0dp">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:importantForAccessibility="noHideDescendants"
+        android:orientation="vertical"
+        android:paddingHorizontal="@dimen/space_2"
+        android:paddingVertical="@dimen/space_1_5">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:text="@string/onboarding_sample_dish"
+            android:textAppearance="@style/TextAppearance.REPLATE.Title" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_0_5"
+            android:text="@string/onboarding_sample_pickup_window"
+            android:textAppearance="@style/TextAppearance.REPLATE.Caption" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_1"
+            android:baselineAligned="true"
+            android:orientation="horizontal">
+
+            <!-- Struck through in code: a TextView has no attribute for it -->
+            <TextView
+                android:id="@+id/tvSamplePriceWas"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/onboarding_sample_price_was"
+                android:textAppearance="@style/TextAppearance.REPLATE.Caption"
+                android:textColor="@color/text_hint" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/space_1"
+                android:text="@string/onboarding_sample_price_now"
+                android:textAppearance="@style/TextAppearance.REPLATE.Subheading"
+                android:textColor="@color/price_discounted" />
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

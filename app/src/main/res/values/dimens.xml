@@ -56,4 +56,12 @@
 
     <!-- Bottom nav divider -->
     <dimen name="nav_divider_height">1dp</dimen>
+    <!-- Page dots (onboarding, Home banner): the current page is a pill, the others are dots -->
+    <dimen name="page_indicator_dot">8dp</dimen>
+    <dimen name="page_indicator_selected_width">24dp</dimen>
+    <dimen name="page_indicator_gap">8dp</dimen>
+    <!-- Onboarding slide: room kept under the photo for the title (two lines) and the text, so the
+         photo is a full-width 4:5 on tall phones and gets shorter, never the text, on small ones -->
+    <dimen name="onboarding_text_reserve">220dp</dimen>
+    <dimen name="onboarding_qr_size">72dp</dimen>
 </resources>

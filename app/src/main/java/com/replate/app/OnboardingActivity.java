@@ -10,28 +10,29 @@ import android.view.animation.DecelerateInterpolator;
 import android.widget.Button;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.replate.app.adapters.OnboardingAdapter;
 import com.replate.app.models.OnboardingItem;
+import com.replate.app.views.PillPageIndicator;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import me.relex.circleindicator.CircleIndicator3;
-
 /**
  * Onboarding Activity - Shows 3 slides introducing the app.
  * Displayed only once for first-time users (new registration or first app launch).
- * Uses ViewPager2 with page-transform animations for a premium feel.
+ * Each slide is a real photo with an example of the app on it; the photo drifts a little slower
+ * than the text while swiping.
  */
 public class OnboardingActivity extends AppCompatActivity {
 
     private ViewPager2 viewPagerOnboarding;
     private OnboardingAdapter onboardingAdapter;
-    private CircleIndicator3 circleIndicator;
+    private PillPageIndicator pageIndicator;
     private Button buttonNext;
     private TextView textSkip;
 
@@ -56,17 +57,19 @@ public class OnboardingActivity extends AppCompatActivity {
 
         // Initialize views
         viewPagerOnboarding = findViewById(R.id.viewPagerOnboarding);
-        circleIndicator = findViewById(R.id.circleIndicator);
+        pageIndicator = findViewById(R.id.pageIndicator);
         buttonNext = findViewById(R.id.buttonNext);
         textSkip = findViewById(R.id.textSkip);
 
         // Setup onboarding items
         setupOnboardingItems();
 
-        // Setup ViewPager with page transformer for depth effect
         viewPagerOnboarding.setAdapter(onboardingAdapter);
-        circleIndicator.setViewPager(viewPagerOnboarding);
-        viewPagerOnboarding.setPageTransformer(new DepthPageTransformer());
+        pageIndicator.attachTo(viewPagerOnboarding);
+        // Photo parallax only when the phone allows animations
+        if (animationsEnabled()) {
+            viewPagerOnboarding.setPageTransformer(new PhotoParallaxTransformer());
+        }
 
         // Bottom card rises into place (skipped when the user turned animations off)
         View bottomLayout = findViewById(R.id.bottomLayout);
@@ -99,7 +102,7 @@ public class OnboardingActivity extends AppCompatActivity {
         // Next button click
         buttonNext.setOnClickListener(v -> {
             if (viewPagerOnboarding.getCurrentItem() + 1 < onboardingAdapter.getItemCount()) {
-                viewPagerOnboarding.setCurrentItem(viewPagerOnboarding.getCurrentItem() + 1);
+                viewPagerOnboarding.setCurrentItem(viewPagerOnboarding.getCurrentItem() + 1, animationsEnabled());
             } else {
                 // Last page - mark onboarding as seen and proceed
                 saveOnboardingSeen();
@@ -120,36 +123,19 @@ public class OnboardingActivity extends AppCompatActivity {
     }
 
     /**
-     * Setup the 3 onboarding slides with images and text
+     * The 3 slides: what REPLATE is, how pickup works, and what you show at the counter
      */
     private void setupOnboardingItems() {
         List<OnboardingItem> onboardingItems = new ArrayList<>();
-
-        // Slide 1 - Discover Deals
-        OnboardingItem item1 = new OnboardingItem(
-            R.drawable.ic_onboarding_discover,
-            getString(R.string.onboarding_slide1_title),
-            getString(R.string.onboarding_slide1_body)
-        );
-
-        // Slide 2 - Find Nearby
-        OnboardingItem item2 = new OnboardingItem(
-            R.drawable.ic_onboarding_nearby,
-            getString(R.string.onboarding_slide2_title),
-            getString(R.string.onboarding_slide2_body)
-        );
-
-        // Slide 3 - Save Food, Save Planet
-        OnboardingItem item3 = new OnboardingItem(
-            R.drawable.ic_onboarding_save,
-            getString(R.string.onboarding_slide3_title),
-            getString(R.string.onboarding_slide3_body)
-        );
-
-        onboardingItems.add(item1);
-        onboardingItems.add(item2);
-        onboardingItems.add(item3);
-
+        onboardingItems.add(new OnboardingItem(R.drawable.onboarding_1, R.string.onboarding_slide1_photo_cd,
+                R.string.onboarding_slide1_title, R.string.onboarding_slide1_body,
+                OnboardingItem.Sample.MEAL_CARD));
+        onboardingItems.add(new OnboardingItem(R.drawable.onboarding_2, R.string.onboarding_slide2_photo_cd,
+                R.string.onboarding_slide2_title, R.string.onboarding_slide2_body,
+                OnboardingItem.Sample.PICKUP_CHIP));
+        onboardingItems.add(new OnboardingItem(R.drawable.onboarding_3, R.string.onboarding_slide3_photo_cd,
+                R.string.onboarding_slide3_title, R.string.onboarding_slide3_body,
+                OnboardingItem.Sample.PICKUP_CODE));
         onboardingAdapter = new OnboardingAdapter(onboardingItems);
     }
 
@@ -186,39 +172,29 @@ public class OnboardingActivity extends AppCompatActivity {
         }
         startActivity(intent);
         finish();
-        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+        overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
     }
 
     /**
-     * Depth page transformer for a premium swipe effect.
+     * Moves only the photo, against the swipe at 0.4 of the page width, so it trails the text a
+     * little. The page edge clips it, which reads as depth without any scaling or fading.
      */
-    private static class DepthPageTransformer implements ViewPager2.PageTransformer {
-        private static final float MIN_SCALE = 0.85f;
-        private static final float MIN_ALPHA = 0.5f;
+    private static class PhotoParallaxTransformer implements ViewPager2.PageTransformer {
+        private static final float PARALLAX = 0.4f;
 
-        // Fades and shrinks pages as they slide away.
+        // Offsets the photo of a page that is partly on screen.
         @Override
-        public void transformPage(View page, float position) {
-            int pageWidth = page.getWidth();
-            if (position < -1) {
-                page.setAlpha(0f);
-            } else if (position <= 0) {
-                // Use default slide transition on the left page
-                page.setAlpha(1f);
-                page.setTranslationX(0f);
-                page.setScaleX(1f);
-                page.setScaleY(1f);
-            } else if (position <= 1) {
-                // Fade the page out
-                page.setAlpha(MIN_ALPHA + (1 - MIN_ALPHA) * (1 - position));
-                // Counteract the default slide transition
-                page.setTranslationX(pageWidth * -position);
-                // Scale the page down
-                float scaleFactor = MIN_SCALE + (1 - MIN_SCALE) * (1 - Math.abs(position));
-                page.setScaleX(scaleFactor);
-                page.setScaleY(scaleFactor);
+        public void transformPage(@NonNull View page, float position) {
+            View photo = page.findViewById(R.id.imageOnboarding);
+            if (photo == null) {
+                return;
+            }
+            if (position <= -1f || position >= 1f) {
+                photo.setTranslationX(0f);
             } else {
-                page.setAlpha(0f);
+                // Positions run the other way in a right-to-left layout
+                float against = page.getLayoutDirection() == View.LAYOUT_DIRECTION_RTL ? 1f : -1f;
+                photo.setTranslationX(against * position * page.getWidth() * PARALLAX);
             }
         }
     }

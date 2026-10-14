@@ -1,45 +1,53 @@
 package com.replate.app.models;
 
+import androidx.annotation.DrawableRes;
+import androidx.annotation.StringRes;
+
 /**
- * Model class for Onboarding slides
- * Holds the data for each onboarding screen
+ * One onboarding slide: a photo, a short title and one sentence, plus which piece of real app UI
+ * is drawn over the photo as an example (a meal card, a pickup chip or a pickup code).
  */
 public class OnboardingItem {
-    private int image;      // Resource ID for the image
-    private String title;   // Title text
-    private String description;  // Description text
 
-    // Constructor
-    public OnboardingItem(int image, String title, String description) {
-        this.image = image;
+    /** Example app UI shown over the photo. */
+    public enum Sample { MEAL_CARD, PICKUP_CHIP, PICKUP_CODE }
+
+    @DrawableRes private final int photo;
+    @StringRes private final int photoDescription;
+    @StringRes private final int title;
+    @StringRes private final int description;
+    private final Sample sample;
+
+    public OnboardingItem(@DrawableRes int photo, @StringRes int photoDescription,
+                          @StringRes int title, @StringRes int description, Sample sample) {
+        this.photo = photo;
+        this.photoDescription = photoDescription;
         this.title = title;
         this.description = description;
+        this.sample = sample;
     }
 
-    // Getters
-    public int getImage() {
-        return image;
+    @DrawableRes
+    public int getPhoto() {
+        return photo;
     }
 
-    public String getTitle() {
+    @StringRes
+    public int getPhotoDescription() {
+        return photoDescription;
+    }
+
+    @StringRes
+    public int getTitle() {
         return title;
     }
 
-    public String getDescription() {
+    @StringRes
+    public int getDescription() {
         return description;
     }
 
-    // Setters
-    public void setImage(int image) {
-        this.image = image;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
+    public Sample getSample() {
+        return sample;
     }
 }
-

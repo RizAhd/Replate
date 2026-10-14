@@ -190,7 +190,8 @@
                 android:clipToPadding="false"
                 android:paddingHorizontal="@dimen/space_2"/>
 
-            <me.relex.circleindicator.CircleIndicator3
+            <!-- Pill for the current banner, grey dots for the others, centred under the carousel -->
+            <com.replate.app.views.PillPageIndicator
                 android:id="@+id/bannerIndicator"
                 android:layout_width="match_parent"
                 android:layout_height="24dp"

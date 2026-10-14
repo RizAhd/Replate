@@ -86,7 +86,7 @@ public class HomeFragment extends Fragment implements
     private ViewPager2 bannerViewPager;
     private RecyclerView rvCategories, rvHotDeals, rvFoodItems, rvFavorites;
     private View layoutFavoritesSection;
-    private me.relex.circleindicator.CircleIndicator3 bannerIndicator;
+    private com.replate.app.views.PillPageIndicator bannerIndicator;
     private View skeletonFeed;
     private ObjectAnimator skeletonPulse;
     private boolean feedLoading;
@@ -392,9 +392,8 @@ public class HomeFragment extends Fragment implements
         bannerAdapter.submit(cached.isEmpty() ? BannerRepository.defaultBanners(requireContext()) : cached);
 
         bannerViewPager.setAdapter(bannerAdapter);
-        bannerIndicator.setViewPager(bannerViewPager);
-        // Keeps the dots in sync when the list is swapped after the server responds
-        bannerAdapter.registerAdapterDataObserver(bannerIndicator.getAdapterDataObserver());
+        // Follows the pages, and counts them again when the server banners replace these
+        bannerIndicator.attachTo(bannerViewPager);
 
         bannerViewPager.setOffscreenPageLimit(1);
         bannerViewPager.setPageTransformer((page, position) -> {

@@ -303,7 +303,22 @@ public class SettingsActivity extends AppCompatActivity {
                 .setMessage(R.string.settings_licenses_body)
                 .setPositiveButton(android.R.string.ok, null)
                 .show());
+        findViewById(R.id.rowPhotoCredits).setOnClickListener(v -> showPhotoCredits());
         findViewById(R.id.rowDeleteAccount).setOnClickListener(v -> AccountActions.confirmDelete(this));
+    }
+
+    // Lists who took the photos in the app, with a tappable link to each source page.
+    private void showPhotoCredits() {
+        androidx.appcompat.app.AlertDialog dialog = new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.settings_photo_credits_title)
+                .setMessage(R.string.settings_photo_credits_body)
+                .setPositiveButton(android.R.string.ok, null)
+                .show();
+        android.widget.TextView message = dialog.findViewById(android.R.id.message);
+        if (message != null) {
+            android.text.util.Linkify.addLinks(message, android.text.util.Linkify.WEB_URLS);
+            message.setMovementMethod(android.text.method.LinkMovementMethod.getInstance());
+        }
     }
 
     // Refreshes the switches after returning from phone settings.

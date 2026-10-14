@@ -344,6 +344,11 @@
                         android:id="@+id/rowLicenses"
                         style="@style/Widget.REPLATE.SettingsRow"
                         android:text="@string/settings_row_licenses" />
+
+                    <TextView
+                        android:id="@+id/rowPhotoCredits"
+                        style="@style/Widget.REPLATE.SettingsRow"
+                        android:text="@string/settings_row_photo_credits" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

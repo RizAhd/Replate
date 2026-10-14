@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Onboarding slide 3: the pickup code card, with a QR code drawn the same way as on the
+     order screen (an example code, not a real order) -->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:contentDescription="@string/onboarding_sample_code_cd"
+    app:cardBackgroundColor="@color/surface_white"
+    app:cardCornerRadius="@dimen/radius_lg"
+    app:cardElevation="@dimen/elevation_sheet"
+    app:strokeWidth="0dp">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:importantForAccessibility="noHideDescendants"
+        android:orientation="horizontal"
+        android:padding="@dimen/space_1_5">
+
+        <ImageView
+            android:id="@+id/ivSampleQr"
+            android:layout_width="@dimen/onboarding_qr_size"
+            android:layout_height="@dimen/onboarding_qr_size"
+            android:importantForAccessibility="no"
+            android:scaleType="fitCenter" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/space_2"
+            android:layout_marginEnd="@dimen/space_1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/onboarding_sample_code_label"
+                android:textAppearance="@style/TextAppearance.REPLATE.Caption" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:letterSpacing="0.08"
+                android:text="@string/onboarding_sample_code"
+                android:textAppearance="@style/TextAppearance.REPLATE.Headline"
+                android:textColor="@color/leaf" />
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

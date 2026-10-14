@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/cream">
+    android:background="@color/cream"
+    android:orientation="vertical">
 
     <!-- Slim header: brand on the left, Skip on the right, both on the same centre line -->
     <LinearLayout
         android:id="@+id/onboardingHeader"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
         android:gravity="center_vertical"
         android:minHeight="56dp"
         android:orientation="horizontal"
@@ -54,47 +53,32 @@
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPagerOnboarding"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@id/bottomLayout"
-        android:layout_below="@id/onboardingHeader"
-        android:clipToPadding="false" />
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 
-    <com.google.android.material.card.MaterialCardView
+    <!-- Flat bottom bar on the page colour: page dots in line with the text, then the button -->
+    <LinearLayout
         android:id="@+id/bottomLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_margin="@dimen/space_2"
-        app:cardBackgroundColor="@color/surface_white"
-        app:cardCornerRadius="@dimen/radius_hero"
-        app:cardElevation="@dimen/elevation_sheet">
+        android:orientation="vertical"
+        android:paddingHorizontal="@dimen/space_2"
+        android:paddingTop="@dimen/space_1"
+        android:paddingBottom="@dimen/space_3">
 
-        <LinearLayout
+        <com.replate.app.views.PillPageIndicator
+            android:id="@+id/pageIndicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonNext"
+            style="@style/Widget.REPLATE.Button.Primary"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="@dimen/space_2_5">
+            android:layout_height="@dimen/button_height"
+            android:layout_marginTop="@dimen/space_2_5"
+            android:text="@string/onboarding_next" />
 
-            <me.relex.circleindicator.CircleIndicator3
-                android:id="@+id/circleIndicator"
-                android:layout_width="wrap_content"
-                android:layout_height="@dimen/space_4"
-                android:layout_gravity="center"
-                app:ci_drawable="@drawable/indicator_selected"
-                app:ci_drawable_unselected="@drawable/indicator_unselected"
-                app:ci_height="10dp"
-                app:ci_margin="@dimen/space_1"
-                app:ci_width="10dp" />
+    </LinearLayout>
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/buttonNext"
-                style="@style/Widget.REPLATE.Button.Primary"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/button_height"
-                android:layout_marginTop="@dimen/space_1_5"
-                android:text="@string/onboarding_next" />
-
-        </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
-
-</RelativeLayout>
+</LinearLayout>
