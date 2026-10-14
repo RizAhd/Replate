@@ -16,7 +16,7 @@ const NotificationApi = (() => {
         const base = (ENV.FUNCTIONS_BASE_URL || "").replace(/\/$/, "");
         if (!base) {
             const err = new Error("FUNCTIONS_BASE_URL is not configured");
-            err.userMessage = "The notification service is not set up yet.";
+            err.userMessage = "The notification service is not set up yet. Set FUNCTIONS_BASE_URL in js/env-config.js, then reload the page.";
             throw err;
         }
 

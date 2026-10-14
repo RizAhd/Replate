@@ -115,7 +115,9 @@ const ReplateUI = (() => {
 
             const body = document.createElement('p');
             body.className = 'rp-dialog-body';
+            body.id = 'rpDialogBody';
             body.textContent = message || '';
+            if (message) box.setAttribute('aria-describedby', 'rpDialogBody');
 
             let field = null;
             let fieldLabel = null;
@@ -127,6 +129,7 @@ const ReplateUI = (() => {
                 field.autocomplete = 'off';
                 if (!input.multiline) field.type = 'text';
                 field.placeholder = input.placeholder || '';
+                if (input.value) field.value = input.value;
                 if (input.multiline) field.rows = 3;
                 fieldLabel = document.createElement('label');
                 fieldLabel.className = 'form-label';
@@ -165,7 +168,8 @@ const ReplateUI = (() => {
 
             function onKey(e) {
                 if (e.key === 'Escape') { e.preventDefault(); reject(); }
-                else if (e.key === 'Enter' && !(e.target && e.target.tagName === 'TEXTAREA')) { e.preventDefault(); accept(); }
+                // Enter in the one-line text field submits; on a button, Enter presses that button
+                else if (e.key === 'Enter' && field && e.target === field && field.tagName !== 'TEXTAREA') { e.preventDefault(); accept(); }
                 else if (e.key === 'Tab') {
                     // keep focus inside the dialog
                     const focusable = box.querySelectorAll('button, input, textarea');
@@ -178,7 +182,9 @@ const ReplateUI = (() => {
             cancel.addEventListener('click', reject);
             ok.addEventListener('click', accept);
             overlay.addEventListener('mousedown', (e) => { if (e.target === overlay) reject(); });
-            (field || ok).focus();
+            // a destructive question starts on Cancel, so a stray Enter never deletes anything
+            (field || (danger ? cancel : ok)).focus();
+            if (field && input.value) field.select();
         });
     }
 
@@ -187,10 +193,10 @@ const ReplateUI = (() => {
         return openDialog({ message, ...opts });
     }
 
-    /** askText('Reason for rejection', {placeholder}) -> Promise<string|null> (null = cancelled) */
+    /** askText('Reason for rejection', {placeholder, value}) -> Promise<string|null> (null = cancelled) */
     function askText(message, opts = {}) {
-        const { label, placeholder, multiline, ...rest } = opts;
-        return openDialog({ message, input: { placeholder, label, multiline: !!multiline }, ...rest });
+        const { label, placeholder, multiline, value, ...rest } = opts;
+        return openDialog({ message, input: { placeholder, label, value, multiline: !!multiline }, ...rest });
     }
 
     // ── Role guard ──────────────────────────────────────────────────────────
@@ -206,6 +212,7 @@ const ReplateUI = (() => {
         });
         if (!user) { window.location.replace(loginPage); return null; }
         let reason = 'This account does not have ' + (role === 'admin' ? 'admin' : 'hotel') + ' access.';
+        const nextStep = role === 'admin' ? 'Sign in with an admin account.' : 'Sign in with your hotel account, or register your hotel.';
         try {
             const snap = await database.ref('users/' + user.uid).once('value');
             const profile = snap.val() || {};
@@ -213,11 +220,11 @@ const ReplateUI = (() => {
             const isAdmin = value === 'admin' && ADMIN_EMAILS.includes((user.email || '').toLowerCase());
             if ((role === 'admin' && isAdmin) || (role === 'hotel' && value === 'hotel')) return user;
             if (!snap.exists()) {
-                reason = 'No REPLATE profile was found for this account (users/' + user.uid + ').';
+                reason = 'No REPLATE profile was found for this account.';
             } else if (role === 'admin' && value === 'admin') {
                 reason = 'This email is not on the admin list.';
             } else {
-                reason = 'The role on this account is "' + (value || 'not set') + '", not ' + role + '.';
+                reason = 'The role on this account is “' + (value || 'not set') + '”, not ' + role + '.';
             }
         } catch (e) {
             console.error('Role check failed', e);
@@ -228,7 +235,7 @@ const ReplateUI = (() => {
             }
             reason = 'Could not read your account profile. Check your connection and sign in again.';
         }
-        flash(reason + ' You have been signed out.', 'danger');
+        flash(reason + ' You have been signed out. ' + nextStep, 'danger');
         await auth.signOut();
         window.location.replace(loginPage);
         return null;
@@ -278,17 +285,19 @@ const ReplateUI = (() => {
         const container = document.getElementById(containerId);
         if (!container) return;
 
-        const logoTitle = '<img src="../assets/replate-icon.svg" alt="" class="brand-logo-sm">REPLATE';
+        const logoTitle = '<img src="../assets/replate-icon.svg" alt="" class="brand-logo-sm" width="24" height="24"><span translate="no">REPLATE</span>';
         const { title = logoTitle, links = [] } = opts;
         const activeKey = opts.activeKey || currentPageKey(links);
 
         const items = links.map((link) => {
             const active = link.key === activeKey;
-            const attrs = (active ? ' aria-current="page"' : '') + (link.logout ? ' data-logout="true"' : '');
+            const inner = `<i class="${esc(link.icon)}" aria-hidden="true"></i><span>${esc(link.label)}</span>`;
+            // Log out is an action, not a page: a button
+            if (link.logout) {
+                return `<li class="nav-item"><button type="button" class="nav-link" data-logout="true">${inner}</button></li>`;
+            }
             return `<li class="nav-item">
-                <a class="nav-link${active ? ' active' : ''}" href="${esc(link.href)}"${attrs}>
-                    <i class="${esc(link.icon)}" aria-hidden="true"></i><span>${esc(link.label)}</span>
-                </a>
+                <a class="nav-link${active ? ' active' : ''}" href="${esc(link.href)}"${active ? ' aria-current="page"' : ''}>${inner}</a>
             </li>`;
         }).join('');
 
@@ -298,10 +307,12 @@ const ReplateUI = (() => {
                     <a class="navbar-brand" href="${esc((links[0] && links[0].href) || '#')}">${title}</a>
                     <button type="button" class="sidebar-close" aria-label="Close menu"><i class="fas fa-xmark" aria-hidden="true"></i></button>
                 </div>
-                <nav aria-label="Main">
+                <div class="sidebar-nav">
                     <ul class="nav flex-column">${items}</ul>
-                </nav>
+                </div>
             </div>`;
+        // the page's <nav id="appShellSidebar"> is the one navigation landmark
+        container.setAttribute('aria-label', 'Main');
         container.dataset.shellReady = 'true';
 
         if (sidebarBound) return;
@@ -383,7 +394,7 @@ const ReplateUI = (() => {
             links = hotelShellLinks;
         } else if (typeof adminShellLinks !== 'undefined') {
             links = adminShellLinks;
-            title = '<img src="../assets/replate-icon.svg" alt="" class="brand-logo-sm">ADMIN';
+            title = '<img src="../assets/replate-icon.svg" alt="" class="brand-logo-sm" width="24" height="24"><span translate="no">REPLATE</span><span class="brand-suffix">Admin</span>';
         }
         if (links) renderSidebar('appShellSidebar', { links, title });
     }
@@ -573,13 +584,11 @@ const ReplateUI = (() => {
     }
     applyChartDefaults();
 
-    /** Money on a chart axis: "LKR 950", "LKR 1.5k", "LKR 12k", "LKR 1.25M" (never two ticks with the same text). */
+    const COMPACT = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 2 });
+
+    /** Money on a chart axis: "LKR 950", "LKR 1.5K", "LKR 12K", "LKR 1.25M" (never two ticks with the same text). */
     function axisMoney(value) {
-        const v = Number(value) || 0;
-        const short = (n) => Number(n.toFixed(2)).toString();
-        if (Math.abs(v) >= 1e6) return 'LKR ' + short(v / 1e6) + 'M';
-        if (Math.abs(v) >= 1000) return 'LKR ' + short(v / 1000) + 'k';
-        return 'LKR ' + short(v);
+        return 'LKR ' + COMPACT.format(Number(value) || 0);
     }
 
     /** Shows a short "nothing to chart yet" message over an empty chart instead of bare axes. */
@@ -636,7 +645,7 @@ const ReplateUI = (() => {
             : '';
         return `<div class="empty-state" role="status">
             <div class="empty-icon"><i class="fas ${esc(icon)}" aria-hidden="true"></i></div>
-            <h3>${esc(title)}</h3>${text ? `<p>${esc(text)}</p>` : ''}${cta}</div>`;
+            <p class="empty-title">${esc(title)}</p>${text ? `<p>${esc(text)}</p>` : ''}${cta}</div>`;
     }
 
     /** Money for a big stat number: a small "LKR" unit and the amount ("LKR 6,340.00" when read). */
@@ -648,7 +657,7 @@ const ReplateUI = (() => {
     function errorState(message = 'Could not load this data.', retryLabel = 'Try again') {
         return `<div class="empty-state error" role="alert">
             <div class="empty-icon"><i class="fas fa-triangle-exclamation" aria-hidden="true"></i></div>
-            <h3>Something went wrong</h3><p>${esc(message)}</p>
+            <p class="empty-title">Something went wrong</p><p>${esc(message)}</p>
             <button type="button" class="btn btn-outline-primary btn-sm" onclick="window.location.reload()">${esc(retryLabel)}</button></div>`;
     }
 

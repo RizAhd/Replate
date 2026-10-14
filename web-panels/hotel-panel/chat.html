@@ -46,7 +46,7 @@
                         <h2>Conversations</h2>
                         <div class="conv-search-wrap">
                             <i class="fas fa-search" aria-hidden="true"></i>
-                            <input type="text" id="convSearch" name="convSearch" placeholder="Search by name or dish…" oninput="filterConversations()" aria-label="Search conversations" autocomplete="off">
+                            <input type="search" id="convSearch" name="convSearch" placeholder="Search by name or dish…" oninput="filterConversations()" aria-label="Search conversations" autocomplete="off" spellcheck="false">
                         </div>
                     </div>
                     <div class="conv-items" id="conversationList">
@@ -111,7 +111,6 @@
        ──────────────────────────────────────────────────────── */
     (async () => {
         ReplateUI.renderSidebar('appShellSidebar', {
-            title: '<img src="../assets/replate-icon.svg" alt="REPLATE" class="brand-logo-sm">REPLATE',
             activeKey: 'chat',
             links: hotelShellLinks,
         });
@@ -210,29 +209,26 @@
             const time = conv.lastTimestamp ? formatTime(conv.lastTimestamp) : '';
             const active = conv.id === currentConversationId ? ' active' : '';
             const init = (conv.customerName || 'C')[0].toUpperCase();
-            const food = conv.foodName ? `<div class="c-food"><i class="fas fa-utensils" aria-hidden="true"></i>${esc(conv.foodName)}</div>` : '';
-            return `<div class="conversation-item${active}" role="button" tabindex="0"
+            const food = conv.foodName ? `<span class="c-food"><i class="fas fa-utensils" aria-hidden="true"></i>${esc(conv.foodName)}</span>` : '';
+            return `<button type="button" class="conversation-item${active}"${active ? ' aria-current="true"' : ''}
                         data-conv-id="${esc(conv.id)}"
                         data-customer-name="${esc(conv.customerName || 'Customer')}"
                         data-customer-id="${esc(conv.customerId || '')}"
                         data-customer-email="${esc(conv.customerEmail || '')}"
                         data-food-name="${esc(conv.foodName || '')}">
-                <div class="c-avatar" aria-hidden="true">${init}</div>
-                <div class="c-body">
-                    <div class="c-top">
-                        <p class="c-name">${esc(conv.customerName || 'Customer')}</p>
+                <span class="c-avatar" aria-hidden="true">${init}</span>
+                <span class="c-body">
+                    <span class="c-top">
+                        <span class="c-name">${esc(conv.customerName || 'Customer')}</span>
                         <span class="c-time">${time}</span>
-                    </div>
-                    <p class="c-preview">${esc(conv.lastMessage || 'No messages yet')}</p>
+                    </span>
+                    <span class="c-preview">${esc(conv.lastMessage || 'No messages yet')}</span>
                     ${food}
-                </div>
-            </div>`;
+                </span>
+            </button>`;
         }).join('');
 
         el.querySelectorAll('.conversation-item').forEach(item => {
-            item.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); item.click(); }
-            });
             item.addEventListener('click', () => {
                 selectConversation(
                     item.dataset.convId || '',
@@ -269,8 +265,11 @@
         };
 
         // Highlight
-        document.querySelectorAll('.conversation-item').forEach(el =>
-            el.classList.toggle('active', el.dataset.convId === conversationId));
+        document.querySelectorAll('.conversation-item').forEach((el) => {
+            const on = el.dataset.convId === conversationId;
+            el.classList.toggle('active', on);
+            if (on) el.setAttribute('aria-current', 'true'); else el.removeAttribute('aria-current');
+        });
 
         const init = (customerName || 'C')[0].toUpperCase();
 
@@ -284,7 +283,7 @@
                     <p class="ct-status">${foodName ? 'About ' + esc(foodName) : 'Customer'}</p>
                 </div>
             </div>
-            <div class="messages-area" id="messagesContainer">
+            <div class="messages-area" id="messagesContainer" role="log" aria-live="polite" aria-relevant="additions" aria-busy="true" aria-label="Messages with ${esc(customerName)}">
                 <div class="messages-loading">
                     <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Loading messages…
                 </div>
@@ -317,7 +316,9 @@
             </div>` : ''}`;
 
         document.getElementById('chatWrapper').classList.add('thread-open');
-        setTimeout(() => document.getElementById('messageInput')?.focus(), 100);
+        if (window.matchMedia('(pointer: fine)').matches) {
+            setTimeout(() => document.getElementById('messageInput')?.focus(), 100);
+        }
         loadMessages(conversationId);
     }
 
@@ -376,6 +377,10 @@
         messagesChangedListener = { ref, callback: cbChanged };
         ref.orderByChild('timestamp').on('child_added', cbAdded);
         ref.orderByChild('timestamp').on('child_changed', cbChanged);
+        // the messages already there have arrived: from now on only new ones are announced
+        ref.orderByChild('timestamp').once('value').catch(() => {}).then(() => {
+            if (container.isConnected) container.setAttribute('aria-busy', 'false');
+        });
     }
 
     // Adds one message bubble to the chat and scrolls down.
@@ -452,7 +457,7 @@
                 const bubble = container.querySelector(`.msg-bubble[data-message-id="${cssEsc(messageId)}"]`);
                 if (bubble) {
                     const timeEl = bubble.querySelector('.m-time');
-                    if (timeEl) timeEl.textContent = 'Failed to send';
+                    if (timeEl) timeEl.textContent = 'Not sent. Check your connection and send it again.';
                 }
             }
         });
@@ -473,12 +478,16 @@
     /* ────────────────────────────────────────────────────────
        UTILITIES
        ──────────────────────────────────────────────────────── */
+    const TIME_OF_DAY = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit' });
+    const WEEKDAY = new Intl.DateTimeFormat('en-GB', { weekday: 'short' });
+    const DAY_MONTH = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short' });
+
     function formatTime(ts) {
         const d = new Date(ts), diff = Date.now() - ts;
         if (diff < 60000) return 'Just now';
-        if (diff < 86400000) return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        if (diff < 604800000) return d.toLocaleDateString([], { weekday: 'short' });
-        return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+        if (diff < 86400000) return TIME_OF_DAY.format(d);
+        if (diff < 604800000) return WEEKDAY.format(d);
+        return DAY_MONTH.format(d);
     }
 
     // Escapes quotes as well as angle brackets, so it is safe inside attributes too

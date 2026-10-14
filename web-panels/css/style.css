@@ -210,8 +210,20 @@ a {
 a,
 button,
 [role="button"],
-.btn {
+.btn,
+summary,
+label,
+select,
+.form-check-input {
     touch-action: manipulation;
+    -webkit-tap-highlight-color: rgba(26, 107, 60, 0.12); /* a light brand tint on tap, not the grey default */
+}
+
+/* With a mouse the page does not rubber-band past its ends; touch screens keep pull-to-refresh */
+@media (pointer: fine) {
+    html {
+        overscroll-behavior: none;
+    }
 }
 
 a:hover {
@@ -319,6 +331,17 @@ code,
     letter-spacing: 0.04em;
     color: var(--primary);
     text-decoration: none;
+    transition: color var(--transition-fast);
+}
+
+.sidebar .navbar-brand:hover {
+    color: var(--primary-hover);
+}
+
+.brand-suffix {
+    font-weight: var(--fw-medium);
+    letter-spacing: 0;
+    color: var(--text-secondary);
 }
 
 .sidebar-close {
@@ -365,6 +388,20 @@ code,
     position: relative;
     white-space: nowrap;
     transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+/* Log out is a button (an action) that looks like the links above it */
+.sidebar button.nav-link {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.sidebar .nav-link:active {
+    background: var(--primary-100);
 }
 
 .sidebar .nav-link i {
@@ -701,7 +738,7 @@ form,
 }
 
 .btn-primary:hover,
-.btn-primary:focus {
+.btn-primary:focus-visible {
     background: var(--primary-hover);
     border-color: var(--primary-hover);
     color: var(--text-on-primary);
@@ -1389,6 +1426,13 @@ label.switch-hit {
     font-size: var(--fs-14);
 }
 
+button.auth-link {
+    border: 0;
+    background: none;
+    font-family: inherit;
+    cursor: pointer;
+}
+
 .auth-link:hover {
     color: var(--primary-hover);
     text-decoration: underline;
@@ -1603,6 +1647,10 @@ label.switch-hit {
         visibility: visible;
         box-shadow: var(--shadow-float);
         transition: transform 0.25s var(--ease), visibility 0s;
+    }
+
+    html {
+        scroll-padding-top: calc(56px + env(safe-area-inset-top, 0px) + var(--space-3));
     }
 
     .app-bar {
@@ -1983,7 +2031,7 @@ label.switch-hit {
     color: var(--primary);
 }
 
-.empty-state h3 {
+.empty-state .empty-title {
     font-size: var(--fs-16);
     font-weight: var(--fw-semibold);
     color: var(--text-primary);
@@ -2429,9 +2477,15 @@ label.switch-hit {
     display: flex;
     align-items: center;
     gap: var(--space-3);
+    width: 100%;
     padding: var(--space-3) 14px;
+    border: 0;
     border-bottom: 1px solid var(--border-light);
     border-left: 3px solid transparent;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
     cursor: pointer;
     transition: background-color var(--transition-fast);
 }
@@ -2481,13 +2535,18 @@ label.switch-hit {
 }
 
 .c-name {
+    min-width: 0;
     margin: 0;
     font-size: var(--fs-14);
     font-weight: var(--fw-semibold);
     color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .c-preview {
+    display: block;
     margin: 2px 0 0;
     font-size: var(--fs-13);
     color: var(--text-secondary);
@@ -2539,10 +2598,17 @@ label.switch-hit {
     font-size: var(--fs-14);
 }
 
+.chat-topbar > :not(.ct-avatar):not(.chat-back) {
+    min-width: 0;
+}
+
 .ct-name {
     margin: 0;
     font-size: var(--fs-14);
     font-weight: var(--fw-semibold);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .ct-status {
@@ -2681,6 +2747,7 @@ label.switch-hit {
     margin: 0 0 2px;
     font-size: var(--fs-16);
     font-weight: var(--fw-semibold);
+    overflow-wrap: anywhere;
 }
 
 .detail-profile p {
@@ -2787,6 +2854,12 @@ label.switch-hit {
         background: transparent;
         color: #fff;
         flex-shrink: 0;
+        transition: background-color var(--transition-fast);
+    }
+
+    .chat-back:hover,
+    .chat-back:active {
+        background: rgba(255, 255, 255, 0.14);
     }
 }
 
@@ -2843,6 +2916,14 @@ label.switch-hit {
     font-variant-numeric: tabular-nums;
 }
 
+/* A card title that is a real heading but looks like the plain card header */
+.card-header-title {
+    margin: 0;
+    font: inherit;
+    color: inherit;
+    letter-spacing: inherit;
+}
+
 .card-header-meta {
     font-size: var(--fs-13);
     font-weight: var(--fw-regular);
@@ -2887,6 +2968,13 @@ label.switch-hit {
     font-size: var(--fs-14);
     font-weight: var(--fw-semibold);
     color: var(--primary);
+    transition: color var(--transition-fast);
+}
+
+.advanced-fields summary:hover {
+    color: var(--primary-hover);
+    text-decoration: underline;
+    text-underline-offset: 3px;
 }
 
 .send-form {
