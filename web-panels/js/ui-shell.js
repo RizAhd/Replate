@@ -293,7 +293,7 @@ const ReplateUI = (() => {
         }).join('');
 
         container.innerHTML = `
-            <div class="position-sticky">
+            <div class="sidebar-inner">
                 <div class="sidebar-head">
                     <a class="navbar-brand" href="#">${title}</a>
                     <button type="button" class="sidebar-close" aria-label="Close menu"><i class="fas fa-xmark" aria-hidden="true"></i></button>

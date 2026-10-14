@@ -260,12 +260,12 @@ code,
 
 /* ── Sidebar ─────────────────────────────────────────────── */
 .sidebar {
-    width: var(--sidebar-width) !important;
-    min-width: var(--sidebar-width) !important;
-    max-width: var(--sidebar-width) !important;
-    flex: 0 0 var(--sidebar-width) !important;
+    width: var(--sidebar-width);
+    min-width: var(--sidebar-width);
+    max-width: var(--sidebar-width);
+    flex: 0 0 var(--sidebar-width);
     min-height: 100vh;
-    position: fixed !important;
+    position: fixed;
     top: 0;
     left: 0;
     bottom: 0;
@@ -274,7 +274,7 @@ code,
     border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
-    padding: 0 !important;
+    padding: 0;
     overflow-y: auto;
     overflow-x: hidden;
     overscroll-behavior: contain;
@@ -290,12 +290,10 @@ code,
     border-radius: 99px;
 }
 
-.sidebar .position-sticky {
-    position: static !important;
+.sidebar-inner {
     display: flex;
     flex-direction: column;
     height: 100%;
-    padding: 0 !important;
 }
 
 .sidebar-head {
@@ -306,15 +304,15 @@ code,
 }
 
 .sidebar .navbar-brand {
-    display: flex !important;
+    display: flex;
     align-items: center;
     gap: 10px;
-    padding: var(--space-5) var(--space-5) 20px !important;
-    margin: 0 !important;
+    padding: var(--space-5) var(--space-5) 20px;
+    margin: 0;
     font-weight: var(--fw-bold);
     font-size: var(--fs-18);
     letter-spacing: 0.04em;
-    color: var(--primary) !important;
+    color: var(--primary);
     text-decoration: none;
 }
 
@@ -340,7 +338,7 @@ code,
 
 .sidebar .nav {
     flex-direction: column;
-    padding: var(--space-3) !important;
+    padding: var(--space-3);
     flex: 1;
 }
 
@@ -407,18 +405,18 @@ code,
 }
 
 /* ── Main content area ───────────────────────────────────── */
-main {
-    margin-left: var(--sidebar-width) !important;
-    padding: var(--space-6) var(--page-pad-x) var(--space-7) !important;
+.row > main {
+    margin-left: var(--sidebar-width);
+    padding: var(--space-6) var(--page-pad-x) var(--space-7);
     min-height: 100vh;
     min-height: 100dvh;
-    width: auto !important;
+    width: auto;
     min-width: 0;
     overflow-x: hidden;
 }
 
 /* One content width with the same left edge for every block */
-main > * {
+.row > main > * {
     max-width: var(--content-max-width);
     margin-left: auto;
     margin-right: auto;
@@ -487,8 +485,8 @@ form,
 }
 
 /* Cards that fill a grid row keep the gap below them */
-.row > [class*="col"] > .card.h-100 {
-    height: calc(100% - var(--gutter)) !important;
+.card.card-fill {
+    height: calc(100% - var(--gutter));
 }
 
 .card-header {
@@ -519,7 +517,6 @@ form,
 
 /* Section, card, modal and chart titles share one size */
 .section-title,
-.card-title,
 .chart-card h2,
 .modal-title,
 .rp-dialog-title {
@@ -542,14 +539,6 @@ form,
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: var(--gutter);
     margin-bottom: var(--gutter);
-}
-
-.stat-grid.cols-3 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.stat-grid.cols-2 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .stat-card {
@@ -706,30 +695,25 @@ form,
     width: var(--control-h-sm);
 }
 
-.btn-primary,
-.btn-success {
+.btn-primary {
     background: var(--primary);
     border-color: var(--primary);
     color: var(--text-on-primary);
 }
 
 .btn-primary:hover,
-.btn-primary:focus,
-.btn-success:hover,
-.btn-success:focus {
+.btn-primary:focus {
     background: var(--primary-hover);
     border-color: var(--primary-hover);
     color: var(--text-on-primary);
 }
 
-.btn-secondary,
 .btn-outline-secondary {
     background: var(--surface);
     border-color: var(--gray-300);
     color: var(--text-primary);
 }
 
-.btn-secondary:hover,
 .btn-outline-secondary:hover {
     background: var(--gray-100);
     border-color: var(--gray-400);
@@ -745,18 +729,6 @@ form,
 .btn-danger:hover {
     background: #991b1b;
     border-color: #991b1b;
-    color: #fff;
-}
-
-.btn-warning {
-    background: var(--warning);
-    border-color: var(--warning);
-    color: #fff;
-}
-
-.btn-warning:hover {
-    background: #92400e;
-    border-color: #92400e;
     color: #fff;
 }
 
@@ -782,18 +754,6 @@ form,
     background: var(--danger-light);
     border-color: var(--danger);
     color: var(--danger);
-}
-
-.btn-outline-dark {
-    color: var(--text-primary);
-    border-color: var(--gray-300);
-    background: var(--surface);
-}
-
-.btn-outline-dark:hover {
-    background: var(--gray-100);
-    border-color: var(--gray-400);
-    color: var(--text-primary);
 }
 
 /* ── Forms ───────────────────────────────────────────────── */
@@ -1074,9 +1034,9 @@ form,
     gap: var(--space-1);
 }
 
-.page-link {
+.pagination .page-item .page-link {
     font-variant-numeric: tabular-nums;
-    border-radius: var(--radius-sm) !important;
+    border-radius: var(--radius-sm);
     transition: background-color var(--transition-fast), color var(--transition-fast);
 }
 
@@ -1106,6 +1066,10 @@ form,
     font-size: var(--fs-12);
 }
 
+.item-icon {
+    margin-right: 6px;
+}
+
 .old-price {
     text-decoration: line-through;
     color: var(--text-secondary);
@@ -1127,43 +1091,29 @@ form,
     white-space: nowrap;
 }
 
-.badge-pending,
-.badge-warning,
-.bg-warning {
-    background: var(--warning-light) !important;
-    color: var(--warning) !important;
+.badge-warning {
+    background: var(--warning-light);
+    color: var(--warning);
 }
 
-.badge-primary,
-.bg-primary {
-    background: var(--primary-light) !important;
-    color: var(--primary-dark) !important;
+.badge-primary {
+    background: var(--primary-light);
+    color: var(--primary-dark);
 }
 
-.badge-info,
-.bg-info {
-    background: var(--info-light) !important;
-    color: var(--info) !important;
+.badge-success {
+    background: var(--success-light);
+    color: var(--success);
 }
 
-.badge-approved,
-.badge-success,
-.bg-success {
-    background: var(--success-light) !important;
-    color: var(--success) !important;
+.badge-danger {
+    background: var(--danger-light);
+    color: var(--danger);
 }
 
-.badge-rejected,
-.badge-danger,
-.bg-danger {
-    background: var(--danger-light) !important;
-    color: var(--danger) !important;
-}
-
-.badge-neutral,
-.bg-secondary {
-    background: var(--gray-100) !important;
-    color: var(--gray-700) !important;
+.badge-neutral {
+    background: var(--gray-100);
+    color: var(--gray-700);
 }
 
 /* ── Tabs: one underline style everywhere ────────────────── */
@@ -1368,7 +1318,7 @@ form,
     background: var(--border);
 }
 
-.social-btn {
+.btn.social-btn {
     width: 48px;
     height: 48px;
     padding: 0;
@@ -1381,22 +1331,9 @@ form,
     color: var(--text-primary);
 }
 
-.social-btn:hover:not(:disabled) {
+.btn.social-btn:hover:not(:disabled) {
     border-color: var(--primary);
     background: var(--primary-50);
-}
-
-/* The login card is a <main> landmark, so undo the panel layout rules that target <main> */
-main.auth-card {
-    margin: 0 !important;
-    width: 100% !important;
-    min-height: 0;
-    overflow: visible;
-    padding: 40px 36px !important;
-}
-
-main.auth-card > * {
-    max-width: none;
 }
 
 .status-notice {
@@ -1467,13 +1404,13 @@ main.auth-card > * {
 }
 
 /* ── OTP input ───────────────────────────────────────────── */
-.otp-digits {
+.form-control.otp-digits {
     letter-spacing: 14px;
     font-size: var(--fs-32);
     font-family: 'SF Mono', 'Fira Code', monospace;
     text-align: center;
     font-weight: var(--fw-bold);
-    height: 64px !important;
+    height: 64px;
     font-variant-numeric: tabular-nums;
 }
 
@@ -1544,18 +1481,18 @@ main.auth-card > * {
         --page-pad-x: var(--space-5);
     }
 
-    main {
-        padding: var(--space-5) var(--page-pad-x) var(--space-6) !important;
+    .row > main {
+        padding: var(--space-5) var(--page-pad-x) var(--space-6);
     }
 }
 
 /* Small tablet / large phone */
 @media (max-width: 991.98px) {
     .sidebar {
-        width: min(86vw, 320px) !important;
-        min-width: min(86vw, 320px) !important;
-        max-width: min(86vw, 320px) !important;
-        flex: 0 0 min(86vw, 320px) !important;
+        width: min(86vw, 320px);
+        min-width: min(86vw, 320px);
+        max-width: min(86vw, 320px);
+        flex: 0 0 min(86vw, 320px);
         transform: translateX(-100%);
         visibility: hidden;
         transition: transform 0.25s var(--ease), visibility 0s linear 0.25s;
@@ -1587,15 +1524,14 @@ main.auth-card > * {
         display: flex;
     }
 
-    main {
-        margin-left: 0 !important;
-        padding: calc(56px + var(--space-5)) var(--page-pad-x) var(--space-6) !important;
-        width: 100% !important;
-        max-width: 100% !important;
+    .row > main {
+        margin-left: 0;
+        padding: calc(56px + var(--space-5)) var(--page-pad-x) var(--space-6);
+        width: 100%;
+        max-width: 100%;
     }
 
-    .stat-grid,
-    .stat-grid.cols-3 {
+    .stat-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
@@ -1610,8 +1546,8 @@ main.auth-card > * {
         --page-pad-x: var(--space-4);
     }
 
-    main {
-        padding: calc(56px + var(--space-4) + env(safe-area-inset-top, 0px)) calc(var(--page-pad-x) + env(safe-area-inset-right, 0px)) calc(var(--space-6) + env(safe-area-inset-bottom, 0px)) calc(var(--page-pad-x) + env(safe-area-inset-left, 0px)) !important;
+    .row > main {
+        padding: calc(56px + var(--space-4) + env(safe-area-inset-top, 0px)) calc(var(--page-pad-x) + env(safe-area-inset-right, 0px)) calc(var(--space-6) + env(safe-area-inset-bottom, 0px)) calc(var(--page-pad-x) + env(safe-area-inset-left, 0px));
     }
 
     .panel-title {
@@ -1627,8 +1563,8 @@ main.auth-card > * {
         padding: calc(16px + env(safe-area-inset-top, 0px)) calc(16px + env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) calc(16px + env(safe-area-inset-left, 0px));
     }
 
-    main.auth-card {
-        padding: 28px 20px !important;
+    .auth-card {
+        padding: 28px 20px;
     }
 
     /* Inputs at 16px so phones do not zoom in on focus */
@@ -1654,8 +1590,8 @@ main.auth-card > * {
         background: transparent;
     }
 
-    .table-stack {
-        min-width: 0 !important;
+    .table-responsive .table-stack {
+        min-width: 0;
     }
 
     .table-stack thead {
@@ -1701,8 +1637,8 @@ main.auth-card > * {
         padding: 0;
         border: 0;
         text-align: left;
-        background: transparent !important;
-        box-shadow: none !important;
+        background: transparent;
+        box-shadow: none;
         overflow-wrap: anywhere;
     }
 
@@ -1751,7 +1687,7 @@ main.auth-card > * {
         background: transparent;
         border: 0;
         border-radius: 0;
-        padding: 0 !important;
+        padding: 0;
         overflow: visible;
     }
 
@@ -1765,12 +1701,12 @@ main.auth-card > * {
         row-gap: var(--space-3);
     }
 
-    .dataTables_wrapper .dataTables_length,
-    .dataTables_wrapper .dataTables_filter,
-    .dataTables_wrapper .dataTables_info,
-    .dataTables_wrapper .dataTables_paginate {
+    .card div.dataTables_wrapper div.dataTables_length,
+    .card div.dataTables_wrapper div.dataTables_filter,
+    .card div.dataTables_wrapper div.dataTables_info,
+    .card div.dataTables_wrapper div.dataTables_paginate {
         width: 100%;
-        text-align: left !important;
+        text-align: left;
         margin: 0;
     }
 
@@ -1779,9 +1715,9 @@ main.auth-card > * {
         width: 100%;
     }
 
-    .dataTables_wrapper .dataTables_filter input {
+    .card div.dataTables_wrapper div.dataTables_filter input {
         width: 100%;
-        margin-left: 0 !important;
+        margin-left: 0;
         margin-top: var(--space-2);
     }
 
@@ -1825,7 +1761,7 @@ main.auth-card > * {
         justify-content: center;
     }
 
-    .otp-digits {
+    .form-control.otp-digits {
         letter-spacing: 8px;
         font-size: var(--fs-24);
     }
@@ -1838,10 +1774,10 @@ main.auth-card > * {
 
 @media (max-width: 575.98px) {
     .sidebar {
-        width: min(92vw, 320px) !important;
-        min-width: min(92vw, 320px) !important;
-        max-width: min(92vw, 320px) !important;
-        flex-basis: min(92vw, 320px) !important;
+        width: min(92vw, 320px);
+        min-width: min(92vw, 320px);
+        max-width: min(92vw, 320px);
+        flex-basis: min(92vw, 320px);
     }
 }
 
@@ -1853,9 +1789,9 @@ main.auth-card > * {
         display: none !important;
     }
 
-    main {
-        margin-left: 0 !important;
-        padding: 0 !important;
+    .row > main {
+        margin-left: 0;
+        padding: 0;
     }
 }
 
@@ -1872,8 +1808,6 @@ main.auth-card > * {
 }
 
 /* ── Utilities ───────────────────────────────────────────── */
-.text-primary-color { color: var(--primary) !important; }
-
 .spinner-border-sm {
     width: 1rem;
     height: 1rem;
@@ -1920,8 +1854,8 @@ main.auth-card > * {
     margin-top: var(--space-2);
 }
 
-.list-group-item.list-empty {
-    padding: 0 !important;
+.card > .list-group .list-group-item.list-empty {
+    padding: 0;
 }
 
 .list-group-item.list-empty .empty-state {
