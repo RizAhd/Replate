@@ -102,6 +102,19 @@ function colomboHour(date = new Date()) {
 }
 
 /**
+ * Which meal a scheduled deals push is about, from the hour (0-23) in Sri Lanka: breakfast 06:00-10:59,
+ * lunch 11:00-15:59, dinner 16:00-21:59. Null from 22:00 to 05:59 (or for a value that is not an hour),
+ * when no promotional push is sent at all.
+ */
+function promoSlotFor(hour) {
+  if (!Number.isInteger(hour) || hour < 0 || hour > 23) return null;
+  if (hour >= 6 && hour < 11) return "breakfast";
+  if (hour >= 11 && hour < 16) return "lunch";
+  if (hour >= 16 && hour < 22) return "dinner";
+  return null;
+}
+
+/**
  * Who a new chat message should notify. Conversation ids look like "<hotelKey>_<customerUid>" (a hotel key can
  * contain "_", a Firebase uid cannot), so the customer is everything after the last "_".
  */
@@ -166,6 +179,7 @@ module.exports = {
   isReservedDataKey,
   limitUserIds,
   colomboHour,
+  promoSlotFor,
   chatRecipient,
   messagePreview,
   payhereSignature,

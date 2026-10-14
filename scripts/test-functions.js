@@ -156,6 +156,55 @@ test('the engagement schedule uses Sri Lankan time whatever the server clock say
     assert.strictEqual(safe.colomboHour(new Date(Date.UTC(2026, 9, 5, 19, 0))), 0);
 });
 
+test('every hour of the day maps to the right deals push, and none at night', () => {
+    const expected = [
+        null, null, null, null, null, null,                                   // 00-05
+        'breakfast', 'breakfast', 'breakfast', 'breakfast', 'breakfast',      // 06-10
+        'lunch', 'lunch', 'lunch', 'lunch', 'lunch',                          // 11-15
+        'dinner', 'dinner', 'dinner', 'dinner', 'dinner', 'dinner',           // 16-21
+        null, null                                                            // 22-23
+    ];
+    assert.strictEqual(expected.length, 24);
+    for (let hour = 0; hour < 24; hour++) {
+        assert.strictEqual(safe.promoSlotFor(hour), expected[hour], 'hour ' + hour);
+    }
+});
+
+test('the 2-hourly schedule only sends from 06:00 to 20:00', () => {
+    // "every 2 hours" in Asia/Colombo runs at 00:00, 02:00 ... 22:00
+    const sends = [];
+    for (let hour = 0; hour < 24; hour += 2) {
+        if (safe.promoSlotFor(hour)) sends.push(hour);
+    }
+    assert.deepStrictEqual(sends, [6, 8, 10, 12, 14, 16, 18, 20]);
+    [22, 0, 2, 4].forEach((hour) => assert.strictEqual(safe.promoSlotFor(hour), null, 'hour ' + hour));
+});
+
+test('a value that is not an hour of the day sends nothing', () => {
+    [-1, 24, 25, 6.5, NaN, Infinity, null, undefined, '', '7', 'abc', true].forEach((bad) =>
+        assert.strictEqual(safe.promoSlotFor(bad), null, String(bad)));
+});
+
+test('a late-night server tick in Colombo time sends nothing', () => {
+    // 17:00 UTC is 22:30 in Colombo, 22:30 UTC is 04:00 the next day, 01:30 UTC is 07:00
+    assert.strictEqual(safe.promoSlotFor(safe.colomboHour(new Date(Date.UTC(2026, 9, 5, 17, 0)))), null);
+    assert.strictEqual(safe.promoSlotFor(safe.colomboHour(new Date(Date.UTC(2026, 9, 5, 22, 30)))), null);
+    assert.strictEqual(safe.promoSlotFor(safe.colomboHour(new Date(Date.UTC(2026, 9, 5, 1, 30)))), 'breakfast');
+});
+
+test('the scheduled function uses the helper and has no catch-all "meal" push', () => {
+    const fs = require('fs');
+    const path = require('path');
+    const source = fs.readFileSync(path.join(__dirname, '..', 'firebase-functions', 'index.js'), 'utf8');
+    const start = source.indexOf('exports.sendScheduledEngagementNotifications');
+    assert.ok(start >= 0, 'function not found');
+    const next = source.indexOf('exports.', start + 1);
+    const body = source.slice(start, next < 0 ? source.length : next);
+    assert.ok(/promoSlotFor\(colomboHour\(\)\)/.test(body), 'should ask promoSlotFor for the slot');
+    assert.ok(/if \(!segment\) return null;/.test(body), 'should stop when there is no slot');
+    assert.ok(!/"meal"|'meal'/.test(body), 'the "meal" fallback should be gone');
+});
+
 // ---- chat push and PayHere confirmation ---------------------------------------------------
 
 test('a customer message goes to the hotel and a hotel message goes to the customer', () => {

@@ -17,6 +17,7 @@ const {
   isReservedDataKey,
   limitUserIds,
   colomboHour,
+  promoSlotFor,
   chatRecipient,
   messagePreview,
   verifyPayhereNotification,
@@ -1556,22 +1557,19 @@ exports.payhereNotify = functions.region(REGION).https.onRequest(async (req, res
   }
 });
 
-// Every 2 hours: sends a meal-time deals reminder to all customers.
+// Every 2 hours: a breakfast, lunch or dinner deals reminder to all customers. Nothing is sent from
+// 22:00 to 05:59 Sri Lankan time, so nobody gets a promotional push at night.
 exports.sendScheduledEngagementNotifications = functions
   .region(REGION)
   .pubsub.schedule("every 2 hours")
   .timeZone("Asia/Colombo")
   .onRun(async () => {
-    const hour = colomboHour();
-    let segment = "meal";
-
-    if (hour >= 6 && hour < 11) segment = "breakfast";
-    else if (hour >= 11 && hour < 16) segment = "lunch";
-    else if (hour >= 16 && hour < 22) segment = "dinner";
+    const segment = promoSlotFor(colomboHour());
+    if (!segment) return null;
 
     const payload = buildPayload({
       title: "Trending food rescue deals",
-      body: `Fresh ${segment} deals are live near you. Grab them before they are gone!`,
+      body: `Fresh ${segment} deals are live near you. Grab them before they are gone.`,
       type: "engagement_reminder",
       category: "hot_deals",
       route: "deals",
