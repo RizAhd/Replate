@@ -70,7 +70,7 @@
             <div class="stat-grid">
                 <div class="card stat-card">
                     <p class="stat-value num" id="totalRevenue">LKR 0.00</p>
-                    <p class="stat-label"><i class="fas fa-coins" aria-hidden="true"></i>Revenue (completed)</p>
+                    <p class="stat-label"><i class="fas fa-coins" aria-hidden="true"></i>Completed revenue</p>
                     <p class="stat-meta"><span class="delta flat" id="deltaRevenue"></span></p>
                 </div>
                 <div class="card stat-card">
@@ -85,7 +85,7 @@
                 </div>
                 <div class="card stat-card">
                     <p class="stat-value num" id="foodSaved">0 items</p>
-                    <p class="stat-label"><i class="fas fa-leaf" aria-hidden="true"></i>Food rescued (collected)</p>
+                    <p class="stat-label"><i class="fas fa-leaf" aria-hidden="true"></i>Food rescued</p>
                     <p class="stat-meta"></p>
                 </div>
             </div>
@@ -439,6 +439,7 @@
         if (growthChartInstance) growthChartInstance.destroy();
         if (revenueChartInstance) revenueChartInstance.destroy();
         if (categoryChartInstance) categoryChartInstance.destroy();
+        const C = ReplateUI.chartColors;
 
         // ── Order status doughnut ──
         const hasStatusData = completed + pending + cancelled > 0;
@@ -448,7 +449,7 @@
                 labels: ['Completed', 'Pending', 'Cancelled'],
                 datasets: [{
                     data: hasStatusData ? [completed, pending, cancelled] : [1],
-                    backgroundColor: hasStatusData ? ['#059669', '#d97706', '#dc2626'] : ['#e5e7eb'],
+                    backgroundColor: hasStatusData ? [C.success, C.warning, C.danger] : [C.empty],
                     borderWidth: 0,
                     hoverOffset: 6
                 }]
@@ -457,14 +458,13 @@
                 maintainAspectRatio: false,
                 responsive: true,
                 cutout: '65%',
-                plugins: {
-                    legend: { position: 'bottom', labels: { padding: 14, usePointStyle: true, pointStyle: 'circle', font: { size: 12, weight: 600 } } },
-                    tooltip: { enabled: hasStatusData }
-                }
+                plugins: { legend: { position: 'bottom' }, tooltip: { enabled: hasStatusData } }
             }
         });
+        ReplateUI.chartEmpty('statusChart', !hasStatusData, 'No orders in this range', 'Try a longer date range.');
+        ReplateUI.describeChart('statusChart', `Doughnut chart: ${completed} completed, ${pending} pending, ${cancelled} cancelled orders.`);
 
-        // ── Payment pie ──
+        // ── Payment methods ──
         const hasPayData = cash + online > 0;
         paymentChartInstance = new Chart(document.getElementById('paymentChart'), {
             type: 'doughnut',
@@ -472,7 +472,7 @@
                 labels: ['Cash', 'Online'],
                 datasets: [{
                     data: hasPayData ? [cash, online] : [1],
-                    backgroundColor: hasPayData ? ['#1a6b3c', '#f97316'] : ['#e5e7eb'],
+                    backgroundColor: hasPayData ? [C.brand, C.blue] : [C.empty],
                     borderWidth: 0,
                     hoverOffset: 6
                 }]
@@ -481,14 +481,14 @@
                 maintainAspectRatio: false,
                 responsive: true,
                 cutout: '60%',
-                plugins: {
-                    legend: { position: 'bottom', labels: { padding: 14, usePointStyle: true, pointStyle: 'circle', font: { size: 12, weight: 600 } } },
-                    tooltip: { enabled: hasPayData }
-                }
+                plugins: { legend: { position: 'bottom' }, tooltip: { enabled: hasPayData } }
             }
         });
+        ReplateUI.chartEmpty('paymentChart', !hasPayData, 'No orders in this range', 'Try a longer date range.');
+        ReplateUI.describeChart('paymentChart', `Doughnut chart: ${cash} cash and ${online} online payments.`);
 
-        // ── Growth line chart ──
+        // ── Orders per week (straight lines: counts are whole numbers) ──
+        const weekTotal = weekData.reduce((a, b) => a + b, 0);
         growthChartInstance = new Chart(document.getElementById('growthChart'), {
             type: 'line',
             data: {
@@ -496,51 +496,53 @@
                 datasets: [{
                     label: 'Orders',
                     data: weekData.length > 0 ? weekData : [0],
-                    borderColor: '#1a6b3c',
-                    backgroundColor: 'rgba(26, 107, 60, 0.08)',
+                    borderColor: C.brand,
+                    backgroundColor: C.brandSoft,
                     fill: true,
-                    tension: 0.4,
-                    pointBackgroundColor: '#1a6b3c',
+                    tension: 0,
+                    pointBackgroundColor: C.brand,
                     pointBorderColor: '#fff',
                     pointBorderWidth: 2,
-                    pointRadius: 5,
-                    pointHoverRadius: 7,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
                 }]
             },
             options: {
                 maintainAspectRatio: false,
                 responsive: true,
                 plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,0.04)' } }, x: { grid: { display: false } } }
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 }, grid: { color: C.grid } }, x: { grid: { display: false } } }
             }
         });
+        ReplateUI.chartEmpty('growthChart', weekTotal === 0, 'No orders in this range', 'Try a longer date range.');
+        ReplateUI.describeChart('growthChart', 'Line chart: orders per week, ' + ReplateSchema.plural(weekTotal, 'order') + ' over ' + ReplateSchema.plural(weekLabels.length, 'week') + '.');
 
-        // ── Revenue bar chart ──
+        // ── Revenue per week ──
+        const weekRevenueTotal = weekRevenueData.reduce((a, b) => a + b, 0);
         revenueChartInstance = new Chart(document.getElementById('revenueChart'), {
             type: 'bar',
             data: {
                 labels: weekLabels.length > 0 ? weekLabels : ['No data'],
                 datasets: [{
-                    label: 'Revenue (LKR)',
+                    label: 'Revenue',
                     data: weekRevenueData.length > 0 ? weekRevenueData : [0],
-                    backgroundColor: 'rgba(26, 107, 60, 0.15)',
-                    borderColor: '#1a6b3c',
-                    borderWidth: 2,
-                    borderRadius: 8,
-                    hoverBackgroundColor: 'rgba(26, 107, 60, 0.35)',
+                    backgroundColor: C.brand,
+                    borderRadius: 6,
+                    maxBarThickness: 48,
                 }]
             },
             options: {
                 maintainAspectRatio: false,
                 responsive: true,
-                plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => 'LKR ' + ctx.parsed.y.toLocaleString() } } },
-                scales: { y: { beginAtZero: true, ticks: { callback: v => 'LKR ' + (v >= 1000 ? (v/1000).toFixed(0) + 'k' : v) }, grid: { color: 'rgba(0,0,0,0.04)' } }, x: { grid: { display: false } } }
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ReplateSchema.formatMoney(ctx.parsed.y) } } },
+                scales: { y: { beginAtZero: true, ticks: { callback: ReplateUI.axisMoney }, grid: { color: C.grid } }, x: { grid: { display: false } } }
             }
         });
+        ReplateUI.chartEmpty('revenueChart', weekRevenueTotal === 0, 'No revenue in this range', 'Completed and delivered orders add to this chart.');
+        ReplateUI.describeChart('revenueChart', 'Bar chart: revenue per week, ' + ReplateSchema.formatMoney(weekRevenueTotal) + ' in total.');
 
         // ── Revenue by category (doughnut) ──
         const sortedCats = Object.entries(categoryRevenue).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).slice(0, 8);
-        const catColors = ['#1a6b3c', '#059669', '#f97316', '#d97706', '#fb923c', '#0f4d2b', '#dc2626', '#6ee7b7'];
         const hasCatData = sortedCats.length > 0;
         categoryChartInstance = new Chart(document.getElementById('categoryChart'), {
             type: 'doughnut',
@@ -548,8 +550,9 @@
                 labels: hasCatData ? sortedCats.map(c => c[0]) : ['No completed orders yet'],
                 datasets: [{
                     data: hasCatData ? sortedCats.map(c => Math.round(c[1])) : [1],
-                    backgroundColor: hasCatData ? sortedCats.map((_, i) => catColors[i % catColors.length]) : ['#e5e7eb'],
-                    borderWidth: 0,
+                    backgroundColor: hasCatData ? sortedCats.map((_, i) => C.series[i % C.series.length]) : [C.empty],
+                    borderWidth: 2,
+                    borderColor: '#fff',
                     hoverOffset: 6
                 }]
             },
@@ -558,11 +561,15 @@
                 responsive: true,
                 cutout: '55%',
                 plugins: {
-                    legend: { position: 'bottom', labels: { padding: 14, usePointStyle: true, pointStyle: 'circle', font: { size: 12, weight: 600 } } },
-                    tooltip: { enabled: hasCatData, callbacks: { label: ctx => ctx.label + ': LKR ' + ctx.parsed.toLocaleString() } }
+                    legend: { position: 'bottom' },
+                    tooltip: { enabled: hasCatData, callbacks: { label: ctx => ctx.label + ': ' + ReplateSchema.formatMoney(ctx.parsed) } }
                 }
             }
         });
+        ReplateUI.chartEmpty('categoryChart', !hasCatData, 'No completed orders yet', 'Revenue by food category shows here.');
+        ReplateUI.describeChart('categoryChart', hasCatData
+            ? 'Doughnut chart: revenue by food category. ' + sortedCats.map(([name, v]) => name + ' ' + ReplateSchema.formatMoney(v)).join(', ') + '.'
+            : 'Doughnut chart: revenue by food category. No completed orders yet.');
 
         // ── Top Hotels Leaderboard ──
         const sortedHotels = Object.entries(hotelOrders).sort((a, b) => b[1] - a[1]).slice(0, 5);

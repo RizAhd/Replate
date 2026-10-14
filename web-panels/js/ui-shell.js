@@ -533,6 +533,72 @@ const ReplateUI = (() => {
         if (e.target && e.target.classList && e.target.classList.contains('is-invalid')) clearFieldError(e.target);
     }, true));
 
+    // ── Charts (Chart.js) ──────────────────────────────────────────────────
+    const chartColors = {
+        brand: '#1a6b3c',
+        brandSoft: 'rgba(26, 107, 60, 0.12)',
+        blue: '#2563eb',
+        success: '#047857',
+        warning: '#b45309',
+        danger: '#b91c1c',
+        empty: '#e5e7eb',
+        grid: 'rgba(17, 24, 39, 0.06)',
+        // categories: easy to tell apart, none of them reused for a status colour
+        series: ['#1a6b3c', '#2563eb', '#7c3aed', '#db2777', '#0891b2', '#64748b', '#65a30d', '#a16207']
+    };
+
+    // Poppins, readable sizes and calm motion for every chart on the page
+    function applyChartDefaults() {
+        if (typeof Chart === 'undefined') return;
+        Chart.defaults.font.family = "'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+        Chart.defaults.font.size = 12;
+        Chart.defaults.color = '#4b5563';
+        Chart.defaults.borderColor = 'rgba(17, 24, 39, 0.08)';
+        Chart.defaults.plugins.legend.labels.usePointStyle = true;
+        Chart.defaults.plugins.legend.labels.pointStyle = 'circle';
+        Chart.defaults.plugins.legend.labels.padding = 16;
+        Chart.defaults.plugins.legend.labels.font = { size: 13 };
+        Chart.defaults.plugins.tooltip.backgroundColor = '#111827';
+        Chart.defaults.plugins.tooltip.padding = 10;
+        Chart.defaults.plugins.tooltip.cornerRadius = 8;
+        Chart.defaults.plugins.tooltip.titleFont = { size: 13, weight: '600' };
+        Chart.defaults.plugins.tooltip.bodyFont = { size: 13 };
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) Chart.defaults.animation = false;
+        else Chart.defaults.animation.duration = 400;
+    }
+    applyChartDefaults();
+
+    /** Money on a chart axis: "LKR 950", "LKR 1.5k", "LKR 12k", "LKR 1.25M" (never two ticks with the same text). */
+    function axisMoney(value) {
+        const v = Number(value) || 0;
+        const short = (n) => Number(n.toFixed(2)).toString();
+        if (Math.abs(v) >= 1e6) return 'LKR ' + short(v / 1e6) + 'M';
+        if (Math.abs(v) >= 1000) return 'LKR ' + short(v / 1000) + 'k';
+        return 'LKR ' + short(v);
+    }
+
+    /** Shows a short "nothing to chart yet" message over an empty chart instead of bare axes. */
+    function chartEmpty(canvasId, isEmpty, title, text) {
+        const canvas = document.getElementById(canvasId);
+        const wrap = canvas && canvas.closest('.chart-wrap');
+        if (!wrap) return;
+        wrap.classList.toggle('is-empty', !!isEmpty);
+        let note = wrap.querySelector('.chart-empty-note');
+        if (!isEmpty) { if (note) note.remove(); return; }
+        if (!note) {
+            note = document.createElement('div');
+            note.className = 'chart-empty-note';
+            wrap.appendChild(note);
+        }
+        note.innerHTML = emptyState(title, text, 'fa-chart-simple');
+    }
+
+    /** A plain-language summary of the chart for screen readers. */
+    function describeChart(canvasId, text) {
+        const canvas = document.getElementById(canvasId);
+        if (canvas) canvas.setAttribute('aria-label', text);
+    }
+
     // ── File download ───────────────────────────────────────────────────────
     /** Save CSV text as a file (UTF-8 with a BOM so Excel shows accents and currency correctly). */
     function downloadCsv(filename, csvText) {
@@ -604,6 +670,10 @@ const ReplateUI = (() => {
         skeleton,
         emptyState,
         moneyHtml,
+        chartColors,
+        axisMoney,
+        chartEmpty,
+        describeChart,
         errorState
     };
 })();

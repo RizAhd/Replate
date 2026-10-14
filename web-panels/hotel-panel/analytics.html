@@ -38,7 +38,7 @@
             <div class="stat-grid">
                 <div class="card stat-card">
                     <p class="stat-value num" id="statRevenue">LKR 0.00</p>
-                    <p class="stat-label"><i class="fas fa-coins" aria-hidden="true"></i>Revenue (completed)</p>
+                    <p class="stat-label"><i class="fas fa-coins" aria-hidden="true"></i>Completed revenue</p>
                     <p class="stat-meta"><span class="delta flat" id="deltaRevenue"></span></p>
                 </div>
                 <div class="card stat-card">
@@ -166,7 +166,7 @@
     function getDayLabel(key) {
         const parts = key.split('-');
         const d = new Date(parts[0], parts[1]-1, parts[2]);
-        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
     }
 
     // Turns a time into text like "5m ago".
@@ -286,33 +286,29 @@
             setDelta('deltaRevenue', thisWeekRevenue, lastWeekRevenue);
             setDelta('deltaOrders', thisWeekOrders, lastWeekOrders);
 
-            // ── Revenue bar chart (last 7 days, real data) ──
+            // ── Revenue bar chart (last 7 days, by the day each order was completed) ──
+            const C = ReplateUI.chartColors;
             const revKeys = Object.keys(dailyRevenue).sort().slice(-7);
             const revLabels = revKeys.map(getDayLabel);
             const revData = revKeys.map(k => dailyRevenue[k]);
+            const revTotal = revData.reduce((a, b) => a + b, 0);
 
             if (revenueChartInstance) revenueChartInstance.destroy();
             revenueChartInstance = new Chart(document.getElementById('revenueChart'), {
                 type: 'bar',
                 data: {
                     labels: revLabels,
-                    datasets: [{
-                        label: 'Revenue (LKR)',
-                        data: revData,
-                        backgroundColor: 'rgba(26, 107, 60, 0.15)',
-                        borderColor: '#1a6b3c',
-                        borderWidth: 2,
-                        borderRadius: 8,
-                        hoverBackgroundColor: 'rgba(26, 107, 60, 0.35)',
-                    }]
+                    datasets: [{ label: 'Revenue', data: revData, backgroundColor: C.brand, borderRadius: 6, maxBarThickness: 40 }]
                 },
                 options: {
                     maintainAspectRatio: false,
                     responsive: true,
-                    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => 'LKR ' + ctx.parsed.y.toLocaleString() } } },
-                    scales: { y: { beginAtZero: true, ticks: { callback: v => 'LKR ' + (v >= 1000 ? (v/1000).toFixed(0) + 'k' : v) }, grid: { color: 'rgba(0,0,0,0.04)' } }, x: { grid: { display: false } } }
+                    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ReplateSchema.formatMoney(ctx.parsed.y) } } },
+                    scales: { y: { beginAtZero: true, ticks: { callback: ReplateUI.axisMoney }, grid: { color: C.grid } }, x: { grid: { display: false } } }
                 }
             });
+            ReplateUI.chartEmpty('revenueChart', revTotal === 0, 'No revenue in the last 7 days', 'Completed orders add to this chart.');
+            ReplateUI.describeChart('revenueChart', 'Bar chart: revenue per day for the last 7 days, ' + ReplateSchema.formatMoney(revTotal) + ' in total.');
 
             // ── Order status doughnut ──
             if (statusChartInstance) statusChartInstance.destroy();
@@ -323,7 +319,7 @@
                     labels: ['Completed', 'Pending', 'Cancelled'],
                     datasets: [{
                         data: hasStatusData ? [completed, pending, cancelled] : [1],
-                        backgroundColor: hasStatusData ? ['#059669', '#d97706', '#dc2626'] : ['#e5e7eb'],
+                        backgroundColor: hasStatusData ? [C.success, C.warning, C.danger] : [C.empty],
                         borderWidth: 0,
                         hoverOffset: 6,
                     }]
@@ -332,17 +328,17 @@
                     maintainAspectRatio: false,
                     responsive: true,
                     cutout: '65%',
-                    plugins: {
-                        legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true, pointStyle: 'circle', font: { size: 12, weight: 600 } } },
-                        tooltip: { enabled: hasStatusData }
-                    }
+                    plugins: { legend: { position: 'bottom' }, tooltip: { enabled: hasStatusData } }
                 }
             });
+            ReplateUI.chartEmpty('statusChart', !hasStatusData, 'No orders yet', 'Order statuses show here once customers order.');
+            ReplateUI.describeChart('statusChart', `Doughnut chart: ${completed} completed, ${pending} pending, ${cancelled} cancelled orders.`);
 
             // ── Orders per day line chart (last 14 days) ──
             const ordKeys = Object.keys(dailyOrders).sort().slice(-14);
             const ordLabels = ordKeys.map(getDayLabel);
             const ordData = ordKeys.map(k => dailyOrders[k]);
+            const ordTotal = ordData.reduce((a, b) => a + b, 0);
 
             if (ordersLineInstance) ordersLineInstance.destroy();
             ordersLineInstance = new Chart(document.getElementById('ordersLineChart'), {
@@ -352,54 +348,48 @@
                     datasets: [{
                         label: 'Orders',
                         data: ordData,
-                        borderColor: '#f97316',
-                        backgroundColor: 'rgba(249, 115, 22, 0.10)',
+                        borderColor: C.brand,
+                        backgroundColor: C.brandSoft,
                         fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: '#f97316',
+                        tension: 0,
+                        pointBackgroundColor: C.brand,
                         pointBorderColor: '#fff',
                         pointBorderWidth: 2,
-                        pointRadius: 4,
-                        pointHoverRadius: 6,
+                        pointRadius: 3,
+                        pointHoverRadius: 5,
                     }]
                 },
                 options: {
                     maintainAspectRatio: false,
                     responsive: true,
                     plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,0.04)' } }, x: { grid: { display: false } } }
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 }, grid: { color: C.grid } }, x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkipPadding: 12 } } }
                 }
             });
+            ReplateUI.chartEmpty('ordersLineChart', ordTotal === 0, 'No orders in the last 14 days', 'Each day\'s orders show here.');
+            ReplateUI.describeChart('ordersLineChart', 'Line chart: orders per day for the last 14 days, ' + ReplateSchema.plural(ordTotal, 'order') + ' in total.');
 
-            // ── Top selling items horizontal bar ──
+            // ── Top selling items: one colour, longest bar first ──
             const sortedItems = Object.entries(itemSales).sort((a, b) => b[1] - a[1]).slice(0, 6);
             if (topItemsInstance) topItemsInstance.destroy();
-            const itemColors = ['#1a6b3c', '#059669', '#f97316', '#d97706', '#fb923c', '#0f4d2b'];
-            if (sortedItems.length > 0) {
-                topItemsInstance = new Chart(document.getElementById('topItemsChart'), {
-                    type: 'bar',
-                    data: {
-                        labels: sortedItems.map(i => i[0]),
-                        datasets: [{
-                            label: 'Sold',
-                            data: sortedItems.map(i => i[1]),
-                            backgroundColor: sortedItems.map((_, i) => itemColors[i % itemColors.length] + '22'),
-                            borderColor: sortedItems.map((_, i) => itemColors[i % itemColors.length]),
-                            borderWidth: 2,
-                            borderRadius: 6,
-                        }]
-                    },
-                    options: {
+            topItemsInstance = new Chart(document.getElementById('topItemsChart'), {
+                type: 'bar',
+                data: {
+                    labels: sortedItems.map(i => i[0]),
+                    datasets: [{ label: 'Sold', data: sortedItems.map(i => i[1]), backgroundColor: C.brand, borderRadius: 6, maxBarThickness: 32 }]
+                },
+                options: {
                     maintainAspectRatio: false,
-                        indexAxis: 'y',
-                        responsive: true,
-                        plugins: { legend: { display: false } },
-                        scales: { x: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,0.04)' } }, y: { grid: { display: false } } }
-                    }
-                });
-            } else {
-                document.getElementById('topItemsChart').parentElement.innerHTML += '<p class="text-center text-muted mt-3">No order data yet.</p>';
-            }
+                    indexAxis: 'y',
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { x: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 }, grid: { color: C.grid } }, y: { grid: { display: false } } }
+                }
+            });
+            ReplateUI.chartEmpty('topItemsChart', sortedItems.length === 0, 'No dishes sold yet', 'Your best sellers are ranked here.');
+            ReplateUI.describeChart('topItemsChart', sortedItems.length
+                ? 'Bar chart: best-selling dishes. ' + sortedItems.map(([name, n]) => name + ' ' + n).join(', ') + '.'
+                : 'Bar chart: best-selling dishes. No sales yet.');
 
             // ── Recent orders table ──
             recentOrders.sort((a, b) => b.ts - a.ts);
