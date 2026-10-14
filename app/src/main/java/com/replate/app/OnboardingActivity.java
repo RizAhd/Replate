@@ -178,25 +178,8 @@ public class OnboardingActivity extends AppCompatActivity {
         Intent intent;
         // If user is already signed in (came here right after first-time registration/social login)
         if (isPostAuth || FirebaseAuth.getInstance().getCurrentUser() != null) {
-            SharedPreferences prefs = getSharedPreferences("REPLATE_PREFS", MODE_PRIVATE);
-            String role = prefs.getString("role", "customer");
-            if ("hotel".equals(role)) {
-                try {
-                    Class<?> hotelClass = Class.forName("com.replate.app.hotel.HotelDashboardActivity");
-                    intent = new Intent(this, hotelClass);
-                } catch (ClassNotFoundException e) {
-                    intent = new Intent(this, MainActivity.class);
-                }
-            } else if ("admin".equals(role)) {
-                try {
-                    Class<?> adminClass = Class.forName("com.replate.app.admin.AdminDashboardActivity");
-                    intent = new Intent(this, adminClass);
-                } catch (ClassNotFoundException e) {
-                    intent = new Intent(this, MainActivity.class);
-                }
-            } else {
-                intent = new Intent(this, MainActivity.class);
-            }
+            // This app is customers only (hotels and admins use the web panels)
+            intent = new Intent(this, MainActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         } else {
             intent = new Intent(this, LoginActivity.class);

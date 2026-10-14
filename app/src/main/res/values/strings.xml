@@ -14,9 +14,7 @@
     <string name="cd_location_icon">Location icon</string>
     <string name="cd_my_location">Show my location</string>
     <string name="cd_food_image">Food image</string>
-    <string name="cd_add_to_cart">Add to cart</string>
     <string name="cd_remove_item">Remove item</string>
-    <string name="cd_search">Search illustration</string>
     <string name="cd_category">Category icon</string>
     <string name="cd_profile_photo">Your profile photo</string>
     <plurals name="cd_open_notifications_unread">
@@ -46,7 +44,6 @@
     <string name="map_loading_items">Loading available items…</string>
     <string name="map_tap_marker_route">Tap a marker to view route details</string>
     <string name="map_route_unavailable">Route unavailable</string>
-    <string name="map_route_template">Distance: %1$s • ETA: %2$s</string>
     <string name="map_items_load_failed">Unable to load items right now.</string>
     <string name="map_items_tap_marker">Tap marker to load hotel menu...</string>
     <string name="map_deals_rating_template">%1$s • ★%2$.1f</string>
@@ -60,7 +57,6 @@
     <string name="location_picker_live_unavailable">Could not find your location. Move the map to your address, or search for it.</string>
     <string name="home_empty_none">No food is available right now. Pull down to refresh.</string>
     <string name="home_empty_category">Nothing in this category right now. Try another one.</string>
-    <string name="map_gps_off">Location is off, so distances to hotels can\'t be shown.</string>
     <string name="map_location_denied">Location permission denied. Allow it to see hotels near you.</string>
     <string name="map_location_needed_title">Location is turned off for REPLATE</string>
     <string name="map_location_needed_message">Allow location in the app settings to see how far hotels are and get directions.</string>
@@ -85,9 +81,6 @@
     <string name="cart_title">Your cart</string>
     <string name="cart_summary">Review your rescue meals before checkout</string>
     <string name="cart_clear_all">Clear all</string>
-    <string name="cart_overview_title">Cart overview</string>
-    <string name="cart_overview_subtitle">Everything you’re about to rescue, ready for pickup</string>
-    <string name="cart_items_label">Items</string>
     <string name="cart_total_label">Total</string>
     <string name="cart_zero">0</string>
     <string name="cart_empty_title">Your cart is feeling empty</string>
@@ -97,10 +90,6 @@
     <string name="cart_items_count_placeholder">0 items</string>
     <string name="cart_you_save">You save</string>
     <string name="cart_proceed_checkout">Proceed to checkout</string>
-    <string name="cart_pickup_friendly">Pickup friendly</string>
-    <string name="cart_pickup_friendly_desc">Your saved meals stay in the local cart, even if your internet is unstable.</string>
-    <string name="cart_pickup_friendly_hint">Open your detailed cart to review quantities, remove items, and continue to checkout.</string>
-    <string name="cart_open_detailed">Open detailed cart</string>
     <string name="cart_qty_default">1</string>
     <string name="cart_subtotal_label">Subtotal</string>
 
@@ -114,11 +103,6 @@
     <string name="cart_summary_offline_saved">Your cart will automatically keep items saved offline.</string>
     <string name="cart_summary_single_ready">You have 1 rescue meal ready for checkout</string>
     <string name="cart_summary_multi_ready">You have %1$d rescue meals ready for checkout</string>
-    <string name="cart_total_savings_label">Total Savings</string>
-    <string name="cart_amount_label">Amount</string>
-    <string name="cart_title_emoji">&#x1F6D2; Your Order</string>
-    <string name="cart_emoji">&#x1F6D2;</string>
-    <string name="cart_environment_tip">Every purchase saves food waste &amp; helps the environment</string>
 
     <!-- Price placeholders -->
     <string name="price_zero_lkr">LKR 0.00</string>
@@ -130,8 +114,6 @@
     <string name="food_distance_placeholder">1.2 km</string>
     <string name="food_name_placeholder">Chicken Biryani</string>
     <string name="food_hotel_placeholder">Hotel Paradise</string>
-    <string name="food_pickup_placeholder">Pickup: 6:00 PM - 8:00 PM</string>
-    <string name="food_distance_nearby">Nearby</string>
     <string name="food_pickup_template">Pickup: %1$s</string>
 
     <!-- Food detail defaults -->
@@ -141,8 +123,6 @@
     <string name="food_detail_default_distance">1.2 km away</string>
     <string name="food_detail_default_pickup_window">6:00 PM - 8:00 PM</string>
     <string name="food_detail_original_label">Original</string>
-    <string name="food_detail_call_hotel">Call hotel</string>
-    <string name="food_detail_sms_hotel">SMS hotel</string>
     <string name="food_detail_description_placeholder">Food description goes here...</string>
 
     <!-- Food detail review composer -->
@@ -179,12 +159,10 @@
     <string name="notifications_header_subtitle">Stay updated about new deals, order progress, and hotel activity.</string>
     <string name="notifications_empty_title">No notifications yet</string>
     <string name="notifications_empty_subtitle">We’ll notify you when a hotel posts new deals or your order status changes.</string>
-    <string name="cd_notifications_empty">Notifications empty state</string>
     <string name="profile_settings">Settings</string>
     <string name="profile_logout">Log out</string>
 
     <!-- Delete Account -->
-    <string name="delete_account_title">Delete account</string>
     <string name="delete_account_confirm_title">Are you sure?</string>
     <string name="delete_account_confirm_message">This will permanently delete your account and all associated data. This action cannot be undone.</string>
     <string name="delete_account_password_title">Confirm your password</string>
@@ -193,20 +171,8 @@
     <string name="delete_account_success">Account deleted successfully.</string>
     <string name="delete_account_wrong_password">Incorrect password. Please try again.</string>
     <string name="delete_account_failed">Failed to delete account. Please try again.</string>
-    <string name="delete_account_reauth_failed">Re-authentication failed. Please try again.</string>
     <string name="delete_account_confirm_btn">Delete</string>
     <string name="delete_account_recent_login">For your security, please log out, sign in again, then delete your account.</string>
-
-    <!-- Chat -->
-    <string name="chat_title">Chat</string>
-    <string name="chat_send_hint">Type a message…</string>
-    <string name="chat_empty_title">Start a conversation</string>
-    <string name="chat_empty_subtitle">Send a message to start chatting about your order</string>
-    <string name="chat_online">Online</string>
-    <string name="chat_offline">Offline</string>
-    <string name="chat_login_required">Please login to chat</string>
-    <string name="chat_invalid_session">Invalid chat session</string>
-    <string name="chat_send_failed">Failed to send message</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>
@@ -255,19 +221,6 @@ Orders, reviews and chats are shared with the hotel you order from. A notificati
 You can delete your account and its data from your profile at any time.</string>
     <string name="settings_cache_cleared">Cache cleared</string>
     <string name="settings_version">Version %1$s</string>
-    <string name="settings_notification_tools">Notification Tools</string>
-    <string name="settings_notification_tools_desc">Refresh your FCM token, verify what is saved for this account, and send a secure self-test push.</string>
-    <string name="settings_send_test_push">Send Test Push</string>
-    <string name="settings_refresh_fcm_token">Refresh FCM Token</string>
-    <string name="settings_current_fcm_token_label">Current device token</string>
-    <string name="settings_current_fcm_token_empty">Token not available yet. Refresh once Firebase finishes registration.</string>
-    <string name="settings_current_fcm_token_format">%1$s</string>
-    <string name="settings_test_push_sending">Sending test push...</string>
-    <string name="settings_test_push_sent">Test push sent. Check popup banner now.</string>
-    <string name="settings_test_push_failed">Failed to send test push.</string>
-    <string name="settings_token_refreshing">Refreshing token...</string>
-    <string name="settings_token_refreshed">FCM token refreshed and synced.</string>
-    <string name="settings_token_refresh_failed">Couldn’t refresh FCM token.</string>
 
     <!-- Checkout -->
     <string name="checkout_title">Checkout</string>
@@ -326,11 +279,6 @@ Total: LKR %1$.2f</string>
     <string name="search_title">Search</string>
     <string name="search_hint_full">Search for food, hotels, cuisines...</string>
     <string name="search_chip_all">All</string>
-    <string name="search_chip_nearby">Nearby</string>
-    <string name="search_chip_price_low">Price: Low to High</string>
-    <string name="search_chip_top_rated">Top Rated</string>
-    <string name="search_chip_category">Category</string>
-    <string name="search_chip_best_discount">Best Discount</string>
     <string name="search_results_default">0 results found</string>
     <string name="search_empty_title">Start searching for food deals</string>
     <string name="search_filter_action">Open advanced filters</string>
@@ -355,38 +303,14 @@ Total: LKR %1$.2f</string>
     <string name="search_loading_fresh">Loading fresh results...</string>
     <string name="food_card_add">Add</string>
 
-    <!-- Edit profile -->
-    <string name="edit_profile_title">Edit Profile</string>
-    <string name="edit_profile_hint_name">Full Name</string>
-    <string name="edit_profile_hint_phone">Phone Number</string>
-    <string name="edit_profile_hint_address">Address</string>
-    <string name="edit_profile_pick_map">Pick Address on Map</string>
-    <string name="edit_profile_save">Save Changes</string>
-
     <!-- Order review -->
     <string name="order_review_title">Rate your order</string>
     <string name="order_review_hint">Share your pickup experience</string>
     <string name="order_review_comment_hint">Write a short review (optional)</string>
     <string name="order_review_submit">Submit review</string>
 
-    <!-- Mock payment -->
-    <string name="mock_pay_title">PayHere</string>
-    <string name="mock_pay_total_amount">Total Amount</string>
-    <string name="mock_pay_total_default">LKR 1,250.00</string>
-    <string name="mock_pay_method_title">Payment Method</string>
-    <string name="mock_pay_card_option">Credit/Debit Card</string>
-    <string name="mock_pay_wallet_option">Mobile Wallet</string>
-    <string name="mock_pay_card_details">Card Details</string>
-    <string name="mock_pay_card_number">Card Number</string>
-    <string name="mock_pay_expiry">Expiry</string>
-    <string name="mock_pay_cvv">CVV</string>
-    <string name="mock_pay_cardholder">Cardholder Name</string>
-    <string name="mock_pay_action">Pay LKR 1,250.00</string>
-    <string name="mock_pay_secured">🔒 Secured by PayHere</string>
-
     <!-- Location picker -->
     <string name="location_picker_title">Select location</string>
-    <string name="location_picker_hint">Search location or move map...</string>
     <string name="location_picker_use_live">Use live location</string>
     <string name="location_picker_confirm">Confirm location</string>
     <string name="location_picker_move_hint">Move map to select location...</string>
@@ -404,18 +328,6 @@ Total: LKR %1$.2f</string>
     <string name="notifications_permission_continue">Allow</string>
     <string name="notifications_permission_not_now">Not now</string>
     <string name="notifications_permission_denied">Notifications are disabled. You can enable them later from app settings.</string>
-    <string name="notifications_permission_settings">Open notification settings</string>
-    <string name="notification_hotel_approved_title">Hotel approved</string>
-    <string name="notification_hotel_approved_body">Your hotel account is approved. You can now manage orders and listings.</string>
-
-    <!-- Location permission UX -->
-    <string name="location_permission_title">Enable live location</string>
-    <string name="location_permission_message">We use your current location to show nearby hotels, faster search results, and accurate pickup routes.</string>
-    <string name="location_permission_continue">Continue</string>
-    <string name="location_permission_not_now">Not now</string>
-    <string name="location_permission_settings_title">Location permission needed</string>
-    <string name="location_permission_settings_message">Location access is permanently denied. Open app settings to enable live location and nearby hotel routes.</string>
-    <string name="location_permission_open_settings">Open settings</string>
 
     <!-- Search History -->
     <string name="search_suggestions_title">Try searching for</string>
@@ -437,9 +349,6 @@ Total: LKR %1$.2f</string>
     <string name="fb_login_protocol_scheme">fbyour_facebook_app_id</string>
 
     <!-- Social login labels -->
-    <string name="auth_continue_google">Continue with Google</string>
-    <string name="auth_continue_facebook">Continue with Facebook</string>
-    <string name="auth_continue_phone">Continue with Phone</string>
     <string name="auth_or">or</string>
     <string name="auth_not_registered_title">Account not found</string>
     <string name="auth_not_registered_message">No account exists with this email address.\n\nPlease register first to create your account, then come back and log in.</string>
@@ -677,9 +586,6 @@ Total: LKR %1$.2f</string>
     <string name="main_location_access_is_permanently_denied">Location access is permanently denied. Open app settings to enable live location and nearby hotel routes.</string>
     <string name="main_open_settings">Open settings</string>
     <string name="main_refreshing">Refreshing...</string>
-    <string name="notifications_delete_notification">Delete notification</string>
-    <string name="notifications_remove_this_notification">Remove this notification?</string>
-    <string name="notifications_delete">Delete</string>
     <string name="notifications_cancel">Cancel</string>
     <string name="notifications_delete_all_notifications">Delete all notifications</string>
     <string name="notifications_delete_all_2">Delete all</string>

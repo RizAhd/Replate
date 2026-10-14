@@ -125,18 +125,5 @@
         <item name="android:color">@color/md_theme_primaryContainer</item>
     </style>
 
-    <!-- Prompt Specific Theme (backward compat) -->
-    <style name="Theme.Replate" parent="Theme.Material3.Light.NoActionBar">
-        <item name="colorPrimary">@color/green_primary</item>
-        <item name="colorSecondary">@color/orange_accent</item>
-        <item name="android:colorBackground">@color/background_cream</item>
-        <item name="colorSurface">@color/surface_white</item>
-        <item name="android:fontFamily">@font/poppins</item>
-    </style>
-
-    <!-- Circular FAB shape for chat send button -->
-    <style name="ShapeAppearance.REPLATE.CircleFab" parent="">
-        <item name="cornerSize">50%</item>
-    </style>
 </resources>
 

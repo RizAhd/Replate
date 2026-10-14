@@ -46,9 +46,6 @@
     <color name="md_theme_inverseOnSurface">#F5F5F0</color>
     <color name="md_theme_inversePrimary">#4FCB7D</color>
 
-    <!-- Surface Tint -->
-    <color name="md_theme_surfaceTint">@color/leaf</color>
-
     <!-- Surface Containers (M3 Elevation Tones) -->
     <color name="md_theme_surfaceContainerLowest">#FFFFFF</color>
     <color name="md_theme_surfaceContainerLow">#F5F5F5</color>
@@ -81,7 +78,6 @@
          ========================================== -->
     <color name="primary">@color/leaf</color>
     <color name="primary_dark">#0D3B1E</color>
-    <color name="primary_light">@color/leaf_pale</color>
     <color name="text_primary">#1C1C1E</color>
     <color name="text_secondary">#6C6C6E</color>
     <!-- 4.6:1 on white; the old #9E9E9E was 2.7:1 and failed AA for dates and hints -->
@@ -109,11 +105,6 @@
     <color name="badge_distance">@color/leaf</color>
     <color name="price_discounted">@color/leaf</color>
 
-    <!-- Distance marker colors -->
-    <color name="marker_near">@color/leaf2</color>
-    <color name="marker_medium">@color/ember2</color>
-    <color name="marker_far">@color/ember</color>
-
     <!-- Prompt Specific Colors -->
     <color name="green_primary">@color/leaf</color>
     <color name="green_light">@color/leaf2</color>
@@ -127,9 +118,6 @@
     <color name="white_70">#B3FFFFFF</color>
     <color name="surface_subtle">#F5F5F5</color>
     <color name="text_on_primary_muted">#D9FFFFFF</color>
-
-    <!-- Shimmer / Loading -->
-    <color name="shimmer_base">#F0F0F0</color>
 
     <!-- Overlays -->
     <color name="nav_divider">#EAEAEA</color>
