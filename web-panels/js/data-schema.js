@@ -264,10 +264,134 @@ const ReplateSchema = (() => {
         return count + ' ' + (count === 1 ? one : (many || one + 's'));
     }
 
-    // Shortens the order id to its last 8 characters.
+    /** The order number people see: the last 8 characters of the order id, upper case ("#" is added by the page). Same rule as the app. */
     function shortOrderId(order, firebaseKey) {
-        const id = order.orderId || order.qrCode || order.pickupCode || firebaseKey || '';
-        return id.length > 8 ? id.substring(id.length - 8) : id;
+        const o = order || {};
+        const id = String(o.orderId || o.qrCode || o.pickupCode || firebaseKey || '');
+        return (id.length > 8 ? id.substring(id.length - 8) : id).toUpperCase();
+    }
+
+    // ── Pickup times: one separator (an en dash) everywhere ─────────────────────────────
+    /** "18:00 – 20:00" for a dish's pickup window; "—" when neither end is set. */
+    function formatPickupWindow(start, end) {
+        const a = String(start || '').trim();
+        const b = String(end || '').trim();
+        return a || b ? (a || '?') + ' – ' + (b || '?') : '—';
+    }
+
+    /** An order's pickup time as written by the app ("18:30", or "18:00 - 19:00" in older orders), with an en dash. */
+    function formatPickupSlot(raw) {
+        const text = String(raw || '').trim();
+        return text.replace(/(\d{1,2}:\d{2})\s*(?:-|–|—|to)\s*(\d{1,2}:\d{2})/, '$1 – $2');
+    }
+
+    /** "18:00" (24-hour, local time). */
+    const CLOCK = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+    function formatClock(ts) {
+        return CLOCK.format(new Date(Number(ts)));
+    }
+
+    /** Length of a pickup slot: the QR code and pickup code work for one hour from the chosen time (app: PickupWindow.WINDOW_MINUTES). */
+    const PICKUP_WINDOW_MINUTES = 60;
+    /** Under this many minutes left, the countdown is shown as urgent. */
+    const PICKUP_URGENT_MINUTES = 15;
+
+    /**
+     * When the customer's pickup slot opens: the time they chose (the first "HH:mm" in pickupTime) on the
+     * slot's own day, or one hour before the code expires when the time cannot be read.
+     */
+    function pickupStartsAt(order, expiresAt) {
+        const fallback = expiresAt - PICKUP_WINDOW_MINUTES * 60000;
+        const match = /(\d{1,2}):(\d{2})/.exec(String((order && order.pickupTime) || ''));
+        if (!match) return fallback;
+        const hour = Number(match[1]);
+        const minute = Number(match[2]);
+        if (hour > 23 || minute > 59) return fallback;
+        const start = new Date(fallback);
+        start.setHours(hour, minute, 0, 0);
+        return start.getTime() <= expiresAt ? start.getTime() : fallback;
+    }
+
+    /**
+     * Time left to collect an open pickup order, in the same words as the app:
+     *   before the slot   -> { text: "Pickup starts at 18:00", tone: 'upcoming' }
+     *   during the slot   -> { text: "Collect within 42 min", tone: 'normal' | 'urgent' (under 15 min) }
+     *   after the slot    -> { text: "Code expired", tone: 'expired' }
+     * null for deliveries, finished or cancelled orders and orders without a recorded expiry.
+     */
+    function pickupCountdown(order, now = Date.now()) {
+        const o = order || {};
+        if (String(o.orderType || '').toLowerCase() === 'delivery' || !isOpenOrder(o)) return null;
+        const expiresAt = Number(o.pickupExpiresAt);
+        if (!Number.isFinite(expiresAt) || expiresAt <= 0) return null;
+        if (now > expiresAt) return { text: 'Code expired', tone: 'expired', minutesLeft: 0 };
+        const startsAt = pickupStartsAt(o, expiresAt);
+        if (now < startsAt) return { text: 'Pickup starts at ' + formatClock(startsAt), tone: 'upcoming', minutesLeft: null };
+        const minutesLeft = Math.max(1, Math.ceil((expiresAt - now) / 60000));
+        return {
+            text: 'Collect within ' + minutesLeft + ' min',
+            tone: minutesLeft < PICKUP_URGENT_MINUTES ? 'urgent' : 'normal',
+            minutesLeft
+        };
+    }
+
+    // ── Impact estimate: the same numbers as the app (Profile > impact card) ─────────────
+    /** Estimates, not measurements: about 0.4 kg of food per rescued meal, 2.5 kg CO2e per kg of food not wasted. */
+    const IMPACT = Object.freeze({ KG_FOOD_PER_MEAL: 0.4, KG_CO2E_PER_KG_FOOD: 2.5 });
+
+    /** { meals, foodKg, co2eKg }: meals = dishes in completed and delivered orders; the two weights are estimates. */
+    function impactFromOrders(orders) {
+        const meals = (orders || []).reduce((sum, order) =>
+            sum + (order && isSuccessfulOrder(order) ? orderItemCount(order) : 0), 0);
+        const foodKg = meals * IMPACT.KG_FOOD_PER_MEAL;
+        return { meals, foodKg, co2eKg: foodKg * IMPACT.KG_CO2E_PER_KG_FOOD };
+    }
+
+    const KG = new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 });
+    /** "11.6 kg", "29 kg", "1,160 kg" */
+    function formatKg(kg) {
+        const n = Number(kg);
+        return KG.format(Number.isFinite(n) ? n : 0) + ' kg';
+    }
+
+    // ── "vs last week" on analytics cards ───────────────────────────────────────────────
+    /**
+     * This week compared with last week, as { dir: 'up' | 'down' | 'flat' | 'none', text }:
+     * "12% vs last week", "New this week" (nothing last week), "Same as last week"; 'none' (no text) when both are 0.
+     */
+    function weekDelta(current, previous) {
+        const cur = Number(current) || 0;
+        const prev = Number(previous) || 0;
+        if (cur === 0 && prev === 0) return { dir: 'none', text: '' };
+        if (prev === 0) return { dir: 'up', text: 'New this week' };
+        const pct = Math.round(((cur - prev) / prev) * 100);
+        if (pct === 0) return { dir: 'flat', text: 'Same as last week' };
+        return { dir: pct > 0 ? 'up' : 'down', text: formatPercent(Math.abs(pct)) + ' vs last week' };
+    }
+
+    // ── Relative time, long style: "just now", "5 minutes ago", "1 hour ago", then the date ──
+    const RELATIVE = new Intl.RelativeTimeFormat('en', { numeric: 'always', style: 'long' });
+    function formatRelative(ts, now = Date.now()) {
+        const t = Number(ts);
+        if (!(t > 0)) return '';
+        const seconds = Math.floor((now - t) / 1000);
+        if (seconds < 60) return 'just now';
+        if (seconds < 3600) return RELATIVE.format(-Math.floor(seconds / 60), 'minute');
+        if (seconds < 86400) return RELATIVE.format(-Math.floor(seconds / 3600), 'hour');
+        return formatDate(t);
+    }
+
+    // ── New-order alerts for hotels ─────────────────────────────────────────────────────
+    /** True for an order the hotel has not acted on yet (pending pickup or pending delivery). */
+    function isNewOrder(order) {
+        const s = normalizeOrderStatus(order && order.orderStatus);
+        return s === 'pending_pickup' || s === 'pending_delivery';
+    }
+
+    /** The rows ({ key, order }) that were not in knownKeys and still wait for the hotel: the orders to announce. */
+    function newPendingOrders(knownKeys, rows) {
+        const known = knownKeys instanceof Set ? knownKeys : new Set(knownKeys || []);
+        return (rows || []).filter((row) => row && !known.has(row.key) && isNewOrder(row.order));
     }
 
     // Returns admin, hotel or customer; anything else is customer.
@@ -651,6 +775,19 @@ const ReplateSchema = (() => {
         formatWeekdayDate,
         plural,
         shortOrderId,
+        formatPickupWindow,
+        formatPickupSlot,
+        formatClock,
+        PICKUP_WINDOW_MINUTES,
+        PICKUP_URGENT_MINUTES,
+        pickupCountdown,
+        IMPACT,
+        impactFromOrders,
+        formatKg,
+        weekDelta,
+        formatRelative,
+        isNewOrder,
+        newPendingOrders,
         normalizeUserRole,
         normalizeHotelStatus,
         isPickupExpired,

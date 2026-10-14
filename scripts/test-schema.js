@@ -318,4 +318,129 @@ test('a completed cash order counts as paid; an unpaid cancelled order as not pa
     assert.strictEqual(S.paymentView({ paymentMethod: 'PayHere Online', paymentStatus: 'pending', orderStatus: 'delivered' }).label, 'Pending');
 });
 
+test('order number: last 8 characters of the order id, upper case (same rule as the app)', () => {
+    assert.strictEqual(S.shortOrderId({ orderId: '-NabcDEF12gh' }), 'CDEF12GH');
+    assert.strictEqual(S.shortOrderId({ orderId: 'abc123' }), 'ABC123');
+    assert.strictEqual(S.shortOrderId({}, 'ord-xyz'), 'ORD-XYZ');               // falls back to the database key
+    assert.strictEqual(S.shortOrderId({ qrCode: 'E2E-ORDER-O10' }, 'k'), 'RDER-O10');
+    assert.strictEqual(S.shortOrderId(null, ''), '');
+});
+
+test('pickup times use one separator: an en dash', () => {
+    assert.strictEqual(S.formatPickupWindow('18:00', '20:00'), '18:00 – 20:00');
+    assert.strictEqual(S.formatPickupWindow('18:00', ''), '18:00 – ?');
+    assert.strictEqual(S.formatPickupWindow('', ''), '—');
+    assert.strictEqual(S.formatPickupSlot('18:00 - 19:00'), '18:00 – 19:00');
+    assert.strictEqual(S.formatPickupSlot('18:00-19:00'), '18:00 – 19:00');
+    assert.strictEqual(S.formatPickupSlot('18:30'), '18:30');
+    assert.strictEqual(S.formatPickupSlot(undefined), '');
+});
+
+const clock = (h, m) => new Date(2026, 9, 14, h, m || 0).getTime();   // 14 Oct 2026, local time
+
+test('pickup countdown: before, during and after the slot, in the app\'s words', () => {
+    const order = { orderStatus: 'pending_pickup', orderType: 'Pickup', pickupTime: '18:00', pickupExpiresAt: clock(19) };
+    const before = S.pickupCountdown(order, clock(17, 30));
+    assert.strictEqual(before.text, 'Pickup starts at 18:00');
+    assert.strictEqual(before.tone, 'upcoming');
+    const during = S.pickupCountdown(order, clock(18, 18));
+    assert.strictEqual(during.text, 'Collect within 42 min');
+    assert.strictEqual(during.tone, 'normal');
+    assert.strictEqual(during.minutesLeft, 42);
+    assert.strictEqual(S.pickupCountdown(order, clock(18, 18) + 30000).text, 'Collect within 42 min');   // part minutes round up
+    const late = S.pickupCountdown(order, clock(18, 50));
+    assert.strictEqual(late.text, 'Collect within 10 min');
+    assert.strictEqual(late.tone, 'urgent');                                                               // under 15 minutes
+    assert.strictEqual(S.pickupCountdown(order, clock(18, 45)).tone, 'normal');                           // 15 min left
+    assert.strictEqual(S.pickupCountdown(order, clock(18, 46)).tone, 'urgent');                           // 14 min left
+    assert.strictEqual(S.pickupCountdown(order, clock(19)).text, 'Collect within 1 min');                 // the last moment still counts
+    const after = S.pickupCountdown(order, clock(19) + 1);
+    assert.strictEqual(after.text, 'Code expired');
+    assert.strictEqual(after.tone, 'expired');
+});
+
+test('pickup countdown: older "18:00 - 19:00" times, unreadable times and shortened slots', () => {
+    const older = { orderStatus: 'confirmed', pickupTime: '18:00 - 19:00', pickupExpiresAt: clock(19) };
+    assert.strictEqual(S.pickupCountdown(older, clock(17)).text, 'Pickup starts at 18:00');
+    assert.strictEqual(S.pickupCountdown(older, clock(18, 30)).text, 'Collect within 30 min');
+    const unreadable = { orderStatus: 'ready', pickupTime: 'soon', pickupExpiresAt: clock(19) };
+    assert.strictEqual(S.pickupCountdown(unreadable, clock(17, 59)).text, 'Pickup starts at 18:00');      // one hour before expiry
+    assert.strictEqual(S.pickupCountdown(unreadable, clock(18, 10)).text, 'Collect within 50 min');
+    const capped = { orderStatus: 'pending_pickup', pickupTime: '19:00', pickupExpiresAt: clock(19, 45) }; // dish window ends earlier
+    assert.strictEqual(S.pickupCountdown(capped, clock(18, 50)).text, 'Pickup starts at 19:00');
+    assert.strictEqual(S.pickupCountdown(capped, clock(19, 5)).text, 'Collect within 40 min');
+    const lateNight = { orderStatus: 'pending_pickup', pickupTime: '23:30', pickupExpiresAt: new Date(2026, 9, 15, 0, 30).getTime() };
+    assert.strictEqual(S.pickupCountdown(lateNight, clock(23, 0)).text, 'Pickup starts at 23:30');
+    assert.strictEqual(S.pickupCountdown(lateNight, clock(23, 50)).text, 'Collect within 40 min');
+});
+
+test('pickup countdown: nothing for deliveries, finished orders and orders without an expiry', () => {
+    const at18 = clock(18, 10);
+    assert.strictEqual(S.pickupCountdown({ orderStatus: 'pending_delivery', orderType: 'Delivery', pickupExpiresAt: clock(19) }, at18), null);
+    ['completed', 'delivered', 'cancelled'].forEach((s) =>
+        assert.strictEqual(S.pickupCountdown({ orderStatus: s, pickupExpiresAt: clock(19) }, at18), null, s));
+    assert.strictEqual(S.pickupCountdown({ orderStatus: 'pending_pickup', pickupTime: '18:00' }, at18), null);
+    assert.strictEqual(S.pickupCountdown({ orderStatus: 'pending_pickup', pickupExpiresAt: 'x' }, at18), null);
+    assert.strictEqual(S.pickupCountdown(null, at18), null);
+});
+
+const near = (actual, expected, label) => assert.ok(Math.abs(actual - expected) < 1e-9, `${label}: ${actual} != ${expected}`);
+
+test('impact estimate: meals from completed and delivered orders, 0.4 kg food per meal, 2.5 kg CO2e per kg food', () => {
+    assert.strictEqual(S.IMPACT.KG_FOOD_PER_MEAL, 0.4);
+    assert.strictEqual(S.IMPACT.KG_CO2E_PER_KG_FOOD, 2.5);
+    const impact = S.impactFromOrders([
+        { orderStatus: 'completed', items: [{ quantity: 2 }, { quantity: 1 }] },
+        { orderStatus: 'delivered', items: { a: { quantity: 4 } } },
+        { orderStatus: 'pending_pickup', items: [{ quantity: 5 }] },          // not handed over yet
+        { orderStatus: 'cancelled', items: [{ quantity: 3 }] },               // never rescued
+        { orderStatus: 'completed', items: [{}] },                            // a line without a quantity is one meal
+        null
+    ]);
+    assert.strictEqual(impact.meals, 8);
+    near(impact.foodKg, 3.2, 'food kg');
+    near(impact.co2eKg, 8, 'CO2e kg');
+    const none = S.impactFromOrders([]);
+    assert.strictEqual(none.meals + none.foodKg + none.co2eKg, 0);
+    assert.strictEqual(S.formatKg(29 * 0.4), '11.6 kg');
+    assert.strictEqual(S.formatKg(29 * 0.4 * 2.5), '29 kg');
+    assert.strictEqual(S.formatKg(1160), '1,160 kg');
+    assert.strictEqual(S.formatKg('x'), '0 kg');
+});
+
+test('week-over-week change is labelled "vs last week"', () => {
+    const d = (cur, prev) => { const r = S.weekDelta(cur, prev); return r.dir + '|' + r.text; };
+    assert.strictEqual(d(0, 0), 'none|');
+    assert.strictEqual(d(3, 0), 'up|New this week');
+    assert.strictEqual(d(12, 10), 'up|20% vs last week');
+    assert.strictEqual(d(5, 10), 'down|50% vs last week');
+    assert.strictEqual(d(10, 10), 'flat|Same as last week');
+    assert.strictEqual(d(0, 4), 'down|100% vs last week');
+});
+
+test('relative time in the long style: "just now", "1 minute ago", "1 hour ago", then the date', () => {
+    const now = clock(15);
+    assert.strictEqual(S.formatRelative(now - 30000, now), 'just now');
+    assert.strictEqual(S.formatRelative(now - 60000, now), '1 minute ago');
+    assert.strictEqual(S.formatRelative(now - 5 * 60000, now), '5 minutes ago');
+    assert.strictEqual(S.formatRelative(now - 3600000, now), '1 hour ago');
+    assert.strictEqual(S.formatRelative(now - 3 * 3600000 - 59000, now), '3 hours ago');
+    assert.strictEqual(S.formatRelative(now - 2 * 86400000, now), '12 Oct 2026');
+    assert.strictEqual(S.formatRelative(0, now), '');
+});
+
+test('new-order alerts: only orders not seen before that still wait for the hotel', () => {
+    const rows = [
+        { key: 'a', order: { orderStatus: 'pending_pickup' } },
+        { key: 'b', order: { orderStatus: 'pending' } },
+        { key: 'c', order: { orderStatus: 'completed' } },
+        { key: 'd', order: { orderStatus: 'pending_delivery' } },
+        { key: 'e', order: { orderStatus: 'confirmed' } }
+    ];
+    assert.strictEqual(S.newPendingOrders(new Set(['a']), rows).map((r) => r.key).join(','), 'b,d');
+    assert.strictEqual(S.newPendingOrders(['a', 'b', 'd'], rows).length, 0);
+    assert.strictEqual(S.newPendingOrders(null, []).length, 0);
+    assert.strictEqual(S.isNewOrder({ orderStatus: 'ready' }), false);
+});
+
 console.log(`\n${passed} passed${process.exitCode ? ', some FAILED' : ''}`);
