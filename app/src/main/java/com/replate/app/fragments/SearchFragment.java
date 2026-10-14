@@ -907,7 +907,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         );
         CartDatabaseHelper.getInstance(requireContext()).addItem(cartItem);
         AppAnalytics.addToCart(getContext(), foodItem.getFoodId(), foodItem.getFoodName(), foodItem.getDiscountedPriceValue(), 1);
-        ToastUtils.showCustomToast(getContext(), foodItem.getFoodName() + " added to cart!");
+        ToastUtils.showCustomToast(getContext(), foodItem.getFoodName() + " added to cart");
     }
 
     // Removes the timer and the Firebase listener.

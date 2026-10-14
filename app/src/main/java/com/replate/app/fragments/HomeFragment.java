@@ -1237,7 +1237,7 @@ public class HomeFragment extends Fragment implements
     public void onAddToCartClick(FoodItem foodItem) {
         // Add to cart using SQLite
         addToCart(foodItem);
-        ToastUtils.showCustomToast(getContext(), foodItem.getFoodName() + " added to cart!");
+        ToastUtils.showCustomToast(getContext(), foodItem.getFoodName() + " added to cart");
     }
 
     // Saves the dish in the cart database.

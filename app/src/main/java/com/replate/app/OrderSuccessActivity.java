@@ -367,7 +367,7 @@ public class OrderSuccessActivity extends AppCompatActivity {
     private void transitionToReviewState() {
         // Update header based on order type
         boolean isDelivery = order != null && order.isDelivery();
-        tvTitle.setText(isDelivery ? "Delivery Complete!" : "Pickup Complete!");
+        tvTitle.setText(isDelivery ? "Delivery complete" : "Pickup complete");
         tvSubtitle.setText(R.string.order_success_thanks_for_using_replate);
 
         // Hide QR card (no longer needed)

@@ -1083,7 +1083,7 @@ public class LoginActivity extends AppCompatActivity {
                     saveUserSession(user, role);
                     String displayName = user.getDisplayName() != null ? user.getDisplayName() :
                             (user.getPhoneNumber() != null ? user.getPhoneNumber() : "there");
-                    ToastUtils.showCustomToast(LoginActivity.this, "Welcome, " + displayName + "!");
+                    ToastUtils.showCustomToast(LoginActivity.this, "Welcome, " + displayName);
                     goToHomeByRole(role, user.getUid());
                 }
 

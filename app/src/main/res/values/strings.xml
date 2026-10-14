@@ -45,11 +45,11 @@
     <string name="map_tap_marker_route">Tap a marker to view route details</string>
     <string name="map_route_unavailable">Route unavailable</string>
     <string name="map_items_load_failed">Unable to load items right now.</string>
-    <string name="map_items_tap_marker">Tap marker to load hotel menu...</string>
+    <string name="map_items_tap_marker">Tap marker to load hotel menu…</string>
     <string name="map_deals_rating_template">%1$s • ★%2$.1f</string>
     <string name="map_deals_new_template">%1$s • New</string>
-    <string name="map_calculating_route">Calculating best route...</string>
-    <string name="map_waiting_current_location">Waiting for current location...</string>
+    <string name="map_calculating_route">Calculating best route…</string>
+    <string name="map_waiting_current_location">Waiting for current location…</string>
     <string name="map_select_destination_first">Select destination first</string>
     <string name="map_route_template_clear">Distance %1$s · ETA %2$s</string>
     <string name="map_distance_hint_template">About %1$.1f km away · tap Show route for directions</string>
@@ -123,7 +123,7 @@
     <string name="food_detail_default_distance">1.2 km away</string>
     <string name="food_detail_default_pickup_window">6:00 PM - 8:00 PM</string>
     <string name="food_detail_original_label">Original</string>
-    <string name="food_detail_description_placeholder">Food description goes here...</string>
+    <string name="food_detail_description_placeholder">Food description goes here…</string>
 
     <!-- Food detail review composer -->
     <string name="food_detail_review_summary_zero">0.0 (0 reviews)</string>
@@ -203,7 +203,7 @@
     <string name="settings_row_delete_account">Delete my account</string>
     <string name="settings_support_email">support@replate.app</string>
     <string name="settings_contact_subject">REPLATE support (v%1$s)</string>
-    <string name="settings_share_text">I use REPLATE to rescue good food from nearby hotels at a discount. Give it a try!</string>
+    <string name="settings_share_text">I use REPLATE to rescue good food from nearby hotels at a discount. Give it a try.</string>
     <string name="settings_share_title">Share REPLATE</string>
     <string name="settings_no_app_available">No app available to do that</string>
     <string name="settings_licenses_title">Built with</string>
@@ -280,7 +280,7 @@ Total: LKR %1$.2f</string>
 
     <!-- Search -->
     <string name="search_title">Search</string>
-    <string name="search_hint_full">Search for food, hotels, cuisines...</string>
+    <string name="search_hint_full">Search for food, hotels, cuisines…</string>
     <string name="search_chip_all">All</string>
     <string name="search_results_default">0 results found</string>
     <string name="search_empty_title">Start searching for food deals</string>
@@ -303,7 +303,7 @@ Total: LKR %1$.2f</string>
     <string name="search_filters_category">Category</string>
     <string name="search_filters_reset">Reset</string>
     <string name="search_filters_apply">Apply</string>
-    <string name="search_loading_fresh">Loading fresh results...</string>
+    <string name="search_loading_fresh">Loading fresh results…</string>
     <string name="food_card_add">Add</string>
 
     <!-- Order review -->
@@ -316,7 +316,7 @@ Total: LKR %1$.2f</string>
     <string name="location_picker_title">Select location</string>
     <string name="location_picker_use_live">Use live location</string>
     <string name="location_picker_confirm">Confirm location</string>
-    <string name="location_picker_move_hint">Move map to select location...</string>
+    <string name="location_picker_move_hint">Move map to select location…</string>
     <string name="location_picker_search_hint">Search by area, street, or landmark</string>
     <string name="location_picker_not_found">Location not found</string>
     <string name="location_picker_search_failed">Search failed. Check internet.</string>
@@ -363,7 +363,7 @@ Total: LKR %1$.2f</string>
     <string name="chat_call_cd">Call</string>
     <string name="chat_start_a_conversation">Start a conversation</string>
     <string name="chat_send_a_message_to_start">Send a message to start chatting</string>
-    <string name="chat_type_a_message_hint">Type a message...</string>
+    <string name="chat_type_a_message_hint">Type a message…</string>
     <string name="chat_send_cd">Send</string>
     <string name="food_detail_add_to_favorites_cd">Add to favorites</string>
     <string name="food_detail_call_hotel_cd">Call hotel</string>
@@ -449,7 +449,7 @@ Total: LKR %1$.2f</string>
         <item quantity="other">You are rescuing %1$d meals from the bin</item>
     </plurals>
     <string name="food_only_left">Only %1$d left</string>
-    <string name="order_success_order_placed">Order placed!</string>
+    <string name="order_success_order_placed">Order placed</string>
     <string name="order_success_show_this_qr_at_pickup">Show this QR at pickup</string>
     <string name="order_success_or_share_pickup_otp">Or share pickup OTP</string>
     <string name="order_success_order">Order</string>
@@ -472,8 +472,8 @@ Total: LKR %1$.2f</string>
     <string name="order_success_submit_review">Submit review</string>
     <string name="order_success_view_order_details">View order details</string>
     <string name="order_success_complete_cd">Complete</string>
-    <string name="order_success_pickup_confirmed">Pickup confirmed!</string>
-    <string name="order_success_your_order_has_been_picked">Your order has been picked up.\nEnjoy your meal!</string>
+    <string name="order_success_pickup_confirmed">Pickup confirmed</string>
+    <string name="order_success_your_order_has_been_picked">Your order has been picked up.\nEnjoy your meal.</string>
     <string name="phone_auth_phone_sign_in">Phone sign-in</string>
     <string name="phone_auth_enter_your_phone_number_and">Enter your phone number and we\'ll send a verification code.</string>
     <string name="phone_auth_code_hint">Code</string>
@@ -546,7 +546,7 @@ Total: LKR %1$.2f</string>
     <string name="food_detail_maximum_available_quantity_reached">Maximum available quantity reached</string>
     <string name="food_detail_sold_out">Sold out</string>
     <string name="food_detail_cart_limit_reached">Your cart already has all %1$d available</string>
-    <string name="food_detail_added_to_cart_toast">%1$d x %2$s added to cart!</string>
+    <string name="food_detail_added_to_cart_toast">%1$d x %2$s added to cart.</string>
     <string name="food_detail_error_food_item_not_available">Error: Food item not available</string>
     <string name="food_detail_please_login_to_submit_review">Please login to submit review</string>
     <string name="food_detail_please_select_a_rating">Please select a rating</string>
@@ -578,18 +578,18 @@ Total: LKR %1$.2f</string>
     <string name="login_login_failed_please_try_again">Login failed. Please try again.</string>
     <string name="login_account_suspended_title">Account suspended</string>
     <string name="login_account_suspended_message">This account has been suspended by REPLATE, so you cannot sign in. If you think this is a mistake, please contact REPLATE support.</string>
-    <string name="login_welcome_back">Welcome back!</string>
+    <string name="login_welcome_back">Welcome back</string>
     <string name="login_registration_failed_user_not_available">Registration failed. User not available.</string>
     <string name="login_failed_to_save_user_data">Failed to save user data.</string>
     <string name="login_verification_mail_could_not_be">Verification mail could not be sent.</string>
-    <string name="login_account_created_successfully">Account created successfully!</string>
+    <string name="login_account_created_successfully">Account created successfully.</string>
     <string name="login_could_not_resend_please_check">Could not resend. Please check your password.</string>
     <string name="login_enter_your_email_and_password">Enter your email and password to resend the verification link.</string>
     <string name="login_google_sign_in_is_not">Google Sign-In is not configured.</string>
     <string name="login_google_sign_in_failed_please">Google sign-in failed. Please try again.</string>
     <string name="login_sign_in_failed_please_try">Sign-in failed. Please try again.</string>
     <string name="login_please_enter_your_phone_number">Please enter your phone number</string>
-    <string name="login_verification_code_sent">Verification code sent!</string>
+    <string name="login_verification_code_sent">Verification code sent.</string>
     <string name="login_please_enter_the_6_digit">Please enter the 6-digit code</string>
     <string name="login_please_request_a_code_first">Please request a code first</string>
     <string name="login_phone_verification_failed_please_try">Phone verification failed. Please try again.</string>
@@ -603,7 +603,7 @@ Total: LKR %1$.2f</string>
     <string name="main_location_permission_needed">Location permission needed</string>
     <string name="main_location_access_is_permanently_denied">Location access is permanently denied. Open app settings to enable live location and nearby hotel routes.</string>
     <string name="main_open_settings">Open settings</string>
-    <string name="main_refreshing">Refreshing...</string>
+    <string name="main_refreshing">Refreshing…</string>
     <string name="notifications_cancel">Cancel</string>
     <string name="notifications_delete_all_notifications">Delete all notifications</string>
     <string name="notifications_delete_all_2">Delete all</string>
@@ -643,7 +643,7 @@ Total: LKR %1$.2f</string>
     <string name="order_success_view_order_details_2">View order details</string>
     <string name="order_success_could_not_load_your_order">Could not load your order details. Check My Orders.</string>
     <string name="order_success_please_add_a_rating">Please add a rating</string>
-    <string name="order_success_review_submitted">Review submitted!</string>
+    <string name="order_success_review_submitted">Review submitted.</string>
     <string name="order_success_failed_to_submit_review">Failed to submit review</string>
     <string name="settings_update_profile_photo">Update profile photo</string>
     <string name="settings_failed_to_read_selected_image">Failed to read selected image</string>
@@ -663,7 +663,7 @@ Total: LKR %1$.2f</string>
     <string name="map_search_failed_check_internet">Search failed. Check internet.</string>
     <string name="map_location_permission_denied">Location permission denied</string>
     <string name="map_unable_to_fetch_live_location">Unable to fetch live location</string>
-    <string name="map_waiting_for_live_location">Waiting for live location...</string>
+    <string name="map_waiting_for_live_location">Waiting for live location…</string>
     <string name="map_current_location_not_available_yet">Current location not available yet</string>
     <string name="orders_no_active_orders">No active orders</string>
     <string name="orders_no_completed_orders">No completed orders</string>
