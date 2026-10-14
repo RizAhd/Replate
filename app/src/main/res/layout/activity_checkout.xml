@@ -37,33 +37,24 @@
 
                     <ImageView
                         android:id="@+id/ivBack"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:layout_marginStart="-12dp"
-                        android:padding="@dimen/space_1_5"
-                        android:contentDescription="@string/cd_back"
-                        android:layout_width="@dimen/touch_target_min"
-                        android:layout_height="@dimen/touch_target_min"
-                        android:layout_centerVertical="true"
-                        android:src="@drawable/ic_back"
-                        app:tint="@color/white" />
+                        style="@style/Widget.REPLATE.Header.Back"
+                        android:layout_centerVertical="true" />
 
                     <TextView
+                        style="@style/Widget.REPLATE.Header.Title"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_centerInParent="true"
-                        android:text="@string/checkout_title"
-                        android:textAppearance="@style/TextAppearance.REPLATE.Subheading"
-                        android:textColor="@color/white" />
+                        android:text="@string/checkout_title" />
 
                 </RelativeLayout>
 
                 <TextView
+                    style="@style/Widget.REPLATE.Header.Subtitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="18dp"
-                    android:text="@string/checkout_subtitle"
-                    android:textAppearance="@style/TextAppearance.REPLATE.Body"
-                    android:textColor="@color/text_on_primary_muted" />
+                    android:text="@string/checkout_subtitle" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -97,10 +88,10 @@
                         android:padding="18dp">
 
                         <TextView
+                            style="@style/Widget.REPLATE.SectionTitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/checkout_fulfilment_title"
-                            android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
+                            android:text="@string/checkout_fulfilment_title" />
 
                         <TextView
                             android:layout_width="match_parent"
@@ -170,10 +161,10 @@
                         android:padding="18dp">
 
                         <TextView
+                            style="@style/Widget.REPLATE.SectionTitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/checkout_delivery_address"
-                            android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
+                            android:text="@string/checkout_delivery_address" />
 
                         <com.google.android.material.textfield.TextInputLayout
                             style="@style/Widget.REPLATE.TextInputLayout"
@@ -221,10 +212,10 @@
                         android:padding="18dp">
 
                         <TextView
+                            style="@style/Widget.REPLATE.SectionTitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/checkout_summary_title"
-                            android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
+                            android:text="@string/checkout_summary_title" />
 
                         <TextView
                             android:layout_width="match_parent"
@@ -357,10 +348,10 @@
                         android:padding="18dp">
 
                         <TextView
+                            style="@style/Widget.REPLATE.SectionTitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/checkout_pickup_time_title"
-                            android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
+                            android:text="@string/checkout_pickup_time_title" />
 
                         <TextView
                             android:layout_width="match_parent"
@@ -402,10 +393,10 @@
                         android:padding="18dp">
 
                         <TextView
+                            style="@style/Widget.REPLATE.SectionTitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/checkout_payment_method"
-                            android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
+                            android:text="@string/checkout_payment_method" />
 
                         <RadioGroup
                             android:id="@+id/rgPayment"
@@ -447,10 +438,10 @@
                         android:padding="18dp">
 
                         <TextView
+                            style="@style/Widget.REPLATE.SectionTitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/checkout_details_title"
-                            android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
+                            android:text="@string/checkout_details_title" />
 
                         <com.google.android.material.textfield.TextInputLayout
                             style="@style/Widget.REPLATE.TextInputLayout"

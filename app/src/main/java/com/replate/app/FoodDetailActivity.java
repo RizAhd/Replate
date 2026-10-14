@@ -61,7 +61,8 @@ public class FoodDetailActivity extends AppCompatActivity {
     private TextView tvFoodName, tvHotelName, tvDescription;
     private TextView tvOriginalPrice, tvDiscountedPrice, tvDiscount;
     private TextView tvPickupTime, tvDistance, tvQuantity;
-    private Button btnAddToCart, btnMinus, btnPlus;
+    private Button btnAddToCart;
+    private View btnMinus, btnPlus;
     private View btnCallHotel, btnSmsHotel, btnChatHotel;
     private CallHelper callHelper;
 

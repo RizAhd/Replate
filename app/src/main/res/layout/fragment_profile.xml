@@ -35,6 +35,7 @@
                     android:layout_width="96dp"
                     android:layout_height="96dp"
                     android:layout_gravity="center_horizontal"
+                    android:contentDescription="@string/cd_profile_photo"
                     android:src="@drawable/ic_profile_placeholder"
                     app:civ_border_color="@color/white"
                     app:civ_border_width="4dp" />
@@ -143,7 +144,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         tools:text="@string/profile_savings_zero"
-                        android:textColor="@color/ember2"
+                        android:textColor="@color/ember_dark"
                         android:textAppearance="@style/TextAppearance.REPLATE.Headline" />
 
                     <TextView
@@ -172,10 +173,10 @@
                 android:padding="18dp">
 
                 <TextView
+                    style="@style/Widget.REPLATE.SectionTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/profile_savings_chart_title"
-                    android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
+                    android:text="@string/profile_savings_chart_title" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -220,12 +221,12 @@
 
                 <!-- Account Header -->
                 <TextView
+                    style="@style/Widget.REPLATE.SectionTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="18dp"
                     android:layout_marginTop="18dp"
-                    android:text="@string/profile_account"
-                    android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
+                    android:text="@string/profile_account" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -239,197 +240,107 @@
                 <!-- My Orders -->
                 <LinearLayout
                     android:id="@+id/menuOrders"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="?attr/selectableItemBackground"
-                    android:gravity="center_vertical"
-                    android:padding="18dp">
+                    style="@style/Widget.REPLATE.MenuRow">
 
                     <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:contentDescription="@string/cd_orders"
-                        android:src="@drawable/ic_orders"
-                        app:tint="@color/primary" />
+                        style="@style/Widget.REPLATE.MenuRow.Icon"
+                        android:src="@drawable/ic_orders" />
 
                     <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="@dimen/space_2"
-                        android:layout_weight="1"
-                        android:text="@string/profile_my_orders"
-                        android:textAppearance="@style/TextAppearance.REPLATE.Label" />
+                        style="@style/Widget.REPLATE.MenuRow.Label"
+                        android:text="@string/profile_my_orders" />
 
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:contentDescription="@string/cd_arrow_right"
-                        android:src="@drawable/ic_arrow_right" />
+                    <ImageView style="@style/Widget.REPLATE.MenuRow.Chevron" />
                 </LinearLayout>
 
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="58dp" android:background="@color/divider" />
+                <View style="@style/Widget.REPLATE.MenuRow.Divider" />
 
                 <!-- Favorites -->
                 <LinearLayout
                     android:id="@+id/menuFavorites"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="?attr/selectableItemBackground"
-                    android:gravity="center_vertical"
-                    android:padding="18dp">
+                    style="@style/Widget.REPLATE.MenuRow">
 
                     <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:contentDescription="@string/cd_favorites"
-                        android:src="@drawable/ic_favorite"
-                        app:tint="@color/primary" />
+                        style="@style/Widget.REPLATE.MenuRow.Icon"
+                        android:src="@drawable/ic_favorite" />
 
                     <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="@dimen/space_2"
-                        android:layout_weight="1"
-                        android:text="@string/profile_favorites"
-                        android:textAppearance="@style/TextAppearance.REPLATE.Label" />
+                        style="@style/Widget.REPLATE.MenuRow.Label"
+                        android:text="@string/profile_favorites" />
 
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:contentDescription="@string/cd_arrow_right"
-                        android:src="@drawable/ic_arrow_right" />
+                    <ImageView style="@style/Widget.REPLATE.MenuRow.Chevron" />
                 </LinearLayout>
 
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="58dp" android:background="@color/divider" />
+                <View style="@style/Widget.REPLATE.MenuRow.Divider" />
 
                 <!-- Notifications -->
                 <LinearLayout
                     android:id="@+id/menuNotifications"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="?attr/selectableItemBackground"
-                    android:gravity="center_vertical"
-                    android:padding="18dp">
+                    style="@style/Widget.REPLATE.MenuRow">
 
                     <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:contentDescription="@string/cd_open_notifications"
-                        android:src="@drawable/ic_notification"
-                        app:tint="@color/primary" />
+                        style="@style/Widget.REPLATE.MenuRow.Icon"
+                        android:src="@drawable/ic_notification" />
 
                     <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="@dimen/space_2"
-                        android:layout_weight="1"
-                        android:text="@string/profile_notifications"
-                        android:textAppearance="@style/TextAppearance.REPLATE.Label" />
+                        style="@style/Widget.REPLATE.MenuRow.Label"
+                        android:text="@string/profile_notifications" />
 
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:contentDescription="@string/cd_arrow_right"
-                        android:src="@drawable/ic_arrow_right" />
+                    <ImageView style="@style/Widget.REPLATE.MenuRow.Chevron" />
                 </LinearLayout>
 
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="58dp" android:background="@color/divider" />
+                <View style="@style/Widget.REPLATE.MenuRow.Divider" />
 
                 <!-- Messages -->
                 <LinearLayout
                     android:id="@+id/menuMessages"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="?attr/selectableItemBackground"
-                    android:gravity="center_vertical"
-                    android:padding="18dp">
+                    style="@style/Widget.REPLATE.MenuRow">
 
                     <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:importantForAccessibility="no"
-                        android:src="@drawable/ic_chat_empty"
-                        app:tint="@color/primary" />
+                        style="@style/Widget.REPLATE.MenuRow.Icon"
+                        android:src="@drawable/ic_chat_empty" />
 
                     <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="@dimen/space_2"
-                        android:layout_weight="1"
-                        android:text="@string/profile_messages"
-                        android:textAppearance="@style/TextAppearance.REPLATE.Label" />
+                        style="@style/Widget.REPLATE.MenuRow.Label"
+                        android:text="@string/profile_messages" />
 
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:importantForAccessibility="no"
-                        android:src="@drawable/ic_arrow_right" />
+                    <ImageView style="@style/Widget.REPLATE.MenuRow.Chevron" />
                 </LinearLayout>
 
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="58dp" android:background="@color/divider" />
+                <View style="@style/Widget.REPLATE.MenuRow.Divider" />
 
                 <!-- Settings -->
                 <LinearLayout
                     android:id="@+id/menuSettings"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="?attr/selectableItemBackground"
-                    android:gravity="center_vertical"
-                    android:padding="18dp">
+                    style="@style/Widget.REPLATE.MenuRow">
 
                     <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:contentDescription="@string/cd_settings"
-                        android:src="@drawable/ic_settings"
-                        app:tint="@color/primary" />
+                        style="@style/Widget.REPLATE.MenuRow.Icon"
+                        android:src="@drawable/ic_settings" />
 
                     <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="@dimen/space_2"
-                        android:layout_weight="1"
-                        android:text="@string/profile_settings"
-                        android:textAppearance="@style/TextAppearance.REPLATE.Label" />
+                        style="@style/Widget.REPLATE.MenuRow.Label"
+                        android:text="@string/profile_settings" />
 
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:contentDescription="@string/cd_arrow_right"
-                        android:src="@drawable/ic_arrow_right" />
+                    <ImageView style="@style/Widget.REPLATE.MenuRow.Chevron" />
                 </LinearLayout>
 
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginStart="58dp" android:background="@color/divider" />
+                <View style="@style/Widget.REPLATE.MenuRow.Divider" />
 
                 <!-- Help -->
                 <LinearLayout
                     android:id="@+id/menuHelp"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="?attr/selectableItemBackground"
-                    android:gravity="center_vertical"
-                    android:padding="18dp">
+                    style="@style/Widget.REPLATE.MenuRow">
 
                     <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:contentDescription="@string/cd_help"
-                        android:src="@drawable/ic_help"
-                        app:tint="@color/primary" />
+                        style="@style/Widget.REPLATE.MenuRow.Icon"
+                        android:src="@drawable/ic_help" />
 
                     <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="@dimen/space_2"
-                        android:layout_weight="1"
-                        android:text="@string/profile_help_support"
-                        android:textAppearance="@style/TextAppearance.REPLATE.Label" />
+                        style="@style/Widget.REPLATE.MenuRow.Label"
+                        android:text="@string/profile_help_support" />
 
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:contentDescription="@string/cd_arrow_right"
-                        android:src="@drawable/ic_arrow_right" />
+                    <ImageView style="@style/Widget.REPLATE.MenuRow.Chevron" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

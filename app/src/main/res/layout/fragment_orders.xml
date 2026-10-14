@@ -20,20 +20,17 @@
             android:padding="@dimen/space_2_5">
 
             <TextView
+                style="@style/Widget.REPLATE.Header.Title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/orders_my_orders"
-                android:textAppearance="@style/TextAppearance.REPLATE.Headline"
-                android:textColor="@color/white"
-                android:textSize="@dimen/text_display" />
+                android:text="@string/orders_my_orders" />
 
             <TextView
+                style="@style/Widget.REPLATE.Header.Subtitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/space_1"
-                android:text="@string/orders_track_active_pickups_completed_orders"
-                android:textAppearance="@style/TextAppearance.REPLATE.Body"
-                android:textColor="@color/text_on_primary_muted" />
+                android:text="@string/orders_track_active_pickups_completed_orders" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 

@@ -51,7 +51,7 @@
                 android:layout_marginTop="@dimen/space_0_5"
                 android:text="@string/auth_brand_subtitle"
                 android:textAppearance="@style/TextAppearance.REPLATE.Body"
-                android:textColor="@color/white_85" />
+                android:textColor="@color/white" />
         </LinearLayout>
 
         <!-- White sheet; fills the rest of the screen and overlaps the brand section -->
@@ -123,10 +123,10 @@
                 android:visibility="visible">
 
                 <TextView
+                    style="@style/Widget.REPLATE.PageTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/auth_welcome_back"
-                    android:textAppearance="@style/TextAppearance.REPLATE.Headline"
                     android:textColor="@color/text_primary"
                     android:textSize="@dimen/text_xl" />
 
@@ -296,10 +296,10 @@
                 android:visibility="gone">
 
                 <TextView
+                    style="@style/Widget.REPLATE.PageTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/auth_create_account"
-                    android:textAppearance="@style/TextAppearance.REPLATE.Headline"
                     android:textColor="@color/text_primary"
                     android:textSize="@dimen/text_xl" />
 

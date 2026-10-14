@@ -14,10 +14,10 @@
 
         <!-- Header -->
         <TextView
+            style="@style/Widget.REPLATE.PageTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/phone_auth_phone_sign_in"
-            android:textAppearance="@style/TextAppearance.REPLATE.Headline" />
+            android:text="@string/phone_auth_phone_sign_in" />
 
         <TextView
             android:layout_width="match_parent"

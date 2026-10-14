@@ -37,24 +37,16 @@
 
                     <ImageView
                         android:id="@+id/ivBack"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:layout_marginStart="-12dp"
-                        android:padding="@dimen/space_1_5"
-                        android:layout_width="@dimen/touch_target_min"
-                        android:layout_height="@dimen/touch_target_min"
-                        android:layout_centerVertical="true"
-                        android:contentDescription="@string/cd_back"
-                        android:src="@drawable/ic_back"
-                        app:tint="@color/white" />
+                        style="@style/Widget.REPLATE.Header.Back"
+                        android:layout_centerVertical="true" />
 
                     <TextView
+                        style="@style/Widget.REPLATE.Header.Title"
                         android:id="@+id/tvTitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_centerInParent="true"
-                        android:text="@string/cart_title"
-                        android:textAppearance="@style/TextAppearance.REPLATE.Subheading"
-                        android:textColor="@color/white" />
+                        android:text="@string/cart_title" />
 
                     <TextView
                         android:id="@+id/tvClearCart"
@@ -76,13 +68,12 @@
                 </RelativeLayout>
 
                 <TextView
+                    style="@style/Widget.REPLATE.Header.Subtitle"
                     android:id="@+id/tvCartSummary"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/space_2"
-                    android:text="@string/cart_summary"
-                    android:textAppearance="@style/TextAppearance.REPLATE.Body"
-                    android:textColor="@color/text_on_primary_muted" />
+                    android:text="@string/cart_summary" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -171,11 +162,11 @@
                     android:orientation="horizontal">
 
                     <TextView
+                        style="@style/Widget.REPLATE.SectionTitle"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="@string/cart_ready_for_pickup"
-                        android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
+                        android:text="@string/cart_ready_for_pickup" />
 
                     <TextView
                         android:id="@+id/tvItemCount"
@@ -210,7 +201,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         tools:text="@string/price_zero_lkr"
-                        android:textColor="@color/ember2"
+                        android:textColor="@color/ember_dark"
                         android:textSize="@dimen/text_md"
                         android:textStyle="bold" />
                 </LinearLayout>

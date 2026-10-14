@@ -74,7 +74,7 @@
                         android:background="@drawable/circle_white"
                         android:elevation="@dimen/elevation_card_raised"
                         android:padding="@dimen/space_1_5"
-                        android:src="@android:drawable/btn_star_big_off"
+                        android:src="@drawable/ic_favorite"
                         android:contentDescription="@string/food_detail_add_to_favorites_cd" />
 
                     <!-- Discount Badge -->
@@ -184,7 +184,7 @@
                                 android:paddingHorizontal="@dimen/space_1_5"
                                 android:paddingVertical="@dimen/space_1"
                                 android:text="@string/food_detail_default_pickup_window"
-                                android:textColor="@color/ember2"
+                                android:textColor="@color/ember_dark"
                                 android:textSize="@dimen/text_xs"
                                 android:textStyle="bold" />
                         </LinearLayout>
@@ -238,59 +238,33 @@
                                     android:textStyle="bold" />
                             </LinearLayout>
 
-                            <!-- Quantity Selector -->
+                            <!-- Quantity stepper, same component as the cart rows -->
                             <LinearLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:background="@drawable/badge_pale"
                                 android:gravity="center_vertical"
-                                android:orientation="horizontal"
-                                android:paddingHorizontal="@dimen/space_1"
-                                android:paddingVertical="6dp">
+                                android:orientation="horizontal">
 
-                                <com.google.android.material.button.MaterialButton
+                                <ImageButton
                                     android:id="@+id/btnMinus"
-                                    style="@style/Widget.Material3.Button.IconButton"
-                                    android:layout_width="44dp"
-                                    android:layout_height="44dp"
-                                    android:backgroundTint="@color/green_primary"
-                                    android:insetTop="0dp"
-                                    android:insetBottom="0dp"
-                                    android:minHeight="0dp"
-                                    android:minWidth="0dp"
-                                    android:padding="0dp"
-                                    android:text="-"
-                                    android:textAllCaps="false"
-                                    android:textColor="@color/white"
-                                    android:textSize="@dimen/text_title"
-                                    android:textStyle="bold" />
+                                    style="@style/Widget.REPLATE.StepperButton"
+                                    android:contentDescription="@string/cd_decrease_quantity"
+                                    android:src="@drawable/ic_remove" />
 
                                 <TextView
                                     android:id="@+id/tvQuantity"
-                                    android:layout_width="52dp"
+                                    android:layout_width="40dp"
                                     android:layout_height="wrap_content"
+                                    android:accessibilityLiveRegion="polite"
                                     android:gravity="center"
-                                    android:text="1"
-                                    android:textColor="@color/text_primary"
-                                    android:textSize="@dimen/text_lg"
-                                    android:textStyle="bold" />
+                                    android:text="@string/cart_qty_default"
+                                    android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
 
-                                <com.google.android.material.button.MaterialButton
+                                <ImageButton
                                     android:id="@+id/btnPlus"
-                                    style="@style/Widget.Material3.Button.IconButton"
-                                    android:layout_width="44dp"
-                                    android:layout_height="44dp"
-                                    android:backgroundTint="@color/green_primary"
-                                    android:insetTop="0dp"
-                                    android:insetBottom="0dp"
-                                    android:minHeight="0dp"
-                                    android:minWidth="0dp"
-                                    android:padding="0dp"
-                                    android:text="+"
-                                    android:textAllCaps="false"
-                                    android:textColor="@color/white"
-                                    android:textSize="@dimen/text_title"
-                                    android:textStyle="bold" />
+                                    style="@style/Widget.REPLATE.StepperButton"
+                                    android:contentDescription="@string/cd_increase_quantity"
+                                    android:src="@drawable/ic_add" />
                             </LinearLayout>
                         </LinearLayout>
 
@@ -393,10 +367,10 @@
                         android:padding="@dimen/space_2">
 
                         <TextView
+                            style="@style/Widget.REPLATE.SectionTitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/food_detail_user_reviews"
-                            android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
+                            android:text="@string/food_detail_user_reviews" />
 
                         <TextView
                             android:id="@+id/tvReviewSummary"
@@ -424,8 +398,17 @@
                             android:orientation="vertical"
                             android:visibility="gone">
 
+                            <TextView
+                                android:id="@+id/tvRatingLabel"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:labelFor="@id/ratingInput"
+                                android:text="@string/food_detail_your_rating"
+                                android:textAppearance="@style/TextAppearance.REPLATE.Label" />
+
                             <RatingBar
                                 android:id="@+id/ratingInput"
+                                android:contentDescription="@string/food_detail_your_rating"
                                 style="?android:attr/ratingBarStyle"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -454,7 +437,7 @@
                                 android:id="@+id/btnSubmitReview"
                                 style="@style/Widget.REPLATE.Button.Primary"
                                 android:layout_width="match_parent"
-                                android:layout_height="46dp"
+                                android:layout_height="@dimen/button_height"
                                 android:layout_marginTop="@dimen/space_1"
                                 android:text="@string/food_detail_submit_review"
                                 android:textSize="@dimen/text_sm"
@@ -499,10 +482,10 @@
                         android:padding="@dimen/space_2">
 
                         <TextView
+                            style="@style/Widget.REPLATE.SectionTitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/food_detail_recommended_for_you"
-                            android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
+                            android:text="@string/food_detail_recommended_for_you" />
 
                         <TextView
                             android:id="@+id/tvNoRecommendations"

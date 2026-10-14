@@ -43,12 +43,11 @@
                         app:tint="@color/white" />
 
                     <TextView
+                        style="@style/Widget.REPLATE.Header.Title"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="@string/search_title"
-                        android:textAppearance="@style/TextAppearance.REPLATE.Headline"
-                        android:textColor="@color/white" />
+                        android:text="@string/search_title" />
 
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/cardFilterAction"
@@ -142,7 +141,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="@dimen/space_1_5"
                         android:text="@string/search_filter_hint"
-                        android:textColor="@color/white_70"
+                        android:textColor="@color/white_85"
                         android:textSize="@dimen/text_caption" />
                 </LinearLayout>
 

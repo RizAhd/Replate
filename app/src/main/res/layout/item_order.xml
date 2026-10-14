@@ -114,7 +114,7 @@
                 android:paddingHorizontal="@dimen/space_1_5"
                 android:paddingVertical="6dp"
                 tools:text="Pickup 6PM"
-                android:textColor="@color/ember2"
+                android:textColor="@color/ember_deep"
                 android:textSize="@dimen/text_xs"
                 android:visibility="gone" />
 

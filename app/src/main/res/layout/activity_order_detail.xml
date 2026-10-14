@@ -36,23 +36,15 @@
 
                         <ImageView
                             android:id="@+id/ivBack"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:layout_marginStart="-12dp"
-                            android:padding="@dimen/space_1_5"
-                            android:contentDescription="@string/cd_back"
-                            android:layout_width="@dimen/touch_target_min"
-                            android:layout_height="@dimen/touch_target_min"
-                            android:layout_centerVertical="true"
-                            android:src="@drawable/ic_back"
-                            app:tint="@color/white" />
+                            style="@style/Widget.REPLATE.Header.Back"
+                            android:layout_centerVertical="true" />
 
                         <TextView
+                            style="@style/Widget.REPLATE.Header.Title"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_centerInParent="true"
-                            android:text="@string/order_detail_order_details"
-                            android:textAppearance="@style/TextAppearance.REPLATE.Subheading"
-                            android:textColor="@color/white" />
+                            android:text="@string/order_detail_order_details" />
                     </RelativeLayout>
 
                     <LinearLayout
@@ -185,10 +177,10 @@
                         android:padding="18dp">
 
                         <TextView
+                            style="@style/Widget.REPLATE.SectionTitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/order_detail_hotel_details"
-                            android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
+                            android:text="@string/order_detail_hotel_details" />
 
                         <TextView
                             android:id="@+id/tvHotelName"
@@ -221,7 +213,7 @@
                             android:paddingHorizontal="@dimen/space_1_5"
                             android:paddingVertical="@dimen/space_1"
                             tools:text="Pickup: 6:00 PM - 8:00 PM"
-                            android:textColor="@color/ember2"
+                            android:textColor="@color/ember_deep"
                             android:textSize="@dimen/text_xs" />
 
                         <LinearLayout
@@ -294,11 +286,11 @@
                         android:padding="18dp">
 
                         <TextView
+                            style="@style/Widget.REPLATE.SectionTitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="@dimen/space_1"
-                            android:text="@string/order_detail_items_title"
-                            android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
+                            android:text="@string/order_detail_items_title" />
 
                         <LinearLayout
                             android:id="@+id/layoutOrderItems"
@@ -322,10 +314,10 @@
                         android:padding="18dp">
 
                         <TextView
+                            style="@style/Widget.REPLATE.SectionTitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/order_detail_payment"
-                            android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
+                            android:text="@string/order_detail_payment" />
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -409,10 +401,10 @@
                         android:padding="18dp">
 
                         <TextView
+                            style="@style/Widget.REPLATE.SectionTitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/order_review_title"
-                            android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
+                            android:text="@string/order_review_title" />
 
                         <TextView
                             android:id="@+id/tvReviewHint"

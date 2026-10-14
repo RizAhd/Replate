@@ -27,16 +27,16 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <ImageView
+        <ImageButton
             android:id="@+id/ivRemove"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginTop="-8dp"
-            android:layout_marginEnd="-8dp"
+            android:layout_width="@dimen/touch_target_min"
+            android:layout_height="@dimen/touch_target_min"
+            android:layout_marginTop="-12dp"
+            android:layout_marginEnd="-12dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/cd_remove_item"
-            android:padding="@dimen/space_1"
-            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            android:scaleType="center"
+            android:src="@drawable/ic_close"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:tint="@color/error" />
@@ -92,20 +92,12 @@
             app:constraint_referenced_ids="ivFoodImage,tvPrice" />
 
         <!-- Quantity stepper: 40dp visual buttons, 48dp touch areas -->
-        <TextView
+        <ImageButton
             android:id="@+id/btnMinus"
-            android:layout_width="@dimen/touch_target_min"
-            android:layout_height="@dimen/touch_target_min"
+            style="@style/Widget.REPLATE.StepperButton"
             android:layout_marginTop="@dimen/space_1"
-            android:background="@drawable/bg_stepper_button"
-            android:clickable="true"
             android:contentDescription="@string/cd_decrease_quantity"
-            android:focusable="true"
-            android:gravity="center"
-            android:text="@string/cart_minus"
-            android:textColor="@color/text_primary"
-            android:textSize="@dimen/text_lg"
-            android:textStyle="bold"
+            android:src="@drawable/ic_remove"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/barrierRow1" />
@@ -114,6 +106,7 @@
             android:id="@+id/tvQuantity"
             android:layout_width="40dp"
             android:layout_height="@dimen/touch_target_min"
+            android:accessibilityLiveRegion="polite"
             android:gravity="center"
             android:textAppearance="@style/TextAppearance.REPLATE.Label"
             android:textStyle="bold"
@@ -122,19 +115,11 @@
             app:layout_constraintTop_toTopOf="@id/btnMinus"
             tools:text="@string/cart_qty_default" />
 
-        <TextView
+        <ImageButton
             android:id="@+id/btnPlus"
-            android:layout_width="@dimen/touch_target_min"
-            android:layout_height="@dimen/touch_target_min"
-            android:background="@drawable/bg_stepper_button"
-            android:clickable="true"
+            style="@style/Widget.REPLATE.StepperButton"
             android:contentDescription="@string/cd_increase_quantity"
-            android:focusable="true"
-            android:gravity="center"
-            android:text="@string/cart_plus"
-            android:textColor="@color/text_primary"
-            android:textSize="@dimen/text_lg"
-            android:textStyle="bold"
+            android:src="@drawable/ic_add"
             app:layout_constraintBottom_toBottomOf="@id/btnMinus"
             app:layout_constraintStart_toEndOf="@id/tvQuantity"
             app:layout_constraintTop_toTopOf="@id/btnMinus" />

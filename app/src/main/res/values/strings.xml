@@ -23,6 +23,12 @@
     <string name="cd_arrow_right">Open</string>
     <string name="cd_search">Search illustration</string>
     <string name="cd_category">Category icon</string>
+    <string name="cd_profile_photo">Your profile photo</string>
+    <plurals name="cd_open_notifications_unread">
+        <item quantity="one">Open notifications, %d unread</item>
+        <item quantity="other">Open notifications, %d unread</item>
+    </plurals>
+    <string name="food_detail_your_rating">Your rating</string>
 
     <!-- Home -->
     <string name="home_explore_nearby">Delivering to</string>

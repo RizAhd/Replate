@@ -60,13 +60,34 @@
         <!-- Activity transitions — smooth slide -->
         <item name="android:windowAnimationStyle">@style/WindowAnimationTransition</item>
 
-        <!-- Typography system -->
-        <item name="android:fontFamily">@font/poppins</item>
-        <item name="fontFamily">@font/poppins</item>
+        <!-- Typography system. Poppins comes from the text appearances below, not from a theme-wide
+             fontFamily: a theme-level (android:)fontFamily outranks every TextAppearance and silently
+             turned all the bold/semibold/medium styles back into Regular. -->
+        <item name="android:textAppearance">@style/TextAppearance.REPLATE.Default</item>
+        <item name="android:textAppearanceSmall">@style/TextAppearance.REPLATE.Default</item>
+        <item name="android:textAppearanceMedium">@style/TextAppearance.REPLATE.Default.Medium</item>
+        <item name="android:textAppearanceLarge">@style/TextAppearance.REPLATE.Default.Large</item>
+        <item name="textAppearanceDisplayLarge">@style/TextAppearance.REPLATE.M3.DisplayLarge</item>
+        <item name="textAppearanceDisplayMedium">@style/TextAppearance.REPLATE.M3.DisplayMedium</item>
+        <item name="textAppearanceDisplaySmall">@style/TextAppearance.REPLATE.M3.DisplaySmall</item>
+        <item name="textAppearanceHeadlineLarge">@style/TextAppearance.REPLATE.M3.HeadlineLarge</item>
+        <item name="textAppearanceHeadlineMedium">@style/TextAppearance.REPLATE.M3.HeadlineMedium</item>
+        <item name="textAppearanceHeadlineSmall">@style/TextAppearance.REPLATE.M3.HeadlineSmall</item>
         <item name="textAppearanceTitleLarge">@style/TextAppearance.REPLATE.Headline</item>
         <item name="textAppearanceTitleMedium">@style/TextAppearance.REPLATE.Subheading</item>
+        <item name="textAppearanceTitleSmall">@style/TextAppearance.REPLATE.M3.TitleSmall</item>
+        <item name="textAppearanceBodyLarge">@style/TextAppearance.REPLATE.M3.BodyLarge</item>
         <item name="textAppearanceBodyMedium">@style/TextAppearance.REPLATE.Body</item>
+        <item name="textAppearanceBodySmall">@style/TextAppearance.REPLATE.M3.BodySmall</item>
         <item name="textAppearanceLabelLarge">@style/TextAppearance.REPLATE.Label</item>
+        <item name="textAppearanceLabelMedium">@style/TextAppearance.REPLATE.M3.LabelMedium</item>
+        <item name="textAppearanceLabelSmall">@style/TextAppearance.REPLATE.M3.LabelSmall</item>
+        <!-- Older Material component styles (dialog titles, dropdowns) still read these -->
+        <item name="textAppearanceSubtitle1">@style/TextAppearance.REPLATE.M3.BodyLarge</item>
+        <item name="textAppearanceBody1">@style/TextAppearance.REPLATE.M3.BodyLarge</item>
+        <item name="textAppearanceBody2">@style/TextAppearance.REPLATE.Body</item>
+        <item name="textAppearanceCaption">@style/TextAppearance.REPLATE.M3.BodySmall</item>
+        <item name="textAppearanceButton">@style/TextAppearance.REPLATE.Label</item>
 
         <!-- Component consistency -->
         <item name="materialCardViewStyle">@style/Widget.REPLATE.Card</item>

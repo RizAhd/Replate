@@ -55,7 +55,7 @@
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/poppins_semibold"
                             android:text="@string/map_map_explorer"
-                            android:textColor="@color/ember2"
+                            android:textColor="@color/ember_dark"
                             android:textSize="@dimen/text_xs" />
 
                         <TextView

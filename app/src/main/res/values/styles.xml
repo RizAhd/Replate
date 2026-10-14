@@ -7,6 +7,7 @@
 
     <style name="TextAppearance.REPLATE.Display" parent="TextAppearance.Material3.HeadlineMedium">
         <item name="android:fontFamily">@font/poppins_bold</item>
+        <item name="fontFamily">@font/poppins_bold</item>
         <item name="android:textSize">@dimen/text_display</item>
         <item name="android:lineSpacingExtra">2dp</item>
         <item name="android:textColor">@color/text_primary</item>
@@ -14,6 +15,7 @@
 
     <style name="TextAppearance.REPLATE.Headline" parent="TextAppearance.Material3.TitleLarge">
         <item name="android:fontFamily">@font/poppins_bold</item>
+        <item name="fontFamily">@font/poppins_bold</item>
         <item name="android:textSize">@dimen/text_xl</item>
         <item name="android:lineSpacingExtra">1dp</item>
         <item name="android:textColor">@color/text_primary</item>
@@ -21,12 +23,14 @@
 
     <style name="TextAppearance.REPLATE.Subheading" parent="TextAppearance.Material3.TitleMedium">
         <item name="android:fontFamily">@font/poppins_semibold</item>
+        <item name="fontFamily">@font/poppins_semibold</item>
         <item name="android:textSize">@dimen/text_lg</item>
         <item name="android:textColor">@color/text_primary</item>
     </style>
 
     <style name="TextAppearance.REPLATE.Body" parent="TextAppearance.Material3.BodyMedium">
         <item name="android:fontFamily">@font/poppins_regular</item>
+        <item name="fontFamily">@font/poppins_regular</item>
         <item name="android:textSize">@dimen/text_sm</item>
         <item name="android:lineSpacingExtra">2dp</item>
         <item name="android:textColor">@color/text_secondary</item>
@@ -34,21 +38,102 @@
 
     <style name="TextAppearance.REPLATE.Label" parent="TextAppearance.Material3.LabelMedium">
         <item name="android:fontFamily">@font/poppins_medium</item>
+        <item name="fontFamily">@font/poppins_medium</item>
         <item name="android:textSize">@dimen/text_sm</item>
         <item name="android:textColor">@color/text_primary</item>
     </style>
 
     <style name="TextAppearance.REPLATE.Caption" parent="TextAppearance.Material3.BodySmall">
         <item name="android:fontFamily">@font/poppins_regular</item>
+        <item name="fontFamily">@font/poppins_regular</item>
         <item name="android:textSize">@dimen/text_xs</item>
         <item name="android:textColor">@color/text_secondary</item>
     </style>
 
     <style name="TextAppearance.REPLATE.Overline" parent="TextAppearance.Material3.LabelSmall">
         <item name="android:fontFamily">@font/poppins_medium</item>
+        <item name="fontFamily">@font/poppins_medium</item>
         <item name="android:textSize">@dimen/text_caption</item>
         <item name="android:letterSpacing">0.06</item>
         <item name="android:textColor">@color/text_secondary</item>
+    </style>
+
+    <!-- Default for plain TextViews that set neither a font nor a text appearance
+         (same size and colour as the platform default, in Poppins) -->
+    <style name="TextAppearance.REPLATE.Default" parent="@android:style/TextAppearance.Material.Small">
+        <item name="android:fontFamily">@font/poppins</item>
+        <item name="fontFamily">@font/poppins</item>
+    </style>
+
+    <style name="TextAppearance.REPLATE.Default.Medium" parent="@android:style/TextAppearance.Material.Medium">
+        <item name="android:fontFamily">@font/poppins</item>
+        <item name="fontFamily">@font/poppins</item>
+    </style>
+
+    <style name="TextAppearance.REPLATE.Default.Large" parent="@android:style/TextAppearance.Material.Large">
+        <item name="android:fontFamily">@font/poppins</item>
+        <item name="fontFamily">@font/poppins</item>
+    </style>
+
+    <!-- Material 3 type scale in Poppins, so components (dialogs, chips, tabs, snackbars, nav labels)
+         match the screens. Sizes follow Material except where noted. -->
+    <style name="TextAppearance.REPLATE.M3.DisplayLarge" parent="TextAppearance.Material3.DisplayLarge">
+        <item name="android:fontFamily">@font/poppins_regular</item>
+        <item name="fontFamily">@font/poppins_regular</item>
+    </style>
+
+    <style name="TextAppearance.REPLATE.M3.DisplayMedium" parent="TextAppearance.Material3.DisplayMedium">
+        <item name="android:fontFamily">@font/poppins_regular</item>
+        <item name="fontFamily">@font/poppins_regular</item>
+    </style>
+
+    <style name="TextAppearance.REPLATE.M3.DisplaySmall" parent="TextAppearance.Material3.DisplaySmall">
+        <item name="android:fontFamily">@font/poppins_regular</item>
+        <item name="fontFamily">@font/poppins_regular</item>
+    </style>
+
+    <style name="TextAppearance.REPLATE.M3.HeadlineLarge" parent="TextAppearance.Material3.HeadlineLarge">
+        <item name="android:fontFamily">@font/poppins_semibold</item>
+        <item name="fontFamily">@font/poppins_semibold</item>
+    </style>
+
+    <style name="TextAppearance.REPLATE.M3.HeadlineMedium" parent="TextAppearance.Material3.HeadlineMedium">
+        <item name="android:fontFamily">@font/poppins_semibold</item>
+        <item name="fontFamily">@font/poppins_semibold</item>
+    </style>
+
+    <!-- Dialog titles: 22sp semibold instead of Material's 24sp, to sit on the app's type scale -->
+    <style name="TextAppearance.REPLATE.M3.HeadlineSmall" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="android:fontFamily">@font/poppins_semibold</item>
+        <item name="fontFamily">@font/poppins_semibold</item>
+        <item name="android:textSize">@dimen/text_xl</item>
+    </style>
+
+    <style name="TextAppearance.REPLATE.M3.TitleSmall" parent="TextAppearance.Material3.TitleSmall">
+        <item name="android:fontFamily">@font/poppins_medium</item>
+        <item name="fontFamily">@font/poppins_medium</item>
+    </style>
+
+    <style name="TextAppearance.REPLATE.M3.BodyLarge" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:fontFamily">@font/poppins_regular</item>
+        <item name="fontFamily">@font/poppins_regular</item>
+    </style>
+
+    <style name="TextAppearance.REPLATE.M3.BodySmall" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:fontFamily">@font/poppins_regular</item>
+        <item name="fontFamily">@font/poppins_regular</item>
+    </style>
+
+    <style name="TextAppearance.REPLATE.M3.LabelMedium" parent="TextAppearance.Material3.LabelMedium">
+        <item name="android:fontFamily">@font/poppins_medium</item>
+        <item name="fontFamily">@font/poppins_medium</item>
+    </style>
+
+    <!-- 12sp instead of Material's 11sp: nothing in the app goes below 12sp -->
+    <style name="TextAppearance.REPLATE.M3.LabelSmall" parent="TextAppearance.Material3.LabelSmall">
+        <item name="android:fontFamily">@font/poppins_medium</item>
+        <item name="fontFamily">@font/poppins_medium</item>
+        <item name="android:textSize">@dimen/text_xs</item>
     </style>
 
     <!-- ==========================================
@@ -182,20 +267,104 @@
          ========================================== -->
 
     <style name="Widget.REPLATE.SectionTitle" parent="">
-        <item name="android:fontFamily">@font/poppins_semibold</item>
-        <item name="android:textSize">@dimen/text_lg</item>
-        <item name="android:textColor">@color/text_primary</item>
-        <item name="android:paddingStart">@dimen/space_2</item>
-        <item name="android:paddingEnd">@dimen/space_2</item>
+        <item name="android:textAppearance">@style/TextAppearance.REPLATE.Subheading</item>
+        <item name="android:accessibilityHeading">true</item>
     </style>
 
-    <style name="Widget.REPLATE.SectionSubtitle" parent="">
-        <item name="android:fontFamily">@font/poppins_regular</item>
-        <item name="android:textSize">@dimen/text_sm</item>
-        <item name="android:textColor">@color/text_secondary</item>
-        <item name="android:paddingStart">@dimen/space_2</item>
-        <item name="android:paddingEnd">@dimen/space_2</item>
-        <item name="android:layout_marginTop">@dimen/space_0_5</item>
+    <!-- Big page title on screens without a green header (login, dialogs, bottom sheets) -->
+    <style name="Widget.REPLATE.PageTitle" parent="">
+        <item name="android:textAppearance">@style/TextAppearance.REPLATE.Headline</item>
+        <item name="android:accessibilityHeading">true</item>
+    </style>
+
+    <!-- ==========================================
+         Green screen header: one component for every screen that uses Card.Header
+         (back button, 22sp title, muted one-line subtitle)
+         ========================================== -->
+
+    <style name="Widget.REPLATE.Header.Title" parent="">
+        <item name="android:textAppearance">@style/TextAppearance.REPLATE.Headline</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:accessibilityHeading">true</item>
+    </style>
+
+    <style name="Widget.REPLATE.Header.Subtitle" parent="">
+        <item name="android:textAppearance">@style/TextAppearance.REPLATE.Body</item>
+        <item name="android:textColor">@color/text_on_primary_muted</item>
+    </style>
+
+    <style name="Widget.REPLATE.Header.Back" parent="">
+        <item name="android:layout_width">@dimen/touch_target_min</item>
+        <item name="android:layout_height">@dimen/touch_target_min</item>
+        <item name="android:layout_marginStart">-12dp</item>
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
+        <item name="android:contentDescription">@string/cd_back</item>
+        <item name="android:padding">@dimen/space_1_5</item>
+        <item name="android:src">@drawable/ic_back</item>
+        <item name="tint">@color/white</item>
+    </style>
+
+    <!-- Quantity stepper button (cart rows and food detail): a 40dp outlined square inside a 48dp
+         touch target, with a minus or plus icon -->
+    <style name="Widget.REPLATE.StepperButton" parent="">
+        <item name="android:layout_width">@dimen/touch_target_min</item>
+        <item name="android:layout_height">@dimen/touch_target_min</item>
+        <item name="android:background">@drawable/bg_stepper_button</item>
+        <item name="android:scaleType">center</item>
+        <item name="tint">@color/text_primary</item>
+    </style>
+
+    <!-- A labelled on/off row in Settings: the label is the switch's own text, so TalkBack reads
+         "Order updates, switch, on" and the whole row is one 48dp target -->
+    <style name="Widget.REPLATE.SettingsSwitch" parent="Widget.Material3.CompoundButton.Switch">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">@dimen/touch_target_min</item>
+        <item name="android:textAppearance">@style/TextAppearance.REPLATE.Label</item>
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
+    <!-- Profile menu row: icon, label, chevron. Icons are decorative; the label is what TalkBack reads. -->
+    <style name="Widget.REPLATE.MenuRow" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:minHeight">56dp</item>
+        <item name="android:paddingHorizontal">@dimen/space_2</item>
+        <item name="android:paddingVertical">@dimen/space_1</item>
+    </style>
+
+    <style name="Widget.REPLATE.MenuRow.Icon" parent="">
+        <item name="android:layout_width">24dp</item>
+        <item name="android:layout_height">24dp</item>
+        <item name="android:importantForAccessibility">no</item>
+        <item name="tint">@color/primary</item>
+    </style>
+
+    <style name="Widget.REPLATE.MenuRow.Label" parent="">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_marginStart">@dimen/space_2</item>
+        <item name="android:textAppearance">@style/TextAppearance.REPLATE.Label</item>
+    </style>
+
+    <style name="Widget.REPLATE.MenuRow.Chevron" parent="">
+        <item name="android:layout_width">24dp</item>
+        <item name="android:layout_height">24dp</item>
+        <item name="android:importantForAccessibility">no</item>
+        <item name="android:src">@drawable/ic_arrow_right</item>
+    </style>
+
+    <!-- Divider between menu rows, indented to line up with the labels (16 + 24 + 16) -->
+    <style name="Widget.REPLATE.MenuRow.Divider" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1dp</item>
+        <item name="android:layout_marginStart">56dp</item>
+        <item name="android:background">@color/divider</item>
     </style>
 
     <!-- ==========================================

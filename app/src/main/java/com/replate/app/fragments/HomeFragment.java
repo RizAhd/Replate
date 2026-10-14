@@ -71,7 +71,8 @@ public class HomeFragment extends Fragment implements
         FoodItemAdapter.OnFoodItemClickListener,
         CategoryAdapter.OnCategoryClickListener {
 
-    private static final long BANNER_AUTO_SCROLL_MS = 3200L;
+    // Long enough to read a banner; paused while the user touches it or it is off screen
+    private static final long BANNER_AUTO_SCROLL_MS = 5000L;
 
     // Views
     private View ivMenu;
@@ -158,6 +159,11 @@ public class HomeFragment extends Fragment implements
         @Override
         public void run() {
             if (bannerViewPager == null || bannerAdapter == null || bannerAdapter.getItemCount() <= 1 || !isAdded()) {
+                return;
+            }
+            // Scrolled out of view (or behind another tab): wait, don't flip pages nobody can see
+            if (!bannerViewPager.isShown() || !bannerViewPager.getGlobalVisibleRect(new android.graphics.Rect())) {
+                bannerHandler.postDelayed(this, BANNER_AUTO_SCROLL_MS);
                 return;
             }
             int nextItem = (bannerViewPager.getCurrentItem() + 1) % bannerAdapter.getItemCount();
@@ -402,6 +408,22 @@ public class HomeFragment extends Fragment implements
             }
         });
 
+        // A finger resting on a banner (reading it, about to tap) also pauses the carousel
+        View pagerList = bannerViewPager.getChildAt(0);
+        if (pagerList != null) {
+            pagerList.setOnTouchListener((v, event) -> {
+                int action = event.getActionMasked();
+                if (action == android.view.MotionEvent.ACTION_DOWN) {
+                    bannerHandler.removeCallbacks(bannerAutoScrollRunnable);
+                } else if (action == android.view.MotionEvent.ACTION_UP
+                        || action == android.view.MotionEvent.ACTION_CANCEL) {
+                    bannerHandler.removeCallbacks(bannerAutoScrollRunnable);
+                    bannerHandler.postDelayed(bannerAutoScrollRunnable, BANNER_AUTO_SCROLL_MS);
+                }
+                return false; // let ViewPager2 handle the swipe or tap as usual
+            });
+        }
+
         loadServerBanners();
     }
 
@@ -573,6 +595,12 @@ public class HomeFragment extends Fragment implements
             tvNotifBadge.setText(count > 99 ? "99+" : String.valueOf(count));
         } else {
             tvNotifBadge.setVisibility(View.GONE);
+        }
+        // The badge itself is hidden from TalkBack; the bell button says how many are unread
+        if (ivNotification != null) {
+            ivNotification.setContentDescription(count > 0
+                    ? getResources().getQuantityString(R.plurals.cd_open_notifications_unread, count, count)
+                    : getString(R.string.cd_open_notifications));
         }
     }
 

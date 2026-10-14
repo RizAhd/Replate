@@ -99,10 +99,10 @@
             android:padding="@dimen/space_2_5">
 
             <TextView
+                style="@style/Widget.REPLATE.SectionTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/location_picker_title"
-                android:textAppearance="@style/TextAppearance.REPLATE.Subheading" />
+                android:text="@string/location_picker_title" />
 
             <TextView
                 android:id="@+id/tvSelectedAddress"

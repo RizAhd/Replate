@@ -66,8 +66,18 @@
     <color name="ember2">#F97316</color>
     <color name="cream">#FAFAFA</color>
 
+    <!-- Text-safe versions of the brand colours (WCAG AA). Ember2 is 2.8:1 on white and Leaf2 3.2:1
+         under white text, so they stay decorative only (logo, icons, strokes). -->
+    <!-- 5.18:1 on white, 4.54:1 on leaf_pale; white text on it is 5.18:1 -->
+    <color name="ember_dark">#C2410C</color>
+    <!-- 6.66:1 on the pale orange status chip (#FFF3E0) -->
+    <color name="ember_deep">#9A3412</color>
+    <!-- Bottom of the green brand gradient: white text stays at 5.03:1 or better all the way down -->
+    <color name="leaf_mid">#1E7F45</color>
+
     <!-- ==========================================
-         Legacy color names (backward compat)
+         Legacy color names (backward compat). Every #1A6B3C name (primary, green_primary, success,
+         price_discounted, md_theme_primary) is an alias of leaf, so the green has a single source.
          ========================================== -->
     <color name="primary">@color/leaf</color>
     <color name="primary_dark">#0D3B1E</color>
@@ -82,19 +92,21 @@
     <color name="light_gray">@color/cream</color>
     <color name="error">#BA1A1A</color>
     <color name="success">@color/leaf</color>
-    <color name="warning">@color/ember2</color>
+    <color name="warning">@color/ember_dark</color>
 
     <!-- Specific UI Colors -->
     <color name="divider">#EAEAEA</color>
     <color name="ripple_primary">#1A1A6B3C</color>
-    <color name="indicator_inactive">#C5CFC8</color>
+    <!-- 3.27:1 on white (3.14:1 on cream): the inactive page dots are visible, not just a hint -->
+    <color name="indicator_inactive">#85918A</color>
     <color name="splash_tagline">#B3FFFFFF</color>
     <color name="splash_track">#14FFFFFF</color>
     <color name="splash_bg">#0D3B1E</color>
     <color name="status_bar">@color/splash_bg</color>
-    <color name="badge_discount">@color/ember</color>
-    <color name="badge_urgency">#C2410C</color>
-    <color name="badge_distance">@color/leaf2</color>
+    <!-- White badge text: 5.18:1 on ember_dark, 6.54:1 on leaf -->
+    <color name="badge_discount">@color/ember_dark</color>
+    <color name="badge_urgency">@color/ember_dark</color>
+    <color name="badge_distance">@color/leaf</color>
     <color name="price_discounted">@color/leaf</color>
 
     <!-- Distance marker colors -->

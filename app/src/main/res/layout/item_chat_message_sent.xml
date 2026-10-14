@@ -36,7 +36,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="end"
             android:layout_marginTop="@dimen/space_0_5"
-            android:textColor="@color/white_70"
+            android:textColor="@color/white_85"
             android:textSize="@dimen/text_caption"
             android:fontFamily="@font/poppins_regular" />
     </LinearLayout>

@@ -25,33 +25,24 @@
 
                 <ImageView
                     android:id="@+id/ivBack"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:layout_marginStart="-12dp"
-                    android:padding="@dimen/space_1_5"
-                    android:layout_width="@dimen/touch_target_min"
-                    android:layout_height="@dimen/touch_target_min"
-                    android:layout_centerVertical="true"
-                    android:contentDescription="@string/cd_back"
-                    android:src="@drawable/ic_back"
-                    app:tint="@color/white" />
+                    style="@style/Widget.REPLATE.Header.Back"
+                    android:layout_centerVertical="true" />
 
                 <TextView
+                    style="@style/Widget.REPLATE.Header.Title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_centerInParent="true"
-                    android:text="@string/favorites_title"
-                    android:textAppearance="@style/TextAppearance.REPLATE.Subheading"
-                    android:textColor="@color/white" />
+                    android:text="@string/favorites_title" />
             </RelativeLayout>
 
             <TextView
+                style="@style/Widget.REPLATE.Header.Subtitle"
                 android:id="@+id/tvFavoritesCount"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/space_2"
-                tools:text="@string/favorites_saved_count_default"
-                android:textAppearance="@style/TextAppearance.REPLATE.Body"
-                android:textColor="@color/text_on_primary_muted" />
+                tools:text="@string/favorites_saved_count_default" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
