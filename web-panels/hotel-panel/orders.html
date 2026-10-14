@@ -34,10 +34,13 @@
                 </div>
             </div>
 
-            <!-- Action Tabs -->
+            <!-- Active and History share one list (the card moves to whichever is open); then the two ways to hand over -->
             <ul class="nav nav-tabs" id="pills-tab" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="pills-all-tab" data-bs-toggle="tab" data-bs-target="#pills-all" type="button" role="tab" aria-controls="pills-all" aria-selected="true">All orders <span class="tab-count" id="ordersCount" hidden></span></button>
+                    <button class="nav-link active" id="pills-all-tab" data-bs-toggle="tab" data-bs-target="#pills-all" type="button" role="tab" aria-controls="pills-all" aria-selected="true">Active <span class="tab-count" id="activeCount" hidden></span></button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="pills-history-tab" data-bs-toggle="tab" data-bs-target="#pills-history" type="button" role="tab" aria-controls="pills-history" aria-selected="false">History <span class="tab-count" id="historyCount" hidden></span></button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="pills-scan-tab" data-bs-toggle="tab" data-bs-target="#pills-scan" type="button" role="tab" aria-controls="pills-scan" aria-selected="false">Scan QR code</button>
@@ -49,12 +52,21 @@
 
             <div class="tab-content" id="pills-tabContent">
 
-                <!-- ALL ORDERS TAB -->
+                <!-- ACTIVE ORDERS TAB (the list) -->
                 <div class="tab-pane fade show active" id="pills-all" role="tabpanel" aria-labelledby="pills-all-tab">
-                    <div class="card card-body">
+                    <div class="card card-body" id="ordersCard">
+                        <div class="list-toolbar">
+                            <div class="search-field">
+                                <label for="orderSearch" class="visually-hidden">Search orders</label>
+                                <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
+                                <input type="search" id="orderSearch" name="orderSearch" class="form-control" placeholder="Name, phone, order ID or pickup code…" autocomplete="off" spellcheck="false" enterkeyhint="search">
+                            </div>
+                            <p class="list-toolbar-note" id="ordersSortNote">Soonest pickup first</p>
+                        </div>
+                        <p class="visually-hidden" id="ordersSummary" role="status" aria-live="polite"></p>
                         <div class="table-responsive">
                             <table class="table table-hover align-middle table-stack">
-                                <caption class="visually-hidden">Orders for your hotel, newest first</caption>
+                                <caption class="visually-hidden" id="ordersCaption">Active orders for your hotel, soonest pickup first</caption>
                                 <thead>
                                     <tr>
                                         <th scope="col">Order ID</th>
@@ -66,13 +78,14 @@
                                         <th scope="col">Action</th>
                                     </tr>
                                 </thead>
-                                <tbody id="ordersTable">
-                                    <!-- Loaded via JS -->
-                                </tbody>
+                                <tbody id="ordersTable"></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
+
+                <!-- HISTORY TAB: the same list, showing finished and expired orders -->
+                <div class="tab-pane fade" id="pills-history" role="tabpanel" aria-labelledby="pills-history-tab"></div>
 
                 <!-- SCAN QR TAB -->
                 <div class="tab-pane fade" id="pills-scan" role="tabpanel" aria-labelledby="pills-scan-tab">
@@ -228,6 +241,141 @@
         return `<div class="row-actions">${primary}${done}${view}${cancel}</div>`;
     }
 
+    // ── The list: Active (soonest pickup first) and History (newest first), with a search ─────
+    // Every order is one row in the same table; the open tab and the search decide which rows show.
+    const VIEWS = {
+        active: { pane: 'pills-all', count: 'activeCount', sortNote: 'Soonest pickup first', caption: 'Active orders for your hotel, soonest pickup first' },
+        history: { pane: 'pills-history', count: 'historyCount', sortNote: 'Newest first', caption: 'Finished, cancelled and expired orders for your hotel, newest first' }
+    };
+    const ordersCard = document.getElementById('ordersCard');
+    const searchInput = document.getElementById('orderSearch');
+    const startParams = new URLSearchParams(window.location.search);
+    let orderView = startParams.get('view') === 'history' ? 'history' : 'active';
+    let orderRows = null;      // the latest [{ key, order }] for this hotel, null until loaded
+    let rowByKey = new Map();
+    let groupSignature = '';   // which group each order is in, to notice a pickup slot ending
+    searchInput.value = startParams.get('q') || '';
+
+    // One table row.
+    function orderRowHtml({ key, order }, group) {
+        const status = ReplateSchema.normalizeOrderStatus(order.orderStatus);
+        const isActive = ReplateSchema.isOpenOrder(order);
+        const isNew = group === 'active' && (status === 'pending_pickup' || status === 'pending_delivery');
+        const isDelivery = String(order.orderType || '').toLowerCase() === 'delivery';
+        const slot = String(order.pickupTime || '').trim();
+        const mode = isDelivery ? 'Delivery' : (slot && slot !== 'N/A' ? 'Pickup ' + slot : 'Pickup');
+        const review = Number(order.reviewRating || 0);
+        const reviewText = review > 0
+            ? `<span class="rating"><i class="fas fa-star" aria-hidden="true"></i>${review.toFixed(1)}</span>`
+            : '<span class="text-muted" aria-label="No review">—</span>';
+
+        return `
+            <tr data-key="${esc(key)}" data-group="${group}"${isNew ? ' class="order-new"' : ''}>
+                <td data-label="Order ID"><code translate="no">#${esc(ReplateSchema.shortOrderId(order, key))}</code></td>
+                <td data-label="Customer">${esc(order.customerName || 'Customer')}${order.customerPhone ? `<br><small class="text-muted num">${esc(order.customerPhone)}</small>` : ''}</td>
+                <td class="cell-wide" data-label="Items">${esc(ReplateSchema.extractItemNames(order))}<br><small class="text-muted order-mode"><i class="fas ${isDelivery ? 'fa-truck' : 'fa-bag-shopping'}" aria-hidden="true"></i>${esc(mode)}</small></td>
+                <td data-label="Total" class="num">${esc(ReplateSchema.formatMoney(ReplateSchema.orderAmount(order)))}</td>
+                <td data-label="Review"${review > 0 ? '' : ' class="cell-empty"'}>${reviewText}</td>
+                <td data-label="Status" class="status-cell"><span class="badge ${esc(ReplateSchema.statusBadgeClass(status))}">${esc(ReplateSchema.statusLabel(status))}</span>${isActive && ReplateSchema.isPickupExpired(order) ? ' <span class="badge badge-warning" title="The pickup slot has ended, so the QR code and OTP no longer work">Slot ended</span>' : ''}</td>
+                <td data-label="Action" class="actions-cell">${actionButtons(key, status, isDelivery, isActive)}</td>
+            </tr>`;
+    }
+
+    // Draws every row (active first, then history) and remembers which group each order is in.
+    function renderOrders() {
+        const now = Date.now();
+        const groups = { active: [], history: [] };
+        rowByKey = new Map(orderRows.map((row) => [row.key, row]));
+        orderRows.forEach((row) => groups[ReplateSchema.orderGroup(row.order, now)].push(row));
+        groups.active.sort(ReplateSchema.compareActive);
+        groups.history.sort(ReplateSchema.compareHistory);
+        groupSignature = signatureOf(now);
+        tableBody.innerHTML = groups.active.map((row) => orderRowHtml(row, 'active')).join('') +
+            groups.history.map((row) => orderRowHtml(row, 'history')).join('');
+        applyOrderFilter();
+    }
+
+    function signatureOf(now) {
+        return orderRows.map((r) => r.key + ':' + ReplateSchema.orderGroup(r.order, now)).join('|');
+    }
+
+    // Shows the rows of the open tab that match the search, the counts and a note when nothing shows.
+    function applyOrderFilter() {
+        if (!orderRows) return;
+        const query = searchInput.value.trim();
+        const matches = { active: 0, history: 0 };
+        tableBody.querySelectorAll('tr[data-key]').forEach((tr) => {
+            const row = rowByKey.get(tr.dataset.key);
+            const hit = !!row && ReplateSchema.orderMatchesSearch(row.order, row.key, query);
+            if (hit) matches[tr.dataset.group]++;
+            tr.hidden = !hit || tr.dataset.group !== orderView;
+        });
+        Object.keys(VIEWS).forEach((view) => {
+            const count = document.getElementById(VIEWS[view].count);
+            count.textContent = matches[view];
+            count.hidden = matches[view] === 0;
+        });
+
+        const old = tableBody.querySelector('tr.list-note');
+        if (old) old.remove();
+        const shown = matches[orderView];
+        const other = orderView === 'active' ? 'history' : 'active';
+        if (shown === 0) {
+            let note;
+            if (orderRows.length === 0) {
+                note = ReplateUI.emptyState('No orders yet', 'When a customer reserves one of your dishes it appears here instantly.', 'fa-receipt');
+            } else if (query) {
+                note = ReplateUI.emptyState('No ' + (orderView === 'active' ? 'active' : 'past') + ' orders match “' + query + '”',
+                    'Search by customer name, phone number, order ID or pickup code.', 'fa-magnifying-glass');
+            } else if (orderView === 'active') {
+                note = ReplateUI.emptyState('No active orders', 'New orders appear here as soon as a customer reserves a dish.', 'fa-receipt');
+            } else {
+                note = ReplateUI.emptyState('No past orders yet', 'Completed, delivered, cancelled and expired orders move here.', 'fa-clock-rotate-left');
+            }
+            if (matches[other] > 0) {
+                note = note.replace(/<\/div>$/, `<button type="button" class="btn btn-outline-primary btn-sm" data-show-view="${other}">Show ${ReplateSchema.plural(matches[other], 'match', 'matches')} in ${other === 'active' ? 'Active' : 'History'}</button></div>`);
+            }
+            tableBody.insertAdjacentHTML('beforeend', `<tr class="list-note"><td colspan="7">${note}</td></tr>`);
+        }
+        document.getElementById('ordersSummary').textContent = query
+            ? ReplateSchema.plural(shown, 'order') + ' match “' + query + '” in ' + (orderView === 'active' ? 'Active' : 'History') + '.'
+            : '';
+    }
+
+    // Opens Active or History: the list moves into that tab and the address keeps the choice.
+    function showOrderView(view) {
+        orderView = VIEWS[view] ? view : 'active';
+        const pane = document.getElementById(VIEWS[orderView].pane);
+        if (ordersCard.parentElement !== pane) pane.appendChild(ordersCard);
+        document.getElementById('ordersSortNote').textContent = VIEWS[orderView].sortNote;
+        document.getElementById('ordersCaption').textContent = VIEWS[orderView].caption;
+        applyOrderFilter();
+        syncOrderUrl();
+    }
+
+    function syncOrderUrl() {
+        const params = new URLSearchParams(window.location.search);
+        if (orderView === 'history') params.set('view', 'history'); else params.delete('view');
+        const q = searchInput.value.trim();
+        if (q) params.set('q', q); else params.delete('q');
+        const query = params.toString();
+        history.replaceState(null, '', window.location.pathname + (query ? '?' + query : '') + window.location.hash);
+    }
+
+    document.getElementById('pills-all-tab').addEventListener('show.bs.tab', () => showOrderView('active'));
+    document.getElementById('pills-history-tab').addEventListener('show.bs.tab', () => showOrderView('history'));
+    searchInput.addEventListener('input', () => { applyOrderFilter(); syncOrderUrl(); });
+    searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && searchInput.value) { searchInput.value = ''; applyOrderFilter(); syncOrderUrl(); }
+    });
+    if (orderView === 'history') bootstrap.Tab.getOrCreateInstance(document.getElementById('pills-history-tab')).show();
+
+    // A pickup whose slot ends while the page is open moves to History (checked every minute;
+    // the rows are only redrawn when something actually moved, so keyboard focus is not lost).
+    setInterval(() => {
+        if (orderRows && orderRows.length && signatureOf(Date.now()) !== groupSignature) renderOrders();
+    }, 60000);
+
     // Listens for this hotel's orders and redraws the table.
     function loadOrders() {
         ReplateSchema.hotelOrders(database, hotelIds).on((snapshot) => {
@@ -236,39 +384,8 @@
                 const order = child.val() || {};
                 if (orderBelongsToHotel(order)) rows.push({ key: child.key, order });
             });
-
-            const count = document.getElementById('ordersCount');
-            count.textContent = rows.length;
-            count.hidden = rows.length === 0;
-
-            if (rows.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="7">' +
-                    ReplateUI.emptyState('No orders yet', 'When a customer reserves one of your dishes it appears here instantly.', 'fa-receipt') + '</td></tr>';
-                return;
-            }
-
-            rows.sort((a, b) => (b.order.createdAt || 0) - (a.order.createdAt || 0));
-
-            tableBody.innerHTML = rows.map(({ key, order }) => {
-                const status = ReplateSchema.normalizeOrderStatus(order.orderStatus);
-                const isActive = !['completed', 'delivered', 'cancelled'].includes(status);
-                const isDelivery = String(order.orderType || '').toLowerCase() === 'delivery';
-                const review = Number(order.reviewRating || 0);
-                const reviewText = review > 0
-                    ? `<span class="rating"><i class="fas fa-star" aria-hidden="true"></i>${review.toFixed(1)}</span>`
-                    : '<span class="text-muted" aria-label="No review">—</span>';
-
-                return `
-                    <tr class="${isActive ? 'order-new' : ''}">
-                        <td data-label="Order ID"><code>#${esc(ReplateSchema.shortOrderId(order, key))}</code></td>
-                        <td data-label="Customer">${esc(order.customerName || 'Customer')}${order.customerPhone ? `<br><small class="text-muted num">${esc(order.customerPhone)}</small>` : ''}</td>
-                        <td class="cell-wide" data-label="Items"><i class="fas ${isDelivery ? 'fa-truck' : 'fa-bag-shopping'} text-muted item-icon" aria-hidden="true" title="${isDelivery ? 'Delivery' : 'Pickup'}"></i>${esc(ReplateSchema.extractItemNames(order))}</td>
-                        <td data-label="Total" class="num">${esc(ReplateSchema.formatMoney(ReplateSchema.orderAmount(order)))}</td>
-                        <td data-label="Review"${review > 0 ? '' : ' class="cell-empty"'}>${reviewText}</td>
-                        <td data-label="Status" class="status-cell"><span class="badge ${esc(ReplateSchema.statusBadgeClass(status))}">${esc(ReplateSchema.statusLabel(status))}</span>${isActive && ReplateSchema.isPickupExpired(order) ? ' <span class="badge badge-warning" title="The pickup slot has ended, so the QR code and OTP no longer work">Slot ended</span>' : ''}</td>
-                        <td data-label="Action" class="actions-cell">${actionButtons(key, status, isDelivery, isActive)}</td>
-                    </tr>`;
-            }).join('');
+            orderRows = rows;
+            renderOrders();
         }, (error) => {
             console.error('Could not load orders', error);
             tableBody.innerHTML = '<tr><td colspan="7">' +
@@ -278,6 +395,13 @@
 
     // ── Table actions ───────────────────────────────────────────────────
     tableBody.addEventListener('click', (event) => {
+        const viewButton = event.target.closest('button[data-show-view]');
+        if (viewButton) {
+            const tab = document.getElementById(viewButton.dataset.showView === 'history' ? 'pills-history-tab' : 'pills-all-tab');
+            bootstrap.Tab.getOrCreateInstance(tab).show();
+            tab.focus();
+            return;
+        }
         const button = event.target.closest('button[data-action]');
         if (!button) return;
         const key = button.dataset.key;
@@ -312,6 +436,7 @@
     });
 
     document.getElementById('pills-all-tab').addEventListener('shown.bs.tab', stopScanner);
+    document.getElementById('pills-history-tab').addEventListener('shown.bs.tab', stopScanner);
     document.getElementById('pills-otp-tab').addEventListener('shown.bs.tab', stopScanner);
 
     // Turns the camera scanner off.
@@ -362,13 +487,13 @@
     }
 
     // A QR code or OTP only works during the customer's pickup slot. If the hotel decides to hand
-    // the food over anyway, the Done button in the orders list still completes the order.
+    // the food over anyway, the Done button on the order (under History) still completes it.
     function rejectIfExpired(order) {
         const status = ReplateSchema.normalizeOrderStatus(order.orderStatus);
         if (['completed', 'delivered', 'cancelled'].includes(status)) return false;
         if (!ReplateSchema.isPickupExpired(order)) return false;
         ReplateUI.toast('This code has expired: the customer\'s pickup time (' + (order.pickupTime || 'slot') +
-            ') has ended. If you still hand the order over, use the Done button in the orders list.', 'warning');
+            ') has ended. If you still hand the order over, find it under History and use its Done button.', 'warning');
         return true;
     }
 

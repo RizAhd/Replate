@@ -163,6 +163,34 @@ test('weekly series follows the chosen range and shows this week even with no or
     assert.strictEqual(S.weeklySeries([{ orderStatus: 'completed', totalAmount: 50 }], S.rangeStart('today', NOW), NOW)[0].revenue, 50);
 });
 
+test('hotel orders: open orders are Active, finished and expired pickups are History', () => {
+    assert.strictEqual(S.orderGroup({ orderStatus: 'pending_pickup', pickupExpiresAt: NOW + 1 }, NOW), 'active');
+    assert.strictEqual(S.orderGroup({ orderStatus: 'out_for_delivery', orderType: 'Delivery' }, NOW), 'active');
+    assert.strictEqual(S.orderGroup({ orderStatus: 'ready', pickupExpiresAt: NOW - 1 }, NOW), 'history');
+    ['completed', 'delivered', 'cancelled'].forEach((s) => assert.strictEqual(S.orderGroup({ orderStatus: s }, NOW), 'history', s));
+});
+
+test('hotel orders: Active is soonest pickup first, History newest first', () => {
+    const rows = [
+        { key: 'late', order: { pickupExpiresAt: at(9, 20), createdAt: at(9, 8) } },
+        { key: 'soon', order: { pickupExpiresAt: at(9, 16), createdAt: at(9, 12) } },
+        { key: 'delivery', order: { orderType: 'Delivery', pickupExpiresAt: at(9, 23), createdAt: at(9, 14) } }
+    ];
+    assert.strictEqual(rows.slice().sort(S.compareActive).map((r) => r.key).join(','), 'delivery,soon,late');
+    assert.strictEqual(rows.slice().sort(S.compareHistory).map((r) => r.key).join(','), 'delivery,soon,late');
+});
+
+test('hotel orders search: customer name, phone, order id and pickup code', () => {
+    const order = { customerName: 'Dilini Wickramasinghe', customerPhone: '0771234116', orderId: 'ORDER-016', otpCode: '004321' };
+    assert.strictEqual(S.orderMatchesSearch(order, 'k1', ''), true);
+    assert.strictEqual(S.orderMatchesSearch(order, 'k1', 'dilini'), true);
+    assert.strictEqual(S.orderMatchesSearch(order, 'k1', '077 123 4116'), true);
+    assert.strictEqual(S.orderMatchesSearch(order, 'k1', '#order-016'), true);
+    assert.strictEqual(S.orderMatchesSearch(order, 'k1', '004321'), true);
+    assert.strictEqual(S.orderMatchesSearch(order, 'k1', 'nimal'), false);
+    assert.strictEqual(S.orderMatchesSearch(order, 'k1', '999'), false);
+});
+
 test('average rating counts one rating per order and ignores bad values', () => {
     const r = S.averageRating([
         { orderId: 'A', rating: 5 }, { orderId: 'A', foodId: 'f1', rating: 5 },       // order review + dish copy

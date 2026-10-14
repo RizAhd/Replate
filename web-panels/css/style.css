@@ -57,6 +57,10 @@
     --border-light: var(--gray-100);
     --border-strong: var(--gray-400);
 
+    /* Rows that need the hotel's attention (new orders) */
+    --highlight-bg: #f0f8f3;
+    --highlight-border: #b3d4c0;
+
     /* Shadows only for things that float; tinted toward the ink colour */
     --shadow-float: 0 12px 32px rgba(17, 24, 39, 0.14), 0 2px 6px rgba(17, 24, 39, 0.06);
     --shadow-raise: 0 4px 12px rgba(17, 24, 39, 0.08);
@@ -1073,6 +1077,63 @@ label.switch-hit {
     min-width: 120px;
 }
 
+/* ── List toolbar: a search box, and a note on how the list is sorted ── */
+.list-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-3) var(--space-4);
+    margin-bottom: var(--space-4);
+}
+
+.list-toolbar-note {
+    margin: 0;
+    font-size: var(--fs-13);
+    color: var(--text-secondary);
+}
+
+.search-field {
+    position: relative;
+    flex: 1 1 280px;
+    max-width: 440px;
+}
+
+.search-field > i {
+    position: absolute;
+    left: var(--space-3);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+    font-size: var(--fs-13);
+    pointer-events: none;
+}
+
+.search-field .form-control {
+    padding-left: 36px;
+}
+
+/* Pickup or delivery, under the items */
+.order-mode {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 2px;
+}
+
+/* New orders (waiting for the hotel to confirm): a light brand tint and a brand bar on the left.
+   Set on the cells, because Bootstrap paints every table cell's own background. */
+@media (min-width: 768px) {
+    .table tbody tr.order-new > td {
+        background-color: var(--highlight-bg);
+    }
+
+    .table tbody tr.order-new > td:first-child {
+        box-shadow: inset 3px 0 0 var(--primary),
+            inset 0 0 0 9999px var(--bs-table-bg-state, var(--bs-table-bg-type, var(--bs-table-accent-bg)));
+    }
+}
+
 .rating {
     display: inline-flex;
     align-items: center;
@@ -1659,6 +1720,17 @@ label.switch-hit {
         padding: 0;
         border: 0;
         background: transparent;
+    }
+
+    .table-stack tbody tr.order-new {
+        background: var(--highlight-bg);
+        border-color: var(--highlight-border);
+        box-shadow: inset 4px 0 0 var(--primary);
+    }
+
+    .search-field {
+        flex-basis: 100%;
+        max-width: none;
     }
 
     .table-stack tbody td {

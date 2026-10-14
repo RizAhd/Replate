@@ -455,6 +455,49 @@ const ReplateSchema = (() => {
         return weeks;
     }
 
+    // ── Hotel orders list: what needs doing now, and what is finished ──────────────────
+    /**
+     * 'history' for finished orders (completed, delivered, cancelled) and for pickups whose slot has
+     * ended (expired; they keep their Done and Cancel buttons there); 'active' for everything else.
+     */
+    function orderGroup(order, now = Date.now()) {
+        if (!isOpenOrder(order)) return 'history';
+        return isPickupExpired(order, now) ? 'history' : 'active';
+    }
+
+    /**
+     * When an open order is due: the end of its pickup slot, or the moment it was placed for a
+     * delivery or an older order without a slot (those are due straight away).
+     */
+    function orderDueAt(order) {
+        const slotEnd = Number(order && order.pickupExpiresAt);
+        const isDelivery = String((order && order.orderType) || '').toLowerCase() === 'delivery';
+        return !isDelivery && slotEnd > 0 ? slotEnd : placedAt(order);
+    }
+
+    /** Sort order for the Active list: the soonest pickup first. Rows are { key, order }. */
+    function compareActive(a, b) {
+        return orderDueAt(a.order) - orderDueAt(b.order) || placedAt(a.order) - placedAt(b.order);
+    }
+
+    /** Sort order for the History list: the newest order first. Rows are { key, order }. */
+    function compareHistory(a, b) {
+        return placedAt(b.order) - placedAt(a.order);
+    }
+
+    /** True when an order matches the search: customer name, phone, order id or pickup code ("#" optional). */
+    function orderMatchesSearch(order, key, query) {
+        const q = String(query || '').trim().toLowerCase().replace(/^#/, '');
+        if (!q) return true;
+        const o = order || {};
+        const fields = [o.customerName, key, o.orderId, o.qrCode, o.pickupCode, o.otpCode, o.customerPhone];
+        if (fields.some((v) => String(v || '').toLowerCase().includes(q))) return true;
+        // a phone number typed with spaces or dashes ("077 111 2222") still matches
+        const digits = q.replace(/\D/g, '');
+        return /^[\d\s()+-]+$/.test(q) && digits.length >= 3 &&
+            String(o.customerPhone || '').replace(/\D/g, '').includes(digits);
+    }
+
     /** Average star rating, counting one rating per order (an order review and its per-dish copies count once). */
     function averageRating(reviews) {
         const seen = new Set();
@@ -550,6 +593,11 @@ const ReplateSchema = (() => {
         withinRange,
         weekStart,
         weeklySeries,
+        orderGroup,
+        orderDueAt,
+        compareActive,
+        compareHistory,
+        orderMatchesSearch,
         averageRating,
         hotelPerformance,
         cancelledReport,
