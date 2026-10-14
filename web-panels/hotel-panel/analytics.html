@@ -39,22 +39,22 @@
             <!-- Stat Cards -->
             <div class="stat-grid">
                 <div class="card stat-card">
-                    <p class="stat-value num" id="statRevenue">LKR 0.00</p>
+                    <p class="stat-value num" id="statRevenue">—</p>
                     <p class="stat-label"><i class="fas fa-coins" aria-hidden="true"></i>Completed revenue</p>
                     <p class="stat-meta"><span class="delta flat" id="deltaRevenue"></span></p>
                 </div>
                 <div class="card stat-card">
-                    <p class="stat-value num" id="statOrders">0</p>
+                    <p class="stat-value num" id="statOrders">—</p>
                     <p class="stat-label"><i class="fas fa-receipt" aria-hidden="true"></i>Orders</p>
                     <p class="stat-meta"><span class="delta flat" id="deltaOrders"></span></p>
                 </div>
                 <div class="card stat-card">
-                    <p class="stat-value num" id="statCompletionRate">0%</p>
+                    <p class="stat-value num" id="statCompletionRate">—</p>
                     <p class="stat-label"><i class="fas fa-circle-check" aria-hidden="true"></i>Completion rate</p>
                     <p class="stat-meta"></p>
                 </div>
                 <div class="card stat-card">
-                    <p class="stat-value num" id="statListings">0</p>
+                    <p class="stat-value num" id="statListings">—</p>
                     <p class="stat-label"><i class="fas fa-utensils" aria-hidden="true"></i>Active listings</p>
                     <p class="stat-meta"></p>
                 </div>
@@ -141,8 +141,7 @@
     // Makes a short label like Oct 5 from a day text.
     function getDayLabel(key) {
         const parts = key.split('-');
-        const d = new Date(parts[0], parts[1]-1, parts[2]);
-        return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+        return ReplateSchema.formatDayMonth(new Date(parts[0], parts[1] - 1, parts[2]).getTime());
     }
 
     // True when the order belongs to this hotel.
@@ -158,8 +157,8 @@
         if (previous === 0 && current === 0) { el.textContent = ''; el.className = 'delta flat'; return; }
         if (previous === 0) { el.innerHTML = '<i class="fas fa-arrow-up" aria-hidden="true"></i> New'; el.className = 'delta up'; return; }
         const pct = Math.round(((current - previous) / previous) * 100);
-        if (pct > 0) { el.innerHTML = `<i class="fas fa-arrow-up" aria-hidden="true"></i> ${pct}%`; el.className = 'delta up'; }
-        else if (pct < 0) { el.innerHTML = `<i class="fas fa-arrow-down" aria-hidden="true"></i> ${Math.abs(pct)}%`; el.className = 'delta down'; }
+        if (pct > 0) { el.innerHTML = `<i class="fas fa-arrow-up" aria-hidden="true"></i> ${ReplateSchema.formatPercent(pct)}`; el.className = 'delta up'; }
+        else if (pct < 0) { el.innerHTML = `<i class="fas fa-arrow-down" aria-hidden="true"></i> ${ReplateSchema.formatPercent(Math.abs(pct))}`; el.className = 'delta down'; }
         else { el.innerHTML = '— flat'; el.className = 'delta flat'; }
     }
 
@@ -171,7 +170,10 @@
                 if (ReplateSchema.listingState(child.val()).key === 'active') count++;
             });
             document.getElementById('statListings').textContent = count;
-        }, (error) => console.error('Could not load listings', error));
+        }, (error) => {
+            console.error('Could not load listings', error);
+            document.getElementById('statListings').textContent = '—';
+        });
     }
 
     // ── Main analytics loader (real-time) ───────────────────
@@ -244,7 +246,7 @@
             document.getElementById('statRevenue').innerHTML = ReplateUI.moneyHtml(totalRevenue);
             document.getElementById('statOrders').textContent = totalOrders;
             const completionRate = totalOrders > 0 ? Math.round((completed / totalOrders) * 100) : 0;
-            document.getElementById('statCompletionRate').textContent = completionRate + '%';
+            document.getElementById('statCompletionRate').textContent = ReplateSchema.formatPercent(completionRate);
             setDelta('deltaRevenue', thisWeekRevenue, lastWeekRevenue);
             setDelta('deltaOrders', thisWeekOrders, lastWeekOrders);
 
@@ -353,6 +355,12 @@
                 ? 'Bar chart: best-selling dishes. ' + sortedItems.map(([name, n]) => name + ' ' + n).join(', ') + '.'
                 : 'Bar chart: best-selling dishes. No sales yet.');
 
+        }, (error) => {
+            console.error('Could not load orders', error);
+            ['statRevenue', 'statOrders', 'statCompletionRate'].forEach((id) => { document.getElementById(id).textContent = '—'; });
+            ['revenueChart', 'statusChart', 'ordersLineChart', 'topItemsChart'].forEach((id) =>
+                ReplateUI.chartEmpty(id, true, 'Orders could not be loaded', 'Check your connection and reload the page.'));
+            ReplateUI.toast('Orders could not be loaded. Check your connection and reload the page.', 'danger', 8000);
         });
     }
 </script>

@@ -288,6 +288,13 @@ test('one money format and one date format for every page', () => {
     assert.strictEqual(S.formatDateTime(0), '—');
     assert.strictEqual(S.plural(1, 'order'), '1 order');
     assert.strictEqual(S.plural(3, 'order'), '3 orders');
+    assert.strictEqual(S.formatRating(3), '3.0');
+    assert.strictEqual(S.formatRating('4.25'), '4.3');
+    assert.strictEqual(S.formatPercent(37.5), '37.5%');
+    assert.strictEqual(S.formatPercent(0), '0%');
+    assert.strictEqual(S.formatPercent(100 / 3), '33.3%');
+    assert.strictEqual(S.formatDayMonth(new Date(2026, 9, 14, 12).getTime()), '14 Oct');
+    assert.strictEqual(S.formatWeekdayDate(new Date(2026, 9, 14, 12).getTime()), 'Wed 14 Oct');
 });
 
 test('one status vocabulary: order, hotel and listing states', () => {

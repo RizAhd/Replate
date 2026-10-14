@@ -40,19 +40,19 @@
             <!-- Stats -->
             <div class="stat-grid">
                 <div class="card stat-card">
-                    <p class="stat-value num" id="statRevenue">LKR 0.00</p>
+                    <p class="stat-value num" id="statRevenue">—</p>
                     <p class="stat-label"><i class="fas fa-coins" aria-hidden="true"></i>Completed revenue</p>
                 </div>
                 <div class="card stat-card">
-                    <p class="stat-value num" id="statActive">0</p>
+                    <p class="stat-value num" id="statActive">—</p>
                     <p class="stat-label"><i class="fas fa-utensils" aria-hidden="true"></i>Active listings</p>
                 </div>
                 <div class="card stat-card">
-                    <p class="stat-value num" id="statPending">0</p>
+                    <p class="stat-value num" id="statPending">—</p>
                     <p class="stat-label"><i class="fas fa-clock" aria-hidden="true"></i>Open orders</p>
                 </div>
                 <div class="card stat-card">
-                    <p class="stat-value num" id="statTotal">0</p>
+                    <p class="stat-value num" id="statTotal">—</p>
                     <p class="stat-label"><i class="fas fa-receipt" aria-hidden="true"></i>Total orders</p>
                 </div>
             </div>
@@ -61,7 +61,7 @@
             <div class="row">
                 <div class="col-lg-6">
                     <div class="card card-fill">
-                        <div class="card-header">Daily earnings (last 7 days)</div>
+                        <div class="card-header"><h2 class="card-header-title">Daily earnings (last 7 days)</h2></div>
                         <ul class="list-group list-group-flush" id="dailyEarnings" aria-live="polite">
                             <li class="list-group-item text-muted">Loading&hellip;</li>
                         </ul>
@@ -69,7 +69,7 @@
                 </div>
                 <div class="col-lg-6">
                     <div class="card card-fill">
-                        <div class="card-header">Most popular items</div>
+                        <div class="card-header"><h2 class="card-header-title">Most popular items</h2></div>
                         <ol class="list-group list-group-flush list-group-numbered" id="popularItems" aria-live="polite">
                             <li class="list-group-item text-muted">Loading&hellip;</li>
                         </ol>
@@ -80,7 +80,7 @@
             <!-- Recent Orders -->
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <span>Recent orders</span>
+                    <h2 class="card-header-title">Recent orders</h2>
                     <a href="orders.html" class="btn btn-sm btn-outline-secondary">View all orders</a>
                 </div>
                 <div class="table-responsive">
@@ -156,7 +156,7 @@
         const earningsList = document.getElementById('dailyEarnings');
         earningsList.innerHTML = earnings.some((day) => day.amount > 0)
             ? earnings.map((day, i) => {
-                const label = i === 0 ? 'Today' : new Date(day.key + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+                const label = i === 0 ? 'Today' : ReplateSchema.formatWeekdayDate(new Date(day.key + 'T00:00:00').getTime());
                 return `<li class="list-group-item d-flex justify-content-between align-items-center${i === 0 ? ' fw-semibold' : ''}">
                 <span>${esc(label)}</span><span class="num">${esc(ReplateSchema.formatMoney(day.amount))}</span></li>`;
             }).join('')
@@ -238,7 +238,10 @@
             });
             activeListings = active;
             document.getElementById('statActive').textContent = active;
-        }, (error) => console.error('Could not load listings', error));
+        }, (error) => {
+            console.error('Could not load listings', error);
+            document.getElementById('statActive').textContent = '—';
+        });
     }
 </script>
 

@@ -50,22 +50,22 @@
             <!-- Stat Cards -->
             <div class="stat-grid">
                 <div class="card stat-card">
-                    <p class="stat-value num" id="totalRevenue">LKR 0.00</p>
+                    <p class="stat-value num" id="totalRevenue">—</p>
                     <p class="stat-label"><i class="fas fa-coins" aria-hidden="true"></i>Completed revenue</p>
                     <p class="stat-meta"><span class="delta flat" id="deltaRevenue"></span></p>
                 </div>
                 <div class="card stat-card">
-                    <p class="stat-value num" id="totalOrders">0</p>
+                    <p class="stat-value num" id="totalOrders">—</p>
                     <p class="stat-label"><i class="fas fa-receipt" aria-hidden="true"></i>Orders</p>
                     <p class="stat-meta"><span class="delta flat" id="deltaOrders"></span></p>
                 </div>
                 <div class="card stat-card">
-                    <p class="stat-value num" id="totalCustomers">0</p>
+                    <p class="stat-value num" id="totalCustomers">—</p>
                     <p class="stat-label"><i class="fas fa-users" aria-hidden="true"></i>Registered users</p>
                     <p class="stat-meta"><span id="userSplit"></span></p>
                 </div>
                 <div class="card stat-card">
-                    <p class="stat-value num" id="foodSaved">0 items</p>
+                    <p class="stat-value num" id="foodSaved">—</p>
                     <p class="stat-label"><i class="fas fa-leaf" aria-hidden="true"></i>Food rescued</p>
                     <p class="stat-meta"></p>
                 </div>
@@ -74,12 +74,12 @@
             <!-- Order quality cards -->
             <div class="stat-grid">
                 <div class="card stat-card">
-                    <p class="stat-value num" id="cancelledOrders">0</p>
+                    <p class="stat-value num" id="cancelledOrders">—</p>
                     <p class="stat-label"><i class="fas fa-ban" aria-hidden="true"></i>Cancelled orders</p>
                     <p class="stat-meta"></p>
                 </div>
                 <div class="card stat-card">
-                    <p class="stat-value num" id="expiredPickups">0</p>
+                    <p class="stat-value num" id="expiredPickups">—</p>
                     <p class="stat-label"><i class="fas fa-hourglass-end" aria-hidden="true"></i>Expired pickups</p>
                     <p class="stat-meta"></p>
                 </div>
@@ -89,7 +89,7 @@
                     <p class="stat-meta"><span id="ratingCount"></span></p>
                 </div>
                 <div class="card stat-card">
-                    <p class="stat-value num" id="hotelCountBig">0</p>
+                    <p class="stat-value num" id="hotelCountBig">—</p>
                     <p class="stat-label"><i class="fas fa-hotel" aria-hidden="true"></i>Registered hotels</p>
                     <dl class="stat-breakdown">
                         <div><dt>Approved</dt><dd class="num" id="hotelApproved">0</dd></div>
@@ -206,8 +206,8 @@
         if (previous === 0 && current === 0) { el.textContent = ''; el.className = 'delta flat'; return; }
         if (previous === 0) { el.innerHTML = '<i class="fas fa-arrow-up" aria-hidden="true"></i> New'; el.className = 'delta up'; return; }
         const pct = Math.round(((current - previous) / previous) * 100);
-        if (pct > 0) { el.innerHTML = `<i class="fas fa-arrow-up" aria-hidden="true"></i> ${pct}%`; el.className = 'delta up'; }
-        else if (pct < 0) { el.innerHTML = `<i class="fas fa-arrow-down" aria-hidden="true"></i> ${Math.abs(pct)}%`; el.className = 'delta down'; }
+        if (pct > 0) { el.innerHTML = `<i class="fas fa-arrow-up" aria-hidden="true"></i> ${ReplateSchema.formatPercent(pct)}`; el.className = 'delta up'; }
+        else if (pct < 0) { el.innerHTML = `<i class="fas fa-arrow-down" aria-hidden="true"></i> ${ReplateSchema.formatPercent(Math.abs(pct))}`; el.className = 'delta down'; }
         else { el.innerHTML = '— flat'; el.className = 'delta flat'; }
     }
 
@@ -236,7 +236,7 @@
         const customers = users.filter((u) => u.role === 'customer').length;
         const hotels = users.filter((u) => u.role === 'hotel').length;
         document.getElementById('totalCustomers').textContent = users.length;
-        document.getElementById('userSplit').textContent = customers + ' customers · ' + hotels + ' hotels';
+        document.getElementById('userSplit').textContent = ReplateSchema.plural(customers, 'customer') + ' · ' + ReplateSchema.plural(hotels, 'hotel');
     }
 
     // ── Reviews (real-time) ─────────────────────────────────
@@ -365,7 +365,7 @@
         document.getElementById('cancelledOrders').textContent = cancelled;
         document.getElementById('expiredPickups').textContent = expiredCount;
         const rating = ReplateSchema.averageRating(reviews);
-        document.getElementById('averageRating').textContent = rating.count ? rating.average.toFixed(1) + ' / 5' : '—';
+        document.getElementById('averageRating').textContent = rating.count ? ReplateSchema.formatRating(rating.average) + ' / 5' : '—';
         document.getElementById('ratingCount').textContent = rating.count ? rating.count + (rating.count === 1 ? ' rating' : ' ratings') : 'No ratings yet';
 
         document.getElementById('totalRevenue').innerHTML = ReplateUI.moneyHtml(revenue);
@@ -528,8 +528,8 @@
                     <td class="cell-wide" data-label="Hotel">${escapeHtml(h.hotelName)}</td>
                     <td data-label="Orders" class="num">${h.orders}</td>
                     <td data-label="Revenue" class="num">${ReplateSchema.formatMoney(h.revenue)}</td>
-                    <td data-label="Cancel rate" class="num">${h.cancelRatePct}%</td>
-                    <td data-label="Rating">${h.ratingCount ? '<span class="rating"><i class="fas fa-star" aria-hidden="true"></i>' + h.avgRating.toFixed(1) + ' (' + h.ratingCount + ')</span>' : '<span class="text-muted">—</span>'}</td>
+                    <td data-label="Cancel rate" class="num">${ReplateSchema.formatPercent(h.cancelRatePct)}</td>
+                    <td data-label="Rating">${h.ratingCount ? '<span class="rating"><i class="fas fa-star" aria-hidden="true"></i>' + ReplateSchema.formatRating(h.avgRating) + ' (' + h.ratingCount + ')</span>' : '<span class="text-muted">—</span>'}</td>
                 </tr>`).join('');
     }
 </script>

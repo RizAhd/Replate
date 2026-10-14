@@ -240,12 +240,12 @@
             : hotelRows.map((h) => `
                 <tr>
                     <td class="cell-wide" data-label="Hotel">${esc(h.hotelName)}</td>
-                    <td data-label="Orders">${esc(h.orders)}</td>
-                    <td data-label="Completed">${esc(h.completed)}</td>
-                    <td data-label="Cancelled">${esc(h.cancelled)}</td>
-                    <td data-label="Cancel rate">${esc(h.cancelRatePct)}%</td>
+                    <td data-label="Orders" class="num">${esc(h.orders)}</td>
+                    <td data-label="Completed" class="num">${esc(h.completed)}</td>
+                    <td data-label="Cancelled" class="num">${esc(h.cancelled)}</td>
+                    <td data-label="Cancel rate" class="num">${esc(ReplateSchema.formatPercent(h.cancelRatePct))}</td>
                     <td data-label="Revenue" class="num">${esc(ReplateSchema.formatMoney(h.revenue))}</td>
-                    <td data-label="Rating">${h.ratingCount ? `<span class="rating"><i class="fas fa-star" aria-hidden="true"></i>${esc(h.avgRating.toFixed(1))} (${esc(h.ratingCount)})</span>` : '<span class="text-muted">—</span>'}</td>
+                    <td data-label="Rating">${h.ratingCount ? `<span class="rating"><i class="fas fa-star" aria-hidden="true"></i>${esc(ReplateSchema.formatRating(h.avgRating))} (${esc(h.ratingCount)})</span>` : '<span class="text-muted">—</span>'}</td>
                 </tr>`).join('');
     }
 
@@ -372,8 +372,8 @@
                 <tr>
                     <td data-label="Hotel">${esc(r.hotel)}</td>
                     <td data-label="Dish">${esc(r.dish)}</td>
-                    <td data-label="Rating"><span class="rating"><i class="fas fa-star" aria-hidden="true"></i>${esc(r.rating.toFixed(1))}</span></td>
-                    <td data-label="Comment" class="cell-wide review-comment">${r.comment ? esc(r.comment) : '<span class="text-muted" aria-label="No comment">—</span>'}</td>
+                    <td data-label="Rating"><span class="rating"><i class="fas fa-star" aria-hidden="true"></i>${esc(ReplateSchema.formatRating(r.rating))}</span></td>
+                    <td data-label="Comment" class="cell-wide review-comment">${r.comment ? esc(r.comment) : '<span class="text-muted" role="img" aria-label="No comment">—</span>'}</td>
                     <td data-label="Customer">${esc(r.customer)}</td>
                     <td data-label="Date" class="num">${esc(stamp(r.createdAt))}</td>
                     <td data-label="Action" class="actions-cell">

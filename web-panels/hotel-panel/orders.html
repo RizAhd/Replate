@@ -110,7 +110,7 @@
                                 <h2 class="section-title">Enter the 6-digit pickup code</h2>
                                 <label for="otpInput" class="visually-hidden">Pickup code</label>
                                 <input type="text" id="otpInput" spellcheck="false" name="otpInput" class="form-control form-control-lg otp-digits text-center mb-4"
-                                       placeholder="000000" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code">
+                                       placeholder="000000" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off">
                                 <button class="btn btn-primary w-100" id="btnVerifyOtp" type="button">
                                     <i class="fas fa-check-circle" aria-hidden="true"></i>Verify code
                                 </button>
@@ -270,8 +270,8 @@
         const mode = isDelivery ? 'Delivery' : (slot && slot !== 'N/A' ? 'Pickup ' + slot : 'Pickup');
         const review = Number(order.reviewRating || 0);
         const reviewText = review > 0
-            ? `<span class="rating"><i class="fas fa-star" aria-hidden="true"></i>${review.toFixed(1)}</span>`
-            : '<span class="text-muted" aria-label="No review">—</span>';
+            ? `<span class="rating"><i class="fas fa-star" aria-hidden="true"></i>${ReplateSchema.formatRating(review)}</span>`
+            : '<span class="text-muted" role="img" aria-label="No review">—</span>';
 
         return `
             <tr data-key="${esc(key)}" data-group="${group}"${isNew ? ' class="order-new"' : ''}>
@@ -435,7 +435,7 @@
         ).catch(() => {
             html5QrcodeScanner = null;
             document.getElementById('reader').innerHTML = ReplateUI.emptyState(
-                'Camera not available', 'Allow camera access in your browser, or use the Enter OTP tab instead.', 'fa-camera');
+                'Camera not available', 'Allow camera access in your browser, or use the “Enter pickup code” tab instead.', 'fa-camera');
         });
     });
 
@@ -459,7 +459,7 @@
     function verifyOTP() {
         const raw = (document.getElementById('otpInput').value || '').trim().replace(/\D/g, '');
         if (raw.length < 4) {
-            ReplateUI.toast('Enter the pickup code the customer shows you.', 'warning');
+            ReplateUI.fieldProblem('otpInput', 'Enter the pickup code the customer shows you.');
             return;
         }
         const otp = raw.padStart(6, '0');
@@ -479,7 +479,7 @@
             });
 
             if (!foundKey) {
-                ReplateUI.toast('That code does not match any order for your hotel.', 'danger');
+                ReplateUI.toast('That code does not match any order for your hotel. Check the digits with the customer, or scan their QR code.', 'danger');
                 return;
             }
             if (rejectIfExpired(foundOrder)) return;
@@ -577,7 +577,7 @@
         ).join('');
 
         document.getElementById('modalReview').textContent = order.reviewRating
-            ? `${Number(order.reviewRating).toFixed(1)} / 5${order.reviewComment ? ' - ' + order.reviewComment : ''}`
+            ? `${ReplateSchema.formatRating(order.reviewRating)} / 5${order.reviewComment ? ' - ' + order.reviewComment : ''}`
             : 'No review yet';
 
         document.getElementById('verificationModalBody').classList.remove('d-none');
@@ -592,6 +592,8 @@
     function confirmPickup() {
         if (!currentOrderKey) return;
         const key = currentOrderKey;
+        // one write per pickup: the button waits until this one has finished
+        ReplateUI.setButtonLoading('btnConfirmPickup', true, 'Completing…');
         database.ref('orders/' + key).once('value').then((snap) => {
             const order = snap.val() || {};
             const current = String(order.orderStatus || '').toLowerCase();
@@ -614,7 +616,7 @@
         }).catch((err) => {
             console.error(err);
             ReplateUI.toast('Could not update the order. Please try again.', 'danger');
-        });
+        }).finally(() => ReplateUI.setButtonLoading('btnConfirmPickup', false));
     }
 
     // Asks to confirm, then marks the order as on its way.
@@ -664,7 +666,7 @@
             if (snap.exists()) showVerificationModal(key, snap.val() || {});
         }).catch((err) => {
             console.error(err);
-            ReplateUI.toast('Could not open this order.', 'danger');
+            ReplateUI.toast('Could not open this order. Check your connection and try again.', 'danger');
         });
     }
 

@@ -232,6 +232,33 @@ const ReplateSchema = (() => {
         return n > 0 ? DATE_ONLY.format(new Date(n)) : '—';
     }
 
+    const ONE_DECIMAL = new Intl.NumberFormat('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    const PERCENT = new Intl.NumberFormat('en-US', { style: 'percent', maximumFractionDigits: 1 });
+    const DAY_MONTH = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short' });
+    const WEEKDAY_DATE = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+
+    /** A star rating with one decimal: "4.0". */
+    function formatRating(val) {
+        const n = parseFloat(val);
+        return ONE_DECIMAL.format(Number.isFinite(n) ? n : 0);
+    }
+
+    /** A percentage given as a number of percent: 37.5 -> "37.5%", 50 -> "50%". */
+    function formatPercent(pct) {
+        const n = parseFloat(pct);
+        return PERCENT.format((Number.isFinite(n) ? n : 0) / 100);
+    }
+
+    /** "14 Oct" */
+    function formatDayMonth(ts) {
+        return DAY_MONTH.format(new Date(Number(ts)));
+    }
+
+    /** "Wed 14 Oct" */
+    function formatWeekdayDate(ts) {
+        return WEEKDAY_DATE.format(new Date(Number(ts)));
+    }
+
     /** "1 order", "3 orders" */
     function plural(count, one, many) {
         return count + ' ' + (count === 1 ? one : (many || one + 's'));
@@ -416,8 +443,6 @@ const ReplateSchema = (() => {
     }
 
     // ── Weekly charts: one point per calendar week, empty weeks included ───────────────
-    const WEEK_LABEL = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short' });
-
     /** Monday 00:00 (local time) of the week a moment falls in. */
     function weekStart(ts) {
         const d = new Date(ts);
@@ -441,7 +466,7 @@ const ReplateSchema = (() => {
         const last = weekStart(now);
         for (let start = weekStart(Math.min(first, now)); start <= last;) {
             index.set(start, weeks.length);
-            weeks.push({ start, label: WEEK_LABEL.format(new Date(start)), orders: 0, revenue: 0 });
+            weeks.push({ start, label: DAY_MONTH.format(new Date(start)), orders: 0, revenue: 0 });
             const next = new Date(start);
             next.setDate(next.getDate() + 7); // calendar step: stays on Monday 00:00 across clock changes
             start = next.getTime();
@@ -620,6 +645,10 @@ const ReplateSchema = (() => {
         formatMoney,
         formatDateTime,
         formatDate,
+        formatRating,
+        formatPercent,
+        formatDayMonth,
+        formatWeekdayDate,
         plural,
         shortOrderId,
         normalizeUserRole,
