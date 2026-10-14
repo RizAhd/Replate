@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The navigation bar is white, so its buttons are drawn dark (possible from Android 8.1) -->
+    <style name="Theme.REPLATE" parent="Base.Theme.REPLATE">
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+</resources>

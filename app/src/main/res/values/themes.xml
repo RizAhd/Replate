@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <!-- REPLATE Material 3 Green Theme (Light) -->
-    <style name="Theme.REPLATE" parent="Theme.Material3.Light.NoActionBar">
+    <style name="Base.Theme.REPLATE" parent="Theme.Material3.Light.NoActionBar">
         <!-- Primary -->
         <item name="colorPrimary">@color/md_theme_primary</item>
         <item name="colorOnPrimary">@color/md_theme_onPrimary</item>
@@ -94,6 +94,22 @@
         <item name="materialButtonStyle">@style/Widget.REPLATE.Button.Primary</item>
         <item name="textInputStyle">@style/Widget.REPLATE.TextInputLayout</item>
         <item name="editTextStyle">@style/Widget.REPLATE.TextInputEditText</item>
+        <!-- Dialogs and bottom sheets on white, like the cards, instead of Material grey -->
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.REPLATE.Dialog</item>
+        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.REPLATE.BottomSheet</item>
+    </style>
+
+    <!-- Android 8.1+ adds dark navigation bar buttons on the white bar (values-v27) -->
+    <style name="Theme.REPLATE" parent="Base.Theme.REPLATE" />
+
+    <style name="ThemeOverlay.REPLATE.Dialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="colorSurface">@color/surface_white</item>
+        <item name="colorSurfaceContainerHigh">@color/surface_white</item>
+    </style>
+
+    <style name="ThemeOverlay.REPLATE.BottomSheet" parent="ThemeOverlay.Material3.BottomSheetDialog">
+        <item name="colorSurface">@color/surface_white</item>
+        <item name="colorSurfaceContainerLow">@color/surface_white</item>
     </style>
 
     <!-- Window animation style for smooth transitions -->
@@ -117,6 +133,8 @@
     <style name="Theme.REPLATE.PostSplash" parent="Theme.REPLATE">
         <item name="android:statusBarColor">@color/splash_bg</item>
         <item name="android:navigationBarColor">@color/splash_bg</item>
+        <!-- Light buttons on the dark green bar -->
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">false</item>
         <item name="android:windowBackground">@color/splash_bg</item>
     </style>
 
