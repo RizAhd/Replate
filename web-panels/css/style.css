@@ -1389,8 +1389,8 @@ label.switch-hit {
     margin-top: var(--space-2);
     font-weight: var(--fw-bold);
     font-size: var(--fs-16);
-    letter-spacing: 0.14em;
-    padding-left: 0.14em;
+    letter-spacing: 0.08em;
+    padding-left: 0.08em;
     color: var(--primary);
 }
 
