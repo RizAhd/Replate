@@ -294,7 +294,10 @@ const ReplateUI = (() => {
 
         container.innerHTML = `
             <div class="position-sticky">
-                <a class="navbar-brand" href="#">${title}</a>
+                <div class="sidebar-head">
+                    <a class="navbar-brand" href="#">${title}</a>
+                    <button type="button" class="sidebar-close" aria-label="Close menu"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+                </div>
                 <nav aria-label="Main">
                     <ul class="nav flex-column">${items}</ul>
                 </nav>
@@ -304,6 +307,9 @@ const ReplateUI = (() => {
         if (sidebarBound) return;
         sidebarBound = true;
 
+        // Phones and tablets: a top bar with the menu button and the page name (the sidebar becomes a drawer)
+        const appBar = document.createElement('header');
+        appBar.className = 'app-bar';
         const toggle = document.createElement('button');
         toggle.type = 'button';
         toggle.className = 'sidebar-toggle';
@@ -311,7 +317,13 @@ const ReplateUI = (() => {
         toggle.setAttribute('aria-expanded', 'false');
         toggle.setAttribute('aria-controls', containerId);
         toggle.innerHTML = '<i class="fas fa-bars" aria-hidden="true"></i>';
-        document.body.appendChild(toggle);
+        const pageName = document.createElement('span');
+        pageName.className = 'app-bar-title';
+        const heading = document.querySelector('main h1');
+        pageName.textContent = heading ? heading.textContent.trim() : document.title.replace(/\s+-\s+REPLATE.*$/, '');
+        appBar.append(toggle, pageName);
+        const skip = document.querySelector('.skip-link');
+        if (skip) skip.after(appBar); else document.body.prepend(appBar);
 
         const overlay = document.createElement('div');
         overlay.className = 'sidebar-overlay';
@@ -350,6 +362,7 @@ const ReplateUI = (() => {
 
         // One delegated listener survives every re-render of the sidebar
         container.addEventListener('click', (e) => {
+            if (e.target.closest('.sidebar-close')) { setOpen(false); toggle.focus(); return; }
             const link = e.target.closest('.nav-link');
             if (!link) return;
             if (link.dataset.logout === 'true') {

@@ -233,7 +233,7 @@
             ? '<tr><td colspan="7">' + ReplateUI.emptyState('No orders in this range', 'Try a longer date range.', 'fa-hotel') + '</td></tr>'
             : hotelRows.map((h) => `
                 <tr>
-                    <td data-label="Hotel">${esc(h.hotelName)}</td>
+                    <td class="cell-wide" data-label="Hotel">${esc(h.hotelName)}</td>
                     <td data-label="Orders">${esc(h.orders)}</td>
                     <td data-label="Completed">${esc(h.completed)}</td>
                     <td data-label="Cancelled">${esc(h.cancelled)}</td>
@@ -292,7 +292,7 @@
                     <td data-label="Placed" class="num">${esc(stamp(ReplateSchema.placedAt(order)))}</td>
                     <td data-label="Customer">${esc(order.customerName || '—')}</td>
                     <td data-label="Hotel">${esc(order.hotelName || '—')}</td>
-                    <td data-label="Items">${esc(ReplateSchema.extractItemNames(order))}</td>
+                    <td class="cell-wide" data-label="Items">${esc(ReplateSchema.extractItemNames(order))}</td>
                     <td data-label="Amount" class="num">${esc(ReplateSchema.formatMoney(ReplateSchema.orderAmount(order)))}</td>
                     <td data-label="Payment"><span class="nowrap">${esc(order.paymentMethod || '—')}</span><br><span class="badge ${ReplateSchema.paymentView(order).cls}">${esc(ReplateSchema.paymentView(order).label)}</span></td>
                     <td data-label="What happened">${kindBadge(kind)}</td>
@@ -359,7 +359,7 @@
                     <td data-label="Hotel">${esc(r.hotel)}</td>
                     <td data-label="Dish">${esc(r.dish)}</td>
                     <td data-label="Rating"><span class="rating"><i class="fas fa-star" aria-hidden="true"></i>${esc(r.rating.toFixed(1))}</span></td>
-                    <td data-label="Comment" class="review-comment">${r.comment ? esc(r.comment) : '<span class="text-muted">No comment</span>'}</td>
+                    <td data-label="Comment" class="cell-wide review-comment">${r.comment ? esc(r.comment) : '<span class="text-muted">No comment</span>'}</td>
                     <td data-label="Customer">${esc(r.customer)}</td>
                     <td data-label="Date" class="num">${esc(stamp(r.createdAt))}</td>
                     <td data-label="Action" class="actions-cell">

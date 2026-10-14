@@ -185,10 +185,10 @@
 
                 return `
                     <tr>
-                        <td data-label="Photo">${imageUrl
+                        <td class="cell-media" data-label="Photo">${imageUrl
                             ? `<img src="${esc(imageUrl)}" alt="" width="56" height="56" loading="lazy" class="listing-thumb">`
                             : '<div class="listing-thumb listing-thumb-empty"><i class="fas fa-image" aria-hidden="true"></i></div>'}</td>
-                        <td data-label="Food name" class="title-cell">
+                        <td data-label="Food name">
                             <div class="fw-semibold">${esc(name)}</div>
                             <small class="text-muted nowrap">Pickup ${esc(pickupStart)} - ${esc(pickupEnd)}</small>
                         </td>

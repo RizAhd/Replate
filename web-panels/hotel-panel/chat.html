@@ -385,20 +385,36 @@
         @media (max-width: 1100px) {
             .panel-details { display: none; }
         }
-        @media (max-width: 768px) {
+        .chat-back { display: none; }
+        @media (max-width: 767.98px) {
             .chat-wrapper {
-                flex-direction: column;
-                height: calc(100vh - 120px);
+                height: calc(100dvh - 210px);
+                min-height: 420px;
             }
             .panel-conversations {
                 width: 100%;
-                min-width: unset;
-                max-height: 200px;
+                min-width: 0;
                 border-right: none;
-                border-bottom: 1px solid var(--border);
             }
+            .conversation-item .c-preview { max-width: none; }
             .panel-chat {
+                display: none;
                 border-right: none;
+            }
+            .chat-wrapper.thread-open .panel-conversations { display: none; }
+            .chat-wrapper.thread-open .panel-chat { display: flex; }
+            .chat-back {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 44px;
+                height: 44px;
+                margin-left: -12px;
+                border: 0;
+                border-radius: var(--radius-sm);
+                background: transparent;
+                color: #fff;
+                flex-shrink: 0;
             }
             .panel-details { display: none; }
         }
@@ -424,7 +440,7 @@
             </div>
 
             <!-- ═══ 3-PANEL CHAT ═══ -->
-            <div class="chat-wrapper">
+            <div class="chat-wrapper" id="chatWrapper">
 
                 <!-- LEFT: Conversation List -->
                 <div class="panel-conversations">
@@ -603,7 +619,7 @@
             const active = conv.id === currentConversationId ? ' active' : '';
             const init = (conv.customerName || 'C')[0].toUpperCase();
             const food = conv.foodName ? `<div class="c-food"><i class="fas fa-utensils" aria-hidden="true"></i>${esc(conv.foodName)}</div>` : '';
-            return `<div class="conversation-item${active}"
+            return `<div class="conversation-item${active}" role="button" tabindex="0"
                         data-conv-id="${esc(conv.id)}"
                         data-customer-name="${esc(conv.customerName || 'Customer')}"
                         data-customer-id="${esc(conv.customerId || '')}"
@@ -624,6 +640,9 @@
         }).join('');
 
         el.querySelectorAll('.conversation-item').forEach(item => {
+            item.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); item.click(); }
+            });
             item.addEventListener('click', () => {
                 selectConversation(
                     item.dataset.convId || '',
@@ -668,7 +687,8 @@
         // ── CENTER: Live Chat Panel ──
         document.getElementById('panelChat').innerHTML = `
             <div class="chat-topbar">
-                <div class="ct-avatar">${init}</div>
+                <button type="button" class="chat-back" aria-label="Back to conversations"><i class="fas fa-arrow-left" aria-hidden="true"></i></button>
+                <div class="ct-avatar" aria-hidden="true">${init}</div>
                 <div>
                     <p class="ct-name">${esc(customerName)}</p>
                     <p class="ct-status"><span class="ct-live-dot"></span>Live Chat</p>
@@ -718,9 +738,18 @@
                 ${convRow}
             </div>`;
 
+        document.getElementById('chatWrapper').classList.add('thread-open');
         setTimeout(() => document.getElementById('messageInput')?.focus(), 100);
         loadMessages(conversationId);
     }
+
+    // Phones show one pane at a time: the back arrow returns to the conversation list
+    document.getElementById('chatWrapper').addEventListener('click', (e) => {
+        if (!e.target.closest('.chat-back')) return;
+        document.getElementById('chatWrapper').classList.remove('thread-open');
+        const active = document.querySelector('.conversation-item.active');
+        if (active) active.focus();
+    });
 
     /* ────────────────────────────────────────────────────────
        MESSAGES — real-time Firebase

@@ -244,7 +244,7 @@
             return `
                 <tr data-uid="${esc(p.uid)}">
                     <td data-label="Name">${esc(displayName)}${hotelName && p.name && hotelName !== p.name ? `<br><small class="text-muted">${esc(hotelName)}</small>` : ''}</td>
-                    <td data-label="Email">${esc(p.email || '—')}</td>
+                    <td class="cell-wide" data-label="Email">${esc(p.email || '—')}</td>
                     <td data-label="Phone" class="num">${esc(p.phone || '—')}</td>
                     <td data-label="Role" class="text-capitalize">${esc(p.role)}</td>
                     <td data-label="Joined" data-order="${esc(p.createdAt)}" class="num">${esc(joined)}</td>

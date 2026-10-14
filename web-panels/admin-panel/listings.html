@@ -164,7 +164,7 @@
             const hidden = state.key === 'hidden';
             return `
                 <tr data-id="${esc(id)}">
-                    <td data-label="Photo">${image
+                    <td class="cell-media" data-label="Photo">${image
                         ? `<img class="listing-thumb" src="${esc(image)}" alt="" width="56" height="56" loading="lazy">`
                         : '<div class="listing-thumb listing-thumb-empty"><i class="fas fa-image" aria-hidden="true"></i></div>'}</td>
                     <td data-label="Dish">${esc(item.foodName || 'Untitled')}</td>

@@ -586,7 +586,7 @@
             ? '<tr><td colspan="5">' + ReplateUI.emptyState('No orders in this range', 'Try a longer date range.', 'fa-hotel') + '</td></tr>'
             : performance.map((h) => `
                 <tr>
-                    <td data-label="Hotel">${escapeHtml(h.hotelName)}</td>
+                    <td class="cell-wide" data-label="Hotel">${escapeHtml(h.hotelName)}</td>
                     <td data-label="Orders" class="num">${h.orders}</td>
                     <td data-label="Revenue" class="num">${ReplateSchema.formatMoney(h.revenue)}</td>
                     <td data-label="Cancel rate" class="num">${h.cancelRatePct}%</td>

@@ -215,7 +215,7 @@
                     <tr>
                         <td data-label="Order ID"><code>#${esc(ReplateSchema.shortOrderId(order, order.key))}</code></td>
                         <td data-label="Customer">${esc(order.customerName || '—')}</td>
-                        <td data-label="Items">${esc(ReplateSchema.extractItemNames(order))}</td>
+                        <td class="cell-wide" data-label="Items">${esc(ReplateSchema.extractItemNames(order))}</td>
                         <td data-label="Total" class="num">${esc(ReplateSchema.formatMoney(ReplateSchema.orderAmount(order)))}</td>
                         <td data-label="Status"><span class="badge ${esc(ReplateSchema.statusBadgeClass(status))}">${esc(ReplateSchema.statusLabel(status))}</span></td>
                     </tr>`;
