@@ -568,8 +568,8 @@ const ReplateUI = (() => {
         Chart.defaults.plugins.tooltip.cornerRadius = 8;
         Chart.defaults.plugins.tooltip.titleFont = { size: 13, weight: '600' };
         Chart.defaults.plugins.tooltip.bodyFont = { size: 13 };
-        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) Chart.defaults.animation = false;
-        else Chart.defaults.animation.duration = 400;
+        // The pages redraw their charts whenever live data changes, so charts do not animate
+        Chart.defaults.animation = false;
     }
     applyChartDefaults();
 

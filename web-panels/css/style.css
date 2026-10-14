@@ -405,21 +405,16 @@ code,
 }
 
 /* ── Main content area ───────────────────────────────────── */
+/* One content width (--content-max-width) with the same left edge for every block */
 .row > main {
     margin-left: var(--sidebar-width);
     padding: var(--space-6) var(--page-pad-x) var(--space-7);
     min-height: 100vh;
     min-height: 100dvh;
     width: auto;
+    max-width: calc(var(--sidebar-width) + var(--content-max-width) + 2 * var(--page-pad-x));
     min-width: 0;
     overflow-x: hidden;
-}
-
-/* One content width with the same left edge for every block */
-.row > main > * {
-    max-width: var(--content-max-width);
-    margin-left: auto;
-    margin-right: auto;
 }
 
 main > *,
