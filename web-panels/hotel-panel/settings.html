@@ -71,6 +71,24 @@
                 </div>
                 <div class="col-lg-6">
                     <div class="card card-body">
+                        <h2 class="section-title"><i class="fas fa-bell" aria-hidden="true"></i>New order alerts</h2>
+                        <p class="text-muted">While a REPLATE page is open in this browser, each new order shows a message and the tab title counts the orders waiting for you.</p>
+                        <div class="setting-row">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="alertSound" name="alertSound" aria-describedby="alertSoundHelp">
+                                <label class="form-check-label" for="alertSound">Sound for new orders</label>
+                            </div>
+                            <div class="form-text" id="alertSoundHelp">A short chime. Turning it on plays it once so you can check the volume.</div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="alertBrowser" name="alertBrowser" aria-describedby="alertBrowserHelp">
+                                <label class="form-check-label" for="alertBrowser">Browser notifications</label>
+                            </div>
+                            <div class="form-text" id="alertBrowserHelp" aria-live="polite">Also tells you when REPLATE is in a background tab. Your browser asks for permission first.</div>
+                        </div>
+                    </div>
+                    <div class="card card-body">
                         <h2 class="section-title"><i class="fas fa-shield-alt" aria-hidden="true"></i>Account</h2>
                         <p class="text-muted">
                             To change your password, use &ldquo;Forgot password?&rdquo; on the sign-in page. To change the email address, contact REPLATE support.
@@ -100,6 +118,52 @@
 
     // Sign out button.
     document.getElementById('btnSignOut').addEventListener('click', () => logout());
+
+    // ── New order alerts: kept in this browser (each computer at the counter chooses its own) ──
+    const alerts = ReplateUI.alerts;
+    const soundSwitch = document.getElementById('alertSound');
+    const browserSwitch = document.getElementById('alertBrowser');
+    const browserHelp = document.getElementById('alertBrowserHelp');
+    const BROWSER_HELP = {
+        ready: 'Also tells you when REPLATE is in a background tab. Your browser asks for permission first.',
+        on: 'On. A notification appears when a new order arrives while REPLATE is in a background tab.',
+        denied: 'Notifications are blocked for this site. Allow them in your browser’s site settings, then turn this on again.',
+        unsupported: 'This browser cannot show notifications. The message, sound and tab title still work.'
+    };
+
+    // Shows the switches as they are now (the browser's permission can change outside this page)
+    function showAlertSettings() {
+        soundSwitch.checked = alerts.pref('sound');
+        const permission = alerts.notificationPermission();
+        if (permission === 'unsupported') {
+            browserSwitch.checked = false;
+            browserSwitch.disabled = true;
+            browserHelp.textContent = BROWSER_HELP.unsupported;
+            return;
+        }
+        const on = alerts.pref('browser') && permission === 'granted';
+        browserSwitch.checked = on;
+        browserHelp.textContent = permission === 'denied' ? BROWSER_HELP.denied : (on ? BROWSER_HELP.on : BROWSER_HELP.ready);
+    }
+    showAlertSettings();
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) showAlertSettings(); });
+
+    soundSwitch.addEventListener('change', () => {
+        alerts.setPref('sound', soundSwitch.checked);
+        if (soundSwitch.checked) alerts.playChime();
+    });
+
+    browserSwitch.addEventListener('change', async () => {
+        if (!browserSwitch.checked) {
+            alerts.setPref('browser', false);
+            showAlertSettings();
+            return;
+        }
+        const permission = alerts.notificationPermission() === 'granted' ? 'granted' : await alerts.requestNotificationPermission();
+        alerts.setPref('browser', permission === 'granted');
+        showAlertSettings();
+        if (permission === 'granted') ReplateUI.toast('Browser notifications are on.', 'success');
+    });
 
     // Shows the approval status box with its reason.
     function showApproval(data) {

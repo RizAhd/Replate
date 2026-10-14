@@ -913,6 +913,19 @@ label.switch-hit {
     cursor: pointer;
 }
 
+/* A setting: switch and label, then a line of help lined up with the label */
+.setting-row + .setting-row {
+    margin-top: var(--space-3);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--border-light);
+}
+
+.setting-row .form-text {
+    margin-top: 0;
+    padding-left: 52px;
+    max-width: 60ch;
+}
+
 .form-switch .form-check-input:focus:not(:checked) {
     --bs-form-switch-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23868e99'/%3e%3c/svg%3e");
 }
@@ -2205,6 +2218,28 @@ button.auth-link {
 .toast-warning { border-left-color: var(--warning); }
 .toast-warning i { color: var(--warning); }
 .toast-info i { color: var(--info); }
+.toast-order { border-left-color: var(--primary); }
+.toast-order i { color: var(--primary); }
+
+/* One link inside a toast ("View" on a new order) */
+.toast-action {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch);
+    margin: -12px 0;
+    padding: 0 var(--space-2);
+    border-radius: var(--radius-sm);
+    color: var(--primary);
+    font-weight: var(--fw-semibold);
+    text-decoration: none;
+}
+
+.toast-action:hover {
+    background: var(--primary-50);
+    color: var(--primary-hover);
+    text-decoration: underline;
+}
 .toast-item.leaving { opacity: 0; transform: translateX(12px); transition: opacity 0.2s ease, transform 0.2s ease; }
 
 .toast-close {

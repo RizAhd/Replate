@@ -43,11 +43,15 @@ const ReplateUI = (() => {
         success: 'fa-circle-check',
         danger: 'fa-circle-exclamation',
         warning: 'fa-triangle-exclamation',
-        info: 'fa-circle-info'
+        info: 'fa-circle-info',
+        order: 'fa-bell'
     };
 
-    /** Small message that is always visible (fixed position) and goes away by itself. */
-    function toast(message, type = 'info', duration = 4500) {
+    /**
+     * Small message that is always visible (fixed position) and goes away by itself.
+     * opts.action: { href, label } adds one link (e.g. "View" for a new order).
+     */
+    function toast(message, type = 'info', duration = 4500, opts = {}) {
         const kind = TOAST_ICONS[type] ? type : 'info';
         const el = document.createElement('div');
         el.className = 'toast-item toast-' + kind;
@@ -61,7 +65,15 @@ const ReplateUI = (() => {
         close.className = 'toast-close';
         close.setAttribute('aria-label', 'Dismiss');
         close.innerHTML = '<span aria-hidden="true">×</span>';
-        el.append(icon, text, close);
+        el.append(icon, text);
+        if (opts && opts.action && opts.action.href) {
+            const link = document.createElement('a');
+            link.className = 'toast-action';
+            link.href = opts.action.href;
+            link.textContent = opts.action.label || 'View';
+            el.append(link);
+        }
+        el.append(close);
         toastRegion().appendChild(el);
 
         const remove = () => {
@@ -707,6 +719,194 @@ const ReplateUI = (() => {
     }
     document.addEventListener('DOMContentLoaded', () => document.querySelectorAll('.nav-tabs').forEach(watchTabOverflow));
 
+    // ── New-order alerts (every signed-in hotel page) ───────────────────────
+    // For each new order: a short chime, "(n) Orders · REPLATE" in the tab title, a toast with a View
+    // link and, when the browser allows it, a system notification. The switches live on the Settings
+    // page and are kept in this browser only. Nothing here may stop the page from working, so every
+    // browser feature (audio, notifications, storage) is optional.
+    const ALERT_KEYS = { sound: 'replate.alerts.sound', browser: 'replate.alerts.browser' };
+    const UNSEEN_KEY = 'replate.alerts.unseen';
+
+    /** 'sound' is on until it is turned off; 'browser' is off until it is turned on (it needs permission). */
+    function alertPref(name) {
+        let value = null;
+        try { value = localStorage.getItem(ALERT_KEYS[name]); } catch (e) { /* storage blocked */ }
+        return name === 'sound' ? value !== 'off' : value === 'on';
+    }
+
+    function setAlertPref(name, on) {
+        try { localStorage.setItem(ALERT_KEYS[name], on ? 'on' : 'off'); } catch (e) { /* storage blocked */ }
+    }
+
+    function notificationsSupported() {
+        return typeof window.Notification === 'function';
+    }
+
+    /** 'granted' | 'denied' | 'default' | 'unsupported' */
+    function notificationPermission() {
+        try { return notificationsSupported() ? window.Notification.permission : 'unsupported'; } catch (e) { return 'unsupported'; }
+    }
+
+    /** Asks the browser once; resolves with the answer (older browsers answer through a callback). */
+    function requestNotificationPermission() {
+        if (!notificationsSupported()) return Promise.resolve('unsupported');
+        return new Promise((resolve) => {
+            try {
+                const answer = window.Notification.requestPermission((result) => resolve(result));
+                if (answer && typeof answer.then === 'function') answer.then(resolve, () => resolve(notificationPermission()));
+            } catch (e) {
+                resolve(notificationPermission());
+            }
+        });
+    }
+
+    let audioCtx = null;
+    function audioContext() {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return null;
+        if (!audioCtx) {
+            try { audioCtx = new Ctx(); } catch (e) { return null; }
+        }
+        return audioCtx;
+    }
+
+    // Browsers only play sound once the person has clicked or typed on the page
+    function unlockAudio() {
+        if (!alertPref('sound')) return;
+        const ctx = audioContext();
+        if (ctx && ctx.state === 'suspended' && ctx.resume) ctx.resume().catch(() => {});
+    }
+
+    /** A short two-note chime made in the browser (no sound file). Silent where audio is not available. */
+    function playChime() {
+        const ctx = audioContext();
+        if (!ctx) return;
+        try {
+            if (ctx.state === 'suspended' && ctx.resume) ctx.resume().catch(() => {});
+            const start = ctx.currentTime + 0.03;
+            [[880, 0], [1318.5, 0.18]].forEach(([frequency, offset]) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                const t = start + offset;
+                osc.type = 'sine';
+                osc.frequency.value = frequency;
+                gain.gain.setValueAtTime(0.0001, t);
+                gain.gain.exponentialRampToValueAtTime(0.2, t + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(t);
+                osc.stop(t + 0.65);
+            });
+        } catch (e) { /* no sound on this device */ }
+    }
+
+    function onOrdersPage() {
+        return /(^|\/)orders\.html$/.test(window.location.pathname);
+    }
+
+    // New orders not looked at yet, kept for this browser tab so the count survives moving between pages
+    function readUnseen() {
+        try {
+            const keys = JSON.parse(sessionStorage.getItem(UNSEEN_KEY) || '[]');
+            return Array.isArray(keys) ? keys.filter((k) => typeof k === 'string') : [];
+        } catch (e) { return []; }
+    }
+
+    function writeUnseen(keys) {
+        try { sessionStorage.setItem(UNSEEN_KEY, JSON.stringify(keys)); } catch (e) { /* storage blocked */ }
+    }
+
+    let baseTitle = '';
+    let watching = false;   // true once the first list of orders has arrived (from then on, new ones are announced)
+    function showUnseenCount(count) {
+        document.title = count > 0 ? '(' + count + ') Orders · REPLATE' : baseTitle;
+    }
+
+    // One toast, one chime and (in the background) one system notification for the orders that just came in
+    function announceOrders(rows) {
+        const first = rows[0].order;
+        const who = first.customerName || 'a customer';
+        const message = rows.length === 1
+            ? 'New order from ' + who + ': ' + ReplateSchema.extractItemNames(first) + '.'
+            : rows.length + ' new orders. The latest is from ' + who + '.';
+        const onOrders = onOrdersPage();
+        toast(message, 'order', 10000, onOrders ? {} : { action: { href: 'orders.html', label: 'View' } });
+        if (alertPref('sound')) playChime();
+        if (alertPref('browser') && notificationPermission() === 'granted' && (document.hidden || !document.hasFocus())) {
+            try {
+                const note = new window.Notification(rows.length === 1 ? 'New order' : rows.length + ' new orders', {
+                    body: message, tag: 'replate-new-order', icon: '../assets/icon-192.png'
+                });
+                note.onclick = () => {
+                    window.focus();
+                    if (!onOrders) window.location.href = 'orders.html';
+                    note.close();
+                };
+            } catch (e) { /* this browser only shows notifications from a service worker */ }
+        }
+    }
+
+    /** Listens to the hotel's orders; the first answer is what was already there, so it is never announced. */
+    function watchNewOrders(hotelIds) {
+        baseTitle = document.title;
+        let known = null;
+        let waiting = new Set();
+        // The count is the new orders still waiting; it clears while the Orders page is open and in view
+        const sync = () => {
+            let unseen = readUnseen().filter((key) => waiting.has(key));
+            if (onOrdersPage() && !document.hidden) unseen = [];
+            writeUnseen(unseen);
+            showUnseenCount(unseen.length);
+        };
+        ReplateSchema.hotelOrders(database, hotelIds).on((snapshot) => {
+            const rows = [];
+            snapshot.forEach((child) => { rows.push({ key: child.key, order: child.val() || {} }); });
+            waiting = new Set(rows.filter((row) => ReplateSchema.isNewOrder(row.order)).map((row) => row.key));
+            if (known === null) {
+                known = new Set(rows.map((row) => row.key));
+                watching = true;
+            } else {
+                const fresh = ReplateSchema.newPendingOrders(known, rows);
+                rows.forEach((row) => known.add(row.key));
+                if (fresh.length) {
+                    const unseen = readUnseen();
+                    fresh.forEach((row) => { if (!unseen.includes(row.key)) unseen.push(row.key); });
+                    writeUnseen(unseen);
+                    announceOrders(fresh);
+                }
+            }
+            sync();
+        }, () => { /* the rules refused (hotel no longer approved) or the user signed out: stay quiet */ });
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) sync(); });
+    }
+
+    // Starts on hotel pages only, once the account is known to be an approved hotel
+    function startNewOrderAlerts() {
+        if (typeof hotelShellLinks === 'undefined' || typeof auth === 'undefined' || typeof database === 'undefined') return;
+        ['pointerdown', 'keydown'].forEach((type) => document.addEventListener(type, unlockAudio, { once: true, capture: true }));
+        const stop = auth.onAuthStateChanged(async (user) => {
+            stop();
+            if (!user) return;
+            try {
+                const record = await ReplateSchema.findHotelByUserId(database, user.uid);
+                const status = ReplateSchema.normalizeHotelStatus(record && record.value && record.value.status);
+                if (record && status === 'approved') watchNewOrders(new Set([user.uid, record.key]));
+            } catch (e) { /* no alerts when the hotel record cannot be read; the page shows its own message */ }
+        });
+    }
+    document.addEventListener('DOMContentLoaded', startNewOrderAlerts);
+
+    const alerts = {
+        isWatching: () => watching,
+        pref: alertPref,
+        setPref: setAlertPref,
+        playChime,
+        notificationsSupported,
+        notificationPermission,
+        requestNotificationPermission
+    };
+
     return {
         esc,
         safeUrl,
@@ -736,6 +936,7 @@ const ReplateUI = (() => {
         chartEmpty,
         describeChart,
         setDelta,
+        alerts,
         errorState
     };
 })();
