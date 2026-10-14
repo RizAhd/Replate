@@ -63,7 +63,7 @@
         <!-- Typography system. Poppins comes from the text appearances below, not from a theme-wide
              fontFamily: a theme-level (android:)fontFamily outranks every TextAppearance and silently
              turned all the bold/semibold/medium styles back into Regular. -->
-        <item name="android:textAppearance">@style/TextAppearance.REPLATE.Default</item>
+        <item name="android:textAppearance">@style/TextAppearance.REPLATE.Default.Base</item>
         <item name="android:textAppearanceSmall">@style/TextAppearance.REPLATE.Default</item>
         <item name="android:textAppearanceMedium">@style/TextAppearance.REPLATE.Default.Medium</item>
         <item name="android:textAppearanceLarge">@style/TextAppearance.REPLATE.Default.Large</item>

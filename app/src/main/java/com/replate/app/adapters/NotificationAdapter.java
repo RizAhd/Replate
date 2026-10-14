@@ -175,6 +175,8 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         TextView tvTitle, tvBody, tvTime, tvCategoryChip;
         View unreadDot;
         View viewAccentStrip;
+        /** Id of the "Delete" accessibility action added for the row now bound (replaced on rebind). */
+        int deleteActionId = View.NO_ID;
 
         NotifViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -247,7 +249,10 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             });
 
             // Deleting is a swipe (with Undo); TalkBack users get the same thing as a "Delete" action
-            androidx.core.view.ViewCompat.addAccessibilityAction(itemView,
+            if (deleteActionId != View.NO_ID) {
+                androidx.core.view.ViewCompat.removeAccessibilityAction(itemView, deleteActionId);
+            }
+            deleteActionId = androidx.core.view.ViewCompat.addAccessibilityAction(itemView,
                     itemView.getContext().getString(R.string.notification_delete_notification_cd),
                     (view, arguments) -> {
                         if (listener != null) {

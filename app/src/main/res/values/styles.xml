@@ -57,6 +57,11 @@
         <item name="fontFamily">@font/poppins</item>
     </style>
 
+    <style name="TextAppearance.REPLATE.Default.Base" parent="@android:style/TextAppearance.Material">
+        <item name="android:fontFamily">@font/poppins</item>
+        <item name="fontFamily">@font/poppins</item>
+    </style>
+
     <style name="TextAppearance.REPLATE.Default.Medium" parent="@android:style/TextAppearance.Material.Medium">
         <item name="android:fontFamily">@font/poppins</item>
         <item name="fontFamily">@font/poppins</item>
