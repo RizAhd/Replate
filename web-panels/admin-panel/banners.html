@@ -193,10 +193,10 @@
                         </td>
                         <td data-label="Order">${esc(b.order)}</td>
                         <td data-label="Active">
-                            <div class="form-check form-switch">
+                            <label class="form-check form-switch switch-hit">
                                 <input class="form-check-input" type="checkbox" role="switch" ${b.active !== false ? 'checked' : ''}
                                        data-key="${esc(key)}" aria-label="Show ${esc(b.title || 'banner')} in the app">
-                            </div>
+                            </label>
                         </td>
                         <td data-label="Actions" class="actions-cell">
                             <button type="button" class="btn btn-sm btn-icon btn-outline-danger" data-action="delete" data-key="${esc(key)}" aria-label="Delete ${esc(b.title || 'banner')}" title="Delete"><i class="fas fa-trash" aria-hidden="true"></i></button>

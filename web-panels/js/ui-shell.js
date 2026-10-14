@@ -295,7 +295,7 @@ const ReplateUI = (() => {
         container.innerHTML = `
             <div class="sidebar-inner">
                 <div class="sidebar-head">
-                    <a class="navbar-brand" href="#">${title}</a>
+                    <a class="navbar-brand" href="${esc((links[0] && links[0].href) || '#')}">${title}</a>
                     <button type="button" class="sidebar-close" aria-label="Close menu"><i class="fas fa-xmark" aria-hidden="true"></i></button>
                 </div>
                 <nav aria-label="Main">

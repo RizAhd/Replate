@@ -551,13 +551,12 @@ form,
 }
 
 .stat-value {
-    font-size: clamp(var(--fs-24), 15cqi, var(--fs-32));
+    font-size: clamp(var(--fs-24), 16cqi, var(--fs-32));
     font-weight: var(--fw-bold);
     line-height: 1.2;
     letter-spacing: -0.02em;
     color: var(--text-primary);
     margin: 0;
-    white-space: nowrap;
 }
 
 .stat-unit {
@@ -771,6 +770,17 @@ form,
     margin-top: var(--space-1);
 }
 
+.form-text code {
+    font-size: 1em;
+}
+
+/* Links that sit alone on a sign-in card line are easy to tap */
+.auth-card p > a {
+    display: inline-block;
+    padding: 12px 2px;
+    margin: -12px 0;
+}
+
 .form-control,
 .form-select {
     font-family: var(--font-sans);
@@ -883,6 +893,16 @@ form,
     border-color: var(--border-strong);
 }
 
+.form-switch .form-check-label {
+    padding: 10px 0;
+    cursor: pointer;
+}
+
+label.switch-hit {
+    min-width: 64px;
+    cursor: pointer;
+}
+
 .form-switch .form-check-input:focus:not(:checked) {
     --bs-form-switch-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23868e99'/%3e%3c/svg%3e");
 }
@@ -897,9 +917,9 @@ form,
 
 .password-toggle {
     position: absolute;
-    right: 1px;
-    top: 1px;
-    bottom: 1px;
+    right: 0;
+    top: 0;
+    bottom: 0;
     border: 0;
     background: transparent;
     color: var(--text-secondary);
@@ -1035,6 +1055,11 @@ form,
 }
 
 .pagination .page-item .page-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--control-h);
+    min-width: var(--control-h);
     font-variant-numeric: tabular-nums;
     border-radius: var(--radius-sm);
     transition: background-color var(--transition-fast), color var(--transition-fast);
@@ -1214,6 +1239,16 @@ form,
 
 .modal-header .modal-title {
     margin: 0;
+}
+
+/* the close cross is a 44px target */
+.modal-header .btn-close {
+    width: var(--touch);
+    height: var(--touch);
+    padding: 0;
+    margin: -10px -10px -10px auto;
+    background-size: 14px;
+    border-radius: var(--radius-sm);
 }
 
 .modal-body {
@@ -1716,6 +1751,7 @@ form,
     }
 
     .card div.dataTables_wrapper div.dataTables_filter input {
+        display: block;
         width: 100%;
         margin-left: 0;
         margin-top: var(--space-2);
@@ -1918,11 +1954,14 @@ form,
 .skip-link {
     position: absolute;
     left: 12px;
-    top: -48px;
+    top: -56px;
     z-index: var(--z-skip);
     background: var(--primary);
     color: #fff;
-    padding: 10px 16px;
+    min-height: var(--touch);
+    display: inline-flex;
+    align-items: center;
+    padding: 0 16px;
     border-radius: var(--radius-sm);
     transition: top var(--transition-base);
 }
@@ -2384,7 +2423,7 @@ form,
 .ct-avatar {
     width: 36px;
     height: 36px;
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--primary-dark);
     color: #fff;
     font-size: var(--fs-14);
 }
@@ -2473,6 +2512,11 @@ form,
 
 .chat-compose input:focus {
     border-color: var(--primary);
+}
+
+.chat-compose input::placeholder,
+.conv-search-wrap input::placeholder {
+    color: var(--gray-500);
 }
 
 .btn-send {
