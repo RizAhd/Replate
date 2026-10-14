@@ -32,6 +32,7 @@ import com.google.android.gms.common.api.ApiException;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FacebookAuthProvider;
@@ -339,7 +340,7 @@ public class LoginActivity extends AppCompatActivity {
                                 && "ERROR_USER_DISABLED".equals(
                                 ((com.google.firebase.auth.FirebaseAuthInvalidUserException) ex).getErrorCode())) {
                             // An admin suspended this account (admin panel > Users)
-                            new androidx.appcompat.app.AlertDialog.Builder(LoginActivity.this)
+                            new MaterialAlertDialogBuilder(LoginActivity.this)
                                     .setTitle(R.string.login_account_suspended_title)
                                     .setMessage(R.string.login_account_suspended_message)
                                     .setPositiveButton(android.R.string.ok, null)
@@ -623,7 +624,7 @@ public class LoginActivity extends AppCompatActivity {
      * Show a clean dialog after signup telling the user to verify their email.
      */
     private void showVerificationSentDialog(String email) {
-        new AlertDialog.Builder(this)
+        new MaterialAlertDialogBuilder(this)
             .setTitle(R.string.login_verify_your_email)
             .setMessage("We've sent a verification link to:\n\n" + (email != null ? email : "") +
                 "\n\nPlease check your inbox (and spam folder) and click the link to activate your account.\n\nOnce verified, come back and log in.")
@@ -732,7 +733,7 @@ public class LoginActivity extends AppCompatActivity {
      * Show dialog when user tries to log in with an unregistered email.
      */
     private void showNotRegisteredDialog(String email) {
-        new AlertDialog.Builder(this)
+        new MaterialAlertDialogBuilder(this)
             .setTitle(getString(R.string.auth_not_registered_title))
             .setMessage(getString(R.string.auth_not_registered_message))
             .setPositiveButton(R.string.login_register_now, (dialog, which) -> {
@@ -749,7 +750,7 @@ public class LoginActivity extends AppCompatActivity {
 
     // Tells the user to verify their email first.
     private void showEmailNotVerifiedDialog(String email) {
-        new AlertDialog.Builder(this)
+        new MaterialAlertDialogBuilder(this)
             .setTitle(R.string.login_email_not_verified)
             .setMessage("Your email address (" + (email != null ? email : "") + ") has not been verified yet.\n\nPlease check your inbox (and spam folder) for the verification link, then try logging in again.")
             .setPositiveButton(R.string.login_resend_email, (dialog, which) -> {
@@ -813,7 +814,7 @@ public class LoginActivity extends AppCompatActivity {
                     // User cancelled - do nothing
                 } else if (code == com.google.android.gms.common.api.CommonStatusCodes.NETWORK_ERROR
                         || code == 7) {
-                    new AlertDialog.Builder(this)
+                    new MaterialAlertDialogBuilder(this)
                         .setTitle(R.string.login_network_error)
                         .setMessage(R.string.login_could_not_connect_to_google)
                         .setPositiveButton(R.string.login_retry, (d, w) -> signInWithGoogle())
@@ -919,16 +920,16 @@ public class LoginActivity extends AppCompatActivity {
         TextView tvResendOtp = dialogView.findViewById(R.id.tvResendOtp);
         ProgressBar phoneAuthProgress = dialogView.findViewById(R.id.phoneAuthProgress);
 
-        AlertDialog dialog = new AlertDialog.Builder(this)
+        AlertDialog dialog = new MaterialAlertDialogBuilder(this)
                 .setView(dialogView)
                 .setCancelable(true)
                 .create();
 
+        TextInputLayout tilPhoneNumber = dialogView.findViewById(R.id.tilPhoneNumber);
+        TextInputLayout tilOtpCode = dialogView.findViewById(R.id.tilOtpCode);
+
         if (dialog.getWindow() != null) {
-            // Rounded card, inset 16dp from the screen edge like a standard dialog
-            int inset = (int) (16 * getResources().getDisplayMetrics().density);
-            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.InsetDrawable(
-                    ContextCompat.getDrawable(this, R.drawable.card_background_shape), inset));
+            // The Material dialog already has the rounded 28dp shape; only keep the fields above the keyboard
             dialog.getWindow().setSoftInputMode(
                     android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         }
@@ -949,8 +950,7 @@ public class LoginActivity extends AppCompatActivity {
                         android.util.Log.w("LoginActivity", "Phone verification failed", e);
                         phoneAuthProgress.setVisibility(View.GONE);
                         btnSendOtp.setEnabled(true);
-                        ToastUtils.showCustomToast(LoginActivity.this,
-                                R.string.login_phone_verification_failed_please_try);
+                        tilPhoneNumber.setError(getString(R.string.login_phone_verification_failed_please_try));
                     }
 
                     // SMS sent: remember the id and show the code box.
@@ -987,9 +987,10 @@ public class LoginActivity extends AppCompatActivity {
             String code = etCountryCode.getText() != null ? etCountryCode.getText().toString().trim() : "+94";
             String phone = etPhoneNumber.getText() != null ? etPhoneNumber.getText().toString().trim() : "";
             if (phone.isEmpty()) {
-                ToastUtils.showCustomToast(this, R.string.login_please_enter_your_phone_number);
+                tilPhoneNumber.setError(getString(R.string.login_please_enter_your_phone_number));
                 return;
             }
+            tilPhoneNumber.setError(null);
 
             btnSendOtp.setEnabled(false);
             phoneAuthProgress.setVisibility(View.VISIBLE);
@@ -1007,13 +1008,14 @@ public class LoginActivity extends AppCompatActivity {
         btnVerifyOtp.setOnClickListener(v -> {
             String otp = etOtpCode.getText() != null ? etOtpCode.getText().toString().trim() : "";
             if (otp.length() != 6) {
-                ToastUtils.showCustomToast(this, R.string.login_please_enter_the_6_digit);
+                tilOtpCode.setError(getString(R.string.login_please_enter_the_6_digit));
                 return;
             }
             if (phoneVerificationId == null) {
-                ToastUtils.showCustomToast(this, R.string.login_please_request_a_code_first);
+                tilOtpCode.setError(getString(R.string.login_please_request_a_code_first));
                 return;
             }
+            tilOtpCode.setError(null);
 
             phoneAuthProgress.setVisibility(View.VISIBLE);
             btnVerifyOtp.setEnabled(false);
@@ -1024,7 +1026,7 @@ public class LoginActivity extends AppCompatActivity {
                 phoneAuthProgress.setVisibility(View.GONE);
                 if (!task.isSuccessful()) {
                     btnVerifyOtp.setEnabled(true);
-                    ToastUtils.showCustomToast(this, R.string.login_phone_verification_failed_please_try);
+                    tilOtpCode.setError(getString(R.string.login_phone_verification_failed_please_try));
                     return;
                 }
                 dialog.dismiss();
@@ -1117,27 +1119,33 @@ public class LoginActivity extends AppCompatActivity {
 
     // Asks for an email to send a reset link.
     private void showForgotPasswordDialog() {
-        // Create input field
-        final TextInputEditText input = new TextInputEditText(this);
-        input.setHint(R.string.login_enter_your_email);
-        input.setInputType(android.text.InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
-        input.setPadding(50, 30, 50, 30);
+        View body = getLayoutInflater().inflate(R.layout.dialog_reset_password, null);
+        TextInputLayout tilResetEmail = body.findViewById(R.id.tilResetEmail);
+        TextInputEditText etResetEmail = body.findViewById(R.id.etResetEmail);
+        // Most people tap "Forgot password?" right after typing their email: start from it
+        String typed = etLoginEmail.getText() != null ? etLoginEmail.getText().toString().trim() : "";
+        etResetEmail.setText(typed);
+        etResetEmail.setSelection(typed.length());
 
-        // Create dialog
-        new AlertDialog.Builder(this)
+        AlertDialog dialog = new MaterialAlertDialogBuilder(this)
             .setTitle(R.string.login_reset_password)
             .setMessage(R.string.login_we_ll_send_you_an)
-            .setView(input)
-            .setPositiveButton(R.string.login_send, (dialog, which) -> {
-                String email = input.getText().toString().trim();
-                if (!TextUtils.isEmpty(email) && Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                    sendPasswordResetEmail(email);
-                } else {
-                    ToastUtils.showCustomToast(this, R.string.login_please_enter_a_valid_email);
-                }
-            })
+            .setView(body)
+            .setPositiveButton(R.string.login_send, null)
             .setNegativeButton(R.string.login_cancel, null)
-            .show();
+            .create();
+        // Our own click handler, so a bad email shows an inline error instead of closing the dialog
+        dialog.setOnShowListener(d -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String email = etResetEmail.getText() != null ? etResetEmail.getText().toString().trim() : "";
+            if (TextUtils.isEmpty(email) || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                tilResetEmail.setError(getString(R.string.login_please_enter_a_valid_email));
+                return;
+            }
+            tilResetEmail.setError(null);
+            dialog.dismiss();
+            sendPasswordResetEmail(email);
+        }));
+        dialog.show();
     }
 
     // Sends the password reset email.

@@ -47,7 +47,7 @@
                 android:fontFamily="@font/poppins_bold"
                 android:paddingHorizontal="@dimen/space_1_5"
                 android:paddingVertical="@dimen/space_0_5"
-                android:textAllCaps="true"
+                android:textAllCaps="false"
                 android:textColor="@color/white"
                 android:textSize="@dimen/text_xs"
                 tools:text="HOT DEAL" />

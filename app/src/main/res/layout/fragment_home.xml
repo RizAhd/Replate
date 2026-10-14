@@ -59,7 +59,7 @@
                                 android:layout_height="24dp"
                                 android:layout_gravity="center"
                                 android:contentDescription="@string/cd_open_menu"
-                                android:src="@android:drawable/ic_menu_sort_by_size"
+                                android:src="@drawable/ic_menu"
                                 app:tint="@color/white" />
                         </com.google.android.material.card.MaterialCardView>
 
@@ -167,12 +167,8 @@
                         android:textColor="@color/text_on_primary_muted" />
 
                     <com.google.android.material.card.MaterialCardView
-                        android:layout_width="match_parent"
-                        android:layout_height="56dp"
-                        android:layout_marginTop="@dimen/space_1_5"
-                        app:cardBackgroundColor="@color/surface_white"
-                        app:cardCornerRadius="@dimen/radius_lg"
-                        app:cardElevation="0dp">
+                        style="@style/Widget.REPLATE.Card.Search"
+                        android:layout_marginTop="@dimen/space_1_5">
 
                         <androidx.appcompat.widget.SearchView
                             android:id="@+id/searchView"

@@ -37,6 +37,7 @@ public class MessagesActivity extends AppCompatActivity {
     private View btnRetry;
     private TextView tvEmptyBody;
     private ProgressBar progressBar;
+    private androidx.swiperefreshlayout.widget.SwipeRefreshLayout swipeRefreshMessages;
 
     private ConversationAdapter adapter;
     private DatabaseReference conversationsRef;
@@ -61,6 +62,9 @@ public class MessagesActivity extends AppCompatActivity {
         btnRetry = findViewById(R.id.btnRetry);
         tvEmptyBody = findViewById(R.id.tvEmptyBody);
         progressBar = findViewById(R.id.progressBar);
+        swipeRefreshMessages = findViewById(R.id.swipeRefreshMessages);
+        swipeRefreshMessages.setColorSchemeResources(R.color.green_primary);
+        swipeRefreshMessages.setOnRefreshListener(this::startListening);
         findViewById(R.id.ivBack).setOnClickListener(v -> finish());
 
         adapter = new ConversationAdapter("customer");
@@ -88,7 +92,9 @@ public class MessagesActivity extends AppCompatActivity {
     // Loads the customer's chats from Firebase and keeps them live.
     private void startListening() {
         stopListening();
-        progressBar.setVisibility(View.VISIBLE);
+        if (!swipeRefreshMessages.isRefreshing()) {
+            progressBar.setVisibility(View.VISIBLE);
+        }
         btnRetry.setVisibility(View.GONE);
 
         conversationsRef = FirebaseDatabase.getInstance().getReference("conversations").child(currentUserId);
@@ -97,6 +103,7 @@ public class MessagesActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 progressBar.setVisibility(View.GONE);
+                swipeRefreshMessages.setRefreshing(false);
 
                 List<Map<String, Object>> conversations = new ArrayList<>();
                 List<String> ids = new ArrayList<>();
@@ -131,6 +138,7 @@ public class MessagesActivity extends AppCompatActivity {
             public void onCancelled(@NonNull DatabaseError error) {
                 DatabaseErrorLogger.log("MessagesActivity", "load conversations", error);
                 progressBar.setVisibility(View.GONE);
+                swipeRefreshMessages.setRefreshing(false);
                 if (adapter.getItemCount() == 0) {
                     showList(false, true);
                 }
@@ -149,7 +157,7 @@ public class MessagesActivity extends AppCompatActivity {
 
     // Shows the list, or the empty / retry message.
     private void showList(boolean hasItems, boolean failed) {
-        rvConversations.setVisibility(hasItems ? View.VISIBLE : View.GONE);
+        swipeRefreshMessages.setVisibility(hasItems ? View.VISIBLE : View.GONE);
         emptyState.setVisibility(hasItems ? View.GONE : View.VISIBLE);
         btnRetry.setVisibility(failed ? View.VISIBLE : View.GONE);
         tvEmptyBody.setText(failed ? R.string.messages_load_failed : R.string.messages_empty_subtitle);

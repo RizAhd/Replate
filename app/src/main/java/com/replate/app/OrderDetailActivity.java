@@ -249,6 +249,10 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
     // Loads the order and keeps it up to date live.
     private void loadOrderFromFirebase(String orderId) {
         currentOrderId = orderId;
+        View progressOrder = findViewById(R.id.progressOrder);
+        if (progressOrder != null && order == null) {
+            progressOrder.setVisibility(View.VISIBLE);
+        }
 
         // Avoid duplicate listeners if this method is called again.
         if (orderListener != null && currentOrderId != null) {
@@ -259,6 +263,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
             // Shows the latest order data.
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (progressOrder != null) progressOrder.setVisibility(View.GONE);
                 Order loaded = SafeSnapshot.getValue(snapshot, Order.class);
                 if (loaded != null) {
                     order = loaded;
@@ -272,6 +277,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
             // Tells the user the order did not load.
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
+                if (progressOrder != null) progressOrder.setVisibility(View.GONE);
                 ToastUtils.showCustomToast(OrderDetailActivity.this, R.string.order_detail_failed_to_load_order);
             }
         };
@@ -324,7 +330,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
                             : R.string.order_detail_order_cancelled);
                     break;
                 default:
-                    tvOrderStatus.setText("📋 " + order.getStatusDisplay());
+                    tvOrderStatus.setText(order.getStatusDisplay());
             }
         }
 
@@ -338,7 +344,7 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         if (order.isDelivery()) {
             String addr = order.getDeliveryAddress();
             if (addr != null && !addr.isEmpty() && !"Pickup at Hotel".equalsIgnoreCase(addr)) {
-                tvPickupTime.setText("📍 Delivery to: " + addr);
+                tvPickupTime.setText(getString(R.string.order_delivery_to, addr));
             } else {
                 tvPickupTime.setText(R.string.order_detail_delivery_order);
             }

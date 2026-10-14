@@ -29,6 +29,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -174,7 +175,7 @@ public class OrderSuccessActivity extends AppCompatActivity {
     /** The order is saved even if it cannot be shown right now; let the customer try again instead of a blank screen. */
     private void offerRetry() {
         if (isFinishing() || isDestroyed()) return;
-        new androidx.appcompat.app.AlertDialog.Builder(this)
+        new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.order_success_could_not_load_your_order)
                 .setMessage(R.string.order_success_load_failed_hint)
                 .setPositiveButton(R.string.checkout_retry, (d, w) -> loadOrder())
@@ -322,7 +323,7 @@ public class OrderSuccessActivity extends AppCompatActivity {
 
         // Update status row
         statusSpinner.setVisibility(View.GONE);
-        tvStatus.setText(isDelivery ? "📬 Order delivered" : "✅ Order completed");
+        tvStatus.setText(isDelivery ? R.string.order_detail_delivered : R.string.order_detail_order_completed);
         tvStatus.setTextColor(getColor(R.color.green_primary));
 
         // Show review section (if not already reviewed)

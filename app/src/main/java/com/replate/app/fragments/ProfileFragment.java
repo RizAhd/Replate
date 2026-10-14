@@ -12,9 +12,9 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
@@ -351,7 +351,7 @@ public class ProfileFragment extends Fragment {
 
         menuHelp.setOnClickListener(v -> {
             if (getContext() != null) {
-                new AlertDialog.Builder(getContext())
+                new MaterialAlertDialogBuilder(getContext())
                         .setTitle(R.string.help_title)
                         .setMessage(R.string.help_body)
                         .setPositiveButton(R.string.help_dismiss, null)

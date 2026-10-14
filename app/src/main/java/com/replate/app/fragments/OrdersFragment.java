@@ -13,12 +13,12 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -32,6 +32,7 @@ import com.replate.app.R;
 import com.replate.app.adapters.OrderAdapter;
 import com.replate.app.helpers.ReplateDatabaseHelper;
 import com.replate.app.models.Order;
+import com.replate.app.utils.ErrorStates;
 import com.replate.app.utils.SafeSnapshot;
 import com.replate.app.utils.ToastUtils;
 
@@ -52,6 +53,8 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
     private ProgressBar progressBar;
     private TextView tvEmptyMessage;
     private Button btnBrowse;
+    private androidx.swiperefreshlayout.widget.SwipeRefreshLayout swipeRefreshOrders;
+    private View errorState, errorBanner;
 
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
@@ -94,6 +97,11 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
         progressBar = view.findViewById(R.id.progressBar);
         tvEmptyMessage = view.findViewById(R.id.tvEmptyMessage);
         btnBrowse = view.findViewById(R.id.btnBrowse);
+        swipeRefreshOrders = view.findViewById(R.id.swipeRefreshOrders);
+        errorState = view.findViewById(R.id.errorState);
+        errorBanner = view.findViewById(R.id.errorBanner);
+        swipeRefreshOrders.setColorSchemeResources(R.color.green_primary);
+        swipeRefreshOrders.setOnRefreshListener(this::loadOrders);
 
         rvOrders.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new OrderAdapter(getContext(), filteredOrders, this);
@@ -153,12 +161,18 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
     private void loadOrders() {
         if (mAuth.getCurrentUser() == null) return;
 
-        progressBar.setVisibility(View.VISIBLE);
+        ErrorStates.hide(errorState);
+        ErrorStates.hide(errorBanner);
+        // Pull-to-refresh shows its own spinner
+        if (swipeRefreshOrders == null || !swipeRefreshOrders.isRefreshing()) {
+            progressBar.setVisibility(View.VISIBLE);
+        }
         // Firebase never answers while offline with nothing cached: stop the spinner and say so
         progressBar.postDelayed(() -> {
-            if (isAdded() && progressBar.getVisibility() == View.VISIBLE) {
+            if (isAdded() && (progressBar.getVisibility() == View.VISIBLE
+                    || (swipeRefreshOrders != null && swipeRefreshOrders.isRefreshing()))) {
                 progressBar.setVisibility(View.GONE);
-                android.widget.Toast.makeText(requireContext(), R.string.loading_took_too_long, android.widget.Toast.LENGTH_LONG).show();
+                showLoadError(R.string.loading_took_too_long);
             }
         }, 12_000L);
         String userId = mAuth.getCurrentUser().getUid();
@@ -196,6 +210,9 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
                 }
 
                 progressBar.setVisibility(View.GONE);
+                if (swipeRefreshOrders != null) swipeRefreshOrders.setRefreshing(false);
+                ErrorStates.hide(errorState);
+                ErrorStates.hide(errorBanner);
                 filterOrders();
             }
 
@@ -213,14 +230,24 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
                     }
                 }
                 if (!isAdded()) return;
-                Context ctx = getContext();
-                if (ctx != null) {
-                    ToastUtils.showCustomToast(ctx, R.string.orders_failed_to_load_orders);
-                }
+                showLoadError(R.string.orders_failed_to_load_orders);
             }
         };
 
         ordersQuery.addValueEventListener(ordersListener);
+    }
+
+    // Says the orders did not load, with a Try again button: in place of the list when nothing is saved,
+    // or as a slim banner above the saved orders.
+    private void showLoadError(int message) {
+        if (swipeRefreshOrders != null) swipeRefreshOrders.setRefreshing(false);
+        if (allOrders.isEmpty()) {
+            emptyState.setVisibility(View.GONE);
+            swipeRefreshOrders.setVisibility(View.GONE);
+            ErrorStates.show(errorState, message, this::loadOrders);
+        } else {
+            ErrorStates.show(errorBanner, message, this::loadOrders);
+        }
     }
 
     // Keeps the orders that fit the selected tab.
@@ -253,12 +280,15 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
 
     // Shows the list, or the empty message.
     private void updateUI() {
+        if (ErrorStates.isShown(errorState)) {
+            return; // the load error is showing in place of the list
+        }
         if (filteredOrders.isEmpty()) {
             emptyState.setVisibility(View.VISIBLE);
-            rvOrders.setVisibility(View.GONE);
+            swipeRefreshOrders.setVisibility(View.GONE);
         } else {
             emptyState.setVisibility(View.GONE);
-            rvOrders.setVisibility(View.VISIBLE);
+            swipeRefreshOrders.setVisibility(View.VISIBLE);
         }
     }
 
@@ -293,7 +323,7 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
         }
 
         if (!isAdded()) return;
-        new AlertDialog.Builder(requireContext())
+        new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.orders_cancel_this_order)
                 .setMessage(R.string.orders_are_you_sure_you_want)
                 .setNegativeButton(R.string.orders_keep, null)

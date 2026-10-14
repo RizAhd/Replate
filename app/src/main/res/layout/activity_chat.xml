@@ -117,46 +117,33 @@
 
             <!-- Shared empty-state look: 128dp pale circle, 56dp decorative icon, title, body, optional action -->
             <com.google.android.material.card.MaterialCardView
-                android:layout_width="128dp"
-                android:layout_height="128dp"
-                app:cardBackgroundColor="@color/green_pale"
-                app:cardCornerRadius="64dp"
-                app:cardElevation="0dp">
+                style="@style/Widget.REPLATE.EmptyState.Circle">
 
                 <ImageView
-                    android:layout_width="56dp"
-                    android:layout_height="56dp"
-                    android:layout_gravity="center"
+                    style="@style/Widget.REPLATE.EmptyState.Icon"
                     android:importantForAccessibility="no"
                     android:src="@drawable/ic_chat_empty"
                     app:tint="@color/green_primary" />
             </com.google.android.material.card.MaterialCardView>
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_3"
-                android:gravity="center"
-                android:text="@string/chat_start_a_conversation"
-                android:textAppearance="@style/TextAppearance.REPLATE.Headline" />
+                style="@style/Widget.REPLATE.EmptyState.Title"
+                android:text="@string/chat_start_a_conversation" />
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_1"
-                android:gravity="center"
-                android:text="@string/chat_send_a_message_to_start"
-                android:textAppearance="@style/TextAppearance.REPLATE.Body" />
+                style="@style/Widget.REPLATE.EmptyState.Body"
+                android:text="@string/chat_send_a_message_to_start" />
         </LinearLayout>
 
         <!-- Loading indicator -->
-        <ProgressBar
+        <com.google.android.material.progressindicator.CircularProgressIndicator
             android:id="@+id/progressBar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:indeterminateTint="@color/green_primary"
-            android:visibility="gone" />
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:indeterminate="true"
+            android:visibility="gone"
+            app:indicatorColor="@color/green_primary" />
     </FrameLayout>
 
     <!-- Message input bar -->

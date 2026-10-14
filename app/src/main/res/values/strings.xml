@@ -3,7 +3,7 @@
     <!-- App -->
     <string name="app_name">REPLATE</string>
     <string name="drawer_welcome_back">Welcome back</string>
-    <string name="drawer_tagline">Because Every Meal Matters</string>
+    <string name="drawer_tagline">Because every meal matters</string>
     <string name="drawer_profile_cd">Drawer profile</string>
 
     <!-- Common accessibility -->
@@ -26,7 +26,7 @@
     <string name="food_detail_your_rating">Your rating</string>
 
     <!-- Home -->
-    <string name="home_explore_nearby">Delivering to</string>
+    <string name="home_explore_nearby">Pickup near</string>
     <string name="default_location">Fetching location…</string>
     <string name="home_location_enable">Tap to enable location</string>
     <string name="home_location_retry">Location unavailable · tap to retry</string>
@@ -71,17 +71,17 @@
     <string name="map_open_settings">Open settings</string>
 
     <!-- Home banners (bundled fallback set) -->
-    <string name="banner_1_badge">HOT DEAL</string>
-    <string name="banner_1_title">Low Prices, Big Smiles</string>
+    <string name="banner_1_badge">Hot deal</string>
+    <string name="banner_1_title">Low prices, big smiles</string>
     <string name="banner_1_subtitle">Get hotel-quality food at rescue prices today.</string>
-    <string name="banner_2_badge">BAKERY SURPLUS</string>
-    <string name="banner_2_title">Fresh Bakes, Fair Prices</string>
+    <string name="banner_2_badge">Bakery surplus</string>
+    <string name="banner_2_title">Fresh bakes, fair prices</string>
     <string name="banner_2_subtitle">Rescue bread and pastries before closing time.</string>
-    <string name="banner_3_badge">FOOD RESCUE</string>
-    <string name="banner_3_title">Don\'t Waste Good Food</string>
+    <string name="banner_3_badge">Food rescue</string>
+    <string name="banner_3_title">Don\'t waste good food</string>
     <string name="banner_3_subtitle">Every order helps reduce food waste in Sri Lanka.</string>
-    <string name="banner_4_badge">SMART SAVINGS</string>
-    <string name="banner_4_title">Rescue Meals Near You</string>
+    <string name="banner_4_badge">Smart savings</string>
+    <string name="banner_4_title">Rescue meals near you</string>
     <string name="banner_4_subtitle">Fresh surplus meals are waiting around your location.</string>
     <string name="banner_content_description">%1$s. %2$s</string>
 
@@ -109,7 +109,7 @@
     <string name="cart_subtotal_label">Subtotal</string>
 
     <!-- Cart actions and states -->
-    <string name="cart_clear_title">Clear Cart</string>
+    <string name="cart_clear_title">Clear cart</string>
     <string name="cart_clear_message">Remove all items from cart?</string>
     <string name="cart_clear_confirm">Clear</string>
     <string name="cart_cleared">Cart cleared</string>
@@ -140,8 +140,8 @@
 
     <!-- Food detail defaults -->
     <string name="food_detail_default_discount">-30%</string>
-    <string name="food_detail_default_name">Food Name</string>
-    <string name="food_detail_default_hotel">Hotel Name</string>
+    <string name="food_detail_default_name">Food name</string>
+    <string name="food_detail_default_hotel">Hotel name</string>
     <string name="food_detail_default_distance">1.2 km away</string>
     <string name="food_detail_default_pickup_window">6:00 PM - 8:00 PM</string>
     <string name="food_detail_original_label">Original</string>
@@ -153,11 +153,11 @@
     <string name="food_detail_review_summary_zero">0.0 (0 reviews)</string>
     <string name="food_detail_review_hide_form">Hide review form</string>
     <string name="food_detail_review_write">Write a review</string>
-    <string name="food_detail_review_update">Update Review</string>
-    <string name="food_detail_review_submit">Submit Review</string>
+    <string name="food_detail_review_update">Update review</string>
+    <string name="food_detail_review_submit">Submit review</string>
 
     <!-- Profile -->
-    <string name="profile_user_name_placeholder">User Name</string>
+    <string name="profile_user_name_placeholder">User name</string>
     <string name="profile_user_email_placeholder">user@email.com</string>
     <string name="profile_edit_profile">Edit profile</string>
     <string name="profile_orders">Orders</string>
@@ -165,7 +165,7 @@
     <string name="profile_saved">Saved</string>
     <string name="profile_account">Account</string>
     <string name="profile_account_subtitle">Everything you need in one place</string>
-    <string name="profile_my_orders">My Orders</string>
+    <string name="profile_my_orders">My orders</string>
     <string name="profile_favorites">Favorites</string>
     <string name="favorites_title">Favorites</string>
     <string name="favorites_saved_count">%1$d saved %2$s locally</string>
@@ -185,13 +185,13 @@
     <string name="notifications_empty_subtitle">We’ll notify you when a hotel posts new deals or your order status changes.</string>
     <string name="cd_notifications_empty">Notifications empty state</string>
     <string name="profile_settings">Settings</string>
-    <string name="profile_help_support">Help &amp; Support</string>
-    <string name="profile_logout">Logout</string>
-    <string name="profile_delete_account">Delete Account</string>
+    <string name="profile_help_support">Help and support</string>
+    <string name="profile_logout">Log out</string>
+    <string name="profile_delete_account">Delete account</string>
     <string name="profile_version">REPLATE v1.1.0</string>
 
     <!-- Delete Account -->
-    <string name="delete_account_title">Delete Account</string>
+    <string name="delete_account_title">Delete account</string>
     <string name="delete_account_confirm_title">Are you sure?</string>
     <string name="delete_account_confirm_message">This will permanently delete your account and all associated data. This action cannot be undone.</string>
     <string name="delete_account_password_title">Confirm your password</string>
@@ -219,10 +219,10 @@
     <string name="settings_title">Settings</string>
     <string name="settings_change_photo">Change photo</string>
     <string name="settings_profile_info">Profile information</string>
-    <string name="settings_hint_full_name">Full Name</string>
-    <string name="settings_hint_phone">Phone Number</string>
+    <string name="settings_hint_full_name">Full name</string>
+    <string name="settings_hint_phone">Phone number</string>
     <string name="settings_hint_email">Email</string>
-    <string name="settings_hint_pickup_address">Pickup Address</string>
+    <string name="settings_hint_pickup_address">Pickup address</string>
     <string name="settings_pick_from_map">Pick from map</string>
     <string name="settings_save_changes">Save changes</string>
     <string name="settings_notify_about">Notify me about</string>
@@ -248,8 +248,8 @@
     <string name="settings_licenses_title">Built with</string>
     <string name="settings_licenses_body">REPLATE is built with these open-source and third-party libraries. Each one is used under its own licence; see the project pages for the full terms.\n\n• AndroidX and Material Components (Google)\n• Firebase and Google Play Services (Google)\n• Glide (Bump Technologies)\n• Gson (Google)\n• ZXing (ZXing authors)\n• CircleImageView (Henning Dodenhof)\n• CircleIndicator (ongakuer)\n• PayHere Android SDK (PayHere)\n• Facebook Login SDK (Meta)</string>
     <string name="settings_preferences">Preferences</string>
-    <string name="settings_push_notifications">Push Notifications</string>
-    <string name="settings_location_services">Location Services</string>
+    <string name="settings_push_notifications">Push notifications</string>
+    <string name="settings_location_services">Location services</string>
     <string name="settings_data_privacy">Data and privacy</string>
     <string name="settings_privacy_row">What REPLATE stores about you</string>
     <string name="settings_clear_cache_row">Clear cached images and food lists</string>
@@ -285,8 +285,8 @@ You can delete your account and its data from your profile at any time.</string>
     <string name="checkout_pickup">Pickup</string>
     <string name="checkout_delivery">Delivery</string>
     <string name="checkout_delivery_address">Delivery address</string>
-    <string name="checkout_address_hint">Full Address</string>
-    <string name="checkout_pick_from_map">Pick from Map</string>
+    <string name="checkout_address_hint">Full address</string>
+    <string name="checkout_pick_from_map">Pick from map</string>
     <string name="checkout_summary_title">Order summary</string>
     <string name="checkout_summary_subtitle">Review the meals currently saved in your cart.</string>
     <string name="checkout_subtotal">Subtotal</string>
@@ -297,34 +297,38 @@ You can delete your account and its data from your profile at any time.</string>
     <string name="checkout_pickup_time_subtitle">Select the time you expect to arrive at the hotel.</string>
     <string name="checkout_pickup_time_hint">Select pickup time</string>
     <string name="checkout_payment_method">Payment method</string>
-    <string name="checkout_payment_cash">Cash on Pickup</string>
-    <string name="checkout_payment_card">Card Payment (PayHere)</string>
+    <string name="checkout_payment_cash">Cash on pickup</string>
+    <string name="checkout_payment_card">Card payment (PayHere)</string>
     <string name="checkout_details_title">Your details</string>
-    <string name="checkout_full_name_hint">Full Name</string>
-    <string name="checkout_phone_hint">Phone Number</string>
-    <string name="checkout_place_order">Place Order</string>
+    <string name="checkout_full_name_hint">Full name</string>
+    <string name="checkout_phone_hint">Phone number</string>
+    <string name="checkout_place_order">Place order</string>
     <string name="checkout_delivery_fee">Delivery fee</string>
+    <string name="checkout_error_name">Enter your name</string>
+    <string name="checkout_error_phone">Enter your phone number</string>
+    <string name="checkout_error_phone_invalid">Enter a valid phone number (9 to 15 digits)</string>
+    <string name="checkout_error_address">Enter the delivery address</string>
     <string name="checkout_delivery_fee_amount">LKR 250.00</string>
     <string name="checkout_confirm_message">Are you sure you want to place this order?
 Total: LKR %1$.2f</string>
 
     <!-- Login/Register -->
     <string name="auth_brand_title">REPLATE</string>
-    <string name="auth_brand_subtitle">Because Every Meal Matters</string>
-    <string name="auth_tab_login">LOGIN</string>
-    <string name="auth_tab_register">REGISTER</string>
+    <string name="auth_brand_subtitle">Because every meal matters</string>
+    <string name="auth_tab_login">Log in</string>
+    <string name="auth_tab_register">Register</string>
     <string name="auth_welcome_back">Welcome back</string>
     <string name="auth_login_subtitle">Sign in to discover nearby rescue meals and manage your orders.</string>
     <string name="auth_hint_email">Email</string>
     <string name="auth_hint_password">Password</string>
-    <string name="auth_forgot_password">Forgot Password?</string>
-    <string name="auth_btn_login">LOGIN</string>
+    <string name="auth_forgot_password">Forgot password?</string>
+    <string name="auth_btn_login">Log in</string>
     <string name="auth_create_account">Create your account</string>
     <string name="auth_register_subtitle">Join REPLATE to save money, rescue meals, and track pickup orders.</string>
-    <string name="auth_hint_full_name">Full Name</string>
+    <string name="auth_hint_full_name">Full name</string>
     <string name="auth_hint_phone">Phone</string>
-    <string name="auth_hint_confirm_password">Confirm Password</string>
-    <string name="auth_btn_create_account">CREATE ACCOUNT</string>
+    <string name="auth_hint_confirm_password">Confirm password</string>
+    <string name="auth_btn_create_account">Create account</string>
 
     <!-- Search -->
     <string name="search_title">Search</string>
@@ -350,7 +354,7 @@ Total: LKR %1$.2f</string>
     <string name="search_filter_hint">Tap filter to refine</string>
     <string name="search_filter_high_price">Highest price</string>
     <string name="search_filter_available_only">Available items only</string>
-    <string name="search_filters_title">Advanced Filters</string>
+    <string name="search_filters_title">Advanced filters</string>
     <string name="search_filters_subtitle">Refine by sort, category, and availability</string>
     <string name="search_filters_sort">Sort by</string>
     <string name="search_filters_category">Category</string>
@@ -389,10 +393,10 @@ Total: LKR %1$.2f</string>
     <string name="mock_pay_secured">🔒 Secured by PayHere</string>
 
     <!-- Location picker -->
-    <string name="location_picker_title">Select Location</string>
+    <string name="location_picker_title">Select location</string>
     <string name="location_picker_hint">Search location or move map...</string>
-    <string name="location_picker_use_live">Use Live Location</string>
-    <string name="location_picker_confirm">Confirm Location</string>
+    <string name="location_picker_use_live">Use live location</string>
+    <string name="location_picker_confirm">Confirm location</string>
     <string name="location_picker_move_hint">Move map to select location...</string>
     <string name="location_picker_search_hint">Search by area, street, or landmark</string>
     <string name="location_picker_not_found">Location not found</string>
@@ -400,11 +404,11 @@ Total: LKR %1$.2f</string>
     <string name="location_picker_select_prompt">Please select a location</string>
 
     <!-- Splash -->
-    <string name="splash_tagline">Where Leftover Food Finds New Life</string>
+    <string name="splash_tagline">Where leftover food finds new life</string>
 
     <!-- Notification permission UX -->
     <string name="notifications_permission_title">Enable notifications</string>
-    <string name="notifications_permission_message">Allow notifications to get new orders, order updates, pickup alerts, and admin approvals in real time.</string>
+    <string name="notifications_permission_message">Allow notifications to hear when a hotel confirms your order, when it is ready to collect, and about new deals nearby.</string>
     <string name="notifications_permission_continue">Allow</string>
     <string name="notifications_permission_not_now">Not now</string>
     <string name="notifications_permission_denied">Notifications are disabled. You can enable them later from app settings.</string>
@@ -423,12 +427,12 @@ Total: LKR %1$.2f</string>
 
     <!-- Search History -->
     <string name="search_suggestions_title">Try searching for</string>
-    <string name="search_recent_title">Recent Searches</string>
+    <string name="search_recent_title">Recent searches</string>
     <string name="search_recent_clear">Clear</string>
     <string name="search_empty_suggestion">Try adjusting your search or filters</string>
 
     <!-- Help -->
-    <string name="help_title">Help &amp; Support</string>
+    <string name="help_title">Help and support</string>
     <string name="help_body">Need a hand?\n\nBrowse nearby deals from the home screen, find pickup locations on the map, chat with hotels about your order, or track orders in the Orders tab.\n\nFor support, email: support@replate.app</string>
     <string name="help_dismiss">Got it</string>
 
@@ -445,11 +449,11 @@ Total: LKR %1$.2f</string>
     <string name="auth_continue_facebook">Continue with Facebook</string>
     <string name="auth_continue_phone">Continue with Phone</string>
     <string name="auth_or">or</string>
-    <string name="auth_not_registered_title">Account Not Found</string>
+    <string name="auth_not_registered_title">Account not found</string>
     <string name="auth_not_registered_message">No account exists with this email address.\n\nPlease register first to create your account, then come back and log in.</string>
 
     <!-- App footer attribution -->
-    <string name="app_footer_built_by">REPLATE V1.1.0 • Built by Riflan Mohamed • 2026</string>
+    <string name="app_footer_built_by">REPLATE v1.1.0 · Built by Riflan Mohamed · 2026</string>
 
     <!-- Layout text (extracted from layout XML) -->
     <string name="chat_call_cd">Call</string>
@@ -461,10 +465,10 @@ Total: LKR %1$.2f</string>
     <string name="food_detail_call_hotel_cd">Call hotel</string>
     <string name="food_detail_sms_hotel_cd">SMS hotel</string>
     <string name="food_detail_contact_hotel_quickly_for_pickup">Contact hotel quickly for pickup updates</string>
-    <string name="food_detail_user_reviews">User Reviews</string>
+    <string name="food_detail_user_reviews">Reviews</string>
     <string name="food_detail_write_a_review">Write a review</string>
     <string name="food_detail_share_your_experience_hint">Share your experience</string>
-    <string name="food_detail_submit_review">Submit Review</string>
+    <string name="food_detail_submit_review">Submit review</string>
     <string name="food_detail_no_reviews_yet">No reviews yet</string>
     <string name="food_detail_recommended_for_you">Recommended for you</string>
     <string name="food_detail_no_related_products_right_now">No related products right now</string>
@@ -473,24 +477,24 @@ Total: LKR %1$.2f</string>
     <string name="notifications_deals">Deals</string>
     <string name="notifications_pickup">Pickup</string>
     <string name="notifications_system">System</string>
-    <string name="notifications_browse_deals">Browse Deals</string>
+    <string name="notifications_browse_deals">Browse deals</string>
     <string name="onboarding_skip">Skip</string>
     <string name="onboarding_next">Next</string>
     <string name="onboarding_get_started">Get started</string>
-    <string name="onboarding_slide1_title">Discover Amazing Deals</string>
+    <string name="onboarding_slide1_title">Discover amazing deals</string>
     <string name="onboarding_slide1_body">Find surplus food from hotels and restaurants at up to 50% off. Great meals at great prices!</string>
-    <string name="onboarding_slide2_title">Find Food Near You</string>
+    <string name="onboarding_slide2_title">Find food near you</string>
     <string name="onboarding_slide2_body">Use GPS to discover delicious deals nearby. Pick up fresh food from restaurants in your area.</string>
-    <string name="onboarding_slide3_title">Save Food, Save Planet</string>
+    <string name="onboarding_slide3_title">Save food, save the planet</string>
     <string name="onboarding_slide3_body">Join the food rescue movement! Every meal you save helps reduce food waste and protect our environment.</string>
-    <string name="order_detail_order_details">Order Details</string>
-    <string name="order_detail_order_confirmed">Order Confirmed ✅</string>
-    <string name="order_detail_show_this_qr_code_at">Show this QR Code at Pickup</string>
+    <string name="order_detail_order_details">Order details</string>
+    <string name="order_detail_order_confirmed">Order confirmed</string>
+    <string name="order_detail_show_this_qr_code_at">Show this QR code at pickup</string>
     <string name="order_detail_or_share_this_pickup_otp">Or share this pickup OTP</string>
     <string name="order_detail_hotel_details">Hotel details</string>
-    <string name="order_detail_call_hotel">Call Hotel</string>
-    <string name="order_detail_sms_hotel">SMS Hotel</string>
-    <string name="order_detail_open_pickup_route">Open Pickup Route</string>
+    <string name="order_detail_call_hotel">Call hotel</string>
+    <string name="order_detail_sms_hotel">SMS hotel</string>
+    <string name="order_detail_open_pickup_route">Open pickup route</string>
     <string name="order_detail_navigate_hotel">Navigate to hotel</string>
     <string name="timeline_placed">Placed</string>
     <string name="timeline_confirmed">Confirmed</string>
@@ -502,15 +506,15 @@ Total: LKR %1$.2f</string>
     <string name="timeline_step_done_cd">%1$s, done</string>
     <string name="timeline_step_current_cd">%1$s, current step</string>
     <string name="timeline_step_todo_cd">%1$s, not yet</string>
-    <string name="order_detail_cancelled_by_hotel">❌ Cancelled by the hotel</string>
+    <string name="order_detail_cancelled_by_hotel">Cancelled by the hotel</string>
     <string name="order_detail_pickup_expired">Pickup time passed</string>
     <string name="order_detail_pickup_expired_hint">Your %1$s pickup slot has ended, so the QR code and OTP no longer work. Call the hotel to arrange a new time.</string>
     <string name="order_detail_no_maps_app">No maps app found on this phone</string>
     <string name="order_detail_payment">Payment</string>
-    <string name="order_detail_total_amount">Total Amount</string>
-    <string name="order_detail_payment_method">Payment Method</string>
-    <string name="order_detail_payment_status">Payment Status</string>
-    <string name="order_success_order_confirmation">Order Confirmation</string>
+    <string name="order_detail_total_amount">Total amount</string>
+    <string name="order_detail_payment_method">Payment method</string>
+    <string name="order_detail_payment_status">Payment status</string>
+    <string name="order_success_order_confirmation">Order confirmation</string>
     <string name="order_success_skip">Skip</string>
     <string name="order_success_success_cd">Success</string>
     <plurals name="order_success_impact_saving">
@@ -522,7 +526,7 @@ Total: LKR %1$.2f</string>
         <item quantity="other">You are rescuing %1$d meals from the bin</item>
     </plurals>
     <string name="food_only_left">Only %1$d left</string>
-    <string name="order_success_order_placed">Order Placed!</string>
+    <string name="order_success_order_placed">Order placed!</string>
     <string name="order_success_show_this_qr_at_pickup">Show this QR at pickup</string>
     <string name="order_success_or_share_pickup_otp">Or share pickup OTP</string>
     <string name="order_success_order">Order</string>
@@ -542,38 +546,38 @@ Total: LKR %1$.2f</string>
     <string name="order_success_how_was_your_experience">How was your experience?</string>
     <string name="order_success_your_feedback_helps_the_community">Your feedback helps the community</string>
     <string name="order_success_add_a_comment_optional_hint">Add a comment (optional)</string>
-    <string name="order_success_submit_review">Submit Review</string>
-    <string name="order_success_view_order_details">View Order Details</string>
+    <string name="order_success_submit_review">Submit review</string>
+    <string name="order_success_view_order_details">View order details</string>
     <string name="order_success_complete_cd">Complete</string>
-    <string name="order_success_pickup_confirmed">Pickup Confirmed!</string>
-    <string name="order_success_your_order_has_been_picked">Your order has been picked up.\nEnjoy your meal! 🎉</string>
-    <string name="phone_auth_phone_sign_in">📱 Phone Sign-In</string>
+    <string name="order_success_pickup_confirmed">Pickup confirmed!</string>
+    <string name="order_success_your_order_has_been_picked">Your order has been picked up.\nEnjoy your meal!</string>
+    <string name="phone_auth_phone_sign_in">Phone sign-in</string>
     <string name="phone_auth_enter_your_phone_number_and">Enter your phone number and we\'ll send a verification code.</string>
     <string name="phone_auth_code_hint">Code</string>
     <string name="phone_auth_phone_number_hint">Phone number</string>
-    <string name="phone_auth_send_verification_code">Send Verification Code</string>
+    <string name="phone_auth_send_verification_code">Send verification code</string>
     <string name="phone_auth_enter_the_6_digit_code">Enter the 6-digit code</string>
     <string name="phone_auth_verification_code_hint">Verification code</string>
-    <string name="phone_auth_verify_sign_in">Verify &amp; Sign In</string>
+    <string name="phone_auth_verify_sign_in">Verify and sign in</string>
     <string name="phone_auth_resend_code">Resend code</string>
     <string name="map_map_explorer">Map explorer</string>
     <string name="map_find_pickup_deals_around_you">Find pickup deals around you</string>
     <string name="map_available_now">Available now</string>
-    <string name="orders_my_orders">My Orders</string>
+    <string name="orders_my_orders">My orders</string>
     <string name="orders_track_active_pickups_completed_orders">Track active pickups, completed orders, and cancelled requests in one place.</string>
     <string name="orders_active">Active</string>
     <string name="orders_completed">Completed</string>
     <string name="orders_cancelled">Cancelled</string>
     <string name="orders_no_orders_yet">No orders yet</string>
     <string name="orders_when_you_reserve_a_rescue">When you reserve a rescue meal, it will appear here with pickup details and QR access.</string>
-    <string name="orders_browse_deals">Browse Deals</string>
+    <string name="orders_browse_deals">Browse deals</string>
     <string name="category_all">All</string>
     <string name="notification_order">Order</string>
     <string name="notification_delete_notification_cd">Delete notification</string>
     <string name="onboarding_onboarding_illustration_cd">Onboarding illustration</string>
     <string name="order_view_qr">View QR</string>
     <string name="order_cancel">Cancel</string>
-    <string name="review_verified_pickup">✓ Verified pickup</string>
+    <string name="review_verified_pickup">Verified pickup</string>
     <string name="review_edit">Edit</string>
     <string name="review_delete">Delete</string>
 
@@ -584,19 +588,19 @@ Total: LKR %1$.2f</string>
     <string name="chat_phone_number_not_available">Phone number not available</string>
     <string name="chat_failed_to_get_phone_number">Failed to get phone number</string>
     <string name="chat_no_phone_app_available">No phone app available</string>
-    <string name="checkout_cash_on_delivery">Cash on Delivery</string>
-    <string name="checkout_cash_on_pickup">Cash on Pickup</string>
-    <string name="checkout_confirm_order">Confirm Order</string>
-    <string name="checkout_yes_place_order">Yes, Place Order</string>
+    <string name="checkout_cash_on_delivery">Cash on delivery</string>
+    <string name="checkout_cash_on_pickup">Cash on pickup</string>
+    <string name="checkout_confirm_order">Confirm order</string>
+    <string name="checkout_yes_place_order">Yes, place order</string>
     <string name="checkout_cancel">Cancel</string>
-    <string name="checkout_payment_failed">Payment Failed</string>
+    <string name="checkout_payment_failed">Payment failed</string>
     <string name="checkout_your_payment_could_not_be">Your payment could not be processed. No charges were made.\n\nPlease try again or choose a different payment method.</string>
-    <string name="checkout_try_again">Try Again</string>
-    <string name="checkout_pay_with_cash">Pay with Cash</string>
-    <string name="checkout_payment_cancelled">💳 Payment Cancelled</string>
+    <string name="checkout_try_again">Try again</string>
+    <string name="checkout_pay_with_cash">Pay with cash</string>
+    <string name="checkout_payment_cancelled">Payment cancelled</string>
     <string name="checkout_you_cancelled_the_payment_your">You cancelled the payment. Your order was not placed and no charges were made.\n\nYou can retry the payment or switch to cash instead.</string>
-    <string name="checkout_retry_payment">Retry Payment</string>
-    <string name="checkout_cancel_order">Cancel Order</string>
+    <string name="checkout_retry_payment">Retry payment</string>
+    <string name="checkout_cancel_order">Cancel order</string>
     <string name="checkout_retry_saving_order">Retry saving order</string>
     <string name="checkout_payment_received">Payment received</string>
     <string name="sync_unsaved_order_title">Finish saving your order</string>
@@ -618,7 +622,7 @@ Total: LKR %1$.2f</string>
     <string name="food_detail_delete">Delete</string>
     <string name="food_detail_cancel">Cancel</string>
     <string name="food_detail_removed_from_favorites">Removed from favorites</string>
-    <string name="food_detail_added_to_favorites">Added to favorites ❤</string>
+    <string name="food_detail_added_to_favorites">Added to favorites</string>
     <string name="food_detail_maximum_available_quantity_reached">Maximum available quantity reached</string>
     <string name="food_detail_sold_out">Sold out</string>
     <string name="food_detail_cart_limit_reached">Your cart already has all %1$d available</string>
@@ -637,18 +641,18 @@ Total: LKR %1$.2f</string>
     <string name="food_detail_no_sms_app_available">No SMS app available</string>
     <string name="food_detail_hotel_phone_number_not_available">Hotel phone number not available</string>
     <string name="food_detail_could_not_load_phone_number">Could not load phone number</string>
-    <string name="login_verify_your_email">📧 Verify Your Email</string>
+    <string name="login_verify_your_email">Verify your email</string>
     <string name="login_got_it">Got it</string>
-    <string name="login_register_now">Register Now</string>
+    <string name="login_register_now">Register now</string>
     <string name="login_ok">OK</string>
-    <string name="login_email_not_verified">✉️ Email Not Verified</string>
-    <string name="login_resend_email">Resend Email</string>
-    <string name="login_network_error">Network Error</string>
+    <string name="login_email_not_verified">Email not verified</string>
+    <string name="login_resend_email">Resend email</string>
+    <string name="login_network_error">Network error</string>
     <string name="login_could_not_connect_to_google">Could not connect to Google. Please check your internet connection and try again.</string>
     <string name="login_retry">Retry</string>
     <string name="login_cancel">Cancel</string>
     <string name="login_enter_your_email">Enter your email</string>
-    <string name="login_reset_password">Reset Password</string>
+    <string name="login_reset_password">Reset password</string>
     <string name="login_we_ll_send_you_an">We\'ll send you an email to reset your password.</string>
     <string name="login_send">Send</string>
     <string name="login_facebook_sign_in_failed_please">Facebook sign-in failed. Please try again.</string>
@@ -686,7 +690,7 @@ Total: LKR %1$.2f</string>
     <string name="notifications_delete">Delete</string>
     <string name="notifications_cancel">Cancel</string>
     <string name="notifications_delete_all_notifications">Delete all notifications</string>
-    <string name="notifications_delete_all_2">Delete All</string>
+    <string name="notifications_delete_all_2">Delete all</string>
     <string name="notifications_please_log_in_to_see">Please log in to see your notifications</string>
     <string name="notifications_unable_to_open_this_notification">Unable to open this notification</string>
     <string name="notifications_all_notifications_marked_as_read">All notifications marked as read</string>
@@ -695,17 +699,17 @@ Total: LKR %1$.2f</string>
     <string name="notifications_no_notifications_to_delete">No notifications to delete</string>
     <string name="notifications_all_notifications_deleted">All notifications deleted</string>
     <string name="notifications_failed_to_delete_notifications">Failed to delete notifications</string>
-    <string name="order_detail_pending_confirmation">⏳ Pending Confirmation</string>
-    <string name="order_detail_pending_pickup">🛍️ Pending Pickup</string>
-    <string name="order_detail_pending_delivery">📦 Pending Delivery</string>
-    <string name="order_detail_order_confirmed_2">✅ Order Confirmed</string>
-    <string name="order_detail_preparing">👨‍🍳 Preparing</string>
-    <string name="order_detail_ready_for_pickup">🍽️ Ready for Pickup</string>
-    <string name="order_detail_out_for_delivery">🚚 Out for Delivery</string>
-    <string name="order_detail_delivered">📬 Delivered</string>
-    <string name="order_detail_order_completed">🎉 Order Completed</string>
-    <string name="order_detail_order_cancelled">❌ Order Cancelled</string>
-    <string name="order_detail_delivery_order">🚚 Delivery Order</string>
+    <string name="order_detail_pending_confirmation">Pending confirmation</string>
+    <string name="order_detail_pending_pickup">Pending pickup</string>
+    <string name="order_detail_pending_delivery">Pending delivery</string>
+    <string name="order_detail_order_confirmed_2">Order confirmed</string>
+    <string name="order_detail_preparing">Preparing</string>
+    <string name="order_detail_ready_for_pickup">Ready for pickup</string>
+    <string name="order_detail_out_for_delivery">Out for delivery</string>
+    <string name="order_detail_delivered">Delivered</string>
+    <string name="order_detail_order_completed">Order completed</string>
+    <string name="order_detail_order_cancelled">Order cancelled</string>
+    <string name="order_detail_delivery_order">Delivery order</string>
     <string name="order_detail_thanks_for_your_feedback_you">Thanks for your feedback! You already reviewed this order.</string>
     <string name="order_detail_rate_your_pickup_experience_to">Rate your pickup experience to help other customers.</string>
     <string name="order_detail_hotel_route_not_available">Hotel route not available</string>
@@ -720,7 +724,7 @@ Total: LKR %1$.2f</string>
     <string name="order_detail_review_submitted_successfully">Review submitted successfully</string>
     <string name="order_success_thanks_for_using_replate">Thanks for using REPLATE</string>
     <string name="order_success_done">Done</string>
-    <string name="order_success_view_order_details_2">View Order Details</string>
+    <string name="order_success_view_order_details_2">View order details</string>
     <string name="order_success_could_not_load_your_order">Could not load your order details. Check My Orders.</string>
     <string name="order_success_please_add_a_rating">Please add a rating</string>
     <string name="order_success_review_submitted">Review submitted!</string>
@@ -731,11 +735,11 @@ Total: LKR %1$.2f</string>
     <string name="settings_camera_permission_required">Camera permission required</string>
     <string name="settings_no_camera_app">No camera app found on this phone. Choose a photo from the gallery instead.</string>
     <string name="settings_please_fill_all_fields">Please fill all fields</string>
-    <string name="settings_profile_updated">Profile Updated ✅</string>
-    <string name="settings_update_failed">Update Failed ❌</string>
+    <string name="settings_profile_updated">Profile updated</string>
+    <string name="settings_update_failed">Couldn\'t update your profile. Please try again.</string>
     <string name="notification_just_now">Just now</string>
-    <string name="order_delivery_order">🚚 Delivery Order</string>
-    <string name="home_refreshing_nearby_deals">🔄 Refreshing nearby deals...</string>
+    <string name="order_delivery_order">Delivery order</string>
+    <string name="home_refreshing_nearby_deals">Refreshing nearby deals…</string>
     <string name="home_no_app_available_to_open">No app available to open this link</string>
     <string name="home_you_re_offline_showing_saved">You\'re offline. Showing saved listings.</string>
     <string name="home_failed_to_load_food_items">Failed to load food items</string>
@@ -753,18 +757,21 @@ Total: LKR %1$.2f</string>
     <string name="orders_cancel_this_order">Cancel this order?</string>
     <string name="orders_are_you_sure_you_want">Are you sure you want to cancel this order? This action cannot be undone.</string>
     <string name="orders_keep">Keep</string>
-    <string name="orders_cancel_order">Cancel Order</string>
-    <string name="orders_failed_to_load_orders">Failed to load orders</string>
+    <string name="orders_cancel_order">Cancel order</string>
+    <string name="orders_failed_to_load_orders">Couldn\'t load your orders. Check your connection and try again.</string>
     <string name="orders_this_order_cannot_be_cancelled">This order cannot be cancelled</string>
     <string name="orders_order_cancelled">Order cancelled</string>
     <string name="orders_failed_to_cancel_order">Failed to cancel order</string>
-    <string name="profile_logout_2">Logout</string>
-    <string name="profile_are_you_sure_you_want">Are you sure you want to logout?</string>
+    <string name="profile_logout_2">Log out</string>
+    <string name="profile_are_you_sure_you_want">Are you sure you want to log out?</string>
     <string name="profile_cancel">Cancel</string>
     <string name="profile_logout_failed">Logout failed</string>
-    <string name="search_error_loading_data">Error loading data</string>
+    <string name="search_error_loading_data">Couldn\'t load dishes. Check your connection and try again.</string>
+    <string name="search_clear_filters">Clear filters</string>
+    <string name="action_retry">Try again</string>
+    <string name="favorites_refresh_failed">Couldn\'t check the latest prices, so these are your saved copies.</string>
     <string name="search_couldn_t_add_this_item">Couldn\'t add this item to your cart</string>
-    <string name="food_detail_add_to_cart_total">Add to Cart - %1$s</string>
+    <string name="food_detail_add_to_cart_total">Add to cart · %1$s</string>
     <string name="auth_cd_google">Continue with Google</string>
     <string name="auth_cd_facebook">Continue with Facebook</string>
     <string name="auth_cd_phone">Continue with phone number</string>
@@ -781,7 +788,7 @@ Total: LKR %1$.2f</string>
     <string name="menu_notifications">Notifications</string>
     <string name="menu_settings">Settings</string>
     <string name="menu_help">Help</string>
-    <string name="menu_logout">Logout</string>
+    <string name="menu_logout">Log out</string>
 
     <string name="notifications_deleted_snackbar">Notification deleted</string>
     <string name="notifications_undo">Undo</string>
@@ -831,8 +838,8 @@ Total: LKR %1$.2f</string>
         <item quantity="one">%d item</item>
         <item quantity="other">%d items</item>
     </plurals>
-    <string name="order_status_delivery_prefix">🚚 %1$s</string>
-    <string name="order_delivery_to">📍 Delivery: %1$s</string>
+    <string name="order_status_delivery_prefix">Delivery · %1$s</string>
+    <string name="order_delivery_to">Delivery to %1$s</string>
     <string name="order_pickup_at">Pickup %1$s</string>
     <string name="checkout_cart_changed_title">Your cart needs a change</string>
     <string name="checkout_cart_changed_message">%1$s

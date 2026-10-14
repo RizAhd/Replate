@@ -310,11 +310,13 @@
             app:cardCornerRadius="@dimen/radius_hero"
             app:cardElevation="@dimen/elevation_card">
 
-            <ProgressBar
-                android:layout_width="28dp"
-                android:layout_height="28dp"
+            <com.google.android.material.progressindicator.CircularProgressIndicator
                 android:layout_gravity="center"
-                android:indeterminateTint="@color/green_primary" />
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:indeterminate="true"
+                app:indicatorColor="@color/green_primary"
+                app:indicatorSize="24dp" />
         </com.google.android.material.card.MaterialCardView>
     </FrameLayout>
 

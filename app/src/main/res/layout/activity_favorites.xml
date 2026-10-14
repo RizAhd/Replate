@@ -72,33 +72,54 @@
             android:text="@string/favorites_tab_hotels" />
     </com.google.android.material.tabs.TabLayout>
 
-    <ProgressBar
+    <com.google.android.material.progressindicator.CircularProgressIndicator
         android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
+        android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/space_1"
+        android:layout_width="wrap_content"
+        android:indeterminate="true"
+        android:visibility="gone"
+        app:indicatorColor="@color/green_primary" />
+
+    <!-- Checking the saved dishes against the server failed: they are still listed -->
+    <include
+        android:id="@+id/errorBanner"
+        layout="@layout/view_error_banner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:visibility="gone" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvFavorites"
-        android:layoutAnimation="@anim/layout_animation_slide_from_bottom"
+    <!-- Pull down to re-check prices and stock of the saved dishes -->
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefreshFavorites"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:clipToPadding="false"
-        android:paddingTop="@dimen/space_1"
-        android:paddingBottom="@dimen/space_1" />
+        android:layout_weight="1">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvFavoriteHotels"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:clipToPadding="false"
-        android:paddingTop="@dimen/space_1"
-        android:paddingBottom="@dimen/space_1"
-        android:visibility="gone" />
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvFavorites"
+                android:layoutAnimation="@anim/layout_animation_slide_from_bottom"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:paddingTop="@dimen/space_1"
+                android:paddingBottom="@dimen/space_1" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvFavoriteHotels"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:paddingTop="@dimen/space_1"
+                android:paddingBottom="@dimen/space_1"
+                android:visibility="gone" />
+        </FrameLayout>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <LinearLayout
         android:id="@+id/emptyState"
@@ -112,16 +133,10 @@
 
         <!-- Shared empty-state look: 128dp pale circle, 56dp decorative icon, title, body, optional action -->
         <com.google.android.material.card.MaterialCardView
-            android:layout_width="128dp"
-            android:layout_height="128dp"
-            app:cardBackgroundColor="@color/green_pale"
-            app:cardCornerRadius="64dp"
-            app:cardElevation="0dp">
+            style="@style/Widget.REPLATE.EmptyState.Circle">
 
             <ImageView
-                android:layout_width="56dp"
-                android:layout_height="56dp"
-                android:layout_gravity="center"
+                style="@style/Widget.REPLATE.EmptyState.Icon"
                 android:importantForAccessibility="no"
                 android:src="@drawable/ic_favorite"
                 app:tint="@color/green_primary" />

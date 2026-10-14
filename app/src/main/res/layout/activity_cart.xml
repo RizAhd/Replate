@@ -100,36 +100,22 @@
             android:visibility="gone">
 
             <com.google.android.material.card.MaterialCardView
-                android:layout_width="128dp"
-                android:layout_height="128dp"
-                app:cardBackgroundColor="@color/green_pale"
-                app:cardCornerRadius="@dimen/radius_hero"
-                app:cardElevation="0dp">
+                style="@style/Widget.REPLATE.EmptyState.Circle">
 
                 <ImageView
-                    android:layout_width="56dp"
-                    android:layout_height="56dp"
-                    android:layout_gravity="center"
-                    android:contentDescription="@string/cd_cart"
+                    style="@style/Widget.REPLATE.EmptyState.Icon"
+                    android:importantForAccessibility="no"
                     android:src="@drawable/ic_cart"
                     app:tint="@color/green_primary" />
             </com.google.android.material.card.MaterialCardView>
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_3"
-                android:text="@string/cart_empty_title"
-                android:textAppearance="@style/TextAppearance.REPLATE.Headline"
-                android:textColor="@color/text_primary" />
+                style="@style/Widget.REPLATE.EmptyState.Title"
+                android:text="@string/cart_empty_title" />
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_1"
-                android:gravity="center"
-                android:text="@string/cart_empty_subtitle"
-                android:textAppearance="@style/TextAppearance.REPLATE.Body" />
+                style="@style/Widget.REPLATE.EmptyState.Body"
+                android:text="@string/cart_empty_subtitle" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnBrowse"

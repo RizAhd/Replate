@@ -147,14 +147,15 @@
         </LinearLayout>
 
         <!-- Loading -->
-        <ProgressBar
+        <com.google.android.material.progressindicator.CircularProgressIndicator
             android:id="@+id/phoneAuthProgress"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
+            android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_1_5"
-            android:indeterminateTint="@color/green_primary"
-            android:visibility="gone" />
+            android:layout_width="wrap_content"
+            android:indeterminate="true"
+            android:visibility="gone"
+            app:indicatorColor="@color/green_primary" />
 
     </LinearLayout>
 </ScrollView>

@@ -7,10 +7,10 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import com.replate.app.utils.Money;
 import com.replate.app.adapters.CartAdapter;
@@ -86,7 +86,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
                 // Ask before emptying the whole cart.
                 tvClearCart.setOnClickListener(v -> {
                     if (!cartItems.isEmpty()) {
-                        new AlertDialog.Builder(this)
+                        new MaterialAlertDialogBuilder(this)
                                 .setTitle(getString(R.string.cart_clear_title))
                                 .setMessage(getString(R.string.cart_clear_message))
                                 .setPositiveButton(getString(R.string.cart_clear_confirm), (d, w) -> {

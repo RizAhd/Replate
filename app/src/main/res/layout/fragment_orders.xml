@@ -74,27 +74,51 @@
     </com.google.android.material.card.MaterialCardView>
 
     <!-- Loading: sits under the tabs, above the list -->
-    <ProgressBar
+    <com.google.android.material.progressindicator.CircularProgressIndicator
         android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
+        android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/space_1"
-        android:indeterminateTint="@color/green_primary"
+        android:layout_width="wrap_content"
+        android:indeterminate="true"
+        android:visibility="gone"
+        app:indicatorColor="@color/green_primary" />
+
+    <!-- Refreshing failed but saved orders are still listed -->
+    <include
+        android:id="@+id/errorBanner"
+        layout="@layout/view_error_banner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:visibility="gone" />
 
-    <!-- Orders RecyclerView -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvOrders"
-        android:layoutAnimation="@anim/layout_animation_slide_from_bottom"
+    <!-- Orders list; pull down to refresh -->
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefreshOrders"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvOrders"
+            android:layoutAnimation="@anim/layout_animation_slide_from_bottom"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:nestedScrollingEnabled="true"
+            android:overScrollMode="never"
+            android:paddingTop="@dimen/space_1_5"
+            android:paddingBottom="@dimen/space_1" />
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    <!-- Nothing saved and loading failed -->
+    <include
+        android:id="@+id/errorState"
+        layout="@layout/view_error_state"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:clipToPadding="false"
-        android:nestedScrollingEnabled="true"
-        android:overScrollMode="never"
-        android:paddingTop="@dimen/space_1_5"
-        android:paddingBottom="@dimen/space_1" />
+        android:visibility="gone" />
 
     <!-- Empty State -->
     <LinearLayout
@@ -108,19 +132,12 @@
         android:visibility="gone">
 
         <com.google.android.material.card.MaterialCardView
-            android:layout_width="128dp"
-            android:layout_height="128dp"
-            app:cardBackgroundColor="@color/green_pale"
-            app:cardCornerRadius="@dimen/radius_hero"
-            app:cardElevation="0dp">
+            style="@style/Widget.REPLATE.EmptyState.Circle">
 
             <ImageView
-                android:layout_width="56dp"
-                android:layout_height="56dp"
-                android:layout_gravity="center"
-                android:src="@drawable/ic_empty_orders"
+                style="@style/Widget.REPLATE.EmptyState.Icon"
                 android:importantForAccessibility="no"
-                app:tint="@color/green_primary" />
+                android:src="@drawable/ic_empty_orders" />
         </com.google.android.material.card.MaterialCardView>
 
         <TextView
@@ -133,12 +150,8 @@
             android:textColor="@color/text_primary" />
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/space_1"
-            android:gravity="center"
-            android:text="@string/orders_when_you_reserve_a_rescue"
-            android:textAppearance="@style/TextAppearance.REPLATE.Body" />
+            style="@style/Widget.REPLATE.EmptyState.Body"
+            android:text="@string/orders_when_you_reserve_a_rescue" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnBrowse"

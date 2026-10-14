@@ -19,7 +19,6 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
@@ -37,6 +36,7 @@ import androidx.work.WorkManager;
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -680,7 +680,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     // Shows the help message.
     private void showHelpDialog() {
         if (isFinishing() || isDestroyed()) return;
-        new AlertDialog.Builder(this)
+        new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.help_title)
                 .setMessage(R.string.help_body)
                 .setPositiveButton(R.string.help_dismiss, null)
@@ -766,7 +766,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     // Explains why location is needed before asking.
     private void showLocationRationaleDialog() {
         if (isFinishing() || isDestroyed()) return;
-        new AlertDialog.Builder(this)
+        new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.main_enable_live_location)
                 .setMessage(R.string.main_we_use_your_current_location)
                 .setPositiveButton(R.string.main_continue, (d, w) ->
@@ -781,7 +781,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     // Sends the user to settings to allow location.
     private void showLocationSettingsDialog() {
         if (isFinishing() || isDestroyed()) return;
-        new AlertDialog.Builder(this)
+        new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.main_location_permission_needed)
                 .setMessage(R.string.main_location_access_is_permanently_denied)
                 .setPositiveButton(R.string.main_open_settings, (d, w) -> {

@@ -11,6 +11,7 @@ import android.widget.EditText;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.replate.app.LoginActivity;
@@ -30,7 +31,7 @@ public final class AccountActions {
 
     // Asks the user to confirm before signing out.
     public static void confirmLogout(@NonNull Activity activity) {
-        new AlertDialog.Builder(activity)
+        new MaterialAlertDialogBuilder(activity)
                 .setTitle(R.string.profile_logout_2)
                 .setMessage(R.string.profile_are_you_sure_you_want)
                 .setPositiveButton(R.string.profile_logout_2, (dialog, which) -> logout(activity))
@@ -76,7 +77,7 @@ public final class AccountActions {
 
     // Asks the user to confirm before deleting the account.
     public static void confirmDelete(@NonNull Activity activity) {
-        new AlertDialog.Builder(activity)
+        new MaterialAlertDialogBuilder(activity)
                 .setTitle(R.string.delete_account_confirm_title)
                 .setMessage(R.string.delete_account_confirm_message)
                 .setPositiveButton(R.string.delete_account_confirm_btn, (d, w) -> {
@@ -99,7 +100,7 @@ public final class AccountActions {
         int pad = (int) (16 * activity.getResources().getDisplayMetrics().density);
         etPassword.setPadding(pad, pad, pad, pad);
 
-        new AlertDialog.Builder(activity)
+        new MaterialAlertDialogBuilder(activity)
                 .setTitle(R.string.delete_account_password_title)
                 .setView(etPassword)
                 .setPositiveButton(R.string.delete_account_confirm_btn, (d, w) -> {
@@ -117,7 +118,7 @@ public final class AccountActions {
     // Deletes the account while a progress dialog is shown.
     private static void performDeletion(@NonNull Activity activity, @Nullable String password) {
         final Context app = activity.getApplicationContext();
-        AlertDialog progress = new AlertDialog.Builder(activity)
+        AlertDialog progress = new MaterialAlertDialogBuilder(activity)
                 .setMessage(R.string.delete_account_deleting)
                 .setCancelable(false)
                 .create();

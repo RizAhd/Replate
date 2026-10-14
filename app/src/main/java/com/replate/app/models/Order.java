@@ -230,13 +230,13 @@ public class Order implements Serializable {
     public String getStatusDisplay() {
         if (orderStatus == null) return "Unknown";
         switch (com.replate.app.utils.OrderStatusAliases.canonical(orderStatus)) {
-            case "pending":            return "Pending Confirmation";
-            case "pending_pickup":     return "Pending Pickup";
-            case "pending_delivery":   return "Pending Delivery";
+            case "pending":            return "Pending confirmation";
+            case "pending_pickup":     return "Pending pickup";
+            case "pending_delivery":   return "Pending delivery";
             case "confirmed":          return "Confirmed";
             case "preparing":          return "Preparing";
-            case "ready":              return "Ready for Pickup";
-            case "out_for_delivery":   return "Out for Delivery";
+            case "ready":              return "Ready for pickup";
+            case "out_for_delivery":   return "Out for delivery";
             case "delivered":          return "Delivered";
             case "completed":          return "Completed";
             case "cancelled":          return "Cancelled";

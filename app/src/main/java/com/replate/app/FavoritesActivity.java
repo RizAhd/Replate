@@ -48,6 +48,11 @@ public class FavoritesActivity extends AppCompatActivity implements FoodItemAdap
     private RecyclerView rvFavoriteHotels;
     private TextView tvEmptyTitle, tvEmptySubtitle;
     private com.google.android.material.button.MaterialButton btnEmptyAction;
+    private androidx.swiperefreshlayout.widget.SwipeRefreshLayout swipeRefreshFavorites;
+    private android.view.View errorBanner;
+    // Server checks still running, and whether any of them failed
+    private int pendingRefreshes;
+    private boolean refreshFailed;
 
     private final List<FoodItem> favoriteItems = new ArrayList<>();
     private final List<FavoriteHotel> favoriteHotels = new ArrayList<>();
@@ -88,6 +93,13 @@ public class FavoritesActivity extends AppCompatActivity implements FoodItemAdap
         tvEmptyTitle = findViewById(R.id.tvEmptyTitle);
         tvEmptySubtitle = findViewById(R.id.tvEmptySubtitle);
         btnEmptyAction = findViewById(R.id.btnFindDishes);
+        errorBanner = findViewById(R.id.errorBanner);
+        swipeRefreshFavorites = findViewById(R.id.swipeRefreshFavorites);
+        swipeRefreshFavorites.setColorSchemeResources(R.color.green_primary);
+        swipeRefreshFavorites.setOnRefreshListener(this::loadFavorites);
+        // Two lists share the pull-to-refresh: only pull when the visible one is scrolled to the top
+        swipeRefreshFavorites.setOnChildScrollUpCallback((parent, child) ->
+                (showingHotels ? rvFavoriteHotels : rvFavorites).canScrollVertically(-1));
         btnEmptyAction.setOnClickListener(v -> {
             if (showingHotels) {
                 Intent map = new Intent(this, MainActivity.class);
@@ -196,15 +208,20 @@ public class FavoritesActivity extends AppCompatActivity implements FoodItemAdap
      * Pull each dish's current state and mark dishes that are gone as unavailable.
      */
     private void refreshFromServer() {
+        pendingRefreshes = 0;
+        refreshFailed = false;
+        com.replate.app.utils.ErrorStates.hide(errorBanner);
         for (FoodItem saved : new ArrayList<>(favoriteItems)) {
             final String foodId = saved.getFoodId();
             if (foodId == null || foodId.trim().isEmpty()) continue;
+            pendingRefreshes++;
 
             FirebaseDatabase.getInstance().getReference("foodItems").child(foodId)
                     .addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
                             if (isFinishing() || isDestroyed()) return;
+                            onRefreshDone(false);
                             int index = indexOfFavorite(foodId);
                             if (index < 0) return;
 
@@ -225,8 +242,23 @@ public class FavoritesActivity extends AppCompatActivity implements FoodItemAdap
                         public void onCancelled(@NonNull DatabaseError error) {
                             // Offline or denied: the saved copy stays on screen
                             DatabaseErrorLogger.log("FavoritesActivity", "refresh favorite", error);
+                            if (isFinishing() || isDestroyed()) return;
+                            onRefreshDone(true);
                         }
                     });
+        }
+        if (pendingRefreshes == 0) {
+            swipeRefreshFavorites.setRefreshing(false);
+        }
+    }
+
+    // Counts down the server checks; when all are back, stops the spinner and says if any failed.
+    private void onRefreshDone(boolean failed) {
+        refreshFailed |= failed;
+        if (--pendingRefreshes > 0) return;
+        swipeRefreshFavorites.setRefreshing(false);
+        if (refreshFailed) {
+            com.replate.app.utils.ErrorStates.show(errorBanner, R.string.favorites_refresh_failed, this::refreshFromServer);
         }
     }
 
@@ -252,6 +284,7 @@ public class FavoritesActivity extends AppCompatActivity implements FoodItemAdap
         }
 
         boolean isEmpty = count == 0;
+        swipeRefreshFavorites.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
         rvFavorites.setVisibility(!showingHotels && !isEmpty ? View.VISIBLE : View.GONE);
         rvFavoriteHotels.setVisibility(showingHotels && !isEmpty ? View.VISIBLE : View.GONE);
         emptyState.setVisibility(isEmpty ? View.VISIBLE : View.GONE);

@@ -134,13 +134,11 @@
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipAll"
-                style="@style/Widget.MaterialComponents.Chip.Choice"
+                style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/notifications_all"
                 android:checked="true"
-                android:fontFamily="@font/poppins_medium"
-                android:textSize="@dimen/text_xs"
                 app:chipBackgroundColor="@color/chip_choice_background"
                 app:checkedIconVisible="false"
                 app:chipStrokeColor="@color/chip_choice_stroke"
@@ -148,12 +146,10 @@
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipOrders"
-                style="@style/Widget.MaterialComponents.Chip.Choice"
+                style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/notifications_orders"
-                android:fontFamily="@font/poppins_medium"
-                android:textSize="@dimen/text_xs"
                 app:chipIcon="@drawable/ic_orders"
                 app:chipIconSize="16dp"
                 app:chipIconTint="@color/green_primary"
@@ -164,12 +160,10 @@
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipDeals"
-                style="@style/Widget.MaterialComponents.Chip.Choice"
+                style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/notifications_deals"
-                android:fontFamily="@font/poppins_medium"
-                android:textSize="@dimen/text_xs"
                 app:chipIcon="@drawable/ic_deal"
                 app:chipIconSize="16dp"
                 app:chipIconTint="@color/orange_accent"
@@ -180,12 +174,10 @@
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipPickup"
-                style="@style/Widget.MaterialComponents.Chip.Choice"
+                style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/notifications_pickup"
-                android:fontFamily="@font/poppins_medium"
-                android:textSize="@dimen/text_xs"
                 app:chipIcon="@drawable/ic_pickup"
                 app:chipIconSize="16dp"
                 app:chipIconTint="@color/badge_distance"
@@ -196,12 +188,10 @@
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipAdmin"
-                style="@style/Widget.MaterialComponents.Chip.Choice"
+                style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/notifications_system"
-                android:fontFamily="@font/poppins_medium"
-                android:textSize="@dimen/text_xs"
                 app:chipIcon="@drawable/ic_admin_announce"
                 app:chipIconSize="16dp"
                 app:chipIconTint="@color/primary_dark"
@@ -214,14 +204,15 @@
     </HorizontalScrollView>
 
     <!-- ─── Loading Indicator ─── -->
-    <ProgressBar
+    <com.google.android.material.progressindicator.CircularProgressIndicator
         android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
+        android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/space_1"
-        android:indeterminateTint="@color/green_primary"
-        android:visibility="gone" />
+        android:layout_width="wrap_content"
+        android:indeterminate="true"
+        android:visibility="gone"
+        app:indicatorColor="@color/green_primary" />
 
     <!-- ─── Pull-to-Refresh + RecyclerView ─── -->
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -253,36 +244,22 @@
 
         <!-- Shared empty-state look: 128dp pale circle, 56dp decorative icon, title, body, optional action -->
         <com.google.android.material.card.MaterialCardView
-            android:layout_width="128dp"
-            android:layout_height="128dp"
-            app:cardBackgroundColor="@color/green_pale"
-            app:cardCornerRadius="64dp"
-            app:cardElevation="0dp">
+            style="@style/Widget.REPLATE.EmptyState.Circle">
 
             <ImageView
-                android:layout_width="56dp"
-                android:layout_height="56dp"
-                android:layout_gravity="center"
+                style="@style/Widget.REPLATE.EmptyState.Icon"
                 android:importantForAccessibility="no"
                 android:src="@drawable/ic_notification"
                 app:tint="@color/green_primary" />
         </com.google.android.material.card.MaterialCardView>
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/space_3"
-            android:gravity="center"
-            android:text="@string/notifications_empty_title"
-            android:textAppearance="@style/TextAppearance.REPLATE.Headline" />
+            style="@style/Widget.REPLATE.EmptyState.Title"
+            android:text="@string/notifications_empty_title" />
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/space_1"
-            android:gravity="center"
-            android:text="@string/notifications_empty_subtitle"
-            android:textAppearance="@style/TextAppearance.REPLATE.Body" />
+            style="@style/Widget.REPLATE.EmptyState.Body"
+            android:text="@string/notifications_empty_subtitle" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnBrowseDeals"

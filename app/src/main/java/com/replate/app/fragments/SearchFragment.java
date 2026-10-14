@@ -49,6 +49,7 @@ import com.replate.app.models.CartItem;
 import com.replate.app.models.FoodItem;
 import com.replate.app.utils.LocationUtils;
 import com.replate.app.utils.SafeSnapshot;
+import com.replate.app.utils.ErrorStates;
 import com.replate.app.utils.ToastUtils;
 
 import java.util.ArrayList;
@@ -78,6 +79,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
     private TextView tvActiveFilter;
     private View cardFilterAction;
     private View loadingOverlaySearch;
+    private View errorState, errorBanner, btnClearFilters;
     private View recentSearchesSection;
     private ChipGroup chipGroupRecentSearches;
     private TextView tvClearHistory;
@@ -206,6 +208,12 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         emptyState = view.findViewById(R.id.emptyState);
         progressBar = view.findViewById(R.id.progressBar);
         loadingOverlaySearch = view.findViewById(R.id.loadingOverlaySearch);
+        errorState = view.findViewById(R.id.errorState);
+        errorBanner = view.findViewById(R.id.errorBanner);
+        btnClearFilters = view.findViewById(R.id.btnClearFilters);
+        if (btnClearFilters != null) {
+            btnClearFilters.setOnClickListener(v -> clearSearchAndFilters());
+        }
         tvResultsCount = view.findViewById(R.id.tvResultsCount);
         tvActiveFilter = view.findViewById(R.id.tvActiveFilter);
         cardFilterAction = view.findViewById(R.id.cardFilterAction);
@@ -663,6 +671,8 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
                 }
 
                 setLoadingState(false);
+                ErrorStates.hide(errorState);
+                ErrorStates.hide(errorBanner);
                 filterItems(etSearch == null ? "" : etSearch.getText().toString());
                 // The suggestions come from the dishes, so refresh them once the dishes are here
                 if (etSearch != null && etSearch.hasFocus() && etSearch.getText().toString().trim().isEmpty()) {
@@ -675,9 +685,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
             public void onCancelled(@NonNull DatabaseError error) {
                 if (!isAdded()) return;
                 setLoadingState(false);
-                if (allFoodItems.isEmpty()) {
-                    ToastUtils.showCustomToast(getContext(), R.string.search_error_loading_data);
-                }
+                showLoadError(R.string.search_error_loading_data);
             }
         };
 
@@ -691,7 +699,7 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
             progressBar.postDelayed(() -> {
                 if (isAdded() && progressBar != null && progressBar.getVisibility() == View.VISIBLE) {
                     setLoadingState(false);
-                    android.widget.Toast.makeText(requireContext(), R.string.loading_took_too_long, android.widget.Toast.LENGTH_LONG).show();
+                    showLoadError(R.string.loading_took_too_long);
                 }
             }, 12_000L);
         }
@@ -701,6 +709,35 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
         if (loadingOverlaySearch != null) {
             loadingOverlaySearch.setVisibility(loading ? View.VISIBLE : View.GONE);
         }
+    }
+
+    // Says the dishes did not load, with Try again: in place of the results when nothing is saved,
+    // or as a slim banner above the saved results.
+    private void showLoadError(int message) {
+        if (allFoodItems.isEmpty()) {
+            if (emptyState != null) emptyState.setVisibility(View.GONE);
+            if (rvSearchResults != null) rvSearchResults.setVisibility(View.GONE);
+            ErrorStates.show(errorState, message, this::loadAllFoodItems);
+        } else {
+            ErrorStates.show(errorBanner, message, this::loadAllFoodItems);
+        }
+    }
+
+    // Empties the search box and puts every filter back to its default.
+    private void clearSearchAndFilters() {
+        currentFilter = "for_you";
+        selectedCategory = "All";
+        availableOnly = false;
+        if (etSearch != null) {
+            etSearch.setText("");
+        }
+        onFilterChangedByUser();
+    }
+
+    // True when the search box or a filter is narrowing the results.
+    private boolean hasActiveSearchOrFilter() {
+        boolean hasText = etSearch != null && !etSearch.getText().toString().trim().isEmpty();
+        return hasText || !"for_you".equals(currentFilter) || !"All".equalsIgnoreCase(selectedCategory) || availableOnly;
     }
 
     // Waits a moment, then runs the search.
@@ -818,9 +855,15 @@ public class SearchFragment extends Fragment implements FoodItemAdapter.OnFoodIt
             tvResultsCount.setText(getString(R.string.search_results_count_template, filteredItems.size()));
         }
 
+        if (ErrorStates.isShown(errorState)) {
+            return; // the load error is showing in place of the results
+        }
         if (filteredItems.isEmpty()) {
             if (emptyState != null) {
                 emptyState.setVisibility(View.VISIBLE);
+            }
+            if (btnClearFilters != null) {
+                btnClearFilters.setVisibility(hasActiveSearchOrFilter() ? View.VISIBLE : View.GONE);
             }
             if (rvSearchResults != null) {
                 rvSearchResults.setVisibility(View.GONE);

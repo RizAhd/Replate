@@ -11,9 +11,9 @@ import android.provider.Settings;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import com.replate.app.R;
 
@@ -57,7 +57,7 @@ public final class NotificationPermissionHelper {
 
     // Explains why notifications help, then continues on tap.
     public static void showRationaleDialog(@NonNull Activity activity, @NonNull Runnable onContinue) {
-        new AlertDialog.Builder(activity)
+        new MaterialAlertDialogBuilder(activity)
                 .setTitle(activity.getString(R.string.notifications_permission_title))
                 .setMessage(activity.getString(R.string.notifications_permission_message))
                 .setPositiveButton(activity.getString(R.string.notifications_permission_continue), (d, w) -> onContinue.run())

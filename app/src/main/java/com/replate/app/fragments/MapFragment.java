@@ -34,6 +34,7 @@ import androidx.core.location.LocationManagerCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import com.bumptech.glide.Glide;
 import com.google.android.gms.common.api.ResolvableApiException;
@@ -885,7 +886,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         if (!isAdded() || getContext() == null) {
             return;
         }
-        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+        new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.map_location_needed_title)
                 .setMessage(R.string.map_location_needed_message)
                 .setPositiveButton(R.string.map_open_settings, (d, w) -> {

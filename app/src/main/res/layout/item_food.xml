@@ -168,23 +168,10 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/ivAddToCart"
+                    style="@style/Widget.REPLATE.Button.Add"
                     android:layout_width="wrap_content"
                     android:layout_height="@dimen/touch_target_min"
-                    android:minWidth="0dp"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:paddingHorizontal="@dimen/space_2"
-                    android:text="@string/food_card_add"
-                    android:textAllCaps="false"
-                    android:textColor="@color/white"
-                    android:textSize="@dimen/text_sm"
-                    android:textStyle="bold"
-                    app:backgroundTint="@color/green_primary"
-                    app:cornerRadius="@dimen/radius_md"
-                    app:icon="@drawable/ic_add_white"
-                    app:iconGravity="textStart"
-                    app:iconPadding="6dp"
-                    app:iconTint="@color/white" />
+                    android:text="@string/food_card_add" />
             </LinearLayout>
         </LinearLayout>
 

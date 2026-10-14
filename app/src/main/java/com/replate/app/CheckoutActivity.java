@@ -19,10 +19,10 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.app.AlertDialog;
 import androidx.cardview.widget.CardView;
 
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -36,6 +36,7 @@ import com.replate.app.helpers.CartDatabaseHelper;
 import com.replate.app.models.CartItem;
 import com.replate.app.utils.CheckoutValidator;
 import com.replate.app.utils.CartCheck;
+import com.replate.app.utils.FormErrors;
 import com.replate.app.utils.NetworkUtils;
 import com.replate.app.utils.PayHereConfig;
 import com.replate.app.utils.PaymentOutcome;
@@ -238,7 +239,7 @@ public class CheckoutActivity extends AppCompatActivity {
         }
         if (hotelIds.size() > 1) {
             btnPlaceOrder.setEnabled(false);
-            new AlertDialog.Builder(this)
+            new MaterialAlertDialogBuilder(this)
                     .setTitle(R.string.checkout_mixed_hotels_title)
                     .setMessage(R.string.checkout_mixed_hotels_message)
                     .setCancelable(false)
@@ -345,9 +346,10 @@ public class CheckoutActivity extends AppCompatActivity {
             String time = String.format(Locale.getDefault(), "%02d:%02d", hour, minute);
             String message = pickupProblem(time, window);
             if (message != null) {
-                ToastUtils.showCustomToast(this, message);
+                FormErrors.show(etPickupTime, message);
                 return;
             }
+            FormErrors.clear(etPickupTime);
             etPickupTime.setText(time);
         }, Math.min(first, 1439) / 60, Math.min(first, 1439) % 60, true).show();
     }
@@ -408,32 +410,34 @@ public class CheckoutActivity extends AppCompatActivity {
         String address = etAddress.getText().toString().trim();
         boolean isDelivery = rgOrderType.getCheckedRadioButtonId() == R.id.rbDelivery;
 
+        // Form problems are shown under the field they belong to, never as a toast
+        FormErrors.clear(etCustomerName, etCustomerPhone, etPickupTime, etAddress);
         if (customerName.isEmpty()) {
-            etCustomerName.setError("Enter your name");
+            FormErrors.show(etCustomerName, getString(R.string.checkout_error_name));
             return;
         }
         if (customerPhone.isEmpty()) {
-            etCustomerPhone.setError("Enter phone number");
+            FormErrors.show(etCustomerPhone, getString(R.string.checkout_error_phone));
             return;
         }
         if (!CheckoutValidator.isValidPhone(customerPhone)) {
-            etCustomerPhone.setError("Enter a valid phone number (9-15 digits)");
+            FormErrors.show(etCustomerPhone, getString(R.string.checkout_error_phone_invalid));
             return;
         }
 
         if (!isDelivery && pickupTime.isEmpty()) {
-            ToastUtils.showCustomToast(this, R.string.checkout_please_select_pickup_time);
+            FormErrors.show(etPickupTime, getString(R.string.checkout_please_select_pickup_time));
             return;
         }
         Calendar now = Calendar.getInstance();
         if (!isDelivery && CheckoutValidator.isPickupTimeInPast(
                 pickupTime, now.get(Calendar.HOUR_OF_DAY), now.get(Calendar.MINUTE))) {
-            ToastUtils.showCustomToast(this, R.string.checkout_pickup_time_has_already_passed);
+            FormErrors.show(etPickupTime, getString(R.string.checkout_pickup_time_has_already_passed));
             return;
         }
 
         if (isDelivery && address.isEmpty()) {
-            etAddress.setError("Enter delivery address");
+            FormErrors.show(etAddress, getString(R.string.checkout_error_address));
             return;
         }
 
@@ -444,7 +448,7 @@ public class CheckoutActivity extends AppCompatActivity {
             return;
         }
         confirmDialogOpen = true;
-        new AlertDialog.Builder(this)
+        new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.checkout_confirm_order)
                 .setMessage(getString(R.string.checkout_confirm_message, totalAmount))
                 .setPositiveButton(R.string.checkout_yes_place_order, (dialog, which) -> verifyCartThen(() -> {
@@ -548,7 +552,7 @@ public class CheckoutActivity extends AppCompatActivity {
                 String message = pickupProblem(String.valueOf(etPickupTime.getText()).trim(), verifiedWindow);
                 if (message != null) {
                     showLoading(false);
-                    new AlertDialog.Builder(this)
+                    new MaterialAlertDialogBuilder(this)
                             .setTitle(R.string.checkout_pickup_time_title)
                             .setMessage(message)
                             .setPositiveButton(android.R.string.ok, null)
@@ -564,7 +568,7 @@ public class CheckoutActivity extends AppCompatActivity {
         for (String problem : problems) {
             text.append("\u2022 ").append(problem).append('\n');
         }
-        new AlertDialog.Builder(this)
+        new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.checkout_cart_changed_title)
                 .setMessage(getString(R.string.checkout_cart_changed_message, text.toString().trim()))
                 .setPositiveButton(R.string.checkout_back_to_cart, (d, w) -> finish())
@@ -595,7 +599,7 @@ public class CheckoutActivity extends AppCompatActivity {
                     getOnBackPressedDispatcher().onBackPressed();
                     return;
                 }
-                new AlertDialog.Builder(CheckoutActivity.this)
+                new MaterialAlertDialogBuilder(CheckoutActivity.this)
                         .setTitle(R.string.checkout_leave_unsaved_title)
                         .setMessage(R.string.checkout_leave_unsaved_message)
                         .setPositiveButton(R.string.checkout_retry, (d, w) -> submitOrder(pendingPaymentMethod, pendingPaymentStatus))
@@ -650,7 +654,7 @@ public class CheckoutActivity extends AppCompatActivity {
         recalculateTotals();
         btnPlaceOrder.setText(R.string.checkout_retry_saving_order);
 
-        new AlertDialog.Builder(this)
+        new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.checkout_payment_received)
                 .setMessage(R.string.checkout_unsaved_found)
                 .setPositiveButton(R.string.checkout_retry, (d, w) -> submitOrder(pendingPaymentMethod, pendingPaymentStatus))
@@ -762,7 +766,7 @@ public class CheckoutActivity extends AppCompatActivity {
                 showPaymentCancelledDialog();
                 break;
             default:
-                new AlertDialog.Builder(this)
+                new MaterialAlertDialogBuilder(this)
                         .setTitle(R.string.checkout_payment_failed)
                         .setMessage(R.string.checkout_your_payment_could_not_be)
                         .setPositiveButton(R.string.checkout_try_again, (d, w) -> startSandboxPayment())
@@ -784,7 +788,7 @@ public class CheckoutActivity extends AppCompatActivity {
         // Ensure UI is fully reset to prevent broken state
         showLoading(false);
 
-        new AlertDialog.Builder(this)
+        new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.checkout_payment_cancelled)
                 .setMessage(R.string.checkout_you_cancelled_the_payment_your)
                 .setPositiveButton(R.string.checkout_retry_payment, (dialog, which) -> startSandboxPayment())
@@ -1029,7 +1033,7 @@ public class CheckoutActivity extends AppCompatActivity {
             if (isFinishing() || isDestroyed()) {
                 return;
             }
-            new AlertDialog.Builder(this)
+            new MaterialAlertDialogBuilder(this)
                     .setTitle(R.string.checkout_payment_received)
                     .setMessage(reason + "\n\nYour card payment went through. Tap Retry to save your order. "
                             + "You will not be charged again.")

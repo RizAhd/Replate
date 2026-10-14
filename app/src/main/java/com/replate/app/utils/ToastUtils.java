@@ -1,30 +1,36 @@
 package com.replate.app.utils;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.ComponentActivity;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
+import androidx.lifecycle.Lifecycle;
 
+import com.google.android.material.snackbar.Snackbar;
 import com.replate.app.R;
 
 /**
- * Shared helper for branded toast rendering across activities/fragments/receivers.
+ * Shared helper for short messages across activities, fragments and receivers.
+ *
+ * On a screen the user is looking at, the message is a Material Snackbar (up to five lines, above the
+ * bottom tabs). With no visible screen (a receiver or background work, a screen that is closing, or a
+ * dialog that has focus) it falls back to a plain system toast, so the message is never lost.
  */
 public final class ToastUtils {
 
     private static final Handler MAIN_HANDLER = new Handler(Looper.getMainLooper());
-    private static final int BOTTOM_MARGIN_DP = 64;
+    private static final int SNACKBAR_MAX_LINES = 5;
+    /** Messages longer than this stay up longer, so they can be read to the end. */
+    private static final int LONG_MESSAGE_CHARS = 60;
 
     private ToastUtils() {
     }
@@ -43,61 +49,79 @@ public final class ToastUtils {
         showCustomToast(context, message);
     }
 
-    // Shows the branded toast with the given text.
+    // Shows the message as a snackbar on the current screen, or as a toast when there is none.
     public static void showCustomToast(Context context, String message) {
         if (context == null) {
             return;
         }
-
-        final Context safeContext = context.getApplicationContext() != null
+        final String safeMessage = TextUtils.isEmpty(message) ? "" : message;
+        final Activity activity = findActivity(context);
+        final Context appContext = context.getApplicationContext() != null
                 ? context.getApplicationContext()
                 : context;
-        final String safeMessage = TextUtils.isEmpty(message) ? "" : message;
 
-        Runnable showTask = () -> showInternal(safeContext, safeMessage);
-        if (Looper.myLooper() == Looper.getMainLooper()) {
-            showTask.run();
-        } else {
-            MAIN_HANDLER.post(showTask);
-        }
+        // Posted, so a message followed by finish() in the same tap is seen as "screen closing" and
+        // becomes a toast that outlives the screen.
+        MAIN_HANDLER.post(() -> {
+            if (activity != null && canShowSnackbar(activity) && showSnackbar(activity, safeMessage)) {
+                return;
+            }
+            showToast(appContext, safeMessage);
+        });
     }
 
-    // Builds and shows the toast view.
-    private static void showInternal(@NonNull Context context, @NonNull String message) {
+    // True when the activity is on screen, not closing, and no dialog has taken the focus.
+    private static boolean canShowSnackbar(@NonNull Activity activity) {
+        if (activity.isFinishing() || activity.isDestroyed() || !activity.hasWindowFocus()) {
+            return false;
+        }
+        if (activity instanceof ComponentActivity) {
+            return ((ComponentActivity) activity).getLifecycle().getCurrentState()
+                    .isAtLeast(Lifecycle.State.STARTED);
+        }
+        return true;
+    }
+
+    // Shows a Material snackbar; false if the screen has no content view yet.
+    private static boolean showSnackbar(@NonNull Activity activity, @NonNull String message) {
         try {
-            LayoutInflater inflater = LayoutInflater.from(context);
-            View toastView = inflater.inflate(R.layout.toast_custom, null, false);
-
-            ImageView iconView = toastView.findViewById(R.id.ivToastIcon);
-            TextView messageView = toastView.findViewById(R.id.tvToastMessage);
-
-            if (iconView != null) {
-                iconView.setImageResource(R.mipmap.ic_launcher);
+            View root = activity.findViewById(android.R.id.content);
+            if (root == null) {
+                return false;
             }
-            if (messageView != null) {
-                messageView.setText(message);
+            int duration = message.length() > LONG_MESSAGE_CHARS ? Snackbar.LENGTH_LONG : Snackbar.LENGTH_SHORT;
+            Snackbar snackbar = Snackbar.make(root, message, duration);
+            snackbar.setTextMaxLines(SNACKBAR_MAX_LINES);
+            // Keep it above the bottom tabs on the main screen
+            View bottomNav = activity.findViewById(R.id.bottomNavigation);
+            if (bottomNav != null && bottomNav.isShown()) {
+                snackbar.setAnchorView(bottomNav);
             }
-
-            try {
-                Animation fadeIn = AnimationUtils.loadAnimation(context, R.anim.toast_fade_in);
-                toastView.startAnimation(fadeIn);
-            } catch (Exception ignored) {
-            }
-
-            Toast toast = new Toast(context);
-            toast.setDuration(Toast.LENGTH_SHORT);
-            toast.setView(toastView);
-            toast.setGravity(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, 0, dpToPx(context, BOTTOM_MARGIN_DP));
-            toast.show();
-        } catch (Exception ignored) {
-            Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+            snackbar.show();
+            return true;
+        } catch (Exception e) {
+            return false;
         }
     }
 
-    // Converts dp to pixels.
-    private static int dpToPx(@NonNull Context context, int dp) {
-        float density = context.getResources().getDisplayMetrics().density;
-        return Math.round(dp * density);
+    // Plain system toast (no custom view: custom toast views are deprecated and blocked in the background).
+    private static void showToast(@NonNull Context context, @NonNull String message) {
+        try {
+            Toast.makeText(context, message,
+                    message.length() > LONG_MESSAGE_CHARS ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT).show();
+        } catch (Exception ignored) {
+        }
+    }
+
+    // Walks the context wrappers to the activity, if there is one.
+    @Nullable
+    private static Activity findActivity(@Nullable Context context) {
+        while (context instanceof ContextWrapper) {
+            if (context instanceof Activity) {
+                return (Activity) context;
+            }
+            context = ((ContextWrapper) context).getBaseContext();
+        }
+        return null;
     }
 }
-

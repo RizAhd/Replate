@@ -140,19 +140,11 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/ivAddToCart"
-                style="@style/Widget.REPLATE.Button.Tonal"
+                style="@style/Widget.REPLATE.Button.Add"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/touch_target_min"
                 android:layout_marginTop="@dimen/space_1"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                android:minHeight="@dimen/touch_target_min"
-                android:text="@string/food_card_add"
-                android:textSize="@dimen/text_sm"
-                app:icon="@drawable/ic_add_white"
-                app:iconGravity="textStart"
-                app:iconPadding="@dimen/space_0_5"
-                app:iconTint="@color/green_primary" />
+                android:text="@string/food_card_add" />
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

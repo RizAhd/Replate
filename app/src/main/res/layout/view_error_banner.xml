@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Slim notice above a list that is still showing saved data, when refreshing it failed.
+     Included with an id; ErrorStates.show() / hide() fill and toggle it. -->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="@dimen/space_2"
+    android:layout_marginTop="@dimen/space_1"
+    app:cardBackgroundColor="@color/md_theme_errorContainer"
+    app:cardCornerRadius="@dimen/radius_md"
+    app:cardElevation="0dp"
+    app:strokeWidth="0dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/space_2"
+        android:paddingEnd="@dimen/space_1">
+
+        <TextView
+            android:id="@+id/tvErrorMessage"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:accessibilityLiveRegion="polite"
+            android:paddingVertical="@dimen/space_1_5"
+            android:textAppearance="@style/TextAppearance.REPLATE.Body"
+            android:textColor="@color/md_theme_onErrorContainer" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnErrorRetry"
+            style="@style/Widget.REPLATE.Button.Text"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/touch_target_min"
+            android:text="@string/action_retry"
+            android:textColor="@color/md_theme_onErrorContainer" />
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

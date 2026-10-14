@@ -78,6 +78,18 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Shown until the live order arrives (for example when opened from a notification) -->
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/progressOrder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/space_2"
+            android:indeterminate="true"
+            android:visibility="gone"
+            app:indicatorColor="@color/green_primary"
+            app:trackColor="@color/green_pale"
+            app:trackCornerRadius="2dp" />
+
         <ScrollView
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -231,10 +243,9 @@
                                 android:layout_weight="1"
                                 android:layout_marginEnd="@dimen/space_0_5"
                                 android:text="@string/order_detail_call_hotel"
-                                android:textSize="@dimen/text_xs"
                                 app:icon="@drawable/ic_phone"
                                 app:iconGravity="textStart"
-                                app:iconPadding="6dp" />
+                                app:iconPadding="@dimen/space_1" />
 
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/btnSmsHotel"
@@ -244,10 +255,9 @@
                                 android:layout_weight="1"
                                 android:layout_marginStart="@dimen/space_0_5"
                                 android:text="@string/order_detail_sms_hotel"
-                                android:textSize="@dimen/text_xs"
-                                app:icon="@drawable/ic_email"
+                                app:icon="@drawable/ic_sms"
                                 app:iconGravity="textStart"
-                                app:iconPadding="6dp" />
+                                app:iconPadding="@dimen/space_1" />
                         </LinearLayout>
 
                         <com.google.android.material.button.MaterialButton

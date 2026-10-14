@@ -69,23 +69,18 @@
                 </LinearLayout>
 
                 <com.google.android.material.card.MaterialCardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/space_1_5"
-                    app:cardCornerRadius="@dimen/radius_md"
-                    app:cardElevation="0dp"
-                    app:cardBackgroundColor="@color/white">
+                    style="@style/Widget.REPLATE.Card.Search"
+                    android:layout_marginTop="@dimen/space_1_5">
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="54dp"
-                        android:background="@color/white"
+                        android:layout_height="match_parent"
                         android:gravity="center_vertical"
                         android:paddingHorizontal="@dimen/space_2">
 
                         <ImageView
-                            android:layout_width="22dp"
-                            android:layout_height="22dp"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
                             android:importantForAccessibility="no"
                             android:src="@drawable/ic_search"
                             app:tint="@color/text_secondary" />
@@ -223,6 +218,14 @@
             android:fontFamily="@font/poppins_semibold"
             android:textColor="@color/green_primary" />
 
+        <!-- Refreshing failed but saved dishes are still searchable -->
+        <include
+            android:id="@+id/errorBanner"
+            layout="@layout/view_error_banner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvSearchResults"
             android:layout_width="match_parent"
@@ -248,37 +251,42 @@
 
             <!-- Shared empty-state look: 128dp pale circle, 56dp decorative icon, title, body, optional action -->
             <com.google.android.material.card.MaterialCardView
-                android:layout_width="128dp"
-                android:layout_height="128dp"
-                app:cardBackgroundColor="@color/green_pale"
-                app:cardCornerRadius="64dp"
-                app:cardElevation="0dp">
+                style="@style/Widget.REPLATE.EmptyState.Circle">
 
                 <ImageView
-                    android:layout_width="56dp"
-                    android:layout_height="56dp"
-                    android:layout_gravity="center"
+                    style="@style/Widget.REPLATE.EmptyState.Icon"
                     android:importantForAccessibility="no"
                     android:src="@drawable/ic_search_empty"
                     app:tint="@color/green_primary" />
             </com.google.android.material.card.MaterialCardView>
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_3"
-                android:gravity="center"
-                android:text="@string/search_empty_title"
-                android:textAppearance="@style/TextAppearance.REPLATE.Headline" />
+                style="@style/Widget.REPLATE.EmptyState.Title"
+                android:text="@string/search_empty_title" />
 
             <TextView
+                style="@style/Widget.REPLATE.EmptyState.Body"
+                android:text="@string/search_empty_suggestion" />
+
+            <!-- Only shown when a search text or filter is active -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnClearFilters"
+                style="@style/Widget.REPLATE.Button.Secondary"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_1"
-                android:gravity="center"
-                android:text="@string/search_empty_suggestion"
-                android:textAppearance="@style/TextAppearance.REPLATE.Body" />
+                android:layout_height="@dimen/touch_target_min"
+                android:layout_marginTop="@dimen/space_2"
+                android:text="@string/search_clear_filters"
+                android:visibility="gone" />
         </LinearLayout>
+
+        <!-- Nothing saved and loading failed -->
+        <include
+            android:id="@+id/errorState"
+            layout="@layout/view_error_state"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:visibility="gone" />
 
     </LinearLayout>
 
@@ -302,12 +310,13 @@
             android:paddingVertical="@dimen/space_2"
             android:elevation="@dimen/elevation_sheet">
 
-            <ProgressBar
+            <com.google.android.material.progressindicator.CircularProgressIndicator
                 android:id="@+id/progressBar"
-                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:indeterminateTint="@color/green_primary"
-                android:visibility="gone" />
+                android:layout_width="wrap_content"
+                android:indeterminate="true"
+                android:visibility="gone"
+                app:indicatorColor="@color/green_primary" />
 
             <TextView
                 android:id="@+id/tvLoadingSearch"

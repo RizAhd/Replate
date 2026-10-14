@@ -1,7 +1,6 @@
 package com.replate.app;
 
 import android.Manifest;
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -29,6 +28,7 @@ import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -44,6 +44,7 @@ import com.google.firebase.storage.StorageReference;
 import com.replate.app.helpers.ReplateDatabaseHelper;
 import com.replate.app.utils.AccountActions;
 import com.replate.app.utils.FcmTokenManager;
+import com.replate.app.utils.FormErrors;
 import com.replate.app.utils.NotificationPermissionHelper;
 import com.replate.app.utils.NotificationPrefs;
 import com.replate.app.utils.ToastUtils;
@@ -248,7 +249,7 @@ public class SettingsActivity extends AppCompatActivity {
         switchLocation = findViewById(R.id.switchLocation);
 
         ivBack.setOnClickListener(v -> finish());
-        findViewById(R.id.rowPrivacy).setOnClickListener(v -> new AlertDialog.Builder(this)
+        findViewById(R.id.rowPrivacy).setOnClickListener(v -> new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.settings_privacy_title)
                 .setMessage(R.string.settings_privacy_body)
                 .setPositiveButton(android.R.string.ok, null)
@@ -289,7 +290,7 @@ public class SettingsActivity extends AppCompatActivity {
             openAppDetailsSettings();
         });
 
-        findViewById(R.id.rowHelp).setOnClickListener(v -> new AlertDialog.Builder(this)
+        findViewById(R.id.rowHelp).setOnClickListener(v -> new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.help_title)
                 .setMessage(R.string.help_body)
                 .setPositiveButton(R.string.help_dismiss, null)
@@ -297,7 +298,7 @@ public class SettingsActivity extends AppCompatActivity {
         findViewById(R.id.rowContact).setOnClickListener(v -> contactSupport());
         findViewById(R.id.rowRate).setOnClickListener(v -> rateApp());
         findViewById(R.id.rowShare).setOnClickListener(v -> shareApp());
-        findViewById(R.id.rowLicenses).setOnClickListener(v -> new AlertDialog.Builder(this)
+        findViewById(R.id.rowLicenses).setOnClickListener(v -> new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.settings_licenses_title)
                 .setMessage(R.string.settings_licenses_body)
                 .setPositiveButton(android.R.string.ok, null)
@@ -520,7 +521,7 @@ public class SettingsActivity extends AppCompatActivity {
     // Lets the user take a photo or pick one.
     private void showPhotoPicker() {
         String[] options = new String[]{"Take photo", "Choose from gallery"};
-        new AlertDialog.Builder(this)
+        new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.settings_update_profile_photo)
                 .setItems(options, (dialog, which) -> {
                     if (which == 0) {
@@ -764,8 +765,14 @@ public class SettingsActivity extends AppCompatActivity {
         String phone = etPhone.getText() != null ? etPhone.getText().toString().trim() : "";
         String address = etAddress.getText() != null ? etAddress.getText().toString().trim() : "";
 
-        if (name.isEmpty() || phone.isEmpty()) {
-            ToastUtils.showCustomToast(this, R.string.settings_please_fill_all_fields);
+        // Shown under the empty field instead of a toast
+        FormErrors.clear(etName, etPhone);
+        if (name.isEmpty()) {
+            FormErrors.show(etName, getString(R.string.checkout_error_name));
+            return;
+        }
+        if (phone.isEmpty()) {
+            FormErrors.show(etPhone, getString(R.string.checkout_error_phone));
             return;
         }
 

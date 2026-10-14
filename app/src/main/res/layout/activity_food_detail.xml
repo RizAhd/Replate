@@ -444,6 +444,17 @@
                                 app:iconTint="@color/white" />
                         </LinearLayout>
 
+                        <com.google.android.material.progressindicator.CircularProgressIndicator
+                            android:id="@+id/progressReviews"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_horizontal"
+                            android:layout_marginTop="@dimen/space_2"
+                            android:indeterminate="true"
+                            android:visibility="gone"
+                            app:indicatorColor="@color/green_primary"
+                            app:indicatorSize="24dp" />
+
                         <TextView
                             android:id="@+id/tvNoReviews"
                             android:layout_width="match_parent"
@@ -483,6 +494,17 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/food_detail_recommended_for_you" />
+
+                        <com.google.android.material.progressindicator.CircularProgressIndicator
+                            android:id="@+id/progressRecommended"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_horizontal"
+                            android:layout_marginTop="@dimen/space_2"
+                            android:indeterminate="true"
+                            android:visibility="gone"
+                            app:indicatorColor="@color/green_primary"
+                            app:indicatorSize="24dp" />
 
                         <TextView
                             android:id="@+id/tvNoRecommendations"

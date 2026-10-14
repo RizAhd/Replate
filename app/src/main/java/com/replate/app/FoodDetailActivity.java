@@ -15,7 +15,6 @@ import android.widget.TextView;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -25,6 +24,7 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.bumptech.glide.Glide;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -397,12 +397,14 @@ public class FoodDetailActivity extends AppCompatActivity {
         }
 
         reviewsRef = mDatabase.child("reviews");
+        setLoaderVisible(R.id.progressReviews, true);
 
         reviewsListener = new ValueEventListener() {
                     // Builds the review list and the average rating.
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         if (isFinishing() || isDestroyed()) return;
+                        setLoaderVisible(R.id.progressReviews, false);
                         List<Review> reviews = new ArrayList<>();
                         float total = 0f;
                         int ratedCount = 0;
@@ -461,6 +463,7 @@ public class FoodDetailActivity extends AppCompatActivity {
                     // Shows the no-reviews message.
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
+                        setLoaderVisible(R.id.progressReviews, false);
                         if (tvNoReviews != null) {
                             tvNoReviews.setVisibility(View.VISIBLE);
                         }
@@ -581,7 +584,7 @@ public class FoodDetailActivity extends AppCompatActivity {
     private void confirmDeleteReview(Review review) {
         if (review == null || review.getReviewId() == null || review.getReviewId().trim().isEmpty()) return;
 
-        new AlertDialog.Builder(this)
+        new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.food_detail_delete_review)
                 .setMessage(R.string.food_detail_do_you_want_to_remove)
                 .setPositiveButton(R.string.food_detail_delete, (d, w) -> deleteReview(review))
@@ -708,11 +711,13 @@ public class FoodDetailActivity extends AppCompatActivity {
         if (foodItem == null || mDatabase == null) {
             return;
         }
+        setLoaderVisible(R.id.progressRecommended, true);
         mDatabase.child("foodItems").addListenerForSingleValueEvent(new ValueEventListener() {
             // Scores every other dish and keeps the best matches.
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (isFinishing() || isDestroyed()) return;
+                setLoaderVisible(R.id.progressRecommended, false);
                 List<FoodItem> all = new ArrayList<>();
                 for (DataSnapshot child : snapshot.getChildren()) {
                     FoodItem item = SafeSnapshot.getValue(child, FoodItem.class);
@@ -739,11 +744,20 @@ public class FoodDetailActivity extends AppCompatActivity {
             // Shows the no-suggestions message.
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
+                setLoaderVisible(R.id.progressRecommended, false);
                 if (tvNoRecommendations != null) {
                     tvNoRecommendations.setVisibility(View.VISIBLE);
                 }
             }
         });
+    }
+
+    // Shows or hides one of the small loading spinners in the reviews and suggestions cards.
+    private void setLoaderVisible(int loaderId, boolean visible) {
+        View loader = findViewById(loaderId);
+        if (loader != null) {
+            loader.setVisibility(visible ? View.VISIBLE : View.GONE);
+        }
     }
 
     // Gives a similarity score; higher is closer.
