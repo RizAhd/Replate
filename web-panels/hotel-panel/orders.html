@@ -138,7 +138,6 @@
                         <div><dt>Customer</dt><dd id="modalCustomer"></dd></div>
                         <div><dt>Items</dt><dd><ul id="modalItems" class="order-items"></ul></dd></div>
                         <div><dt>Total</dt><dd class="num fw-semibold" id="modalTotal"></dd></div>
-                        <div><dt>Review</dt><dd id="modalReview"></dd></div>
                     </dl>
                 </div>
                 <div id="verificationSuccessBody" class="d-none text-center success-body">
@@ -260,14 +259,35 @@
     let groupSignature = '';   // which group each order is in, to notice a pickup slot ending
     searchInput.value = startParams.get('q') || '';
 
+    // Time left to collect a pickup (Active rows): "Collect within 42 min", "Pickup starts at 18:00", "Code expired"
+    function countdownHtml(order, now) {
+        const left = ReplateSchema.pickupCountdown(order, now);
+        if (!left) return '';
+        return `<span class="pickup-countdown tone-${left.tone}" data-countdown><i class="fas fa-clock" aria-hidden="true"></i><span>${esc(left.text)}</span></span>`;
+    }
+
+    // Brings every countdown up to date without redrawing the rows (keyboard focus stays where it is)
+    function refreshCountdowns(now) {
+        tableBody.querySelectorAll('tr[data-group="active"]').forEach((tr) => {
+            const row = rowByKey.get(tr.dataset.key);
+            const el = tr.querySelector('[data-countdown]');
+            if (!row || !el) return;
+            const left = ReplateSchema.pickupCountdown(row.order, now);
+            if (!left) { el.remove(); return; }
+            el.className = 'pickup-countdown tone-' + left.tone;
+            el.querySelector('span').textContent = left.text;
+        });
+    }
+
     // One table row.
-    function orderRowHtml({ key, order }, group) {
+    function orderRowHtml({ key, order }, group, now) {
         const status = ReplateSchema.normalizeOrderStatus(order.orderStatus);
         const isActive = ReplateSchema.isOpenOrder(order);
         const isNew = group === 'active' && (status === 'pending_pickup' || status === 'pending_delivery');
         const isDelivery = String(order.orderType || '').toLowerCase() === 'delivery';
-        const slot = String(order.pickupTime || '').trim();
+        const slot = ReplateSchema.formatPickupSlot(order.pickupTime);
         const mode = isDelivery ? 'Delivery' : (slot && slot !== 'N/A' ? 'Pickup ' + slot : 'Pickup');
+        const countdown = group === 'active' ? countdownHtml(order, now) : '';
         const review = Number(order.reviewRating || 0);
         const reviewText = review > 0
             ? `<span class="rating"><i class="fas fa-star" aria-hidden="true"></i>${ReplateSchema.formatRating(review)}</span>`
@@ -280,7 +300,7 @@
                 <td class="cell-wide" data-label="Items">${esc(ReplateSchema.extractItemNames(order))}<br><small class="text-muted order-mode"><i class="fas ${isDelivery ? 'fa-truck' : 'fa-bag-shopping'}" aria-hidden="true"></i>${esc(mode)}</small></td>
                 <td data-label="Total" class="num">${esc(ReplateSchema.formatMoney(ReplateSchema.orderAmount(order)))}</td>
                 <td data-label="Review"${review > 0 ? '' : ' class="cell-empty"'}>${reviewText}</td>
-                <td data-label="Status" class="status-cell"><span class="badge ${esc(ReplateSchema.statusBadgeClass(status))}">${esc(ReplateSchema.statusLabel(status))}</span>${isActive && ReplateSchema.isPickupExpired(order) ? ' <span class="badge badge-warning" title="The pickup slot has ended, so the QR code and OTP no longer work">Slot ended</span>' : ''}</td>
+                <td data-label="Status" class="status-cell"><span class="badge ${esc(ReplateSchema.statusBadgeClass(status))}">${esc(ReplateSchema.statusLabel(status))}</span>${isActive && ReplateSchema.isPickupExpired(order) ? ' <span class="badge badge-warning" title="The pickup slot has ended, so the QR code and OTP no longer work">Slot ended</span>' : ''}${countdown}</td>
                 <td data-label="Action" class="actions-cell">${actionButtons(key, status, isDelivery, isActive)}</td>
             </tr>`;
     }
@@ -294,8 +314,8 @@
         groups.active.sort(ReplateSchema.compareActive);
         groups.history.sort(ReplateSchema.compareHistory);
         groupSignature = signatureOf(now);
-        tableBody.innerHTML = groups.active.map((row) => orderRowHtml(row, 'active')).join('') +
-            groups.history.map((row) => orderRowHtml(row, 'history')).join('');
+        tableBody.innerHTML = groups.active.map((row) => orderRowHtml(row, 'active', now)).join('') +
+            groups.history.map((row) => orderRowHtml(row, 'history', now)).join('');
         applyOrderFilter();
     }
 
@@ -374,10 +394,13 @@
     });
     if (orderView === 'history') bootstrap.Tab.getOrCreateInstance(document.getElementById('pills-history-tab')).show();
 
-    // A pickup whose slot ends while the page is open moves to History (checked every minute;
-    // the rows are only redrawn when something actually moved, so keyboard focus is not lost).
+    // Every minute: the pickup countdowns tick, and a pickup whose slot has ended moves to History
+    // (rows are only redrawn when something actually moved, so keyboard focus is not lost).
     setInterval(() => {
-        if (orderRows && orderRows.length && signatureOf(Date.now()) !== groupSignature) renderOrders();
+        if (!orderRows || !orderRows.length) return;
+        const now = Date.now();
+        if (signatureOf(now) !== groupSignature) renderOrders();
+        else refreshCountdowns(now);
     }, 60000);
 
     // Listens for this hotel's orders and redraws the table.
@@ -496,7 +519,7 @@
         const status = ReplateSchema.normalizeOrderStatus(order.orderStatus);
         if (['completed', 'delivered', 'cancelled'].includes(status)) return false;
         if (!ReplateSchema.isPickupExpired(order)) return false;
-        ReplateUI.toast('This code has expired: the customer\'s pickup time (' + (order.pickupTime || 'slot') +
+        ReplateUI.toast('This code has expired: the customer\'s pickup time (' + (ReplateSchema.formatPickupSlot(order.pickupTime) || 'slot') +
             ') has ended. If you still hand the order over, find it under History and use its Done button.', 'warning');
         return true;
     }
@@ -568,17 +591,15 @@
 
         document.getElementById('modalOrderId').textContent = '#' + ReplateSchema.shortOrderId(order, key);
         document.getElementById('modalCustomer').textContent =
-            (order.customerName || 'Customer') + (order.customerPhone ? ' - ' + order.customerPhone : '');
+            (order.customerName || 'Customer') + (order.customerPhone ? ' · ' + order.customerPhone : '');
         document.getElementById('modalTotal').textContent = ReplateSchema.formatMoney(ReplateSchema.orderAmount(order));
 
-        document.getElementById('modalItems').innerHTML = ReplateSchema.extractItemsArray(order).map((item) =>
-            `<li>${esc(item.foodName || 'Item')} x ${esc(item.quantity || 1)}
-                <small class="text-muted num">${esc(ReplateSchema.formatMoney(item.price))}</small></li>`
-        ).join('');
-
-        document.getElementById('modalReview').textContent = order.reviewRating
-            ? `${ReplateSchema.formatRating(order.reviewRating)} / 5${order.reviewComment ? ' - ' + order.reviewComment : ''}`
-            : 'No review yet';
+        // One line per dish with its line total (price × quantity), so the lines add up to the total
+        document.getElementById('modalItems').innerHTML = ReplateSchema.extractItemsArray(order).map((item) => {
+            const quantity = ReplateSchema.itemQuantity(item);
+            const lineTotal = (parseFloat(item.price) || 0) * quantity;
+            return `<li><span>${esc(item.foodName || 'Item')} × ${esc(quantity)}</span><span class="num">${esc(ReplateSchema.formatMoney(lineTotal))}</span></li>`;
+        }).join('');
 
         document.getElementById('verificationModalBody').classList.remove('d-none');
         document.getElementById('verificationSuccessBody').classList.add('d-none');

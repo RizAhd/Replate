@@ -1132,6 +1132,27 @@ label.switch-hit {
     margin-top: 2px;
 }
 
+/* Time left to collect a pickup, under the status badge (same words as the app) */
+.pickup-countdown {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    font-size: var(--fs-12);
+    font-weight: var(--fw-semibold);
+    color: var(--text-secondary);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.pickup-countdown i {
+    font-size: 11px;
+}
+
+.pickup-countdown.tone-normal { color: var(--primary-dark); }
+.pickup-countdown.tone-urgent { color: var(--warning); }
+.pickup-countdown.tone-expired { color: var(--danger); }
+
 /* New orders (waiting for the hotel to confirm): a light brand tint and a brand bar on the left.
    Set on the cells, because Bootstrap paints every table cell's own background. */
 @media (min-width: 768px) {
