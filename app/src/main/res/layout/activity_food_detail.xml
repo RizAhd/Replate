@@ -55,6 +55,7 @@
                     <ImageView
                         android:id="@+id/ivBack"
                         android:contentDescription="@string/cd_back"
+                        android:foreground="?attr/selectableItemBackgroundBorderless"
                         android:layout_width="@dimen/touch_target_min"
                         android:layout_height="@dimen/touch_target_min"
                         android:layout_margin="@dimen/space_2"
@@ -66,6 +67,7 @@
                     <!-- Favorite Button -->
                     <ImageView
                         android:id="@+id/ivFavorite"
+                        android:foreground="?attr/selectableItemBackgroundBorderless"
                         android:layout_width="@dimen/touch_target_min"
                         android:layout_height="@dimen/touch_target_min"
                         android:layout_gravity="bottom|end"

@@ -107,6 +107,9 @@
                             android:id="@+id/ivNotification"
                             android:layout_width="48dp"
                             android:layout_height="48dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:foreground="?attr/selectableItemBackgroundBorderless"
                             android:contentDescription="@string/cd_open_notifications"
                             android:layout_alignParentEnd="true"
                             android:layout_centerVertical="true">
