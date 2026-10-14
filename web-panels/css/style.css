@@ -1249,6 +1249,31 @@ label.switch-hit {
     flex-shrink: 0;
 }
 
+/* Tabs wider than the screen: they snap into place and a faded edge shows there are more */
+.nav-tabs.tabs-overflow {
+    scroll-snap-type: x proximity;
+    overscroll-behavior-x: contain;
+}
+
+.nav-tabs.tabs-overflow .nav-item {
+    scroll-snap-align: start;
+}
+
+.nav-tabs.tabs-more-end {
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent);
+    mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent);
+}
+
+.nav-tabs.tabs-more-start {
+    -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 48px), transparent);
+    mask-image: linear-gradient(to left, #000 calc(100% - 48px), transparent);
+}
+
+.nav-tabs.tabs-more-start.tabs-more-end {
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent);
+    mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent);
+}
+
 .nav-tabs .nav-link {
     display: inline-flex;
     align-items: center;
@@ -1670,6 +1695,24 @@ button.auth-link {
         padding: calc(56px + var(--space-5)) var(--page-pad-x) var(--space-6);
         width: 100%;
         max-width: 100%;
+    }
+
+    /* The app bar already names the page, so the big heading under it is kept for screen readers only */
+    .page-header .panel-title {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        padding: 0;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        clip-path: inset(50%);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    .page-header .panel-subtitle {
+        margin-top: 0;
     }
 
     .stat-grid {
@@ -2681,8 +2724,12 @@ button.auth-link {
     transition: border-color var(--transition-fast);
 }
 
-.chat-compose input:focus {
+/* One focus ring: the pill's own border turns brand green and thickens (no second outline around it) */
+.chat-compose input:focus,
+.chat-compose input:focus-visible {
+    outline: none;
     border-color: var(--primary);
+    box-shadow: inset 0 0 0 1px var(--primary);
 }
 
 .chat-compose input::placeholder,

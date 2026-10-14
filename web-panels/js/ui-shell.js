@@ -674,6 +674,39 @@ const ReplateUI = (() => {
             <button type="button" class="btn btn-outline-primary btn-sm" onclick="window.location.reload()">${esc(retryLabel)}</button></div>`;
     }
 
+    // ── Tabs that do not fit (phones): a faded edge shows there is more, tabs snap into place ──
+    function revealTab(list, tab, instant) {
+        const item = tab.closest('.nav-item') || tab;
+        const box = list.getBoundingClientRect();
+        const rect = item.getBoundingClientRect();
+        const room = 40;
+        let shift = 0;
+        if (rect.left < box.left + room) shift = rect.left - box.left - room;
+        else if (rect.right > box.right - room) shift = rect.right - box.right + room;
+        if (!shift) return;
+        const smooth = !instant && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        list.scrollBy({ left: shift, behavior: smooth ? 'smooth' : 'auto' });
+    }
+
+    function watchTabOverflow(list) {
+        const update = () => {
+            const max = list.scrollWidth - list.clientWidth;
+            const overflowing = max > 1;
+            list.classList.toggle('tabs-overflow', overflowing);
+            list.classList.toggle('tabs-more-start', overflowing && list.scrollLeft > 1);
+            list.classList.toggle('tabs-more-end', overflowing && list.scrollLeft < max - 1);
+        };
+        list.addEventListener('scroll', update, { passive: true });
+        if (typeof ResizeObserver === 'function') new ResizeObserver(update).observe(list);
+        else window.addEventListener('resize', update);
+        // the tab that opens (by click, keyboard or code) is scrolled fully into view
+        list.addEventListener('shown.bs.tab', (e) => revealTab(list, e.target));
+        const active = list.querySelector('.nav-link.active');
+        if (active) revealTab(list, active, true);
+        update();
+    }
+    document.addEventListener('DOMContentLoaded', () => document.querySelectorAll('.nav-tabs').forEach(watchTabOverflow));
+
     return {
         esc,
         safeUrl,
