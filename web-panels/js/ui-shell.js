@@ -81,7 +81,12 @@ const ReplateUI = (() => {
             setTimeout(() => el.remove(), 200);
         };
         close.addEventListener('click', remove);
-        if (duration > 0) setTimeout(remove, duration);
+        // it waits while the pointer is on it or its link has focus, so there is time to read it and use the link
+        const expire = () => {
+            if (el.matches(':hover') || el.contains(document.activeElement)) setTimeout(expire, 1000);
+            else remove();
+        };
+        if (duration > 0) setTimeout(expire, duration);
         return el;
     }
 
