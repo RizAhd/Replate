@@ -493,10 +493,10 @@ const ReplateUI = (() => {
     // ── Inline field errors ─────────────────────────────────────────────────
     const byId = (target) => (typeof target === 'string' ? document.getElementById(target) : target);
 
-    // Where the message goes: under the input group, inside a checkbox row, or right after the field
+    // Where the message goes: under the input group or upload area, inside a checkbox row, or right after the field
     function feedbackAnchor(el) {
         if (el.type === 'checkbox' && el.closest('.form-check')) return el.closest('.form-check').lastElementChild;
-        return el.closest('.input-with-icon') || el;
+        return el.closest('.input-with-icon, .file-drop') || el;
     }
 
     /** Mark one field invalid and show the message under it. Returns the field. */
@@ -718,6 +718,31 @@ const ReplateUI = (() => {
         update();
     }
     document.addEventListener('DOMContentLoaded', () => document.querySelectorAll('.nav-tabs').forEach(watchTabOverflow));
+
+    // ── Upload areas: the chosen file's name, and a highlight while a file is dragged over ──
+    function showChosenFile(input) {
+        const drop = input.closest('.file-drop');
+        const name = drop && drop.querySelector('.file-drop-name');
+        if (!name) return;
+        const file = input.files && input.files[0];
+        name.textContent = file ? file.name : '';
+        drop.classList.toggle('has-file', !!file);
+    }
+    document.addEventListener('change', (e) => {
+        if (e.target && e.target.matches && e.target.matches('.file-drop input[type="file"]')) showChosenFile(e.target);
+    });
+    ['dragenter', 'dragover'].forEach((type) => document.addEventListener(type, (e) => {
+        const drop = e.target && e.target.closest ? e.target.closest('.file-drop') : null;
+        if (drop) drop.classList.add('is-dragover');
+    }));
+    ['dragleave', 'drop'].forEach((type) => document.addEventListener(type, (e) => {
+        const drop = e.target && e.target.closest ? e.target.closest('.file-drop') : null;
+        if (drop) drop.classList.remove('is-dragover');
+    }));
+    document.addEventListener('reset', (e) => {
+        // the browser empties the file inputs after the reset event, so look one tick later
+        setTimeout(() => e.target.querySelectorAll('.file-drop input[type="file"]').forEach(showChosenFile), 0);
+    });
 
     // ── New-order alerts (every signed-in hotel page) ───────────────────────
     // For each new order: a short chime, "(n) Orders · REPLATE" in the tab title, a toast with a View

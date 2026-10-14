@@ -100,8 +100,16 @@
         <p class="form-text mt-0 mb-3">Stand at your hotel and tap &ldquo;Use my location&rdquo; so customers can find you on the map.</p>
 
         <div class="mb-3">
-            <label class="form-label" for="license">Business licence (PDF or image, up to 10&nbsp;MB)</label>
-            <input type="file" class="form-control" id="license" name="license" accept="application/pdf,image/jpeg,image/png,image/webp" required>
+            <label class="form-label" for="license">Business licence</label>
+            <div class="file-drop">
+                <span class="file-drop-icon" aria-hidden="true"><i class="fas fa-file-arrow-up"></i></span>
+                <span class="file-drop-text">
+                    <strong>Choose a file or drop it here</strong>
+                    <span id="licenseHelp">PDF, JPG, PNG or WebP, up to 10&nbsp;MB</span>
+                    <span class="file-drop-name" aria-live="polite"></span>
+                </span>
+                <input type="file" id="license" name="license" accept="application/pdf,image/jpeg,image/png,image/webp" aria-describedby="licenseHelp" required>
+            </div>
         </div>
 
         <div class="form-check mb-4">
@@ -117,8 +125,8 @@
         </div>
 
         <p class="text-center mt-3 mb-0">Already registered? <a href="login.html" class="fw-semibold">Sign in</a></p>
-        <p class="text-center mt-2 mb-0"><a href="../index.html" class="auth-link">&larr; Back to home</a></p>
     </form>
+    <p class="auth-back"><a href="../index.html" class="auth-link"><i class="fas fa-arrow-left" aria-hidden="true"></i>Back to home</a></p>
 </main>
 
 <!-- Firebase -->

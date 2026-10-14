@@ -58,8 +58,15 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label" for="bnImage">Image</label>
-                                <input type="file" class="form-control" id="bnImage" name="bnImage" accept="image/jpeg,image/png,image/webp" required>
-                                <div class="form-text">JPG, PNG or WebP, up to 2&nbsp;MB. Use a wide image, about 2:1 (for example 1080&nbsp;&times;&nbsp;540).</div>
+                                <div class="file-drop">
+                                    <span class="file-drop-icon" aria-hidden="true"><i class="fas fa-image"></i></span>
+                                    <span class="file-drop-text">
+                                        <strong>Choose an image or drop it here</strong>
+                                        <span id="bnImageHelp">JPG, PNG or WebP, up to 2&nbsp;MB. A wide image, about 2:1 (for example 1080&nbsp;&times;&nbsp;540).</span>
+                                        <span class="file-drop-name" aria-live="polite"></span>
+                                    </span>
+                                    <input type="file" id="bnImage" name="bnImage" accept="image/jpeg,image/png,image/webp" aria-describedby="bnImageHelp" required>
+                                </div>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label" for="bnLink">Tap action (optional)</label>
