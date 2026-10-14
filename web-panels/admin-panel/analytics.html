@@ -196,19 +196,6 @@
     function currentRange() { return document.getElementById('rangeFilter').value; }
 
     // ── Helpers ─────────────────────────────────────────────
-    function getWeekKey(timestamp) {
-        const d = new Date(timestamp);
-        const oneJan = new Date(d.getFullYear(), 0, 1);
-        const weekNum = Math.ceil(((d - oneJan) / 86400000 + oneJan.getDay() + 1) / 7);
-        return d.getFullYear() + '-W' + String(weekNum).padStart(2, '0');
-    }
-
-    // Makes a short label like W41 from a week key.
-    function getWeekLabel(weekKey) {
-        const [year, week] = weekKey.split('-W');
-        return 'W' + parseInt(week);
-    }
-
     // Shows the percent change versus the last period with an arrow.
     function setDelta(elId, current, previous) {
         const el = document.getElementById(elId);
@@ -318,8 +305,8 @@
         const range = currentRange();
         const orders = allOrders.filter((o) => ReplateSchema.withinRange(o, range, now));
         const reviews = allReviews.filter((r) => ReplateSchema.withinRange(r, range, now));
-        const currentWeekKey = getWeekKey(now);
-        const lastWeekKey = getWeekKey(now - 7 * DAY);
+        const currentWeekKey = ReplateSchema.weekStart(now);
+        const lastWeekKey = ReplateSchema.weekStart(now - 7 * DAY);
         let expiredCount = 0;
 
         let revenue = 0, total = 0;
@@ -328,22 +315,16 @@
         let thisWeekRevenue = 0, lastWeekRevenue = 0;
         let thisWeekOrders = 0, lastWeekOrders = 0;
         let totalItemsRescued = 0;
-        const weeklyOrders = {};
-        const weeklyRevenue = {};
         const categoryRevenue = {};
 
         orders.forEach((order) => {
             total++;
 
-            const ts = ReplateSchema.placedAt(order) || now;
-            const wk = getWeekKey(ts);
             const amount = ReplateSchema.orderAmount(order);
-            weeklyOrders[wk] = (weeklyOrders[wk] || 0) + 1;
 
             if (ReplateSchema.isSuccessfulOrder(order)) {
                 completed++;
                 revenue += amount;
-                weeklyRevenue[wk] = (weeklyRevenue[wk] || 0) + amount;
                 totalItemsRescued += ReplateSchema.orderItemCount(order);
 
                 // Revenue by category (price x quantity per dish)
@@ -366,7 +347,7 @@
 
         // Week-over-week change always compares this week with last week, whatever the range
         allOrders.forEach((order) => {
-            const wk = getWeekKey(ReplateSchema.placedAt(order) || now);
+            const wk = ReplateSchema.weekStart(ReplateSchema.placedAt(order) || now);
             if (wk !== currentWeekKey && wk !== lastWeekKey) return;
             const thisWeek = wk === currentWeekKey;
             if (ReplateSchema.isSuccessfulOrder(order)) {
@@ -390,12 +371,12 @@
         setDelta('deltaRevenue', thisWeekRevenue, lastWeekRevenue);
         setDelta('deltaOrders', thisWeekOrders, lastWeekOrders);
 
-        // ── Sort weeks ──
-        const sortedWeeks = Object.keys(weeklyOrders).sort();
-        const recentWeeks = sortedWeeks.slice(-8);
-        const weekLabels = recentWeeks.map(getWeekLabel);
-        const weekData = recentWeeks.map(w => weeklyOrders[w] || 0);
-        const weekRevenueData = recentWeeks.map(w => weeklyRevenue[w] || 0);
+        // ── Every week of the chosen range (from the first order for all time), empty weeks as 0 ──
+        const weeks = ReplateSchema.weeklySeries(orders, ReplateSchema.rangeStart(range, now), now);
+        const weekLabels = weeks.map((w) => w.label);
+        const weekData = weeks.map((w) => w.orders);
+        const weekRevenueData = weeks.map((w) => w.revenue);
+        const weekTitle = (items) => 'Week of ' + items[0].label;
 
         // Destroy old charts
         if (statusChartInstance) statusChartInstance.destroy();
@@ -456,10 +437,10 @@
         growthChartInstance = new Chart(document.getElementById('growthChart'), {
             type: 'line',
             data: {
-                labels: weekLabels.length > 0 ? weekLabels : ['No data'],
+                labels: weekLabels,
                 datasets: [{
                     label: 'Orders',
-                    data: weekData.length > 0 ? weekData : [0],
+                    data: weekData,
                     borderColor: C.brand,
                     backgroundColor: C.brandSoft,
                     fill: true,
@@ -474,8 +455,8 @@
             options: {
                 maintainAspectRatio: false,
                 responsive: true,
-                plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 }, grid: { color: C.grid } }, x: { grid: { display: false } } }
+                plugins: { legend: { display: false }, tooltip: { callbacks: { title: weekTitle } } },
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 }, grid: { color: C.grid } }, x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkipPadding: 12 } } }
             }
         });
         ReplateUI.chartEmpty('growthChart', weekTotal === 0, 'No orders in this range', 'Try a longer date range.');
@@ -486,10 +467,10 @@
         revenueChartInstance = new Chart(document.getElementById('revenueChart'), {
             type: 'bar',
             data: {
-                labels: weekLabels.length > 0 ? weekLabels : ['No data'],
+                labels: weekLabels,
                 datasets: [{
                     label: 'Revenue',
-                    data: weekRevenueData.length > 0 ? weekRevenueData : [0],
+                    data: weekRevenueData,
                     backgroundColor: C.brand,
                     borderRadius: 6,
                     maxBarThickness: 48,
@@ -498,8 +479,8 @@
             options: {
                 maintainAspectRatio: false,
                 responsive: true,
-                plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ReplateSchema.formatMoney(ctx.parsed.y) } } },
-                scales: { y: { beginAtZero: true, ticks: { callback: ReplateUI.axisMoney }, grid: { color: C.grid } }, x: { grid: { display: false } } }
+                plugins: { legend: { display: false }, tooltip: { callbacks: { title: weekTitle, label: ctx => ReplateSchema.formatMoney(ctx.parsed.y) } } },
+                scales: { y: { beginAtZero: true, ticks: { callback: ReplateUI.axisMoney }, grid: { color: C.grid } }, x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkipPadding: 12 } } }
             }
         });
         ReplateUI.chartEmpty('revenueChart', weekRevenueTotal === 0, 'No revenue in this range', 'Completed and delivered orders add to this chart.');

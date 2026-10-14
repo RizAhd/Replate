@@ -399,14 +399,60 @@ const ReplateSchema = (() => {
         return Number(order && (order.createdAt || order.timestamp)) || 0;
     }
 
-    /** True when the row was created inside 'today' | '7d' | '30d' | 'all' (calendar days, today included). */
-    function withinRange(order, rangeKey, now = Date.now()) {
+    /** First moment of 'today' | '7d' | '30d' (calendar days, today included); 0 for 'all'. */
+    function rangeStart(rangeKey, now = Date.now()) {
         const days = { today: 1, '7d': 7, '30d': 30 }[rangeKey];
-        if (!days) return true;
+        if (!days) return 0;
         const start = new Date(now);
         start.setHours(0, 0, 0, 0);
         start.setDate(start.getDate() - (days - 1));
-        return placedAt(order) >= start.getTime();
+        return start.getTime();
+    }
+
+    /** True when the row was created inside 'today' | '7d' | '30d' | 'all' (calendar days, today included). */
+    function withinRange(order, rangeKey, now = Date.now()) {
+        const start = rangeStart(rangeKey, now);
+        return !start || placedAt(order) >= start;
+    }
+
+    // ── Weekly charts: one point per calendar week, empty weeks included ───────────────
+    const WEEK_LABEL = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short' });
+
+    /** Monday 00:00 (local time) of the week a moment falls in. */
+    function weekStart(ts) {
+        const d = new Date(ts);
+        d.setHours(0, 0, 0, 0);
+        d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+        return d.getTime();
+    }
+
+    /**
+     * Orders and revenue per week, oldest first, from the week of `from` (0: the oldest order) to
+     * this week. Weeks with nothing in them are there with 0, so a chart's time line never skips.
+     * Each week is { start, label: "6 Oct" (its Monday), orders, revenue }. An order counts in the
+     * week it was placed; revenue only from completed and delivered orders.
+     */
+    function weeklySeries(orders, from = 0, now = Date.now()) {
+        const list = (orders || []).filter(Boolean);
+        let first = Number(from) || 0;
+        if (!first) first = list.reduce((min, o) => Math.min(min, placedAt(o) || now), now);
+        const weeks = [];
+        const index = new Map();
+        const last = weekStart(now);
+        for (let start = weekStart(Math.min(first, now)); start <= last;) {
+            index.set(start, weeks.length);
+            weeks.push({ start, label: WEEK_LABEL.format(new Date(start)), orders: 0, revenue: 0 });
+            const next = new Date(start);
+            next.setDate(next.getDate() + 7); // calendar step: stays on Monday 00:00 across clock changes
+            start = next.getTime();
+        }
+        list.forEach((order) => {
+            const i = index.get(weekStart(Math.min(placedAt(order) || now, now)));
+            if (i === undefined) return;
+            weeks[i].orders++;
+            if (isSuccessfulOrder(order)) weeks[i].revenue += orderAmount(order);
+        });
+        return weeks;
     }
 
     /** Average star rating, counting one rating per order (an order review and its per-dish copies count once). */
@@ -500,7 +546,10 @@ const ReplateSchema = (() => {
     return {
         isExpiredPickupOrder,
         placedAt,
+        rangeStart,
         withinRange,
+        weekStart,
+        weeklySeries,
         averageRating,
         hotelPerformance,
         cancelledReport,

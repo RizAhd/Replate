@@ -124,6 +124,45 @@ test('date ranges use calendar days and keep today', () => {
     assert.strictEqual(S.withinRange({ timestamp: at(9) }, 'today', NOW), true);       // older orders
 });
 
+test('a date range starts on the same day withinRange uses; all time has no start', () => {
+    assert.strictEqual(S.rangeStart('7d', NOW), new Date(2026, 9, 3).getTime());
+    assert.strictEqual(S.rangeStart('today', NOW), new Date(2026, 9, 9).getTime());
+    assert.strictEqual(S.rangeStart('all', NOW), 0);
+});
+
+test('a week starts on Monday at midnight', () => {
+    const monday = new Date(2026, 9, 5).getTime();
+    assert.strictEqual(S.weekStart(NOW), monday);                                  // Friday 9 Oct
+    assert.strictEqual(S.weekStart(monday), monday);
+    assert.strictEqual(S.weekStart(new Date(2026, 9, 11, 23, 59).getTime()), monday); // Sunday night
+    assert.strictEqual(S.weekStart(new Date(2026, 8, 13, 12).getTime()), new Date(2026, 8, 7).getTime());
+});
+
+test('weekly series fills weeks without orders with 0, so the time line never skips a week', () => {
+    const orders = [
+        { orderStatus: 'completed', totalAmount: 300, createdAt: new Date(2026, 8, 8, 12).getTime() },  // week of 7 Sep
+        { orderStatus: 'cancelled', totalAmount: 999, createdAt: new Date(2026, 8, 9, 12).getTime() },  // counts, earns nothing
+        { orderStatus: 'delivered', totalAmount: 450, createdAt: at(6) },                                // this week
+        { orderStatus: 'pending_pickup', totalAmount: 120, createdAt: at(9) }
+    ];
+    const weeks = S.weeklySeries(orders, 0, NOW);   // all time: from the oldest order
+    assert.ok(/^7 Sep/.test(weeks[0].label), weeks[0].label);   // "7 Sep" or "7 Sept", depending on the ICU version
+    assert.strictEqual(weeks[4].label, '5 Oct');
+    assert.deepStrictEqual(Array.from(weeks, (w) => w.orders), [2, 0, 0, 0, 2]);
+    assert.deepStrictEqual(Array.from(weeks, (w) => w.revenue), [300, 0, 0, 0, 450]);
+    assert.strictEqual(weeks.reduce((s, w) => s + w.orders, 0), orders.length);
+});
+
+test('weekly series follows the chosen range and shows this week even with no orders', () => {
+    const from = S.rangeStart('30d', NOW);            // 10 Sep, a Thursday
+    const weeks = S.weeklySeries([], from, NOW);
+    assert.strictEqual(weeks.length, 5);              // weeks of 7, 14, 21, 28 Sep and 5 Oct
+    assert.strictEqual(weeks[0].start, new Date(2026, 8, 7).getTime());
+    assert.ok(weeks.every((w) => w.orders === 0 && w.revenue === 0));
+    assert.strictEqual(S.weeklySeries([], 0, NOW).length, 1);
+    assert.strictEqual(S.weeklySeries([{ orderStatus: 'completed', totalAmount: 50 }], S.rangeStart('today', NOW), NOW)[0].revenue, 50);
+});
+
 test('average rating counts one rating per order and ignores bad values', () => {
     const r = S.averageRating([
         { orderId: 'A', rating: 5 }, { orderId: 'A', foodId: 'f1', rating: 5 },       // order review + dish copy
