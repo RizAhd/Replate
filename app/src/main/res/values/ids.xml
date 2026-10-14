@@ -2,4 +2,6 @@
 <resources>
     <!-- Stable id so a restored SearchFragment finds its container after rotation -->
     <item name="search_fragment_container" type="id" />
+    <!-- Which dish photo an image view is waiting for (FoodImages), so a recycled row never shows an old photo -->
+    <item name="tag_food_image_source" type="id" />
 </resources>

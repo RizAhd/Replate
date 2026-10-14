@@ -11,20 +11,15 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
-import com.google.firebase.storage.FirebaseStorage;
 import com.replate.app.utils.Money;
 import com.replate.app.R;
 import com.replate.app.models.FoodItem;
-import com.replate.app.utils.GlideSafe;
+import com.replate.app.utils.FoodImages;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -98,6 +93,13 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
     @Override
     public int getItemCount() {
         return foodItems.size();
+    }
+
+    // Stops the photo load of a row that scrolled away, so it never lands in a reused row.
+    @Override
+    public void onViewRecycled(@NonNull FoodViewHolder holder) {
+        super.onViewRecycled(holder);
+        FoodImages.clear(context, holder.ivFoodImage);
     }
 
     // Gives each dish a steady id so rows keep their place.
@@ -185,10 +187,6 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
         return value == null ? "" : value;
     }
 
-    // Cache resolved Firebase Storage URLs to avoid repeated network resolution during scroll.
-    private static final Map<String, String> RESOLVED_IMAGE_URL_CACHE = new ConcurrentHashMap<>();
-    private static final Set<String> FAILED_IMAGE_SOURCES = ConcurrentHashMap.newKeySet();
-
     class FoodViewHolder extends RecyclerView.ViewHolder {
         View cardView;
         ImageView ivFoodImage;
@@ -267,8 +265,7 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
                 }
             }
 
-            // Load image with Glide
-            loadFoodImage(item.getImageUrl());
+            FoodImages.load(context, ivFoodImage, item.getImageUrl());
 
             // Click listeners
             if (cardView != null) {
@@ -286,86 +283,6 @@ public class FoodItemAdapter extends RecyclerView.Adapter<FoodItemAdapter.FoodVi
                     }
                 });
             }
-        }
-
-        // Loads the dish photo from a web link or Firebase Storage.
-        private void loadFoodImage(String imageSource) {
-            if (ivFoodImage == null) {
-                return;
-            }
-
-            if (imageSource == null || imageSource.trim().isEmpty()) {
-                ivFoodImage.setImageResource(R.drawable.placeholder_food);
-                return;
-            }
-
-            String src = imageSource.trim();
-            ivFoodImage.setTag(src);
-
-            if (src.startsWith("http://") || src.startsWith("https://")) {
-                Glide.with(context)
-                        .load(src)
-                        .dontAnimate()
-                        .placeholder(R.drawable.placeholder_food)
-                        .error(R.drawable.placeholder_food)
-                        .centerCrop()
-                        .into(ivFoodImage);
-                return;
-            }
-
-            if (FAILED_IMAGE_SOURCES.contains(src)) {
-                ivFoodImage.setImageResource(R.drawable.placeholder_food);
-                return;
-            }
-
-            String cachedResolved = RESOLVED_IMAGE_URL_CACHE.get(src);
-            if (cachedResolved != null && !cachedResolved.trim().isEmpty()) {
-                Glide.with(context)
-                        .load(cachedResolved)
-                        .dontAnimate()
-                        .thumbnail(0.25f)
-                        .override(400, 300)
-                        .placeholder(R.drawable.placeholder_food)
-                        .error(R.drawable.placeholder_food)
-                        .centerCrop()
-                        .into(ivFoodImage);
-                return;
-            }
-
-            com.google.firebase.storage.StorageReference ref = src.startsWith("gs://")
-                    ? FirebaseStorage.getInstance().getReferenceFromUrl(src)
-                    : FirebaseStorage.getInstance().getReference().child(src);
-
-            ref.getDownloadUrl()
-                    .addOnSuccessListener(uri -> {
-                        String currentTag = ivFoodImage.getTag() == null ? "" : String.valueOf(ivFoodImage.getTag());
-                        if (!src.equals(currentTag)) {
-                            return;
-                        }
-                        String resolved = uri == null ? "" : uri.toString();
-                        if (!resolved.isEmpty()) {
-                            RESOLVED_IMAGE_URL_CACHE.put(src, resolved);
-                        }
-                        if (!GlideSafe.canLoad(context)) {
-                            return;
-                        }
-                        Glide.with(context)
-                                .load(uri)
-                                .dontAnimate()
-                                .thumbnail(0.25f)
-                                .override(400, 300)
-                                .placeholder(R.drawable.placeholder_food)
-                                .error(R.drawable.placeholder_food)
-                                .centerCrop()
-                                .into(ivFoodImage);
-                    })
-                    .addOnFailureListener(e -> {
-                        FAILED_IMAGE_SOURCES.add(src);
-                        String currentTag = ivFoodImage.getTag() == null ? "" : String.valueOf(ivFoodImage.getTag());
-                        if (src.equals(currentTag)) {
-                            ivFoodImage.setImageResource(R.drawable.placeholder_food);
-                        }
-                    });
         }
     }
 }
