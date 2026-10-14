@@ -443,37 +443,52 @@
     });
 
     // ── QR scanner ──────────────────────────────────────────────────────
-    document.getElementById('pills-scan-tab').addEventListener('shown.bs.tab', () => {
-        if (html5QrcodeScanner) return;
-        html5QrcodeScanner = new Html5Qrcode('reader');
-        html5QrcodeScanner.start(
-            { facingMode: 'environment' },
-            { fps: 10, qrbox: { width: 250, height: 250 } },
-            (decodedText) => {
-                stopScanner();
-                document.getElementById('pills-all-tab').click();
-                checkOrderByCode(decodedText.trim());
-            },
-            () => {}
-        ).catch(() => {
-            html5QrcodeScanner = null;
-            document.getElementById('reader').innerHTML = ReplateUI.emptyState(
-                'Camera not available', 'Allow camera access in your browser, or use the “Enter pickup code” tab instead.', 'fa-camera');
-        });
-    });
+    // Starting and stopping the camera run one after another: stopping while the camera is still
+    // starting would cut off the video before it plays (the browser reports that as an error), and
+    // a quick return to this tab must not start a second scanner while the first one is closing.
+    let scannerQueue = Promise.resolve();
+    let scannerWanted = false;
 
+    function startScanner() {
+        if (scannerWanted) return;
+        scannerWanted = true;
+        scannerQueue = scannerQueue.then(() => {
+            if (!scannerWanted || html5QrcodeScanner) return null;
+            const scanner = new Html5Qrcode('reader');
+            html5QrcodeScanner = scanner;
+            return scanner.start(
+                { facingMode: 'environment' },
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                (decodedText) => {
+                    stopScanner();
+                    document.getElementById('pills-all-tab').click();
+                    checkOrderByCode(decodedText.trim());
+                },
+                () => {}
+            ).catch(() => {
+                html5QrcodeScanner = null;
+                scannerWanted = false;
+                document.getElementById('reader').innerHTML = ReplateUI.emptyState(
+                    'Camera not available', 'Allow camera access in your browser, or use the “Enter pickup code” tab instead.', 'fa-camera');
+            });
+        });
+    }
+
+    // Turns the camera scanner off (after it has finished starting).
+    function stopScanner() {
+        scannerWanted = false;
+        scannerQueue = scannerQueue.then(() => {
+            const scanner = html5QrcodeScanner;
+            if (!scanner) return null;
+            html5QrcodeScanner = null;
+            return scanner.stop().then(() => scanner.clear()).catch(() => { /* already stopped */ });
+        });
+    }
+
+    document.getElementById('pills-scan-tab').addEventListener('shown.bs.tab', startScanner);
     document.getElementById('pills-all-tab').addEventListener('shown.bs.tab', stopScanner);
     document.getElementById('pills-history-tab').addEventListener('shown.bs.tab', stopScanner);
     document.getElementById('pills-otp-tab').addEventListener('shown.bs.tab', stopScanner);
-
-    // Turns the camera scanner off.
-    function stopScanner() {
-        if (html5QrcodeScanner) {
-            html5QrcodeScanner.stop()
-                .then(() => { html5QrcodeScanner.clear(); html5QrcodeScanner = null; })
-                .catch(() => { html5QrcodeScanner = null; });
-        }
-    }
 
     // ── OTP lookup ──────────────────────────────────────────────────────
     document.getElementById('btnVerifyOtp').addEventListener('click', verifyOTP);
