@@ -212,4 +212,36 @@ test('toCsv writes a header, then one line per row with the chosen columns', () 
     assert.strictEqual(S.toCsv([], [{ label: 'A', key: 'a' }]), 'A');
 });
 
+test('one money format and one date format for every page', () => {
+    assert.strictEqual(S.formatMoney(6340), 'LKR 6,340.00');
+    assert.strictEqual(S.formatMoney('12.5'), 'LKR 12.50');
+    assert.strictEqual(S.formatMoney('abc'), 'LKR 0.00');
+    assert.strictEqual(S.formatDateTime(new Date(2026, 9, 14, 12, 27).getTime()), '14 Oct 2026, 12:27');
+    assert.strictEqual(S.formatDate(new Date(2026, 9, 14, 12, 27).getTime()), '14 Oct 2026');
+    assert.strictEqual(S.formatDateTime(0), '—');
+    assert.strictEqual(S.plural(1, 'order'), '1 order');
+    assert.strictEqual(S.plural(3, 'order'), '3 orders');
+});
+
+test('one status vocabulary: order, hotel and listing states', () => {
+    assert.strictEqual(S.orderStatusView('pending').label, 'Pending pickup');
+    assert.strictEqual(S.orderStatusView('pending').cls, 'badge-warning');
+    assert.strictEqual(S.statusLabel('out_for_delivery'), 'Out for delivery');
+    assert.strictEqual(S.statusBadgeClass('delivered'), 'badge-success');
+    assert.strictEqual(S.hotelStatusView('active').label, 'Approved');
+    assert.strictEqual(S.hotelStatusView('declined').label, 'Not approved');
+    assert.strictEqual(S.listingState({ status: 'available', isAvailable: true, quantity: 3 }).label, 'Active');
+    assert.strictEqual(S.listingState({ status: 'sold_out', isAvailable: false }).label, 'Sold out');
+    assert.strictEqual(S.listingState({ status: 'available', quantity: 0 }).label, 'Sold out');
+    assert.strictEqual(S.listingState({ status: 'inactive', suspendedByAdmin: true, isAvailable: true }).label, 'Hidden by admin');
+});
+
+test('a completed cash order counts as paid; an unpaid cancelled order as not paid', () => {
+    assert.strictEqual(S.paymentView({ paymentMethod: 'Cash', paymentStatus: 'pending', orderStatus: 'completed' }).label, 'Paid (cash)');
+    assert.strictEqual(S.paymentView({ paymentMethod: 'Cash', paymentStatus: 'pending', orderStatus: 'pending_pickup' }).label, 'Pending');
+    assert.strictEqual(S.paymentView({ paymentMethod: 'Cash', paymentStatus: 'pending', orderStatus: 'cancelled' }).label, 'Not paid');
+    assert.strictEqual(S.paymentView({ paymentMethod: 'PayHere Online', paymentStatus: 'paid', orderStatus: 'cancelled' }).label, 'Paid');
+    assert.strictEqual(S.paymentView({ paymentMethod: 'PayHere Online', paymentStatus: 'pending', orderStatus: 'delivered' }).label, 'Pending');
+});
+
 console.log(`\n${passed} passed${process.exitCode ? ', some FAILED' : ''}`);
