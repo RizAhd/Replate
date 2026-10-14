@@ -68,6 +68,18 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
 
     private String currentFilter = "active"; // active, completed, cancelled
 
+    // Redraws the rows once a minute while the list is on screen, so the pickup countdowns stay current
+    private final android.os.Handler countdownHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private final Runnable countdownTick = new Runnable() {
+        @Override
+        public void run() {
+            if (adapter != null && adapter.getItemCount() > 0) {
+                adapter.notifyItemRangeChanged(0, adapter.getItemCount());
+            }
+            countdownHandler.postDelayed(this, 60_000L);
+        }
+    };
+
     // Builds the Orders screen and loads the orders.
     @Nullable
     @Override
@@ -369,6 +381,15 @@ public class OrdersFragment extends Fragment implements OrderAdapter.OnOrderClic
         if (ordersQuery == null || ordersListener == null) {
             loadOrders();
         }
+        countdownHandler.removeCallbacks(countdownTick);
+        countdownHandler.postDelayed(countdownTick, 60_000L);
+    }
+
+    // Stops the countdown refresh while the list is not on screen.
+    @Override
+    public void onPause() {
+        super.onPause();
+        countdownHandler.removeCallbacks(countdownTick);
     }
 
     // Removes the orders listener.

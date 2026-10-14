@@ -287,8 +287,9 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
 
     // Fills in the status, hotel, total, QR code and OTP.
     private void displayOrderDetails() {
-        String id = order.getOrderId();
-        tvOrderId.setText("Order #" + (id != null ? id.substring(Math.max(0, id.length() - 8)) : "N/A"));
+        // Same order number as the order list and the hotel panel
+        String number = com.replate.app.utils.OrderNumber.format(order.getOrderId(), null);
+        tvOrderId.setText(number.isEmpty() ? "" : getString(R.string.order_number_label, number));
 
         String status = com.replate.app.utils.OrderStatusAliases.canonical(order.getOrderStatus());
         if (status == null) {
@@ -349,8 +350,11 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
                 tvPickupTime.setText(R.string.order_detail_delivery_order);
             }
         } else {
-            tvPickupTime.setText("Pickup: " + (order.getPickupTime() != null ? order.getPickupTime() : "N/A"));
+            tvPickupTime.setText(getString(R.string.order_pickup_at,
+                    order.getPickupTime() != null ? order.getPickupTime() : ""));
         }
+        tvPickupTime.setTextColor(getColor(R.color.ember_deep));
+        showPickupCountdown();
 
         tvTotalAmount.setText(Money.format(order.getTotalAmountValue()));
         tvPaymentMethod.setText(order.getPaymentMethod() != null ? order.getPaymentMethod() : "N/A");
@@ -387,7 +391,42 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         showOrderItems();
         buildTimeline();
         updateReviewSection();
+        scheduleCountdown();
     }
+
+    // Shows "Collect within 42 min" (or when the slot opens) on the pickup chip of an open pickup order.
+    private void showPickupCountdown() {
+        com.replate.app.utils.PickupCountdown.Result countdown =
+                com.replate.app.utils.PickupCountdownText.now(order);
+        if (countdown == null || countdown.state == com.replate.app.utils.PickupCountdown.State.EXPIRED) {
+            return; // the expired wording is set with the QR card below
+        }
+        tvPickupTime.setText(com.replate.app.utils.PickupCountdownText.text(this, countdown));
+        tvPickupTime.setTextColor(getColor(com.replate.app.utils.PickupCountdownText.color(countdown)));
+    }
+
+    // Refreshes the countdown just when its words change; at expiry the whole screen is redrawn to hide the QR.
+    private void scheduleCountdown() {
+        countdownHandler.removeCallbacks(countdownTick);
+        long wait = com.replate.app.utils.PickupCountdown.millisUntilChange(
+                com.replate.app.utils.PickupCountdownText.now(order), System.currentTimeMillis());
+        if (wait > 0 && isResumedForCountdown) {
+            countdownHandler.postDelayed(countdownTick, wait);
+        }
+    }
+
+    private final android.os.Handler countdownHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private boolean isResumedForCountdown;
+    private final Runnable countdownTick = () -> {
+        if (order == null || isFinishing()) return;
+        com.replate.app.utils.PickupCountdown.Result now = com.replate.app.utils.PickupCountdownText.now(order);
+        if (now != null && now.state == com.replate.app.utils.PickupCountdown.State.EXPIRED) {
+            displayOrderDetails(); // hides the QR code and shows the expired wording
+        } else {
+            showPickupCountdown();
+            scheduleCountdown();
+        }
+    };
 
     /**
      * A row of dots from "placed" to "collected" or "delivered", filled up to the step the order has
@@ -722,12 +761,16 @@ public class OrderDetailActivity extends AppCompatActivity implements SensorEven
         if (lightSensor != null) {
             sensorManager.registerListener(this, lightSensor, SensorManager.SENSOR_DELAY_NORMAL);
         }
+        isResumedForCountdown = true;
+        countdownTick.run(); // catches up on time that passed while the screen was away
     }
 
     // Stop the light sensor and reset the brightness.
     @Override
     protected void onPause() {
         super.onPause();
+        isResumedForCountdown = false;
+        countdownHandler.removeCallbacks(countdownTick);
         sensorManager.unregisterListener(this);
         // Reset brightness
         WindowManager.LayoutParams params = getWindow().getAttributes();

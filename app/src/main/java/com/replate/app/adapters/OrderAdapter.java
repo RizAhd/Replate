@@ -14,6 +14,9 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.replate.app.utils.Money;
+import com.replate.app.utils.OrderNumber;
+import com.replate.app.utils.PickupCountdown;
+import com.replate.app.utils.PickupCountdownText;
 import com.replate.app.R;
 import com.replate.app.models.Order;
 
@@ -86,14 +89,8 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
 
         // Fills one order card with its details and buttons.
         void bind(Order order) {
-            // Order ID (show last 8 characters)
-            String orderId = order.getOrderId();
-            if (orderId == null || orderId.isEmpty()) {
-                orderId = "";
-            } else {
-                orderId = "#" + orderId.substring(Math.max(0, orderId.length() - 8)).toUpperCase(Locale.ROOT);
-            }
-            tvOrderId.setText(orderId);
+            // Same order number as the hotel panel
+            tvOrderId.setText(OrderNumber.format(order.getOrderId(), null));
 
             // Hotel name
             String hotelName = order.getHotelName();
@@ -132,8 +129,14 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
                 tvOrderDate.setVisibility(View.GONE);
             }
 
-            // Pickup time / delivery info
-            if (order.isDelivery()) {
+            // Pickup time / delivery info; an open pickup shows how long is left to collect it
+            PickupCountdown.Result countdown = PickupCountdownText.now(order);
+            tvPickupTime.setTextColor(ContextCompat.getColor(context,
+                    countdown != null ? PickupCountdownText.color(countdown) : R.color.ember_deep));
+            if (countdown != null) {
+                tvPickupTime.setText(PickupCountdownText.text(context, countdown));
+                tvPickupTime.setVisibility(View.VISIBLE);
+            } else if (order.isDelivery()) {
                 String addr = order.getDeliveryAddress();
                 if (addr != null && !addr.isEmpty() && !"Pickup at Hotel".equalsIgnoreCase(addr)) {
                     tvPickupTime.setText(context.getString(R.string.order_delivery_to, addr));

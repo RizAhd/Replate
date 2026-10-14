@@ -177,6 +177,21 @@
                         tools:text="------"
                         android:textColor="@color/primary"
                         android:textSize="@dimen/text_display" />
+
+                    <!-- How long is left to collect the order (same words as the hotel panel) -->
+                    <TextView
+                        android:id="@+id/tvPickupCountdown"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/space_1_5"
+                        android:background="@drawable/badge_status_pending"
+                        android:paddingHorizontal="@dimen/space_1_5"
+                        android:paddingVertical="@dimen/space_1"
+                        android:textAppearance="@style/TextAppearance.REPLATE.Label"
+                        android:textColor="@color/ember_deep"
+                        android:visibility="gone"
+                        tools:text="Collect within 42 min"
+                        tools:visibility="visible" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

@@ -201,8 +201,9 @@ public class OrderSuccessActivity extends AppCompatActivity {
         tvOTP.setText(otp != null ? otp : "------");
 
         // Summary
-        String id = order.getOrderId();
-        tvOrderId.setText("#" + (id != null ? id.substring(Math.max(0, id.length() - 8)) : "N/A"));
+        // Same order number as the order list and the hotel panel
+        tvOrderId.setText(com.replate.app.utils.OrderNumber.format(order.getOrderId(), null));
+        showPickupCountdown();
         tvHotelName.setText(order.getHotelName() != null && !order.getHotelName().trim().isEmpty()
                 ? order.getHotelName() : getString(R.string.hotel_name_fallback));
         tvTotal.setText(Money.format(order.getTotalAmountValue()));
@@ -217,6 +218,46 @@ public class OrderSuccessActivity extends AppCompatActivity {
         if (order.isCompleted()) {
             showCompletedState(false);
         }
+    }
+
+    // Shows how long is left to collect the order under the pickup code, and refreshes it just when the
+    // words change while this screen is open.
+    private void showPickupCountdown() {
+        countdownHandler.removeCallbacks(countdownTick);
+        TextView chip = findViewById(R.id.tvPickupCountdown);
+        if (chip == null) return;
+        com.replate.app.utils.PickupCountdown.Result countdown =
+                com.replate.app.utils.PickupCountdownText.now(order);
+        if (countdown == null || pickupDone) {
+            chip.setVisibility(View.GONE);
+            return;
+        }
+        chip.setText(com.replate.app.utils.PickupCountdownText.text(this, countdown));
+        chip.setTextColor(getColor(com.replate.app.utils.PickupCountdownText.color(countdown)));
+        chip.setVisibility(View.VISIBLE);
+        long wait = com.replate.app.utils.PickupCountdown.millisUntilChange(countdown, System.currentTimeMillis());
+        if (wait > 0 && countdownVisible) {
+            countdownHandler.postDelayed(countdownTick, wait);
+        }
+    }
+
+    private final android.os.Handler countdownHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private final Runnable countdownTick = this::showPickupCountdown;
+    private boolean countdownVisible;
+    private boolean pickupDone;
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        countdownVisible = true;
+        if (order != null) showPickupCountdown();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        countdownVisible = false;
+        countdownHandler.removeCallbacks(countdownTick);
     }
 
     /**
@@ -288,6 +329,11 @@ public class OrderSuccessActivity extends AppCompatActivity {
      * 2. Then hide overlay, update header, hide QR, show review section
      */
     private void showCompletedState(boolean animate) {
+        // Collected: nothing is left to count down
+        pickupDone = true;
+        countdownHandler.removeCallbacks(countdownTick);
+        View chip = findViewById(R.id.tvPickupCountdown);
+        if (chip != null) chip.setVisibility(View.GONE);
         if (animate) {
             // Show overlay with scale animation
             completionOverlay.setVisibility(View.VISIBLE);

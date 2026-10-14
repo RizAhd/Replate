@@ -759,6 +759,19 @@ Total: LKR %1$.2f</string>
     <string name="order_status_delivery_prefix">Delivery · %1$s</string>
     <string name="order_delivery_to">Delivery to %1$s</string>
     <string name="order_pickup_at">Pickup %1$s</string>
+    <!-- Pickup countdown, the same words as the hotel panel -->
+    <string name="pickup_countdown_upcoming">Pickup starts at %1$s</string>
+    <string name="pickup_countdown_collect">Collect within %1$d min</string>
+    <string name="pickup_countdown_expired">Code expired</string>
+    <string name="order_number_label">Order %1$s</string>
+    <!-- Profile impact card: estimates from the customer's collected orders -->
+    <string name="profile_impact_title">Your impact</string>
+    <string name="profile_impact_subtitle">From the orders you collected</string>
+    <string name="profile_impact_meals">Meals rescued</string>
+    <string name="profile_impact_food">Food saved</string>
+    <string name="profile_impact_co2">CO2e avoided</string>
+    <string name="profile_impact_kg">%1$s kg</string>
+    <string name="profile_impact_note">Estimates: about %1$s kg of food per meal and %2$s kg CO2e for each kg not wasted.</string>
     <string name="checkout_cart_changed_title">Your cart needs a change</string>
     <string name="checkout_cart_changed_message">%1$s
 
