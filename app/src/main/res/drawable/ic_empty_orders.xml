@@ -1,27 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Material Symbols Outlined "receipt_long" (Apache-2.0), single colour, tinted by the theme -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="120dp"
-    android:height="120dp"
-    android:viewportWidth="120"
-    android:viewportHeight="120">
-
-    <!-- Clipboard -->
-    <path
-        android:fillColor="#E0E0E0"
-        android:pathData="M30,20 L30,100 L90,100 L90,20 L70,20 L70,15 L50,15 L50,20 Z"/>
-
-    <!-- Clipboard top -->
-    <path
-        android:fillColor="#BDBDBD"
-        android:pathData="M45,10 L75,10 L75,25 L45,25 Z"/>
-
-    <!-- Lines -->
-    <path
-        android:fillColor="#9E9E9E"
-        android:pathData="M40,40 L80,40 M40,55 L70,55 M40,70 L75,70 M40,85 L65,85"
-        android:strokeColor="#9E9E9E"
-        android:strokeWidth="4"
-        android:strokeLineCap="round"/>
-
+    android:width="56dp"
+    android:height="56dp"
+    android:tint="?attr/colorPrimary"
+    android:viewportWidth="960"
+    android:viewportHeight="960">
+    <!-- Symbol paths use a 0,-960 viewBox: shift them down into the viewport -->
+    <group android:translateY="960">
+        <path
+            android:fillColor="@android:color/white"
+            android:pathData="M240-80q-50 0-85-35t-35-85v-120h120v-560l60 60 60-60 60 60 60-60 60 60 60-60 60 60 60-60 60 60 60-60v680q0 50-35 85t-85 35H240Zm480-80q17 0 28.5-11.5T760-200v-560H320v440h360v120q0 17 11.5 28.5T720-160ZM360-600v-80h240v80H360Zm0 120v-80h240v80H360Zm320-120q-17 0-28.5-11.5T640-640q0-17 11.5-28.5T680-680q17 0 28.5 11.5T720-640q0 17-11.5 28.5T680-600Zm0 120q-17 0-28.5-11.5T640-520q0-17 11.5-28.5T680-560q17 0 28.5 11.5T720-520q0 17-11.5 28.5T680-480ZM240-160h360v-80H200v40q0 17 11.5 28.5T240-160Zm-40 0v-80 80Z" />
+    </group>
 </vector>
-

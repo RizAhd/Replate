@@ -1,27 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Material Symbols Outlined "search_off" (Apache-2.0), single colour, tinted by the theme -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="120dp"
-    android:height="120dp"
-    android:viewportWidth="120"
-    android:viewportHeight="120">
-
-    <!-- Magnifying glass circle -->
-    <path
-        android:fillColor="#E0E0E0"
-        android:pathData="M50,30 A25,25 0,1 1,50,80 A25,25 0,1 1,50,30Z"/>
-
-    <!-- Magnifying glass handle -->
-    <path
-        android:fillColor="#BDBDBD"
-        android:pathData="M70,70 L90,90"
-        android:strokeColor="#BDBDBD"
-        android:strokeWidth="10"
-        android:strokeLineCap="round"/>
-
-    <!-- Question mark inside -->
-    <path
-        android:fillColor="#9E9E9E"
-        android:pathData="M50,40 C45,40 42,44 42,48 L47,48 C47,46 48,45 50,45 C52,45 53,46 53,48 C53,52 47,51 47,58 L52,58 C52,53 58,54 58,48 C58,43 55,40 50,40 Z M47,62 L52,62 L52,67 L47,67 Z"/>
-
+    android:width="56dp"
+    android:height="56dp"
+    android:tint="?attr/colorPrimary"
+    android:viewportWidth="960"
+    android:viewportHeight="960">
+    <!-- Symbol paths use a 0,-960 viewBox: shift them down into the viewport -->
+    <group android:translateY="960">
+        <path
+            android:fillColor="@android:color/white"
+            android:pathData="M138.5-138.5Q80-197 80-280t58.5-141.5Q197-480 280-480t141.5 58.5Q480-363 480-280t-58.5 141.5Q363-80 280-80t-141.5-58.5ZM824-120 568-376q-12-13-25.5-26.5T516-428q38-24 61-64t23-88q0-75-52.5-127.5T420-760q-75 0-127.5 52.5T240-580q0 6 .5 11.5T242-557q-18 2-39.5 8T164-535q-2-11-3-22t-1-23q0-109 75.5-184.5T420-840q109 0 184.5 75.5T680-580q0 43-13.5 81.5T629-428l251 252-56 56Zm-615-61 71-71 70 71 29-28-71-71 71-71-28-28-71 71-71-71-28 28 71 71-71 71 28 28Z" />
+    </group>
 </vector>
-
