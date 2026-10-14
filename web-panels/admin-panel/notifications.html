@@ -240,17 +240,13 @@
     const shownKeys = new Set();
 
     // ── Helpers ────────────────────────────────────────────
-    const RELATIVE = new Intl.RelativeTimeFormat('en', { numeric: 'auto', style: 'short' });
-
-    function timeAgo(ts) {
-        if (!ts) return '';
-        const diff = Math.floor((Date.now() - ts) / 1000);
-        if (diff < 5) return 'just now';
-        if (diff < 60) return RELATIVE.format(-diff, 'second');
-        if (diff < 3600) return RELATIVE.format(-Math.floor(diff / 60), 'minute');
-        if (diff < 86400) return RELATIVE.format(-Math.floor(diff / 3600), 'hour');
-        return ReplateSchema.formatDate(ts);
-    }
+    // Keeps "5 minutes ago" true while the page stays open
+    setInterval(() => {
+        document.querySelectorAll('#activityFeed .activity-item').forEach((item) => {
+            const time = item.querySelector('.activity-time');
+            if (time) time.textContent = ReplateSchema.formatRelative(Number(item.dataset.ts));
+        });
+    }, 30000);
 
     // Shows a time as a readable date and time.
     function formatDateTime(ts) {
@@ -278,23 +274,26 @@
     }
     document.getElementById('activityFeed').innerHTML = feedPlaceholder();
 
-    // Adds one line to the top of the live feed.
+    // Adds one line to the feed in its place by time, newest first, whatever order the events arrive in.
     function addActivityItem(iconClass, title, description, timestamp) {
         clearActivityPlaceholder();
         const feed = document.getElementById('activityFeed');
         if (!feed) return;
 
+        const ts = Number(timestamp) || Date.now();
         const div = document.createElement('div');
         div.className = 'activity-item';
+        div.dataset.ts = String(ts);
         div.innerHTML = `
             <div class="activity-icon ${iconClass}"><i class="fas ${getIconForClass(iconClass)}" aria-hidden="true"></i></div>
             <div class="activity-body">
                 <strong>${escapeHtml(title)}</strong>
                 <p>${escapeHtml(description)}</p>
             </div>
-            <span class="activity-time">${timeAgo(timestamp)}</span>
+            <time class="activity-time" datetime="${new Date(ts).toISOString()}" title="${escapeHtml(formatDateTime(ts))}">${escapeHtml(ReplateSchema.formatRelative(ts))}</time>
         `;
-        feed.prepend(div);
+        const olderItem = Array.from(feed.children).find((el) => Number(el.dataset.ts) <= ts);
+        feed.insertBefore(div, olderItem || null);
 
         // Limit feed size
         while (feed.children.length > MAX_ACTIVITY_ITEMS) {
@@ -360,41 +359,40 @@
         const oneDayAgo = now - 86400000;
         const oneWeekAgo = now - 86400000 * 7;
 
-        // ─── Step 1: Load recent events as history (shown in feed on page load) ───
+        // ─── Step 1: the last day's orders and hotel registrations, merged into one list by time ───
         try {
-            // Recent orders (last 24h)
+            const history = [];
             const ordersSnap = await database.ref('orders').orderByChild('createdAt').startAt(oneDayAgo).once('value');
-            if (ordersSnap.exists()) {
-                const items = [];
-                ordersSnap.forEach(child => {
-                    const o = child.val() || {};
-                    shownKeys.add('order_' + child.key);
-                    items.push({
-                        ts: o.createdAt || now,
-                        icon: 'icon-order',
-                        title: `Order from ${o.customerName || o.userName || 'Customer'}`,
-                        desc: `${o.hotelName || 'Hotel'} — ${ReplateSchema.formatMoney(ReplateSchema.orderAmount(o))}`
-                    });
+            const recentOrders = [];
+            ordersSnap.forEach(child => {
+                const o = child.val() || {};
+                shownKeys.add('order_' + child.key);
+                recentOrders.push({
+                    ts: Number(o.createdAt) || now,
+                    icon: 'icon-order',
+                    title: `Order from ${o.customerName || o.userName || 'Customer'}`,
+                    desc: `${o.hotelName || 'Hotel'} · ${ReplateSchema.formatMoney(ReplateSchema.orderAmount(o))}`
                 });
-                // Show most recent 10
-                items.sort((a, b) => b.ts - a.ts);
-                items.slice(0, 10).reverse().forEach(i => addActivityItem(i.icon, i.title, i.desc, i.ts));
-            }
+            });
+            // the 10 most recent orders are enough on a busy day
+            recentOrders.sort((a, b) => b.ts - a.ts);
+            history.push(...recentOrders.slice(0, 10));
 
-            // Recent hotels (last 7 days)
             const hotelsSnap = await database.ref('hotels').orderByChild('createdAt').startAt(oneWeekAgo).once('value');
-            if (hotelsSnap.exists()) {
-                hotelsSnap.forEach(child => {
-                    shownKeys.add('hotel_' + child.key);
-                    const h = child.val() || {};
-                    if (h.createdAt && h.createdAt > oneDayAgo) {
-                        addActivityItem('icon-hotel',
-                            `Hotel registered: ${h.hotelName || h.name || 'Unknown'}`,
-                            `Owner: ${h.ownerName || '—'} • Status: ${(h.status || 'pending').toLowerCase()}`,
-                            h.createdAt);
-                    }
-                });
-            }
+            hotelsSnap.forEach(child => {
+                shownKeys.add('hotel_' + child.key);
+                const h = child.val() || {};
+                if (h.createdAt && h.createdAt > oneDayAgo) {
+                    history.push({
+                        ts: Number(h.createdAt),
+                        icon: 'icon-hotel',
+                        title: `Hotel registered: ${h.hotelName || h.name || 'Unknown'}`,
+                        desc: `Owner: ${h.ownerName || '—'} · ${ReplateSchema.hotelStatusView(h.status).label}`
+                    });
+                }
+            });
+
+            history.sort((a, b) => b.ts - a.ts).forEach((item) => addActivityItem(item.icon, item.title, item.desc, item.ts));
         } catch (e) {
             console.warn('[Activity] Error loading history:', e);
         }
@@ -409,7 +407,7 @@
                 const order = snap.val() || {};
                 addActivityItem('icon-order',
                     `New order from ${order.customerName || order.userName || 'Customer'}`,
-                    `${order.hotelName || 'Hotel'} — ${ReplateSchema.formatMoney(ReplateSchema.orderAmount(order))}`,
+                    `${order.hotelName || 'Hotel'} · ${ReplateSchema.formatMoney(ReplateSchema.orderAmount(order))}`,
                     order.createdAt || Date.now());
             });
 
@@ -420,10 +418,12 @@
             if (orderStatusSeen[snap.key] === status) return; // another field changed, not the status
             orderStatusSeen[snap.key] = status;
             const label = ReplateSchema.statusLabel(status);
+            // the change happened just now: the newest time stamp the change wrote (the app does not always set updatedAt)
+            const changedAt = Math.max(...['updatedAt', 'completedAt', 'cancelledAt', 'dispatchedAt'].map((f) => Number(order[f]) || 0)) || Date.now();
             addActivityItem('icon-status',
                 `Order status: ${label}`,
-                `${order.customerName || order.userName || 'Customer'} — #${ReplateSchema.shortOrderId(order, snap.key)}`,
-                order.updatedAt || order.completedAt || Date.now());
+                `${order.customerName || order.userName || 'Customer'} · #${ReplateSchema.shortOrderId(order, snap.key)}`,
+                changedAt);
         });
 
         // New hotel registrations
@@ -434,7 +434,7 @@
                 const hotel = snap.val() || {};
                 addActivityItem('icon-hotel',
                     `New hotel: ${hotel.hotelName || hotel.name || 'Unknown'}`,
-                    `Owner: ${hotel.ownerName || '—'} • Status: ${(hotel.status || 'pending').toLowerCase()}`,
+                    `Owner: ${hotel.ownerName || '—'} · ${ReplateSchema.hotelStatusView(hotel.status).label}`,
                     hotel.createdAt || Date.now());
             });
 
@@ -459,7 +459,7 @@
                 const discount = item.discountPercent || item.discountPercentage || 0;
                 addActivityItem('icon-food',
                     `New listing: ${item.foodName || 'Unknown'}`,
-                    `${item.hotelName || 'Hotel'}${discount > 0 ? ` — ${discount}% off` : ''}`,
+                    `${item.hotelName || 'Hotel'}${discount > 0 ? ` · ${discount}% off` : ''}`,
                     item.createdAt || Date.now());
             });
 
