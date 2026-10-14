@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="description" content="Listings - REPLATE Admin - REPLATE food rescue.">
-    <meta name="theme-color" content="#1a6b3c">
+    <meta name="theme-color" content="#f3f4f6">
     <meta name="robots" content="noindex, nofollow">
     <title>Listings - REPLATE Admin</title>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -19,7 +19,6 @@
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
     <link rel="manifest" href="../manifest.webmanifest">
     <style>
-        .listing-thumb { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; background: var(--bg); display: block; }
         .listing-thumb-empty { width: 48px; height: 48px; border-radius: 8px; background: var(--bg); color: var(--text-tertiary); display: flex; align-items: center; justify-content: center; }
         .old-price { text-decoration: line-through; color: var(--text-tertiary); font-size: 0.78rem; }
     </style>
@@ -33,15 +32,15 @@
         <nav id="appShellSidebar" class="sidebar"></nav>
 
         <main id="mainContent">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <div class="page-header">
                 <div>
                     <h1 class="panel-title">Food Listings</h1>
-                    <p class="panel-subtitle mb-0">Every dish hotels have published. Hide a listing to take it off the app without deleting it.</p>
+                    <p class="panel-subtitle">Every dish hotels have published. Hide a listing to take it off the app without deleting it.</p>
                 </div>
                 <button type="button" class="btn btn-sm btn-outline-primary" id="exportListings"><i class="fas fa-download me-1" aria-hidden="true"></i>Export CSV</button>
             </div>
 
-            <div class="card data-panel p-3">
+            <div class="card card-body">
                 <p id="summary" class="small text-muted mb-3" role="status"></p>
                 <div class="table-responsive">
                     <table id="listingsTable" class="table table-striped align-middle table-stack" style="width:100%">

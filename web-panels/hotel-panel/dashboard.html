@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="description" content="Dashboard - REPLATE - REPLATE food rescue.">
-    <meta name="theme-color" content="#1a6b3c">
+    <meta name="theme-color" content="#f3f4f6">
     <meta name="robots" content="noindex, nofollow">
     <title>Dashboard - REPLATE</title>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -26,46 +26,38 @@
         <nav id="appShellSidebar" class="sidebar"></nav>
 
         <main id="mainContent">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <div class="page-header">
                 <div>
                     <h1 class="panel-title">Dashboard</h1>
-                    <p class="panel-subtitle mb-0">Track orders, active listings, and revenue in real time.</p>
+                    <p class="panel-subtitle">Track orders, active listings, and revenue in real time.</p>
                 </div>
                 <div class="status-badge bg-secondary" id="approvalStatus" role="status">Checking status&hellip;</div>
             </div>
 
-            <!-- Stats Cards -->
-            <div class="row mb-4 g-3">
-                <div class="col-md-3">
-                    <div class="card stat-card">
-                        <h6>Total Revenue</h6>
-                        <h3 id="statRevenue">LKR 0</h3>
-                    </div>
+            <!-- Stats -->
+            <div class="stat-grid">
+                <div class="card stat-card">
+                    <p class="stat-value num" id="statRevenue">LKR 0.00</p>
+                    <p class="stat-label"><i class="fas fa-coins" aria-hidden="true"></i>Total revenue</p>
                 </div>
-                <div class="col-md-3">
-                    <div class="card stat-card">
-                        <h6>Active Items</h6>
-                        <h3 id="statActive">0</h3>
-                    </div>
+                <div class="card stat-card">
+                    <p class="stat-value num" id="statActive">0</p>
+                    <p class="stat-label"><i class="fas fa-utensils" aria-hidden="true"></i>Active listings</p>
                 </div>
-                <div class="col-md-3">
-                    <div class="card stat-card">
-                        <h6>Pending Orders</h6>
-                        <h3 id="statPending" class="text-warning">0</h3>
-                    </div>
+                <div class="card stat-card">
+                    <p class="stat-value num" id="statPending">0</p>
+                    <p class="stat-label"><i class="fas fa-clock" aria-hidden="true"></i>Open orders</p>
                 </div>
-                <div class="col-md-3">
-                    <div class="card stat-card">
-                        <h6>Total Orders</h6>
-                        <h3 id="statTotal">0</h3>
-                    </div>
+                <div class="card stat-card">
+                    <p class="stat-value num" id="statTotal">0</p>
+                    <p class="stat-label"><i class="fas fa-receipt" aria-hidden="true"></i>Total orders</p>
                 </div>
             </div>
 
             <!-- Daily earnings and the dishes that sell best -->
-            <div class="row mb-4 g-3">
+            <div class="row">
                 <div class="col-lg-6">
-                    <div class="card data-panel h-100">
+                    <div class="card h-100">
                         <div class="card-header">Daily earnings (last 7 days)</div>
                         <ul class="list-group list-group-flush" id="dailyEarnings" aria-live="polite">
                             <li class="list-group-item text-muted">Loading&hellip;</li>
@@ -73,7 +65,7 @@
                     </div>
                 </div>
                 <div class="col-lg-6">
-                    <div class="card data-panel h-100">
+                    <div class="card h-100">
                         <div class="card-header">Most popular items</div>
                         <ol class="list-group list-group-flush list-group-numbered" id="popularItems" aria-live="polite">
                             <li class="list-group-item text-muted">Loading&hellip;</li>
@@ -83,13 +75,12 @@
             </div>
 
             <!-- Recent Orders -->
-            <div class="card data-panel">
+            <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span>Recent Orders</span>
                     <a href="orders.html" class="btn btn-sm btn-outline-primary">View All</a>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
+                <div class="table-responsive">
                         <table class="table table-hover align-middle table-stack">
                             <thead>
                                 <tr>
@@ -104,7 +95,6 @@
                                 <!-- Loaded via JS -->
                             </tbody>
                         </table>
-                    </div>
                 </div>
             </div>
         </main>

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="description" content="Notifications - REPLATE Admin - REPLATE food rescue.">
-    <meta name="theme-color" content="#1a6b3c">
+    <meta name="theme-color" content="#f3f4f6">
     <meta name="robots" content="noindex, nofollow">
     <title>Notifications - REPLATE Admin</title>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -85,10 +85,10 @@
         <nav id="appShellSidebar" class="sidebar"></nav>
 
         <main id="mainContent">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <div class="page-header">
                 <div>
                     <h1 class="panel-title">Notification Center</h1>
-                    <p class="panel-subtitle mb-0">Monitor platform activity, send notifications, and review delivery history.</p>
+                    <p class="panel-subtitle">Monitor platform activity, send notifications, and review delivery history.</p>
                 </div>
                 <span id="liveIndicator" style="display:inline-flex;align-items:center;gap:6px;font-size:0.8rem;font-weight:600;color:var(--success);">
                     <span style="width:8px;height:8px;border-radius:50%;background:var(--success);display:inline-block;animation:pulse 2s infinite;"></span> Live
@@ -96,30 +96,22 @@
             </div>
 
             <!-- Quick Stats -->
-            <div class="row mb-4 g-3">
-                <div class="col-md-3 col-6">
-                    <div class="card stat-card">
-                        <h6><i class="fas fa-bell me-1"></i>Sent Today</h6>
-                        <h3 id="statSentToday">0</h3>
-                    </div>
+            <div class="stat-grid">
+                <div class="card stat-card">
+                    <p class="stat-value num" id="statSentToday">0</p>
+                    <p class="stat-label"><i class="fas fa-bell" aria-hidden="true"></i>Sent today</p>
                 </div>
-                <div class="col-md-3 col-6">
-                    <div class="card stat-card">
-                        <h6><i class="fas fa-hotel me-1"></i>Pending Hotels</h6>
-                        <h3 id="statPendingHotels">0</h3>
-                    </div>
+                <div class="card stat-card">
+                    <p class="stat-value num" id="statPendingHotels">0</p>
+                    <p class="stat-label"><i class="fas fa-hotel" aria-hidden="true"></i>Pending hotels</p>
                 </div>
-                <div class="col-md-3 col-6">
-                    <div class="card stat-card">
-                        <h6><i class="fas fa-receipt me-1"></i>New Orders</h6>
-                        <h3 id="statNewOrders">0</h3>
-                    </div>
+                <div class="card stat-card">
+                    <p class="stat-value num" id="statNewOrders">0</p>
+                    <p class="stat-label"><i class="fas fa-receipt" aria-hidden="true"></i>New orders</p>
                 </div>
-                <div class="col-md-3 col-6">
-                    <div class="card stat-card">
-                        <h6><i class="fas fa-users me-1"></i>Total Users</h6>
-                        <h3 id="statTotalUsers">0</h3>
-                    </div>
+                <div class="card stat-card">
+                    <p class="stat-value num" id="statTotalUsers">0</p>
+                    <p class="stat-label"><i class="fas fa-users" aria-hidden="true"></i>Total users</p>
                 </div>
             </div>
 
@@ -147,7 +139,7 @@
 
                 <!-- ═══ LIVE ACTIVITY PANE ═══ -->
                 <div class="tab-pane fade show active" id="pane-activity" role="tabpanel">
-                    <div class="card data-panel">
+                    <div class="card">
                         <div class="card-header">
                             <span><i class="fas fa-stream me-2"></i>Real-Time Platform Events</span>
                             <button class="btn btn-sm btn-outline-primary" onclick="clearActivityFeed()">Clear</button>
@@ -167,8 +159,8 @@
                 <div class="tab-pane fade" id="pane-send" role="tabpanel">
                     <div class="row g-4">
                         <div class="col-lg-6">
-                            <div class="card data-panel p-4 h-100">
-                                <h5 class="mb-3"><i class="fas fa-bullhorn me-2"></i>Broadcast Notification</h5>
+                            <div class="card card-body h-100">
+                                <h2 class="section-title"><i class="fas fa-bullhorn" aria-hidden="true"></i>Broadcast Notification</h2>
                                 <form id="broadcastForm">
                                     <div class="mb-3">
                                         <label class="form-label" for="broadcastTarget">Audience</label>
@@ -206,8 +198,8 @@
                         </div>
 
                         <div class="col-lg-6">
-                            <div class="card data-panel p-4 h-100">
-                                <h5 class="mb-3"><i class="fas fa-paper-plane me-2"></i>Targeted Notification</h5>
+                            <div class="card card-body h-100">
+                                <h2 class="section-title"><i class="fas fa-paper-plane" aria-hidden="true"></i>Targeted Notification</h2>
                                 <form id="targetedForm">
                                     <div class="mb-3">
                                         <label class="form-label" for="targetUserIds">User IDs (comma separated)</label>
@@ -233,8 +225,8 @@
                         </div>
                     </div>
 
-                    <div class="card data-panel p-4 mt-4">
-                        <h5 class="mb-3"><i class="fas fa-fire me-2 text-warning"></i>Deal Campaign</h5>
+                    <div class="card card-body">
+                        <h2 class="section-title"><i class="fas fa-fire" aria-hidden="true"></i>Deal Campaign</h2>
                         <form id="dealForm" class="row g-3">
                             <div class="col-md-4">
                                 <label class="form-label" for="dealHotelName">Hotel Name</label>
@@ -259,7 +251,7 @@
 
                 <!-- ═══ SEND HISTORY PANE ═══ -->
                 <div class="tab-pane fade" id="pane-history" role="tabpanel">
-                    <div class="card data-panel">
+                    <div class="card">
                         <div class="card-header">
                             <span><i class="fas fa-history me-2"></i>Notification Delivery Log</span>
                             <span id="historyCount" style="font-weight:500;font-size:0.85rem;color:var(--text-secondary);">Loading...</span>

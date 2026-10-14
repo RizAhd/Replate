@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="description" content="Analytics - REPLATE Hotel - REPLATE food rescue.">
-    <meta name="theme-color" content="#1a6b3c">
+    <meta name="theme-color" content="#f3f4f6">
     <meta name="robots" content="noindex, nofollow">
     <title>Analytics - REPLATE Hotel</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -17,31 +17,6 @@
     <link rel="icon" href="../assets/favicon.ico" sizes="any">
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
     <link rel="manifest" href="../manifest.webmanifest">
-    <style>
-        .delta { font-size: 0.78rem; font-weight: 600; display: inline-flex; align-items: center; gap: 3px; margin-left: 6px; }
-        .delta.up { color: var(--success); }
-        .delta.down { color: var(--danger); }
-        .delta.flat { color: var(--text-tertiary); }
-        .chart-card { position: relative; }
-        .chart-card h5 { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-        .chart-card h5 i { font-size: 0.85rem; opacity: 0.5; }
-        .recent-orders-table { font-size: 0.82rem; }
-        .recent-orders-table td, .recent-orders-table th { padding: 10px 14px; }
-        @media (max-width: 767.98px) {
-            .chart-card h5 {
-                font-size: 0.9rem;
-                flex-wrap: wrap;
-            }
-            .recent-orders-table td,
-            .recent-orders-table th {
-                padding: 8px 0;
-            }
-            #periodLabel {
-                width: 100%;
-                margin-top: 8px;
-            }
-        }
-    </style>
 </head>
 <body>
 <a class="skip-link" href="#mainContent">Skip to content</a>
@@ -51,55 +26,49 @@
         <nav id="appShellSidebar" class="sidebar"></nav>
 
         <main id="mainContent">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <div class="page-header">
                 <div>
                     <h1 class="panel-title">Analytics</h1>
-                    <p class="panel-subtitle mb-0">Revenue and order insights for your hotel.</p>
+                    <p class="panel-subtitle">Revenue and order insights for your hotel.</p>
                 </div>
-                <span id="periodLabel" style="font-size:0.82rem;font-weight:600;color:var(--text-secondary);"><i class="fas fa-clock me-1"></i>Real-time data</span>
+                <span id="periodLabel" class="live-indicator"><span class="live-dot" aria-hidden="true"></span>Live</span>
             </div>
 
             <!-- Stat Cards -->
-            <div class="row mb-4 g-3">
-                <div class="col-md-3 col-6">
-                    <div class="stat-card card">
-                        <h6><i class="fas fa-dollar-sign me-1"></i>Revenue (completed orders)</h6>
-                        <h3 id="statRevenue">LKR 0</h3>
-                        <span class="delta flat" id="deltaRevenue"></span>
-                    </div>
+            <div class="stat-grid">
+                <div class="card stat-card">
+                    <p class="stat-value num" id="statRevenue">LKR 0.00</p>
+                    <p class="stat-label"><i class="fas fa-coins" aria-hidden="true"></i>Revenue (completed)</p>
+                    <p class="stat-meta"><span class="delta flat" id="deltaRevenue"></span></p>
                 </div>
-                <div class="col-md-3 col-6">
-                    <div class="stat-card card">
-                        <h6><i class="fas fa-receipt me-1"></i>Total Orders</h6>
-                        <h3 id="statOrders">0</h3>
-                        <span class="delta flat" id="deltaOrders"></span>
-                    </div>
+                <div class="card stat-card">
+                    <p class="stat-value num" id="statOrders">0</p>
+                    <p class="stat-label"><i class="fas fa-receipt" aria-hidden="true"></i>Orders</p>
+                    <p class="stat-meta"><span class="delta flat" id="deltaOrders"></span></p>
                 </div>
-                <div class="col-md-3 col-6">
-                    <div class="stat-card card">
-                        <h6><i class="fas fa-check-circle me-1"></i>Completion Rate</h6>
-                        <h3 id="statCompletionRate">0%</h3>
-                    </div>
+                <div class="card stat-card">
+                    <p class="stat-value num" id="statCompletionRate">0%</p>
+                    <p class="stat-label"><i class="fas fa-circle-check" aria-hidden="true"></i>Completion rate</p>
+                    <p class="stat-meta"></p>
                 </div>
-                <div class="col-md-3 col-6">
-                    <div class="stat-card card">
-                        <h6><i class="fas fa-utensils me-1"></i>Active Listings</h6>
-                        <h3 id="statListings">0</h3>
-                    </div>
+                <div class="card stat-card">
+                    <p class="stat-value num" id="statListings">0</p>
+                    <p class="stat-label"><i class="fas fa-utensils" aria-hidden="true"></i>Active listings</p>
+                    <p class="stat-meta"></p>
                 </div>
             </div>
 
             <!-- Charts Row 1 -->
             <div class="row">
                 <div class="col-lg-8">
-                    <div class="card p-4 mb-4 chart-card">
-                        <h5><i class="fas fa-chart-area"></i> Revenue (Last 7 Days)</h5>
+                    <div class="card card-body chart-card">
+                        <h2 class="section-title"><i class="fas fa-chart-area" aria-hidden="true"></i>Revenue (Last 7 Days)</h2>
                         <div class="chart-wrap"><canvas id="revenueChart" role="img" aria-label="revenueChart chart"></canvas></div>
                     </div>
                 </div>
                 <div class="col-lg-4">
-                    <div class="card p-4 mb-4 chart-card">
-                        <h5><i class="fas fa-chart-pie"></i> Order Status</h5>
+                    <div class="card card-body chart-card">
+                        <h2 class="section-title"><i class="fas fa-chart-pie" aria-hidden="true"></i>Order Status</h2>
                         <div class="chart-wrap"><canvas id="statusChart" role="img" aria-label="statusChart chart"></canvas></div>
                     </div>
                 </div>
@@ -108,21 +77,21 @@
             <!-- Charts Row 2 -->
             <div class="row">
                 <div class="col-lg-6">
-                    <div class="card p-4 mb-4 chart-card">
-                        <h5><i class="fas fa-chart-line"></i> Orders per Day (Last 14 Days)</h5>
+                    <div class="card card-body chart-card">
+                        <h2 class="section-title"><i class="fas fa-chart-line" aria-hidden="true"></i>Orders per Day (Last 14 Days)</h2>
                         <div class="chart-wrap"><canvas id="ordersLineChart" role="img" aria-label="ordersLineChart chart"></canvas></div>
                     </div>
                 </div>
                 <div class="col-lg-6">
-                    <div class="card p-4 mb-4 chart-card">
-                        <h5><i class="fas fa-tags"></i> Top Selling Items</h5>
+                    <div class="card card-body chart-card">
+                        <h2 class="section-title"><i class="fas fa-tags" aria-hidden="true"></i>Top Selling Items</h2>
                         <div class="chart-wrap"><canvas id="topItemsChart" role="img" aria-label="topItemsChart chart"></canvas></div>
                     </div>
                 </div>
             </div>
 
             <!-- Recent Orders Table -->
-            <div class="card mb-4">
+            <div class="card">
                 <div class="card-header">
                     <span><i class="fas fa-history me-2"></i>Recent Orders</span>
                     <a href="orders.html" class="btn btn-sm btn-outline-primary">View All</a>
@@ -140,7 +109,7 @@
                                 </tr>
                             </thead>
                             <tbody id="recentOrdersBody">
-                                <tr><td colspan="5" class="text-center py-4" style="color:var(--text-tertiary);">Loading...</td></tr>
+                                <tr><td colspan="5" class="text-center text-muted py-4">Loading…</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -429,7 +398,7 @@
                     }
                 });
             } else {
-                document.getElementById('topItemsChart').parentElement.innerHTML += '<p class="text-center mt-3" style="color:var(--text-tertiary);font-size:0.85rem;">No order data yet.</p>';
+                document.getElementById('topItemsChart').parentElement.innerHTML += '<p class="text-center text-muted mt-3">No order data yet.</p>';
             }
 
             // ── Recent orders table ──

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="description" content="Users - REPLATE Admin - REPLATE food rescue.">
-    <meta name="theme-color" content="#1a6b3c">
+    <meta name="theme-color" content="#f3f4f6">
     <meta name="robots" content="noindex, nofollow">
     <title>Users - REPLATE Admin</title>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -28,42 +28,34 @@
         <nav id="appShellSidebar" class="sidebar"></nav>
 
         <main id="mainContent">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <div class="page-header">
                 <div>
                     <h1 class="panel-title">Manage Users</h1>
-                    <p class="panel-subtitle mb-0">See every customer and hotel account. Suspending an account signs the person out and blocks them from signing in until you enable it again.</p>
+                    <p class="panel-subtitle">See every customer and hotel account. Suspending an account signs the person out and blocks them from signing in until you enable it again.</p>
                 </div>
             </div>
 
             <!-- Totals -->
-            <div class="row mb-4 g-3">
-                <div class="col-md-3 col-6">
-                    <div class="stat-card card">
-                        <h6><i class="fas fa-users me-1" aria-hidden="true"></i>All users</h6>
-                        <h3 id="countAll">0</h3>
-                    </div>
+            <div class="stat-grid">
+                <div class="card stat-card">
+                    <p class="stat-value num" id="countAll">0</p>
+                    <p class="stat-label"><i class="fas fa-users" aria-hidden="true"></i>All users</p>
                 </div>
-                <div class="col-md-3 col-6">
-                    <div class="stat-card card">
-                        <h6><i class="fas fa-user me-1" aria-hidden="true"></i>Customers</h6>
-                        <h3 id="countCustomers">0</h3>
-                    </div>
+                <div class="card stat-card">
+                    <p class="stat-value num" id="countCustomers">0</p>
+                    <p class="stat-label"><i class="fas fa-user" aria-hidden="true"></i>Customers</p>
                 </div>
-                <div class="col-md-3 col-6">
-                    <div class="stat-card card">
-                        <h6><i class="fas fa-hotel me-1" aria-hidden="true"></i>Hotels</h6>
-                        <h3 id="countHotels">0</h3>
-                    </div>
+                <div class="card stat-card">
+                    <p class="stat-value num" id="countHotels">0</p>
+                    <p class="stat-label"><i class="fas fa-hotel" aria-hidden="true"></i>Hotels</p>
                 </div>
-                <div class="col-md-3 col-6">
-                    <div class="stat-card card">
-                        <h6><i class="fas fa-user-slash me-1" aria-hidden="true"></i>Suspended</h6>
-                        <h3 id="countSuspended">0</h3>
-                    </div>
+                <div class="card stat-card">
+                    <p class="stat-value num" id="countSuspended">0</p>
+                    <p class="stat-label"><i class="fas fa-user-slash" aria-hidden="true"></i>Suspended</p>
                 </div>
             </div>
 
-            <div class="card data-panel p-3">
+            <div class="card card-body">
                 <div class="d-flex justify-content-end mb-2">
                     <button type="button" class="btn btn-sm btn-outline-primary" id="exportUsers"><i class="fas fa-download me-1" aria-hidden="true"></i>Export CSV</button>
                 </div>
