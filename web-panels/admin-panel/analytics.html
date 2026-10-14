@@ -64,10 +64,11 @@
                     <p class="stat-label"><i class="fas fa-users" aria-hidden="true"></i>Registered users</p>
                     <p class="stat-meta"><span id="userSplit"></span></p>
                 </div>
-                <div class="card stat-card">
+                <div class="card stat-card" title="Estimates: about 0.4 kg of food per meal and 2.5 kg CO2e per kg of food not wasted">
                     <p class="stat-value num" id="foodSaved">—</p>
-                    <p class="stat-label"><i class="fas fa-leaf" aria-hidden="true"></i>Food rescued</p>
-                    <p class="stat-meta"></p>
+                    <p class="stat-label"><i class="fas fa-leaf" aria-hidden="true"></i>Meals rescued</p>
+                    <p class="stat-meta">about <span class="num" id="impactFoodKg">—</span> food</p>
+                    <p class="stat-meta">about <span class="num" id="impactCo2eKg">—</span> CO2e</p>
                 </div>
             </div>
 
@@ -91,11 +92,8 @@
                 <div class="card stat-card">
                     <p class="stat-value num" id="hotelCountBig">—</p>
                     <p class="stat-label"><i class="fas fa-hotel" aria-hidden="true"></i>Registered hotels</p>
-                    <dl class="stat-breakdown">
-                        <div><dt>Approved</dt><dd class="num" id="hotelApproved">0</dd></div>
-                        <div><dt>Pending</dt><dd class="num" id="hotelPending">0</dd></div>
-                        <div><dt>Rejected or suspended</dt><dd class="num" id="hotelRejected">0</dd></div>
-                    </dl>
+                    <p class="stat-meta"><span class="num" id="hotelApproved">0</span> approved · <span class="num" id="hotelPending">0</span> pending</p>
+                    <p class="stat-meta"><span class="num" id="hotelRejected">0</span> rejected or suspended</p>
                 </div>
             </div>
 
@@ -199,18 +197,6 @@
     function currentRange() { return document.getElementById('rangeFilter').value; }
 
     // ── Helpers ─────────────────────────────────────────────
-    // Shows the percent change versus the last period with an arrow.
-    function setDelta(elId, current, previous) {
-        const el = document.getElementById(elId);
-        if (!el) return;
-        if (previous === 0 && current === 0) { el.textContent = ''; el.className = 'delta flat'; return; }
-        if (previous === 0) { el.innerHTML = '<i class="fas fa-arrow-up" aria-hidden="true"></i> New'; el.className = 'delta up'; return; }
-        const pct = Math.round(((current - previous) / previous) * 100);
-        if (pct > 0) { el.innerHTML = `<i class="fas fa-arrow-up" aria-hidden="true"></i> ${ReplateSchema.formatPercent(pct)}`; el.className = 'delta up'; }
-        else if (pct < 0) { el.innerHTML = `<i class="fas fa-arrow-down" aria-hidden="true"></i> ${ReplateSchema.formatPercent(Math.abs(pct))}`; el.className = 'delta down'; }
-        else { el.innerHTML = '— flat'; el.className = 'delta flat'; }
-    }
-
     // Escapes quotes as well as angle brackets, so it is safe inside attributes too
     function escapeHtml(text) { return ReplateUI.esc(text); }
 
@@ -277,7 +263,7 @@
     // delivered). Cancelled orders count for nothing; every other state is still pending.
     function showAnalyticsError(message) {
         ReplateUI.toast(message, 'danger', 8000);
-        ['totalRevenue', 'totalOrders', 'foodSaved', 'cancelledOrders', 'expiredPickups'].forEach((id) => { document.getElementById(id).textContent = '—'; });
+        ['totalRevenue', 'totalOrders', 'foodSaved', 'impactFoodKg', 'impactCo2eKg', 'cancelledOrders', 'expiredPickups'].forEach((id) => { document.getElementById(id).textContent = '—'; });
         document.getElementById('topHotelsTable').innerHTML = '<tr><td colspan="5">' + ReplateUI.errorState(message) + '</td></tr>';
     }
 
@@ -317,7 +303,6 @@
         let cash = 0, online = 0;
         let thisWeekRevenue = 0, lastWeekRevenue = 0;
         let thisWeekOrders = 0, lastWeekOrders = 0;
-        let totalItemsRescued = 0;
         const categoryRevenue = {};
 
         orders.forEach((order) => {
@@ -328,7 +313,6 @@
             if (ReplateSchema.isSuccessfulOrder(order)) {
                 completed++;
                 revenue += amount;
-                totalItemsRescued += ReplateSchema.orderItemCount(order);
 
                 // Revenue by category (price x quantity per dish)
                 ReplateSchema.extractItemsArray(order).forEach((item) => {
@@ -370,9 +354,13 @@
 
         document.getElementById('totalRevenue').innerHTML = ReplateUI.moneyHtml(revenue);
         document.getElementById('totalOrders').textContent = total;
-        document.getElementById('foodSaved').textContent = ReplateSchema.plural(totalItemsRescued, 'item');
-        setDelta('deltaRevenue', thisWeekRevenue, lastWeekRevenue);
-        setDelta('deltaOrders', thisWeekOrders, lastWeekOrders);
+        // Impact for the chosen range: meals from completed and delivered orders, weights are estimates (same rule as the app)
+        const impact = ReplateSchema.impactFromOrders(orders);
+        document.getElementById('foodSaved').textContent = impact.meals;
+        document.getElementById('impactFoodKg').textContent = ReplateSchema.formatKg(impact.foodKg);
+        document.getElementById('impactCo2eKg').textContent = ReplateSchema.formatKg(impact.co2eKg);
+        ReplateUI.setDelta('deltaRevenue', thisWeekRevenue, lastWeekRevenue);
+        ReplateUI.setDelta('deltaOrders', thisWeekOrders, lastWeekOrders);
 
         // ── Every week of the chosen range (from the first order for all time), empty weeks as 0 ──
         const weeks = ReplateSchema.weeklySeries(orders, ReplateSchema.rangeStart(range, now), now);
@@ -420,7 +408,7 @@
                 labels: ['Cash', 'Online'],
                 datasets: [{
                     data: hasPayData ? [cash, online] : [1],
-                    backgroundColor: hasPayData ? [C.brand, C.blue] : [C.empty],
+                    backgroundColor: hasPayData ? [C.brand, C.accent] : [C.empty],
                     borderWidth: 0,
                     hoverOffset: 6
                 }]

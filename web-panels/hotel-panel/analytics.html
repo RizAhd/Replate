@@ -150,18 +150,6 @@
         return resolvedHotelIds.has(hid);
     }
 
-    // Shows the percent change versus the last period with an arrow.
-    function setDelta(elId, current, previous) {
-        const el = document.getElementById(elId);
-        if (!el) return;
-        if (previous === 0 && current === 0) { el.textContent = ''; el.className = 'delta flat'; return; }
-        if (previous === 0) { el.innerHTML = '<i class="fas fa-arrow-up" aria-hidden="true"></i> New'; el.className = 'delta up'; return; }
-        const pct = Math.round(((current - previous) / previous) * 100);
-        if (pct > 0) { el.innerHTML = `<i class="fas fa-arrow-up" aria-hidden="true"></i> ${ReplateSchema.formatPercent(pct)}`; el.className = 'delta up'; }
-        else if (pct < 0) { el.innerHTML = `<i class="fas fa-arrow-down" aria-hidden="true"></i> ${ReplateSchema.formatPercent(Math.abs(pct))}`; el.className = 'delta down'; }
-        else { el.innerHTML = '— flat'; el.className = 'delta flat'; }
-    }
-
     // ── Active listings count ───────────────────────────────
     function loadActiveListings(uid) {
         ReplateSchema.hotelFoodItems(database, resolvedHotelIds).on((snap) => {
@@ -247,8 +235,8 @@
             document.getElementById('statOrders').textContent = totalOrders;
             const completionRate = totalOrders > 0 ? Math.round((completed / totalOrders) * 100) : 0;
             document.getElementById('statCompletionRate').textContent = ReplateSchema.formatPercent(completionRate);
-            setDelta('deltaRevenue', thisWeekRevenue, lastWeekRevenue);
-            setDelta('deltaOrders', thisWeekOrders, lastWeekOrders);
+            ReplateUI.setDelta('deltaRevenue', thisWeekRevenue, lastWeekRevenue);
+            ReplateUI.setDelta('deltaOrders', thisWeekOrders, lastWeekOrders);
 
             // ── Revenue bar chart (last 7 days, by the day each order was completed) ──
             const C = ReplateUI.chartColors;

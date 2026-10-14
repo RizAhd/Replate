@@ -550,17 +550,18 @@ const ReplateUI = (() => {
     }, true));
 
     // ── Charts (Chart.js) ──────────────────────────────────────────────────
+    // Only brand colours: leaf greens and ember oranges, with one slate grey for "other"
     const chartColors = {
         brand: '#1a6b3c',
         brandSoft: 'rgba(26, 107, 60, 0.12)',
-        blue: '#2563eb',
+        accent: '#e8521a',
         success: '#047857',
         warning: '#b45309',
         danger: '#b91c1c',
         empty: '#e5e7eb',
         grid: 'rgba(17, 24, 39, 0.06)',
-        // categories: easy to tell apart, none of them reused for a status colour
-        series: ['#1a6b3c', '#2563eb', '#7c3aed', '#db2777', '#0891b2', '#64748b', '#65a30d', '#a16207']
+        // categories: green and orange take turns, light and dark apart, so neighbours never look alike
+        series: ['#1a6b3c', '#e8521a', '#25a55a', '#9a3412', '#0d3b1e', '#f97316', '#64748b', '#86c49c']
     };
 
     // Poppins, readable sizes and calm motion for every chart on the page
@@ -611,6 +612,18 @@ const ReplateUI = (() => {
     function describeChart(canvasId, text) {
         const canvas = document.getElementById(canvasId);
         if (canvas) canvas.setAttribute('aria-label', text);
+    }
+
+    const DELTA_ICONS = { up: 'fa-arrow-up', down: 'fa-arrow-down' };
+
+    /** This week against last week in a .delta element: arrow, "12% vs last week", coloured by direction. */
+    function setDelta(target, current, previous) {
+        const el = byId(target);
+        if (!el) return;
+        const delta = ReplateSchema.weekDelta(current, previous);
+        el.className = 'delta ' + (delta.dir === 'none' ? 'flat' : delta.dir);
+        const icon = DELTA_ICONS[delta.dir] ? `<i class="fas ${DELTA_ICONS[delta.dir]}" aria-hidden="true"></i>` : '';
+        el.innerHTML = delta.text ? icon + esc(delta.text) : '';
     }
 
     // ── File download ───────────────────────────────────────────────────────
@@ -689,6 +702,7 @@ const ReplateUI = (() => {
         axisMoney,
         chartEmpty,
         describeChart,
+        setDelta,
         errorState
     };
 })();

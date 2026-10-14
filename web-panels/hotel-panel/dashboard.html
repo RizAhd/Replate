@@ -44,16 +44,19 @@
                     <p class="stat-label"><i class="fas fa-coins" aria-hidden="true"></i>Completed revenue</p>
                 </div>
                 <div class="card stat-card">
+                    <p class="stat-value num" id="statPending">—</p>
+                    <p class="stat-label"><i class="fas fa-clock" aria-hidden="true"></i>Open orders</p>
+                    <p class="stat-meta"><span class="num" id="statTotal">—</span> <span id="statTotalWord">orders</span> in total</p>
+                </div>
+                <div class="card stat-card">
                     <p class="stat-value num" id="statActive">—</p>
                     <p class="stat-label"><i class="fas fa-utensils" aria-hidden="true"></i>Active listings</p>
                 </div>
-                <div class="card stat-card">
-                    <p class="stat-value num" id="statPending">—</p>
-                    <p class="stat-label"><i class="fas fa-clock" aria-hidden="true"></i>Open orders</p>
-                </div>
-                <div class="card stat-card">
-                    <p class="stat-value num" id="statTotal">—</p>
-                    <p class="stat-label"><i class="fas fa-receipt" aria-hidden="true"></i>Total orders</p>
+                <div class="card stat-card" title="Estimates: about 0.4 kg of food per meal and 2.5 kg CO2e per kg of food not wasted">
+                    <p class="stat-value num" id="statMeals">—</p>
+                    <p class="stat-label"><i class="fas fa-leaf" aria-hidden="true"></i>Meals rescued</p>
+                    <p class="stat-meta">about <span class="num" id="statFoodKg">—</span> food</p>
+                    <p class="stat-meta">about <span class="num" id="statCo2eKg">—</span> CO2e</p>
                 </div>
             </div>
 
@@ -200,6 +203,13 @@
             document.getElementById('statRevenue').innerHTML = ReplateUI.moneyHtml(revenue);
             document.getElementById('statPending').textContent = pending;
             document.getElementById('statTotal').textContent = total;
+            document.getElementById('statTotalWord').textContent = total === 1 ? 'order' : 'orders';
+
+            // Impact: meals from completed and delivered orders; the weights are estimates (same rule as the app)
+            const impact = ReplateSchema.impactFromOrders(recentOrders);
+            document.getElementById('statMeals').textContent = impact.meals;
+            document.getElementById('statFoodKg').textContent = ReplateSchema.formatKg(impact.foodKg);
+            document.getElementById('statCo2eKg').textContent = ReplateSchema.formatKg(impact.co2eKg);
 
             renderEarningsAndPopular(recentOrders);
 

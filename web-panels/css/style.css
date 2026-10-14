@@ -624,33 +624,6 @@ form,
     min-height: 18px;
 }
 
-/* Small breakdown under a stat value (e.g. hotels by status): label left, number right */
-.stat-breakdown {
-    margin: var(--space-3) 0 0;
-    padding-top: var(--space-2);
-    border-top: 1px solid var(--border-light);
-}
-
-.stat-breakdown > div {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: var(--space-3);
-    padding: 2px 0;
-}
-
-.stat-breakdown dt {
-    font-size: var(--fs-12);
-    font-weight: var(--fw-regular);
-    color: var(--text-secondary);
-}
-
-.stat-breakdown dd {
-    margin: 0;
-    font-size: var(--fs-14);
-    font-weight: var(--fw-semibold);
-}
-
 /* One quiet "this page updates by itself" marker */
 .live-indicator {
     display: inline-flex;
