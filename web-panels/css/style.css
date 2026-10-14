@@ -1690,7 +1690,40 @@ label.switch-hit {
 
     .table-stack tbody td.actions-cell::before,
     .table-stack tbody td.cell-media::before,
+    .table-stack tbody td.cell-action-compact::before,
     .table-stack tbody td[colspan]::before {
+        display: none;
+    }
+
+    /* Key facts first: the first field and the status share the top row, long text and buttons go last */
+    .table-stack tbody td {
+        order: 2;
+    }
+
+    .table-stack tbody td[data-label="Status"] {
+        order: 1;
+    }
+
+    .table-stack tbody td.cell-wide,
+    .table-stack tbody td.title-cell {
+        order: 5;
+    }
+
+    .table-stack tbody td.actions-cell {
+        order: 9;
+    }
+
+    .table-stack tbody td:first-child,
+    .table-stack tbody td.cell-media + td {
+        order: 0;
+    }
+
+    .table-stack tbody td.cell-action-compact {
+        align-self: end;
+    }
+
+    /* nothing to show (no review yet, no action for an admin account) */
+    .table-stack tbody td.cell-empty {
         display: none;
     }
 

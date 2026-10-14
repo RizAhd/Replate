@@ -230,7 +230,7 @@
                         <td class="cell-wide" data-label="Items">${esc(ReplateSchema.extractItemNames(order))}</td>
                         <td data-label="Amount" class="num" data-order="${esc(ReplateSchema.orderAmount(order))}">${esc(amount)}</td>
                         <td data-label="Payment">${paymentCell(order)}</td>
-                        <td data-label="Review">${rating > 0 ? `<span class="rating"><i class="fas fa-star" aria-hidden="true"></i>${rating.toFixed(1)}</span>` : '<span class="text-muted" aria-label="No review">—</span>'}</td>
+                        <td data-label="Review"${rating > 0 ? '' : ' class="cell-empty"'}>${rating > 0 ? `<span class="rating"><i class="fas fa-star" aria-hidden="true"></i>${rating.toFixed(1)}</span>` : '<span class="text-muted" aria-label="No review">—</span>'}</td>
                         <td data-label="Status"><span class="badge ${esc(ReplateSchema.statusBadgeClass(status))}">${esc(label)}</span></td>
                     </tr>`);
             });

@@ -264,7 +264,7 @@
                         <td data-label="Customer">${esc(order.customerName || 'Customer')}${order.customerPhone ? `<br><small class="text-muted num">${esc(order.customerPhone)}</small>` : ''}</td>
                         <td class="cell-wide" data-label="Items"><i class="fas ${isDelivery ? 'fa-truck' : 'fa-bag-shopping'} text-muted item-icon" aria-hidden="true" title="${isDelivery ? 'Delivery' : 'Pickup'}"></i>${esc(ReplateSchema.extractItemNames(order))}</td>
                         <td data-label="Total" class="num">${esc(ReplateSchema.formatMoney(ReplateSchema.orderAmount(order)))}</td>
-                        <td data-label="Review">${reviewText}</td>
+                        <td data-label="Review"${review > 0 ? '' : ' class="cell-empty"'}>${reviewText}</td>
                         <td data-label="Status" class="status-cell"><span class="badge ${esc(ReplateSchema.statusBadgeClass(status))}">${esc(ReplateSchema.statusLabel(status))}</span>${isActive && ReplateSchema.isPickupExpired(order) ? ' <span class="badge badge-warning" title="The pickup slot has ended, so the QR code and OTP no longer work">Slot ended</span>' : ''}</td>
                         <td data-label="Action" class="actions-cell">${actionButtons(key, status, isDelivery, isActive)}</td>
                     </tr>`;

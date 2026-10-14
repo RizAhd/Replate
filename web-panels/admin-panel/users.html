@@ -249,7 +249,7 @@
                     <td data-label="Role" class="text-capitalize">${esc(p.role)}</td>
                     <td data-label="Joined" data-order="${esc(p.createdAt)}" class="num">${esc(joined)}</td>
                     <td data-label="Status">${status}</td>
-                    <td data-label="Action" class="actions-cell">${action}</td>
+                    <td data-label="Action" class="cell-action-compact${p.role !== 'admin' && p.uid !== currentAdminUid ? '' : ' cell-empty'}">${action}</td>
                 </tr>`;
         }).join('');
 
