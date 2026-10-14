@@ -113,9 +113,7 @@
 
     // Gives the pickup time range as text.
     function pickupWindow(item) {
-        const start = item.pickupTimeStart || item.pickupStart || '';
-        const end = item.pickupTimeEnd || item.pickupEnd || '';
-        return start || end ? (start || '?') + ' – ' + (end || '?') : '—';
+        return ReplateSchema.formatPickupWindow(item.pickupTimeStart || item.pickupStart, item.pickupTimeEnd || item.pickupEnd);
     }
 
     // Reads the discounted price as a number.
